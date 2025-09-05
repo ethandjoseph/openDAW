@@ -99,6 +99,8 @@ export const initAppMenu = (service: StudioService) => {
                                     .setTriggerProcedure(() => RouteLocation.get().navigateTo("/errors")),
                                 MenuItem.default({label: "・ Graph"})
                                     .setTriggerProcedure(() => RouteLocation.get().navigateTo("/graph")),
+                                MenuItem.default({label: "・ Code"})
+                                    .setTriggerProcedure(() => RouteLocation.get().navigateTo("/code")),
                                 MenuItem.default({
                                     label: "Throw an error in main-thread 💣",
                                     separatorBefore: true,

@@ -13,6 +13,7 @@ import {Header} from "@/ui/header/Header"
 import {ErrorsPage} from "@/ui/pages/ErrorsPage.tsx"
 import {ImprintPage} from "@/ui/pages/ImprintPage.tsx"
 import {GraphPage} from "@/ui/pages/GraphPage"
+import {CodeEditorPage} from "@/ui/pages/CodeEditorPage"
 
 export const App = (service: StudioService) => {
     const terminator = new Terminator()
@@ -32,6 +33,7 @@ export const App = (service: StudioService) => {
                     {path: "/manuals/*", factory: ManualPage},
                     {path: "/imprint", factory: ImprintPage},
                     {path: "/icons", factory: IconsPage},
+                    {path: "/code", factory: CodeEditorPage},
                     {path: "/components", factory: ComponentsPage},
                     {path: "/automation", factory: AutomationPage},
                     {path: "/errors", factory: ErrorsPage},
