@@ -11,7 +11,7 @@ import {
     int,
     Integer,
     MutableObservableValue,
-    Nullish,
+    Maybe,
     ObservableValue,
     Observer,
     safeExecute,
@@ -84,7 +84,7 @@ export abstract class PrimitiveField<
         this.#value = this.#initValue
     }
 
-    accept<RETURN>(visitor: VertexVisitor<RETURN>): Nullish<RETURN> {
+    accept<RETURN>(visitor: VertexVisitor<RETURN>): Maybe<RETURN> {
         return safeExecute(visitor.visitPrimitiveField, this as PrimitiveField)
     }
 

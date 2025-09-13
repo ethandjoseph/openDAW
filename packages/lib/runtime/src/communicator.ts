@@ -1,4 +1,4 @@
-import {asDefined, assert, int, isDefined, Iterables, Nullish, panic, Subscription, Terminable} from "@opendaw/lib-std"
+import {asDefined, assert, int, isDefined, Iterables, Maybe, panic, Subscription, Terminable} from "@opendaw/lib-std"
 import {Messenger} from "./messenger"
 import {ExecutorTuple} from "./promises"
 
@@ -64,7 +64,7 @@ export namespace Communicator {
         })
 
         readonly #messageHandler = (message: Resolve | Reject | Callback) => {
-            const returns: Nullish<Return> = this.#expected.get(message.returnId)
+            const returns: Maybe<Return> = this.#expected.get(message.returnId)
             if (isDefined(returns)) {
                 if (message.type === "resolve") {
                     returns.executorTuple.resolve(message.resolve)

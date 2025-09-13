@@ -1,4 +1,4 @@
-import {ByteArrayInput, ByteArrayOutput, Nullish, Option, safeExecute, Unhandled, UUID} from "@opendaw/lib-std"
+import {ByteArrayInput, ByteArrayOutput, Maybe, Option, safeExecute, Unhandled, UUID} from "@opendaw/lib-std"
 import {NoPointers, VertexVisitor} from "./vertex"
 import {Field, FieldConstruct} from "./field"
 import {Box, BoxConstruct} from "./box"
@@ -82,7 +82,7 @@ class FooBox extends Box<PointerType.C, FooBoxFields> {
         }
     }
 
-    accept<R>(visitor: BoxVisitor<R>): Nullish<R> {
+    accept<R>(visitor: BoxVisitor<R>): Maybe<R> {
         return safeExecute(visitor.visitFooBox, this)
     }
 
@@ -149,7 +149,7 @@ class BarBox extends Box<UnreferenceableType, BarBoxFields> {
         }
     }
 
-    accept<RETURN>(visitor: BoxVisitor<RETURN>): Nullish<RETURN> {
+    accept<RETURN>(visitor: BoxVisitor<RETURN>): Maybe<RETURN> {
         return safeExecute(visitor.visitBarBox, this)
     }
 

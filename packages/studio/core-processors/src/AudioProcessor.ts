@@ -1,5 +1,5 @@
 import {Event, PPQN} from "@opendaw/lib-dsp"
-import {assert, int, Nullish, panic} from "@opendaw/lib-std"
+import {assert, int, Maybe, panic} from "@opendaw/lib-std"
 import {Block, ProcessInfo} from "./processing"
 import {AbstractProcessor} from "./AbstractProcessor"
 import {UpdateEvent} from "./UpdateClock"
@@ -14,7 +14,7 @@ export abstract class AudioProcessor extends AbstractProcessor {
         blocks.forEach((block) => {
             this.introduceBlock(block)
             const {index, p0, s0, s1, bpm} = block
-            let anyEvents: Nullish<Array<Event>> = null
+            let anyEvents: Maybe<Array<Event>> = null
             let fromIndex = s0
             for (const event of this.eventInput.get(index)) {
                 const pulses = event.position - p0

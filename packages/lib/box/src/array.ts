@@ -1,6 +1,6 @@
 import {Field, FieldConstruct} from "./field"
 import {UnreferenceableType} from "./pointer"
-import {Arrays, asDefined, DataInput, DataOutput, int, Nullish, Option, safeExecute} from "@opendaw/lib-std"
+import {Arrays, asDefined, DataInput, DataOutput, int, Maybe, Option, safeExecute} from "@opendaw/lib-std"
 import {NoPointers, VertexVisitor} from "./vertex"
 
 export type ArrayFieldFactory<FIELD extends Field> = (construct: FieldConstruct<UnreferenceableType>) => FIELD
@@ -26,7 +26,7 @@ export class ArrayField<FIELD extends Field = Field>
         }), length)
     }
 
-    accept<RETURN>(visitor: VertexVisitor<RETURN>): Nullish<RETURN> {
+    accept<RETURN>(visitor: VertexVisitor<RETURN>): Maybe<RETURN> {
         return safeExecute(visitor.visitArrayField, this)
     }
 

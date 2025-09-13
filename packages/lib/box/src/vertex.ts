@@ -1,4 +1,4 @@
-import {DataInput, DataOutput, Nullish, Option} from "@opendaw/lib-std"
+import {DataInput, DataOutput, Maybe, Option} from "@opendaw/lib-std"
 import {Addressable} from "./address"
 import {Box} from "./box"
 import {Field, Fields} from "./field"
@@ -25,7 +25,7 @@ export interface VertexVisitor<RETURN = void> {
 }
 
 export interface Visitable {
-    accept<VISITOR extends VertexVisitor<any>>(visitor: VISITOR): VISITOR extends VertexVisitor<infer R> ? Nullish<R> : void
+    accept<VISITOR extends VertexVisitor<any>>(visitor: VISITOR): VISITOR extends VertexVisitor<infer R> ? Maybe<R> : void
 }
 
 export interface Vertex<P extends PointerTypes = PointerTypes, F extends Fields = any> extends Addressable, Visitable {

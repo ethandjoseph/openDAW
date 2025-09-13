@@ -1,15 +1,15 @@
-import {isDefined, Nullish} from "./lang"
+import {isDefined, Maybe} from "./lang"
 
 export namespace Strings {
     export const hyphenToCamelCase = (value: string) => value
         .replace(/-([a-z])/g, (g: string) => g[1].toUpperCase())
 
-    export const fallback = (value: Nullish<string>, fallback: string): string =>
+    export const fallback = (value: Maybe<string>, fallback: string): string =>
         isDefined(value) && value.length > 0 ? value : fallback
 
     export const endsWithDigit = (str: string): boolean => /\d$/.test(str)
 
-    export const nonEmpty = (str: Nullish<string>, fallback: string): string =>
+    export const nonEmpty = (str: Maybe<string>, fallback: string): string =>
         isDefined(str) && str.trim().length > 0 ? str : fallback
 
     // UTF-8

@@ -1,4 +1,4 @@
-import {asDefined, assert, Class, int, isDefined, Nullish, panic, WeakMaps} from "@opendaw/lib-std"
+import {asDefined, assert, Class, int, isDefined, Maybe, panic, WeakMaps} from "@opendaw/lib-std"
 
 export namespace Xml {
     type Meta =
@@ -159,10 +159,10 @@ export namespace Xml {
         }).join("\n")
     }
 
-    export const resolveMeta = (target: Function, propertyKey: PropertyKey): Nullish<Meta> =>
+    export const resolveMeta = (target: Function, propertyKey: PropertyKey): Maybe<Meta> =>
         collectMeta(target)?.get(propertyKey)
 
-    export const collectMeta = (target: Function): Nullish<MetaMap> => {
+    export const collectMeta = (target: Function): Maybe<MetaMap> => {
         const metaMap: MetaMap = new Map<PropertyKey, Meta>()
         while (isDefined(target)) {
             const meta = MetaClassMap.get(target)

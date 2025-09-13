@@ -5,7 +5,7 @@ import {
     int,
     isDefined,
     Nullable,
-    Nullish,
+    Maybe,
     panic,
     Predicate,
     Procedure,
@@ -44,7 +44,7 @@ export class SortedSet<K, V> implements Iterable<V> {
     add(value: V, replace: boolean = false): boolean {
         const key: K = this.#extractor(value)
         const insertIndex: int = BinarySearch.leftMostMapped(this.#array, key, this.#comparator, this.#extractor)
-        const current: Nullish<V> = this.#array[insertIndex]
+        const current: Maybe<V> = this.#array[insertIndex]
         if (isDefined(current) && this.#comparator(this.#extractor(current), key) === 0) {
             if (replace) {
                 this.#array.splice(insertIndex, 1, value)
@@ -58,7 +58,7 @@ export class SortedSet<K, V> implements Iterable<V> {
 
     getOrCreate(key: K, factory: (key: K) => V): V {
         const insertIndex: int = BinarySearch.leftMostMapped(this.#array, key, this.#comparator, this.#extractor)
-        const current: Nullish<V> = this.#array[insertIndex]
+        const current: Maybe<V> = this.#array[insertIndex]
         if (isDefined(current) && this.#comparator(this.#extractor(current), key) === 0) {
             return current
         }
@@ -91,7 +91,7 @@ export class SortedSet<K, V> implements Iterable<V> {
 
     removeByKey(key: K): V {
         const deleteIndex = BinarySearch.leftMostMapped(this.#array, key, this.#comparator, this.#extractor)
-        const candidate: Nullish<V> = this.#array[deleteIndex]
+        const candidate: Maybe<V> = this.#array[deleteIndex]
         if (isDefined(candidate) && this.#comparator(this.#extractor(candidate), key) === 0) {
             this.#array.splice(deleteIndex, 1)
             return candidate
@@ -101,7 +101,7 @@ export class SortedSet<K, V> implements Iterable<V> {
 
     removeByKeyIfExist(key: K): Nullable<V> {
         const deleteIndex = BinarySearch.leftMostMapped(this.#array, key, this.#comparator, this.#extractor)
-        const candidate: Nullish<V> = this.#array[deleteIndex]
+        const candidate: Maybe<V> = this.#array[deleteIndex]
         if (isDefined(candidate) && this.#comparator(this.#extractor(candidate), key) === 0) {
             this.#array.splice(deleteIndex, 1)
             return candidate
@@ -128,7 +128,7 @@ export class SortedSet<K, V> implements Iterable<V> {
     get(key: K): V {return asDefined(this.#lookup(key), `Unknown key: ${key}`)}
 
     getOrThrow(key: K, provider: Provider<Error>): V {
-        const candidate: Nullish<V> = this.#lookup(key)
+        const candidate: Maybe<V> = this.#lookup(key)
         if (isDefined(candidate)) {return candidate} else {throw provider()}
     }
 
@@ -144,9 +144,9 @@ export class SortedSet<K, V> implements Iterable<V> {
     entries(): Iterable<[K, V]> {return this.#array.map<[K, V]>((entry: V) => [this.#extractor(entry), entry])}
     clear(): void {Arrays.clear(this.#array)}
     [Symbol.iterator](): Iterator<V> {return this.#array.values()}
-    #lookup(key: K): Nullish<V> {
+    #lookup(key: K): Maybe<V> {
         const index = BinarySearch.leftMostMapped(this.#array, key, this.#comparator, this.#extractor)
-        const candidate: Nullish<V> = this.#array[index]
+        const candidate: Maybe<V> = this.#array[index]
         return isDefined(candidate) && this.#comparator(this.#extractor(candidate), key) === 0 ? candidate : undefined
     }
 }

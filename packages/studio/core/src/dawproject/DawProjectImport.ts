@@ -9,10 +9,11 @@ import {
     isDefined,
     isInstanceOf,
     isUndefined,
+    Maybe,
     Multimap,
-    Nullish,
     NumberComparator,
     Option,
+    Optional,
     panic,
     UUID,
     ValueMapping
@@ -88,7 +89,7 @@ export namespace DawProjectImport {
         skeleton: ProjectDecoder.Skeleton
     }
 
-    const toAudioUnitCapture = (boxGraph: BoxGraph, contentType: Nullish<string>): Option<CaptureBox> => {
+    const toAudioUnitCapture = (boxGraph: BoxGraph, contentType: Maybe<string>): Option<CaptureBox> => {
         if (contentType === "audio") return Option.wrap(CaptureAudioBox.create(boxGraph, UUID.generate()))
         if (contentType === "notes") return Option.wrap(CaptureMidiBox.create(boxGraph, UUID.generate()))
         return Option.None
@@ -179,7 +180,7 @@ export namespace DawProjectImport {
                 .forEach((send, index) => {
                     const destination = asDefined(send.destination, "destination is undefined")
                     const auxSendBox = AuxSendBox.create(boxGraph, UUID.generate(), box => {
-                        const type = send.type as Nullish<SendType>
+                        const type = send.type as Maybe<SendType>
                         box.routing.setValue(type === SendType.PRE ? AudioSendRouting.Pre : AudioSendRouting.Post)
                         box.sendGain.setValue(gainToDb(send.volume?.value ?? 1.0)) // TODO Take unit into account
                         box.sendPan.setValue(ValueMapping.bipolar().y(send.pan?.value ?? 0.5)) // TODO Take unit into account
@@ -193,7 +194,7 @@ export namespace DawProjectImport {
 
         const createInstrumentBox = (audioUnitBox: AudioUnitBox,
                                      track: TrackSchema,
-                                     device: Nullish<DeviceSchema>): InstrumentBox => {
+                                     device: Maybe<DeviceSchema>): InstrumentBox => {
             if (isDefined(device)) {
                 const {deviceName, deviceVendor, deviceID, state} = device
                 if (deviceVendor === "openDAW") {
@@ -235,7 +236,7 @@ export namespace DawProjectImport {
             const channel: ChannelSchema = asDefined(track.channel)
             const audioUnitBox = createAudioUnit(channel, type, capture)
             sortAudioUnits.add(AudioUnitOrdering[type], audioUnitBox)
-            const instrumentDevice: Nullish<DeviceSchema> = ifDefined(channel.devices, devices => {
+            const instrumentDevice: Maybe<DeviceSchema> = ifDefined(channel.devices, devices => {
                 devices
                     .filter((device) => device.deviceRole === DeviceRole.NOTE_FX)
                     .forEach((device, index) => createEffect(device, audioUnitBox.midiEffects, index))
@@ -389,7 +390,7 @@ export namespace DawProjectImport {
             }
 
             const readAnyRegionContent = async (clip: ClipSchema, warpsSchema: WarpsSchema, trackBox: TrackBox): Promise<unknown> => {
-                const audio = warpsSchema.content?.at(0) as Nullish<AudioSchema>
+                const audio = warpsSchema.content?.at(0) as Optional<AudioSchema>
                 if (isUndefined(audio)) {return}
                 const warps = warpsSchema.warps
                 const warp0 = warps.at(0)

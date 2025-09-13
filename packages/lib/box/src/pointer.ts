@@ -2,7 +2,7 @@ import {
     assert,
     DataInput,
     DataOutput,
-    Nullish,
+    Maybe,
     Observer,
     Option,
     panic,
@@ -79,7 +79,7 @@ export class PointerField<P extends PointerTypes = PointerTypes> extends Field<U
     get pointerType(): P {return this.#pointerType}
     get mandatory(): boolean {return this.#mandatory}
 
-    accept<RETURN>(visitor: VertexVisitor<RETURN>): Nullish<RETURN> {
+    accept<RETURN>(visitor: VertexVisitor<RETURN>): Maybe<RETURN> {
         return safeExecute(visitor.visitPointerField, this as PointerField)
     }
 

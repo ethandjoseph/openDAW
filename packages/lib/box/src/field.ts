@@ -1,4 +1,4 @@
-import {DataInput, DataOutput, Iterables, Lazy, Nullish, Option, panic, safeExecute, short} from "@opendaw/lib-std"
+import {DataInput, DataOutput, Iterables, Lazy, Maybe, Option, panic, safeExecute, short} from "@opendaw/lib-std"
 import {Address} from "./address"
 import {Box} from "./box"
 import {PointerRules, Vertex, VertexVisitor} from "./vertex"
@@ -35,7 +35,7 @@ export class Field<P extends PointerTypes = PointerTypes, F extends Fields = Fie
         if (pointerRules.mandatory) {this.graph.edges().watchVertex(this)}
     }
 
-    accept<RETURN>(visitor: VertexVisitor<RETURN>): Nullish<RETURN> {
+    accept<RETURN>(visitor: VertexVisitor<RETURN>): Maybe<RETURN> {
         return safeExecute(visitor.visitField, this as Field)
     }
 

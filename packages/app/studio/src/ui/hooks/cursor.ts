@@ -1,4 +1,4 @@
-import {int, isDefined, Nullable, Nullish, Subscription, Terminable, Terminator} from "@opendaw/lib-std"
+import {int, isDefined, Nullable, Maybe, Subscription, Terminable, Terminator} from "@opendaw/lib-std"
 import {ElementCapturing} from "@/ui/canvas/capturing.ts"
 import {Surface} from "@/ui/surface/Surface.tsx"
 import {CssUtils, Events} from "@opendaw/lib-dom"
@@ -15,7 +15,7 @@ export type CursorEvent = {
 }
 
 export type CursorProvider<TYPE> = {
-    get: (capture: TYPE, event: CursorEvent) => Nullish<CssUtils.Cursor | number>
+    get: (capture: TYPE, event: CursorEvent) => Maybe<CssUtils.Cursor | number>
     leave?: () => void // cleanup, if you synchronized someting to certain cursors
 }
 

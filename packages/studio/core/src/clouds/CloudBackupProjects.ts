@@ -1,8 +1,8 @@
 import {
     Arrays,
     Errors,
-    isUndefined,
-    Nullish,
+    isAbsent,
+    Maybe,
     Objects,
     panic,
     Procedure,
@@ -68,8 +68,8 @@ export class CloudBackupProjects {
 
     async #upload(progress: Progress.Handler): Promise<void> {
         const {local, cloud} = this.#projectDomains
-        const isUnsynced = (localProject: MetaFields, cloudProject: Nullish<MetaFields>) =>
-            isUndefined(cloudProject)
+        const isUnsynced = (localProject: MetaFields, cloudProject: Maybe<MetaFields>) =>
+            isAbsent(cloudProject)
             || new Date(cloudProject.modified).getTime() < new Date(localProject.modified).getTime()
         const unsyncedProjects: ReadonlyArray<[UUID.String, MetaFields]> = Object.entries(local)
             .filter(([uuid, localProject]) => isUnsynced(localProject, cloud[uuid as UUID.String]))

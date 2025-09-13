@@ -2,7 +2,7 @@ import {
     DefaultObservableValue,
     int,
     Notifier,
-    Nullish,
+    Maybe,
     ObservableValue,
     Observer,
     Option,
@@ -68,7 +68,7 @@ export class NoteClipBoxAdapter implements ClipBoxAdapter<NoteEventCollectionBox
     }
 
     subscribeChange(observer: Observer<void>): Subscription {return this.#changeNotifier.subscribe(observer)}
-    accept<R>(visitor: ClipBoxAdapterVisitor<R>): Nullish<R> {return safeExecute(visitor.visitNoteClipBoxAdapter, this)}
+    accept<R>(visitor: ClipBoxAdapterVisitor<R>): Maybe<R> {return safeExecute(visitor.visitNoteClipBoxAdapter, this)}
 
     consolidate(): void {this.#box.events.refer(this.optCollection.unwrap().copy().box.owners)}
     clone(consolidate: boolean): void {

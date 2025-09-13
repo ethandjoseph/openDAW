@@ -1,6 +1,6 @@
 import {Block, ProcessInfo} from "./processing"
 import {Event, ppqn} from "@opendaw/lib-dsp"
-import {Nullish} from "@opendaw/lib-std"
+import {Maybe} from "@opendaw/lib-std"
 import {AbstractProcessor} from "./AbstractProcessor"
 import {UpdateEvent} from "./UpdateClock"
 
@@ -9,7 +9,7 @@ export abstract class EventProcessor extends AbstractProcessor {
         blocks.forEach((block) => {
             this.introduceBlock(block)
             const {index, p0, p1} = block
-            let anyEvents: Nullish<Array<Event>> = null
+            let anyEvents: Maybe<Array<Event>> = null
             let position = p0
             for (const event of this.eventInput.get(index)) {
                 anyEvents?.forEach(event => this.handleEvent(block, event))

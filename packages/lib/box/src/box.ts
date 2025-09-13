@@ -11,7 +11,7 @@ import {
     Func,
     int,
     Lazy,
-    Nullish,
+    Maybe,
     Option,
     Procedure,
     Subscription,
@@ -59,7 +59,7 @@ export abstract class Box<P extends PointerTypes = PointerTypes, F extends Field
 
     protected abstract initializeFields(): F
 
-    abstract accept<VISITOR extends VertexVisitor<any>>(visitor: VISITOR): VISITOR extends VertexVisitor<infer R> ? Nullish<R> : void
+    abstract accept<VISITOR extends VertexVisitor<any>>(visitor: VISITOR): VISITOR extends VertexVisitor<infer R> ? Maybe<R> : void
 
     fields(): Iterable<Field> {return Object.values(this.#fields)}
     getField<K extends keyof F>(key: K): F[K] {return asDefined(this.#fields[key])}

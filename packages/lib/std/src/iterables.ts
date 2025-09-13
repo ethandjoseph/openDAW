@@ -1,4 +1,4 @@
-import {Func, int, isDefined, Nullable, Nullish, Predicate, Procedure} from "./lang"
+import {Func, int, isDefined, Nullable, Maybe, Predicate, Procedure} from "./lang"
 
 export class Iterables {
     static* empty<T>(): Iterable<T> {}
@@ -63,10 +63,10 @@ export class Iterables {
         return result
     }
 
-    static filterMap<T, U>(iterable: Iterable<T>, fn: Func<T, Nullish<U>>): U[] {
+    static filterMap<T, U>(iterable: Iterable<T>, fn: Func<T, Maybe<U>>): U[] {
         const result: Array<U> = []
         for (const value of iterable) {
-            const mapped: Nullish<U> = fn(value)
+            const mapped: Maybe<U> = fn(value)
             if (isDefined(mapped)) {result.push(mapped)}
         }
         return result

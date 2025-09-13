@@ -1,7 +1,7 @@
 import {Subscription, Terminable} from "./terminable"
 import {Notifier} from "./notifier"
 import {Option} from "./option"
-import {Func, isDefined, Nullable, Nullish, Procedure, ValueOrProvider} from "./lang"
+import {Func, isDefined, Nullable, Maybe, Procedure, ValueOrProvider} from "./lang"
 import {Bijective} from "./bijective"
 import {Observer} from "./observers"
 
@@ -65,7 +65,7 @@ export class MutableObservableOption<T> implements ObservableOption<T> {
         this.wrap(value)
     }
 
-    wrap(value: Nullish<T>): void {
+    wrap(value: Maybe<T>): void {
         const next = Option.wrap(value)
         if (!this.#option.equals(next)) {
             this.#option = next
@@ -90,7 +90,7 @@ export class MutableObservableOption<T> implements ObservableOption<T> {
     flatMap<U>(func: Func<T, Option<U>>): Option<U> {return this.#option.flatMap(func)}
     ifSome<R>(procedure: Procedure<T>): R | undefined {return this.#option.ifSome(procedure)}
     isEmpty(): boolean {return this.#option.isEmpty()}
-    map<U>(func: Func<T, Nullish<U>>): Option<U> {return this.#option.map(func)}
+    map<U>(func: Func<T, Maybe<U>>): Option<U> {return this.#option.map(func)}
     mapOr<U>(func: Func<T, U>, or: ValueOrProvider<U>): U {return this.#option.mapOr(func, or)}
     match<R>(matchable: Option.Matchable<T, R>): R {return this.#option.match(matchable)}
     nonEmpty(): boolean {return this.#option.nonEmpty()}

@@ -1,5 +1,5 @@
 import {Arrays} from "./arrays"
-import {Comparator, int, Nullable, Nullish, Predicate} from "./lang"
+import {Comparator, int, Nullable, Maybe, Predicate} from "./lang"
 import {Sets} from "./sets"
 import {Iterables} from "./iterables"
 import {Maps} from "./maps"
@@ -199,7 +199,7 @@ export class SetMultimap<K, V> implements Multimap<K, V> {
     }
 
     remove(key: K, value: V): boolean {
-        const values: Nullish<Set<V>> = this.map.get(key)
+        const values: Maybe<Set<V>> = this.map.get(key)
         if (values === undefined) {
             return false
         } else {
@@ -230,7 +230,7 @@ export class SetMultimap<K, V> implements Multimap<K, V> {
     }
 
     removeFromKeyIf(key: K, predicate: Predicate<V>): Nullable<V> {
-        const values: Nullish<Set<V>> = this.map.get(key)
+        const values: Maybe<Set<V>> = this.map.get(key)
         if (values === undefined) {
             return null
         } else {

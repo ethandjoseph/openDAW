@@ -3,7 +3,7 @@ import {
     DefaultObservableValue,
     int,
     Notifier,
-    Nullish,
+    Maybe,
     ObservableValue,
     Observer,
     Option,
@@ -72,7 +72,7 @@ export class AudioClipBoxAdapter implements ClipBoxAdapter<never> {
     }
 
     subscribeChange(observer: Observer<void>): Subscription {return this.#changeNotifier.subscribe(observer)}
-    accept<R>(visitor: ClipBoxAdapterVisitor<R>): Nullish<R> {return safeExecute(visitor.visitAudioClipBoxAdapter, this)}
+    accept<R>(visitor: ClipBoxAdapterVisitor<R>): Maybe<R> {return safeExecute(visitor.visitAudioClipBoxAdapter, this)}
 
     consolidate(): void {}
     clone(_mirrored: boolean): void {

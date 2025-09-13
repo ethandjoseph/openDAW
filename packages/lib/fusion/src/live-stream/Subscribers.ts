@@ -1,4 +1,4 @@
-import {Arrays, isDefined, Nullish, SortedSet, Subscription, Terminable} from "@opendaw/lib-std"
+import {Arrays, isDefined, Maybe, SortedSet, Subscription, Terminable} from "@opendaw/lib-std"
 import {Address} from "@opendaw/lib-box"
 
 type ListenersEntry<T> = { address: Address, listeners: Array<T> }
@@ -8,7 +8,7 @@ export class Subscribers<T> implements Terminable {
 
     constructor() {this.#subscribers = Address.newSet<ListenersEntry<T>>(entry => entry.address)}
 
-    getOrNull(address: Address): Nullish<ReadonlyArray<T>> {return this.#subscribers.getOrNull(address)?.listeners}
+    getOrNull(address: Address): Maybe<ReadonlyArray<T>> {return this.#subscribers.getOrNull(address)?.listeners}
 
     isEmpty(address: Address): boolean {return !this.#subscribers.hasKey(address) }
 

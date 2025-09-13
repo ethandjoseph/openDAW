@@ -2,7 +2,7 @@ import {StudioService} from "@/service/StudioService"
 import {PanelType} from "@/ui/workspace/PanelType"
 import {Events, Keyboard} from "@opendaw/lib-dom"
 import {DefaultWorkspace} from "@/ui/workspace/Default"
-import {Arrays, isUndefined} from "@opendaw/lib-std"
+import {Arrays, isNull} from "@opendaw/lib-std"
 import {Workspace} from "@/ui/workspace/Workspace"
 
 export class Shortcuts {
@@ -47,7 +47,7 @@ export class Shortcuts {
                     .map(([key]) => key as Workspace.ScreenKeys)
                 const screen = service.layout.screen
                 const current = screen.getValue()
-                if (isUndefined(current) || !keys.includes(current)) {return}
+                if (isNull(current) || !keys.includes(current)) {return}
                 if (event.shiftKey) {
                     screen.setValue(Arrays.getPrev(keys, current))
                 } else {

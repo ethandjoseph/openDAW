@@ -1,4 +1,4 @@
-import {Generators, int, Mutable, Notifier, Observer, Option, Selection, Terminable} from "@opendaw/lib-std"
+import {Generators, int, MakeMutable, Notifier, Observer, Option, Selection, Terminable} from "@opendaw/lib-std"
 import {Snapping} from "@/ui/timeline/Snapping.ts"
 import {Editing} from "@opendaw/lib-box"
 import {Line, NoteModifyStrategy} from "./NoteModifyStrategies"
@@ -30,7 +30,7 @@ export class NoteCreateModifier implements NoteModifier {
     readonly #reference: NoteEventOwnerReader
 
     readonly #notifier: Notifier<void>
-    readonly #creation: Mutable<UINoteEvent>
+    readonly #creation: MakeMutable<UINoteEvent>
 
     #deltaLoopDuration: ppqn = 0.0
 

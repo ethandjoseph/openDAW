@@ -5,7 +5,7 @@ import {
     getOrProvide,
     isDefined,
     Nullable,
-    Nullish,
+    Maybe,
     panic,
     Procedure,
     Provider,
@@ -22,7 +22,7 @@ export interface Option<T> {
     contains(value: T): boolean
     isEmpty(): boolean
     nonEmpty(): boolean
-    map<U>(func: Func<T, Nullish<U>>): Option<U>
+    map<U>(func: Func<T, Maybe<U>>): Option<U>
     mapOr<U>(func: Func<T, U>, or: ValueOrProvider<U>): U
     flatMap<U>(func: Func<T, Option<U>>): Option<U>
     equals(other: Option<T>): boolean
@@ -35,12 +35,12 @@ export namespace Option {
         none: Provider<RETURN>
     }
 
-    export const wrap = <T>(value: Nullish<T>): Option<T | never> => isDefined(value) ? new Some(value) : None
-    export const from = <T>(provider: Provider<Nullish<T>>): Option<T> => wrap(provider())
+    export const wrap = <T>(value: Maybe<T>): Option<T | never> => isDefined(value) ? new Some(value) : None
+    export const from = <T>(provider: Provider<Maybe<T>>): Option<T> => wrap(provider())
     export const tryFrom = <T>(provider: Provider<T>): Option<T> => {
         try {return Option.wrap(provider())} catch (_error) {return Option.None}
     }
-    export const execute = <F extends AnyFunc>(func: Nullish<F>, ...args: Parameters<F>)
+    export const execute = <F extends AnyFunc>(func: Maybe<F>, ...args: Parameters<F>)
         : Option<ReturnType<F>> => Option.wrap(func?.apply(null, args))
     export const async = <RESULT>(promise: Promise<RESULT>): Promise<Option<RESULT>> =>
         promise.then(value => wrap(value), () => None)
@@ -57,7 +57,7 @@ export namespace Option {
         ifSome<R extends undefined>(run: Func<T, R>): R {return run(this.#value)}
         isEmpty(): boolean { return false }
         nonEmpty(): boolean { return true }
-        map<U>(callback: (value: T) => Nullish<U>): Option<U> {return Option.wrap(callback(this.#value))}
+        map<U>(callback: (value: T) => Maybe<U>): Option<U> {return Option.wrap(callback(this.#value))}
         mapOr<U>(func: Func<T, U>, _or: U | Provider<U>): U {return func(this.#value)}
         flatMap<U>(callback: (value: T) => Option<U>): Option<U> {return callback(this.#value)}
         equals(other: Option<T>): boolean {return this.unwrapOrNull() === other.unwrapOrNull()}
@@ -76,7 +76,7 @@ export namespace Option {
         readonly ifSome = (_: Procedure<never>): undefined => {}
         readonly isEmpty = (): boolean => true
         readonly nonEmpty = (): boolean => false
-        readonly map = <U>(_: (_: never) => Nullish<U>): Option<U> => None
+        readonly map = <U>(_: (_: never) => Maybe<U>): Option<U> => None
         readonly mapOr = <U>(_: Func<never, U>, or: ValueOrProvider<U>): U => getOrProvide(or)
         readonly flatMap = (_: (_: never) => Option<never>): Option<never> => None
         readonly equals = (other: Option<any>): boolean => other.isEmpty()

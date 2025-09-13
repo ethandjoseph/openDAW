@@ -1,5 +1,5 @@
 import {AudioRegionBox} from "@opendaw/studio-boxes"
-import {int, Notifier, Nullish, Observer, Option, safeExecute, Subscription, Terminator, UUID} from "@opendaw/lib-std"
+import {int, Notifier, Maybe, Observer, Option, safeExecute, Subscription, Terminator, UUID} from "@opendaw/lib-std"
 import {Pointers} from "@opendaw/studio-enums"
 import {Address, Field, PointerField, Propagation, Update} from "@opendaw/lib-box"
 import {PPQN, ppqn} from "@opendaw/lib-dsp"
@@ -80,7 +80,7 @@ export class AudioRegionBoxAdapter implements LoopableRegionBoxAdapter<never> {
 
     subscribeChange(observer: Observer<void>): Subscription {return this.#changeNotifier.subscribe(observer)}
 
-    accept<R>(visitor: RegionBoxAdapterVisitor<R>): Nullish<R> {
+    accept<R>(visitor: RegionBoxAdapterVisitor<R>): Maybe<R> {
         return safeExecute(visitor.visitAudioRegionBoxAdapter, this)
     }
 

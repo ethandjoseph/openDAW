@@ -1,4 +1,4 @@
-import {asDefined, int, Nullish, ObservableValue, Observer, Option, Selectable, Subscription} from "@opendaw/lib-std"
+import {asDefined, int, Maybe, ObservableValue, Observer, Option, Selectable, Subscription} from "@opendaw/lib-std"
 import {AudioClipBox, BoxVisitor, NoteClipBox, ValueClipBox} from "@opendaw/studio-boxes"
 import {Box} from "@opendaw/lib-box"
 import {ValueClipBoxAdapter} from "./clip/ValueClipBoxAdapter"
@@ -35,7 +35,7 @@ export interface ClipBoxAdapter<CONTENT> extends BoxAdapter, Selectable {
     catchupAndSubscribeSelected(observer: Observer<ObservableValue<boolean>>): Subscription
     subscribeChange(observer: Observer<void>): Subscription
     accept<VISITOR extends ClipBoxAdapterVisitor<any>>(visitor: VISITOR)
-        : VISITOR extends ClipBoxAdapterVisitor<infer R> ? Nullish<R> : void
+        : VISITOR extends ClipBoxAdapterVisitor<infer R> ? Maybe<R> : void
 }
 
 export const ClipAdapters = {

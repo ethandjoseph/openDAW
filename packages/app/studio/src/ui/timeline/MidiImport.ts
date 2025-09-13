@@ -5,7 +5,7 @@ import {
     Errors,
     int,
     isDefined,
-    Nullish,
+    Maybe,
     quantizeCeil,
     RuntimeNotifier,
     tryCatch,
@@ -37,7 +37,7 @@ export namespace MidiImport {
         const {boxGraph, editing} = project
         const progress = new DefaultObservableValue(0.0)
         const dialog = RuntimeNotifier.progress({headline: "Import Midi", progress})
-        let reuseTrackBox: Nullish<TrackBox> = Arrays.peekLast(audioUnitBoxAdapter.tracks.collection.adapters())?.box
+        let reuseTrackBox: Maybe<TrackBox> = Arrays.peekLast(audioUnitBoxAdapter.tracks.collection.adapters())?.box
         let trackIndex: int = 0
         if (isDefined(reuseTrackBox)) {
             if (reuseTrackBox.type.getValue() === TrackType.Notes && reuseTrackBox.regions.pointerHub.isEmpty()) {

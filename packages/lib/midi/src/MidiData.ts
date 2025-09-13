@@ -1,4 +1,4 @@
-import {byte, isUndefined, Nullable, safeExecute} from "@opendaw/lib-std"
+import {byte, isNull, Nullable, safeExecute} from "@opendaw/lib-std"
 import {MidiEventVisitor} from "./MidiEventVisitor"
 
 export namespace MidiData {
@@ -46,7 +46,7 @@ export namespace MidiData {
     }
 
     export const accept = (data: Nullable<Uint8Array>, visitor: MidiEventVisitor): void => {
-        if (isUndefined(data)) {return}
+        if (isNull(data)) {return}
         if (isNoteOn(data)) {
             safeExecute(visitor.noteOn, readPitch(data), readVelocity(data))
         } else if (isNoteOff(data)) {

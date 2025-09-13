@@ -3,7 +3,7 @@ import {BooleanField, BoxGraph} from "./"
 import {PointerField, UnreferenceableType} from "./pointer"
 import {Box, BoxConstruct} from "./box"
 import {NoPointers, VertexVisitor} from "./vertex"
-import {Nullish, Option, panic, Procedure, safeExecute, UUID} from "@opendaw/lib-std"
+import {Maybe, Option, panic, Procedure, safeExecute, UUID} from "@opendaw/lib-std"
 import {Editing} from "./editing"
 
 enum PointerType {A, B}
@@ -41,7 +41,7 @@ class BarBox extends Box<UnreferenceableType, BarBoxFields> {
         }
     }
 
-    accept<R>(visitor: BoxVisitor<R>): Nullish<R> {return safeExecute(visitor.visitBarBox, this)}
+    accept<R>(visitor: BoxVisitor<R>): Maybe<R> {return safeExecute(visitor.visitBarBox, this)}
 
     get bool(): BooleanField {return this.getField(1)}
     get pointer(): PointerField<PointerType.A> {return this.getField(2)}

@@ -1,5 +1,5 @@
 import {BoxGraph} from "./graph"
-import {Arrays, assert, int, Nullish, Option, Provider} from "@opendaw/lib-std"
+import {Arrays, assert, int, Maybe, Option, Provider} from "@opendaw/lib-std"
 import {Update} from "./updates"
 
 class Modification {
@@ -73,7 +73,7 @@ export class Editing {
     //  See ParameterWrapper. Not the nicest solution. Probably coming back to this sooner or later.
     canModify(): boolean {return !this.#graph.inTransaction()}
 
-    modify<R>(modifier: Provider<Nullish<R>>, mark: boolean = true): Option<R> {
+    modify<R>(modifier: Provider<Maybe<R>>, mark: boolean = true): Option<R> {
         if (this.#modifying) {
             // we just keep adding new pending updates
             return Option.wrap(modifier())
@@ -101,7 +101,7 @@ export class Editing {
         }
     }
 
-    #modify<R>(modifier: Provider<Nullish<R>>): Nullish<R> {
+    #modify<R>(modifier: Provider<Maybe<R>>): Maybe<R> {
         assert(!this.#modifying, "Already modifying")
         this.#modifying = true
         const updates: Array<Update> = []

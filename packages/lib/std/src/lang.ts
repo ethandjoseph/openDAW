@@ -49,7 +49,9 @@ export type JSONArray = Array<JSONValue>
 export type JSONObject = { [key: string]: JSONValue }
 export type Id<T extends unknown> = T & { id: int }
 export type Sign = -1 | 0 | 1
-export type Nullish<T> = T | undefined | null
+export type Optional<T> = T | undefined
+export type Nullable<T> = T | null
+export type Maybe<T> = T | undefined | null
 export type Class<T = object> = Function & { prototype: T }
 export type Exec = () => void
 export type Provider<T> = () => T
@@ -60,38 +62,53 @@ export type Func<U, T> = (value: U) => T
 export type Comparator<T> = (a: T, b: T) => number
 export type Comparable<T> = { compareTo: (other: T) => number }
 export type Equality<T> = { equals: (other: T) => boolean }
-export type Nullable<T> = T | null
 export type AnyFunc = (...args: any[]) => any
 export type Stringifiable = { toString(): string }
-export type Mutable<T> = { -readonly [P in keyof T]: T[P] }
+export type MakeMutable<T> = { -readonly [P in keyof T]: T[P] }
 export type AssertType<T> = (value: unknown) => value is T
 export const identity = <T>(value: T): T => value
-export const isDefined = <T>(value: Nullish<T>): value is T => value !== undefined && value !== null
-export const isUndefined = <T>(value: Nullish<T>): value is undefined | null => value === undefined || value === null
-export const isNull = <T>(value: Nullable<T>): value is null => value === null
-export const ifDefined = <T, R = void>(value: Nullish<T>, procedure: Func<T, R>): R | undefined =>
+export const isDefined = <T>(value: Maybe<T>): value is T => value !== undefined && value !== null
+export const isNull = (value: unknown): value is null => value === null
+export const isUndefined = (value: unknown): value is undefined => value === undefined
+export const isAbsent = (value: unknown): value is undefined | null => value === undefined || value === null
+export const ifDefined = <T, R = void>(value: Maybe<T>, procedure: Func<T, R>): R | undefined =>
     value !== undefined && value !== null ? procedure(value) : undefined
-export const asDefined = <T>(value: Nullish<T>, fail: string = "asDefined failed"): T => value === null || value === undefined ? panic(fail) : value
+export const asDefined = <T>(value: Maybe<T>, fail: string = "asDefined failed"): T =>
+    value === null || value === undefined ? panic(fail) : value
 export const isInstanceOf = <T>(obj: unknown, clazz: Class<T>): obj is T => obj instanceof clazz
-export const asInstanceOf = <T>(obj: unknown, clazz: Class<T>): T => obj instanceof clazz ? obj as T : panic(`${obj} is not instance of ${clazz}`)
-export const assertInstanceOf: <T>(obj: unknown, clazz: Class<T>) => asserts obj is T = <T>(obj: unknown, clazz: Class<T>): asserts obj is T => {if (!(obj instanceof clazz)) {panic(`${obj} is not instance of ${clazz}`)}}
-export const tryProvide = <T>(provider: Provider<T>): T => {try {return provider()} catch (reason) {return panic(String(reason))}}
+export const asInstanceOf = <T>(obj: unknown, clazz: Class<T>): T =>
+    obj instanceof clazz ? obj as T : panic(`${obj} is not instance of ${clazz}`)
+export const assertInstanceOf: <T>(obj: unknown, clazz: Class<T>) =>
+    asserts obj is T = <T>(obj: unknown, clazz: Class<T>): asserts obj is T => {
+    if (!(obj instanceof clazz)) {panic(`${obj} is not instance of ${clazz}`)}
+}
+export const tryProvide = <T>(provider: Provider<T>): T => {
+    try {return provider()} catch (reason) {return panic(String(reason))}
+}
 export const getOrProvide = <T>(value: ValueOrProvider<T>): T => value instanceof Function ? value() : value
-export const safeWrite = (object: any, property: string, value: any): void => property in object ? object[property] = value : undefined
-export const safeExecute = <F extends AnyFunc>(func: Nullish<F>, ...args: Parameters<F>): Nullish<ReturnType<F>> => func?.apply(null, args)
-export const isRecord = (value: unknown): value is Record<string, unknown> => isDefined(value) && typeof value === "object"
+export const safeWrite = (object: any, property: string, value: any): void =>
+    property in object ? object[property] = value : undefined
+export const safeExecute = <F extends AnyFunc>(func: Maybe<F>, ...args: Parameters<F>): Maybe<ReturnType<F>> =>
+    func?.apply(null, args)
+export const isRecord = (value: unknown): value is Record<string, unknown> =>
+    isDefined(value) && typeof value === "object"
 export const hasField = (record: Record<string, unknown>, key: string, type: JsType): boolean => {
     if (!(key in record)) return false
     const value = record[key]
     return type === "null" ? value === null : typeof value === type
 }
-export const safeRead = (object: unknown, key: string): Nullish<unknown> => isRecord(object) && key in object ? object[key] : undefined
+export const safeRead = (object: unknown, key: string): Maybe<unknown> =>
+    isRecord(object) && key in object ? object[key] : undefined
 export const Unhandled = <R>(empty: never): R => {throw new Error(`Unhandled ${empty}`)}
-export const panic = (issue?: string | Error | unknown): never => {throw typeof issue === "string" ? new Error(issue) : issue}
-export const assert = (condition: boolean, fail: ValueOrProvider<string>): void => condition ? undefined : panic(getOrProvide(fail))
+export const panic = (issue?: string | Error | unknown): never => {
+    throw typeof issue === "string" ? new Error(issue) : issue
+}
+export const assert = (condition: boolean, fail: ValueOrProvider<string>): void =>
+    condition ? undefined : panic(getOrProvide(fail))
 export const checkIndex = (index: int, array: { length: int }): int =>
     index >= 0 && index < array.length ? index : panic(`Index ${index} is out of bounds`)
-export const InaccessibleProperty = <T>(failMessage: string): T => new Proxy({}, {get() { return panic(failMessage) }}) as T
+export const InaccessibleProperty = <T>(failMessage: string): T =>
+    new Proxy({}, {get() { return panic(failMessage) }}) as T
 export const canWrite = <T>(obj: T, key: keyof any): obj is T & Record<typeof key, unknown> => {
     while (isDefined(obj)) {
         const descriptor = Object.getOwnPropertyDescriptor(obj, key)
@@ -130,4 +147,3 @@ export const asEnumValue = <
 export const EmptyExec: Exec = (): void => {}
 export const EmptyProvider: Provider<any> = (): any => {}
 export const EmptyProcedure: Procedure<any> = (_: any): void => {}
-export const flipComparator = <T>(comparator: Comparator<T>) => (a: T, b: T) => -comparator(a, b)

@@ -1,6 +1,6 @@
 import {Pointers} from "@opendaw/studio-enums"
 import {BooleanField, Box, Int32Field, PointerField, StringField} from "@opendaw/lib-box"
-import {isDefined, isInstanceOf, Nullish, panic} from "@opendaw/lib-std"
+import {isDefined, isInstanceOf, Maybe, panic} from "@opendaw/lib-std"
 
 export type DeviceBox = {
     host: PointerField
@@ -32,19 +32,19 @@ export namespace DeviceBoxUtils {
         isDeviceBox(box) && "index" in box && isInstanceOf(box.index, Int32Field) &&
         (box.host.pointerType === Pointers.MidiEffectHost || box.host.pointerType === Pointers.AudioEffectHost)
 
-    export const lookupHostField = (box: Nullish<Box>): PointerField =>
+    export const lookupHostField = (box: Maybe<Box>): PointerField =>
         isDefined(box) && "host" in box && isInstanceOf(box.host, PointerField)
             ? box.host : panic(`Could not find 'host' field in '${box?.name}'`)
-    export const lookupLabelField = (box: Nullish<Box>): StringField =>
+    export const lookupLabelField = (box: Maybe<Box>): StringField =>
         isDefined(box) && "label" in box && isInstanceOf(box.label, StringField)
             ? box.label : panic(`Could not find 'label' field in '${box?.name}'`)
-    export const lookupEnabledField = (box: Nullish<Box>): BooleanField =>
+    export const lookupEnabledField = (box: Maybe<Box>): BooleanField =>
         isDefined(box) && "enabled" in box && isInstanceOf(box.enabled, BooleanField)
             ? box.enabled : panic(`Could not find 'enabled' field in '${box?.name}'`)
-    export const lookupMinimizedField = (box: Nullish<Box>): BooleanField =>
+    export const lookupMinimizedField = (box: Maybe<Box>): BooleanField =>
         isDefined(box) && "minimized" in box && isInstanceOf(box.minimized, BooleanField)
             ? box.minimized : panic(`Could not find 'minimized' field in '${box?.name}'`)
-    export const lookupIndexField = (box: Nullish<Box>): Int32Field =>
+    export const lookupIndexField = (box: Maybe<Box>): Int32Field =>
         isDefined(box) && "index" in box && isInstanceOf(box.index, Int32Field)
             ? box.index : panic(`Could not find 'index' field in '${box?.name}'`)
 }

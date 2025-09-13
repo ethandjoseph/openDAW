@@ -1,4 +1,4 @@
-import {asDefined, Errors, isDefined, isUndefined, Maps, panic, RuntimeNotifier, TimeSpan} from "@opendaw/lib-std"
+import {asDefined, Errors, isDefined, isNull, Maps, panic, RuntimeNotifier, TimeSpan} from "@opendaw/lib-std"
 import {CloudHandler} from "./CloudHandler"
 import {Promises} from "@opendaw/lib-runtime"
 import {CloudService} from "./CloudService"
@@ -77,7 +77,7 @@ export class CloudAuthManager {
         const authUrl = `${config.authUrlBase}?${params.toString()}`
         console.debug("[CloudAuth] Opening auth window:", authUrl)
         const authWindow = window.open(authUrl, "cloudAuth")
-        if (isUndefined(authWindow)) {
+        if (isNull(authWindow)) {
             return Errors.warn("Failed to open authentication window. Please check popup blockers.")
         }
         const {resolve, reject, promise} = Promise.withResolvers<CloudHandler>()
@@ -162,12 +162,10 @@ export class CloudAuthManager {
         })
         const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`
         console.debug("[CloudAuth] Opening auth window:", authUrl)
-
         const authWindow = window.open(authUrl, "cloudAuth")
-        if (isUndefined(authWindow)) {
+        if (isNull(authWindow)) {
             return Errors.warn("Failed to open authentication window. Please check popup blockers.")
         }
-
         const {resolve, reject, promise} = Promise.withResolvers<CloudHandler>()
         const channel = new BroadcastChannel("auth-callback")
         const dialog = RuntimeNotifier.progress({

@@ -1,4 +1,4 @@
-import {asInstanceOf, isDefined, Nullish, Option, SortedSet, Subscription, Terminable, UUID} from "@opendaw/lib-std"
+import {asInstanceOf, isDefined, Maybe, Option, SortedSet, Subscription, Terminable, UUID} from "@opendaw/lib-std"
 import {AudioUnitBox, BoxVisitor, CaptureAudioBox, CaptureMidiBox} from "@opendaw/studio-boxes"
 import {Project} from "../project/Project"
 import {Capture} from "./Capture"
@@ -16,7 +16,7 @@ export class CaptureDevices implements Terminable {
         this.#subscription = this.#project.rootBox.audioUnits.pointerHub.catchupAndSubscribeTransactual({
             onAdd: ({box}) => {
                 const audioUnitBox = asInstanceOf(box, AudioUnitBox)
-                const capture: Nullish<Capture> = audioUnitBox.capture.targetVertex
+                const capture: Maybe<Capture> = audioUnitBox.capture.targetVertex
                     .ifSome(({box}) => box.accept<BoxVisitor<Capture>>({
                         visitCaptureMidiBox: (box: CaptureMidiBox) => new CaptureMidi(this, audioUnitBox, box),
                         visitCaptureAudioBox: (box: CaptureAudioBox) => new CaptureAudio(this, audioUnitBox, box)

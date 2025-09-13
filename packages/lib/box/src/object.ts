@@ -1,6 +1,6 @@
 import {Field, FieldConstruct, Fields} from "./field"
 import {UnreferenceableType} from "./pointer"
-import {asDefined, DataInput, DataOutput, Nullish, Option, safeExecute} from "@opendaw/lib-std"
+import {asDefined, DataInput, DataOutput, Maybe, Option, safeExecute} from "@opendaw/lib-std"
 import {Serializer} from "./serializer"
 import {VertexVisitor} from "./vertex"
 
@@ -15,7 +15,7 @@ export abstract class ObjectField<FIELDS extends Fields> extends Field<Unreferen
 
     protected abstract initializeFields(): FIELDS
 
-    accept<RETURN>(visitor: VertexVisitor<RETURN>): Nullish<RETURN> {
+    accept<RETURN>(visitor: VertexVisitor<RETURN>): Maybe<RETURN> {
         return safeExecute(visitor.visitObjectField, this)
     }
 

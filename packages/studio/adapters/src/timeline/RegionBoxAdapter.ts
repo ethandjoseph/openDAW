@@ -1,5 +1,5 @@
 import {LoopableRegion, ppqn, Region} from "@opendaw/lib-dsp"
-import {asDefined, Comparator, int, Nullish, Observer, Option, Selectable, Subscription} from "@opendaw/lib-std"
+import {asDefined, Comparator, int, Maybe, Observer, Option, Selectable, Subscription} from "@opendaw/lib-std"
 import {AudioRegionBox, BoxVisitor, NoteRegionBox, ValueRegionBox} from "@opendaw/studio-boxes"
 import {AudioRegionBoxAdapter} from "./region/AudioRegionBoxAdapter"
 import {Box, Field} from "@opendaw/lib-box"
@@ -36,7 +36,7 @@ export interface RegionBoxAdapter<CONTENT> extends BoxAdapter, Region, Selectabl
     flatten(regions: ReadonlyArray<RegionBoxAdapter<unknown>>): void
     canFlatten(regions: ReadonlyArray<RegionBoxAdapter<unknown>>): boolean
     accept<VISITOR extends RegionBoxAdapterVisitor<any>>(visitor: VISITOR)
-        : VISITOR extends RegionBoxAdapterVisitor<infer R> ? Nullish<R> : void
+        : VISITOR extends RegionBoxAdapterVisitor<infer R> ? Maybe<R> : void
 }
 
 export interface LoopableRegionBoxAdapter<CONTENT> extends RegionBoxAdapter<CONTENT>, LoopableRegion {

@@ -6,7 +6,7 @@ import {
     isDefined,
     isValidIdentifier,
     Nullable,
-    Nullish,
+    Maybe,
     panic,
     SetMultimap,
     Strings,
@@ -46,7 +46,7 @@ export class BoxForge<E extends PointerTypes> {
     }
 
     writeClass(schema: ClassSchema<E>, option: ClassOptions, pointerRules: PointerRules<E>): void {
-        const written: Nullish<ClassSchema<E>> = this.#written.get(schema.name)
+        const written: Maybe<ClassSchema<E>> = this.#written.get(schema.name)
         if (isDefined(written)) {
             if (written === schema) {
                 return
@@ -158,7 +158,7 @@ type ClassOptions = Readonly<{
 }>
 
 export const BoxClassOption: ClassOptions = {
-    import_std_lib: ["Nullish", "safeExecute", "UUID"],
+    import_std_lib: ["Maybe", "safeExecute", "UUID"],
     import_box_lib: ["Box", "BoxConstruct", "BoxGraph"],
     extends: "Box",
     construct: "BoxConstruct",
@@ -330,7 +330,7 @@ class ClassWriter<E extends PointerTypes> {
                 name: "accept",
                 typeParameters: ["R"],
                 parameters: [{name: "visitor", type: "BoxVisitor<R>"}],
-                returnType: "Nullish<R>",
+                returnType: "Maybe<R>",
                 statements: `return safeExecute(visitor.visit${className}, this)`
             })
         }

@@ -35,7 +35,7 @@ import {
     ZeitgeistDeviceBoxAdapter
 } from "@opendaw/studio-adapters"
 import {NopDeviceProcessor} from "./devices/audio-effects/NopDeviceProcessor"
-import {asDefined, Nullish} from "@opendaw/lib-std"
+import {asDefined, Maybe} from "@opendaw/lib-std"
 import {EngineContext} from "./EngineContext"
 import {Box} from "@opendaw/lib-box"
 import {AudioBusProcessor} from "./AudioBusProcessor"
@@ -56,7 +56,7 @@ import {UnknownMidiEffectDeviceProcessor} from "./devices/midi-effects/UnknownMi
 
 export namespace InstrumentDeviceProcessorFactory {
     export const create = (context: EngineContext,
-                           box: Box): Nullish<InstrumentDeviceProcessor | AudioBusProcessor> =>
+                           box: Box): Maybe<InstrumentDeviceProcessor | AudioBusProcessor> =>
         box.accept<BoxVisitor<InstrumentDeviceProcessor | AudioBusProcessor>>({
             visitAudioBusBox: (box: AudioBusBox) =>
                 new AudioBusProcessor(context, context.boxAdapters.adapterFor(box, AudioBusBoxAdapter)),

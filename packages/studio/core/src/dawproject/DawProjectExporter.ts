@@ -1,4 +1,4 @@
-import {asDefined, asInstanceOf, Color, ifDefined, isInstanceOf, Nullish, Option, UUID} from "@opendaw/lib-std"
+import {asDefined, asInstanceOf, Color, ifDefined, isInstanceOf, Maybe, Option, UUID} from "@opendaw/lib-std"
 import {Xml} from "@opendaw/lib-xml"
 import {dbToGain, PPQN} from "@opendaw/lib-dsp"
 import {
@@ -86,7 +86,7 @@ export namespace DawProjectExporter {
 
         const writeDevices = (field: Field, deviceRole: string): ReadonlyArray<DeviceSchema> => field.pointerHub
             .incoming().map(({box}) => {
-                const enabled: Nullish<BooleanParameterSchema> = ("enabled" in box && isInstanceOf(box.enabled, BooleanField)
+                const enabled: Maybe<BooleanParameterSchema> = ("enabled" in box && isInstanceOf(box.enabled, BooleanField)
                     ? Option.wrap(box.enabled)
                     : Option.None)
                     .mapOr(field => ParameterEncoder.bool(ids.getOrCreate(field.address), field.getValue(),

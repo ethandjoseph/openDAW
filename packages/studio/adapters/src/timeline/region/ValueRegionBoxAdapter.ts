@@ -3,7 +3,7 @@ import {
     Arrays,
     int,
     Notifier,
-    Nullish,
+    Maybe,
     Observer,
     Option,
     safeExecute,
@@ -103,7 +103,7 @@ export class ValueRegionBoxAdapter implements LoopableRegionBoxAdapter<ValueEven
 
     subscribeChange(observer: Observer<void>): Subscription {return this.#changeNotifier.subscribe(observer)}
 
-    accept<R>(visitor: RegionBoxAdapterVisitor<R>): Nullish<R> {
+    accept<R>(visitor: RegionBoxAdapterVisitor<R>): Maybe<R> {
         return safeExecute(visitor.visitValueRegionBoxAdapter, this)
     }
 
