@@ -40,9 +40,6 @@ export class CloudAuthManager {
                 case "GoogleDrive": {
                     return Promises.memoizeAsync(this.#oauthGoogle.bind(this), TimeSpan.hours(1))
                 }
-                case "SFTP": {
-                    return Promises.memoizeAsync(this.#sftp.bind(this), TimeSpan.hours(1))
-                }
                 default:
                     return panic(`Unsupported service: ${service}`)
             }
@@ -199,17 +196,6 @@ export class CloudAuthManager {
             dialog.terminate()
             channel.close()
         })
-    }
-
-    async #sftp(): Promise<CloudHandler> {
-        // This is a credentials-based flow (no OAuth). Here you would:
-        // 1) Prompt the user for host, port, username, password / key.
-        // 2) Instantiate the SFTP handler with those credentials.
-        // For now, return a warning or wire up a dialog.
-        return Errors.warn("SFTP authentication flow not implemented yet. Please provide connection settings UI.")
-        // Example when implemented:
-        // const {SFTPHandler} = await import("./SFTPHandler")
-        // return new SFTPHandler({host, port, username, passwordOrKey})
     }
 
     async #createHandler(service: string, token: string): Promise<CloudHandler> {
