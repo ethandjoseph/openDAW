@@ -7,8 +7,11 @@
 * `@opendaw/lib-jsx`
 * `@opendaw/lib-box`
 * `@opendaw/lib-dsp`
+* `@opendaw/lib-xml`
+* `@opendaw/lib-midi`
 * `@opendaw/lib-runtime`
 * `@opendaw/lib-fusion`
+* `@opendaw/lib-dawproject`
 * `@opendaw/studio-enums`
 * `@opendaw/studio-boxes`
 * `@opendaw/studio-adapters`
