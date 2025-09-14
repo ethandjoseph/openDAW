@@ -95,6 +95,7 @@ Huge thanks to our [ambassadors](https://opendaw.org/ambassadors), whose dedicat
 - Wojciech Miłkowski
 - Client
 - skyboundzoo
+- JHINZ
 
 ### openDAW Custom Pledge
 
