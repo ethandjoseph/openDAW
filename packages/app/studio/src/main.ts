@@ -26,19 +26,11 @@ import {
     OpenSampleAPI,
     SampleProvider,
     SampleStorage,
-    WorkerAgents,
-    WorkersUrl,
-    WorkletsUrl
+    WorkerAgents
 } from "@opendaw/studio-core"
 
-// DO NOT DELETE THOSE IMPORTS
-// Importing here (even if unused) ensures Vite registers the asset
-// and serves it under a safe URL instead of a blocked /@fs/... path.
-// DO NOT DELETE THOSE IMPORTS
-// Importing here (even if unused) ensures Vite registers the asset
-// and serves it under a safe URL instead of a blocked /@fs/... path.
-void WorkersUrl
-void WorkletsUrl
+import WorkletsUrl from "@opendaw/studio-core/processors.js?url"
+import WorkersUrl from "@opendaw/studio-core/workers.js?worker&url"
 
 window.name = "main"
 
@@ -49,8 +41,8 @@ const loadBuildInfo = async () => fetch(`/build-info.json?v=${Date.now()}`)
         console.time("boot")
         if (!window.crossOriginIsolated) {return panic("window must be crossOriginIsolated")}
         console.debug("booting...")
-        console.debug("WorkersUrl", WorkersUrl)
-        console.debug("WorkletsUrl", WorkletsUrl)
+        WorkerAgents.setWorkerUrl(WorkersUrl)
+        AudioWorklets.setWorkletUrl(WorkletsUrl)
         await WorkerAgents.install()
         await FontLoader.load()
         const testFeaturesResult = await Promises.tryCatch(testFeatures())

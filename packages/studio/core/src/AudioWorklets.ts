@@ -1,15 +1,18 @@
-import {asDefined, int} from "@opendaw/lib-std"
+import {asDefined, int, Option} from "@opendaw/lib-std"
 import {ExportStemsConfiguration, RingBuffer} from "@opendaw/studio-adapters"
 import {Project} from "./project/Project"
 import {EngineWorklet} from "./EngineWorklet"
 import {MeterWorklet} from "./MeterWorklet"
 import {RecordingWorklet} from "./RecordingWorklet"
 import {RenderQuantum} from "./RenderQuantum"
-import {WorkletsUrl} from "./asset-urls"
 
 export class AudioWorklets {
+    static setWorkletUrl(url: string): void {this.#workletUrl = Option.wrap(url)}
+
+    static #workletUrl: Option<string> = Option.None
+
     static async install(context: BaseAudioContext): Promise<AudioWorklets> {
-        return context.audioWorklet.addModule(WorkletsUrl).then(() => {
+        return context.audioWorklet.addModule(this.#workletUrl.unwrap("WorkletUrl is missing")).then(() => {
             const worklets = new AudioWorklets(context)
             this.#map.set(context, worklets)
             return worklets
