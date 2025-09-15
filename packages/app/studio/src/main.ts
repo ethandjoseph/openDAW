@@ -41,10 +41,9 @@ const loadBuildInfo = async () => fetch(`/build-info.json?v=${Date.now()}`)
         console.time("boot")
         if (!window.crossOriginIsolated) {return panic("window must be crossOriginIsolated")}
         console.debug("booting...")
-        Workers.setWorkerUrl(WorkersUrl)
-        AudioWorklets.setWorkletUrl(WorkletsUrl)
-        await Workers.install()
         await FontLoader.load()
+        await Workers.install(WorkersUrl)
+        AudioWorklets.install(WorkletsUrl)
         const testFeaturesResult = await Promises.tryCatch(testFeatures())
         if (testFeaturesResult.status === "rejected") {
             document.querySelector("#preloader")?.remove()
@@ -59,7 +58,7 @@ const loadBuildInfo = async () => fetch(`/build-info.json?v=${Date.now()}`)
         console.debug("requesting custom sampleRate", sampleRate ?? "'No (Firefox)'")
         const context = new AudioContext({sampleRate, latencyHint: 0})
         console.debug(`AudioContext state: ${context.state}, sampleRate: ${context.sampleRate}`)
-        const audioWorklets = await Promises.tryCatch(AudioWorklets.install(context))
+        const audioWorklets = await Promises.tryCatch(AudioWorklets.createFor(context))
         if (audioWorklets.status === "rejected") {
             return panic(audioWorklets.error)
         }

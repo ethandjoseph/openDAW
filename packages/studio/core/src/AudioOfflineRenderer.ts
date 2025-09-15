@@ -24,7 +24,7 @@ export namespace AudioOfflineRenderer {
         const numSamples = PPQN.pulsesToSamples(durationInPulses, project.bpm, sampleRate)
         const context = new OfflineAudioContext(numStems * 2, numSamples, sampleRate)
         const durationInSeconds = numSamples / sampleRate
-        const worklets = await AudioWorklets.install(context)
+        const worklets = await AudioWorklets.createFor(context)
         const engineWorklet = worklets.createEngine(project, optExportConfiguration.unwrapOrUndefined())
         engineWorklet.play()
         engineWorklet.connect(context.destination)

@@ -3,17 +3,10 @@ import {Communicator, Messenger} from "@opendaw/lib-runtime"
 import type {OpfsProtocol, SamplePeakProtocol} from "@opendaw/lib-fusion"
 
 export class Workers {
-    static setWorkerUrl(url: string): void {
-        console.debug(`setWorkerUrl: '${url}'`)
-        this.#workerUrl = Option.wrap(url)
-    }
-
-    static #workerUrl: Option<string> = Option.None
-
-    static async install(): Promise<void> {
+    static async install(url: string): Promise<void> {
         console.debug("install Workers")
         assert(this.messenger.isEmpty(), "Workers are already installed")
-        const message = Messenger.for(new Worker(this.#workerUrl.unwrap("workerUrl is missing (call 'setWorkerUrl' first)"), {type: "module"}))
+        const message = Messenger.for(new Worker(url, {type: "module"}))
         this.messenger = Option.wrap(message)
         const {resolve, promise} = Promise.withResolvers<void>()
         const subscription = message.channel("initialize").subscribe(data => {
