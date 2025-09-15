@@ -22,6 +22,7 @@ export const renderAudio = (context: CanvasRenderingContext2D,
         const ht = bottom - top
         context.fillStyle = contentColor
         const peaks: Peaks = file.peaks.unwrap()
+        // TODO Take unsynced region into account
         const numFrames = peaks.numFrames
         const numberOfChannels = peaks.numChannels
         const peaksHeight = Math.floor((ht - 4) / numberOfChannels)

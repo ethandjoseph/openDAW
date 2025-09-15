@@ -16,9 +16,7 @@
     "./processors.js": "./dist/processors.js"
   },
   "files": [
-    "dist/**"
-  ],
-  "sideEffects": [
+    "dist/**",
     "dist/workers-main.js",
     "dist/processors.js"
   ],

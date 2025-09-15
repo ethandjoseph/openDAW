@@ -1,4 +1,4 @@
-import {int, Option, quantizeFloor, unitValue} from "@opendaw/lib-std"
+import {int, Iterables, Option, quantizeFloor, unitValue} from "@opendaw/lib-std"
 import {LoopableRegion, PPQN, ValueEvent} from "@opendaw/lib-dsp"
 import {AudioRegionBoxAdapter, NoteRegionBoxAdapter, ValueRegionBoxAdapter} from "@opendaw/studio-adapters"
 import {
@@ -50,8 +50,10 @@ export const renderRegions = (context: CanvasRenderingContext2D,
         const regions = strategy.iterateRange(trackBoxAdapter.regions.collection, unitMin, unitMax)
         const dpr = devicePixelRatio
 
-        for (const region of regions) {
+        for (const [region, _next] of Iterables.pairWise(regions)) {
             if (region.isSelected ? hideSelected : !filterSelected) {continue}
+
+            // TODO Scale and truncate, if region is audio and not bpm-synced
 
             const position = strategy.readPosition(region)
             const complete = strategy.readComplete(region) - unitsPerPixel
@@ -64,6 +66,7 @@ export const renderRegions = (context: CanvasRenderingContext2D,
 
             context.clearRect(x0Int, 0, xnInt, height)
 
+            // Extract this into a method and return ready-to-use colors
             const hue = region.hue
             const saturationFactor = region.mute ? 0.05 : 1.0
             const fullSat = 100 * saturationFactor
@@ -74,7 +77,7 @@ export const renderRegions = (context: CanvasRenderingContext2D,
             const loopColor = `hsla(${hue}, 40%, ${normSat}%, 0.5)`
             const backgroundColor = selected ? `hsla(${hue}, ${normSat}%, 60%, 0.06)` : `hsla(${hue}, ${normSat}%, 60%, 0.03)`
             const labelBackgroundColor = selected ? `hsla(${hue}, ${fullSat}%, 60%, 0.75)` : `hsla(${hue}, ${lessSat}%, 60%, 0.15)`
-            const colors: RegionColors = {contentColor}
+            const colors: RegionColors = {contentColor} // TODO simplify
 
             context.fillStyle = labelBackgroundColor
             context.fillRect(x0Int, 0, xnInt, labelHeight)
@@ -124,13 +127,9 @@ export const renderRegions = (context: CanvasRenderingContext2D,
                         }
                         renderAudio(context, range, region.file, region.gain, bound, colors, pass)
                     }
-                    // TODO Record indicator (necessary?)
-                    if (region.file.getOrCreateLoader().state.type === "record") {
-                        /* context.strokeStyle = `hsl(${0.0}, ${normSat}%, 45%)`
-                         context.beginPath()
-                         context.rect(x0Int + dpr, dpr, xnInt - 2 * dpr, height - 2 * dpr)
-                         context.stroke()*/
-                    }
+                    // TODO Record indicator?
+                    const isRecording = region.file.getOrCreateLoader().state.type === "record"
+                    if (isRecording) {}
                 },
                 visitValueRegionBoxAdapter: (region: ValueRegionBoxAdapter) => {
                     const padding = dpr
