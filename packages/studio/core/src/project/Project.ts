@@ -154,10 +154,10 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
         console.debug(`Project was created on ${this.rootBoxAdapter.created.toString()}`)
     }
 
-    startAudioWorklet(worklets: AudioWorklets, restart?: RestartWorklet): EngineWorklet {
+    startAudioWorklet(restart?: RestartWorklet): EngineWorklet {
         console.debug(`start AudioWorklet`)
         const lifecycle = this.#terminator.spawn()
-        const engine: EngineWorklet = lifecycle.own(worklets.createEngine(this))
+        const engine: EngineWorklet = lifecycle.own(this.#env.audioWorklets.createEngine(this))
         const handler = async (event: unknown) => {
             console.warn(event)
             // we will only accept the first error
@@ -165,7 +165,7 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
             engine.removeEventListener("processorerror", handler)
             safeExecute(restart?.unload, event)
             lifecycle.terminate()
-            safeExecute(restart?.load, this.startAudioWorklet(worklets, restart))
+            safeExecute(restart?.load, this.startAudioWorklet(restart))
         }
         engine.addEventListener("error", handler)
         engine.addEventListener("processorerror", handler)
