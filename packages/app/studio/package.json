@@ -1,7 +1,7 @@
 {
   "name": "@opendaw/app-studio",
   "private": true,
-  "version": "0.0.31",
+  "version": "0.0.32",
   "type": "module",
   "license": "LGPL-3.0-or-later",
   "scripts": {
@@ -20,7 +20,7 @@
     "@opendaw/lib-std": "^0.0.27",
     "@opendaw/studio-adapters": "^0.0.27",
     "@opendaw/studio-boxes": "^0.0.27",
-    "@opendaw/studio-core": "^0.0.31",
+    "@opendaw/studio-core": "^0.0.32",
     "@opendaw/studio-enums": "^0.0.21",
     "@types/d3-force": "^3.0.10",
     "d3-force": "^3.0.0",
