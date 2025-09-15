@@ -1,14 +1,13 @@
 import {assert, FloatArray, int, Lazy, Option, Procedure} from "@opendaw/lib-std"
 import type {OpfsProtocol, SamplePeakProtocol} from "@opendaw/lib-fusion"
 import {Communicator, Messenger} from "@opendaw/lib-runtime"
-
-const WorkerUrl = new URL("./workers.js", import.meta.url)
+import {WorkersUrl} from "./asset-urls"
 
 export class WorkerAgents {
     static async install() {
         assert(this.messenger.isEmpty(), "WorkerAgents are already installed")
-        console.debug("WorkerAgents", WorkerUrl)
-        const message = Messenger.for(new Worker(WorkerUrl, {type: "module"}))
+        console.debug("WorkerAgents", WorkersUrl)
+        const message = Messenger.for(new Worker(WorkersUrl, {type: "module"}))
         this.messenger = Option.wrap(message)
         const {resolve, promise} = Promise.withResolvers<void>()
         const subscription = message.channel("initialize").subscribe(data => {

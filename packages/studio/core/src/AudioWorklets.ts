@@ -5,8 +5,7 @@ import {EngineWorklet} from "./EngineWorklet"
 import {MeterWorklet} from "./MeterWorklet"
 import {RecordingWorklet} from "./RecordingWorklet"
 import {RenderQuantum} from "./RenderQuantum"
-
-const WorkletsUrl = new URL("./processors.js", import.meta.url)
+import {WorkletsUrl} from "./asset-urls"
 
 export class AudioWorklets {
     static async install(context: BaseAudioContext): Promise<AudioWorklets> {

@@ -16,9 +16,11 @@
     "./processors.js": "./dist/processors.js"
   },
   "files": [
-    "dist/**/*",
-    "dist/workers.js",
-    "dist/processors.js"
+    "dist/**"
+  ],
+  "sideEffects": [
+    "dist/processors.js",
+    "dist/workers.js"
   ],
   "scripts": {
     "build": "tsc",
