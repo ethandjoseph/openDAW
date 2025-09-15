@@ -1,4 +1,4 @@
-import {Dropbox, DropboxResponse, DropboxResponseError, files} from "dropbox"
+import type {Dropbox, DropboxResponse, files} from "dropbox"
 import {Errors, isDefined, Option, panic} from "@opendaw/lib-std"
 import {Promises} from "@opendaw/lib-runtime"
 import {CloudHandler} from "./CloudHandler"
@@ -87,9 +87,13 @@ export class DropboxHandler implements CloudHandler {
     }
 
     #isNotFoundError(error: unknown): boolean {
-        if (!(error instanceof DropboxResponseError)) return false
-        const e = error.error as any
-        return e?.error?.[".tag"] === "path" &&
-            e.error?.path?.[".tag"] === "not_found"
+        return (
+            typeof error === "object" &&
+            error !== null &&
+            "status" in error &&
+            (error as any).status === 409 &&
+            (error as any).error?.error?.[".tag"] === "path" &&
+            (error as any).error?.error?.path?.[".tag"] === "not_found"
+        )
     }
 }
