@@ -3,8 +3,6 @@ import {Errors, isDefined, Option, panic} from "@opendaw/lib-std"
 import {Promises} from "@opendaw/lib-runtime"
 import {CloudHandler} from "./CloudHandler"
 
-// written by ChatGPT
-
 export class DropboxHandler implements CloudHandler {
     readonly #accessToken: string
 
