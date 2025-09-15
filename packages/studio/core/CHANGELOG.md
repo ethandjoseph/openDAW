@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.36](https://github.com/andremichelle/openDAW/compare/@opendaw/studio-core@0.0.35...@opendaw/studio-core@0.0.36) (2025-09-15)
+
+**Note:** Version bump only for package @opendaw/studio-core
+
 ## [0.0.35](https://github.com/andremichelle/openDAW/compare/@opendaw/studio-core@0.0.34...@opendaw/studio-core@0.0.35) (2025-09-15)
 
 **Note:** Version bump only for package @opendaw/studio-core
