@@ -24,7 +24,7 @@ export class Workers {
     @Lazy
     static get Peak(): SamplePeakProtocol {
         return Communicator
-            .sender<SamplePeakProtocol>(this.messenger.unwrap("WorkerAgents are not installed").channel("peaks"),
+            .sender<SamplePeakProtocol>(this.messenger.unwrap("Workers are not installed").channel("peaks"),
                 router => new class implements SamplePeakProtocol {
                     async generateAsync(
                         progress: Procedure<number>,
@@ -40,7 +40,7 @@ export class Workers {
     @Lazy
     static get Opfs(): OpfsProtocol {
         return Communicator
-            .sender<OpfsProtocol>(this.messenger.unwrap("WorkerAgents are not installed").channel("opfs"),
+            .sender<OpfsProtocol>(this.messenger.unwrap("Workers are not installed").channel("opfs"),
                 router => new class implements OpfsProtocol {
                     write(path: string, data: Uint8Array): Promise<void> {return router.dispatchAndReturn(this.write, path, data)}
                     read(path: string): Promise<Uint8Array> {return router.dispatchAndReturn(this.read, path)}
