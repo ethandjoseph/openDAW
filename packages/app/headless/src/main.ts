@@ -4,21 +4,27 @@ import {PPQN} from "@opendaw/lib-dsp"
 import {AnimationFrame, Browser} from "@opendaw/lib-dom"
 import {Promises} from "@opendaw/lib-runtime"
 import {AudioData, SampleMetaData} from "@opendaw/studio-adapters"
-import {AudioWorklets, MainThreadSampleManager, OpenSampleAPI, Project, WorkerAgents} from "@opendaw/studio-core"
+import {
+    AudioWorklets,
+    MainThreadSampleManager,
+    OpenSampleAPI,
+    Project,
+    WorkerAgents,
+    WorkersUrl,
+    WorkletsUrl
+} from "@opendaw/studio-core"
 import {testFeatures} from "./features"
 import {createExampleProject} from "./ExampleProject"
 
 // DO NOT DELETE THOSE IMPORTS
 // Importing here (even if unused) ensures Vite registers the asset
 // and serves it under a safe URL instead of a blocked /@fs/... path.
-import WorkersUrl from "@opendaw/studio-core/workers.js?worker&url"
-import WorkletsUrl from "@opendaw/studio-core/processors.js?url"
+void WorkersUrl
+void WorkletsUrl
 
-(async () => {
+;(async () => {
     assert(crossOriginIsolated, "window must be crossOriginIsolated")
     console.debug("booting...")
-    console.debug("WorkersUrl", WorkersUrl)
-    console.debug("WorkletsUrl", WorkletsUrl)
     console.debug("openDAW -> headless")
     console.debug("Agent", Browser.userAgent)
     console.debug("isLocalHost", Browser.isLocalHost())

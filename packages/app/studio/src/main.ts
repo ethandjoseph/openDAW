@@ -26,14 +26,19 @@ import {
     OpenSampleAPI,
     SampleProvider,
     SampleStorage,
-    WorkerAgents
+    WorkerAgents,
+    WorkersUrl,
+    WorkletsUrl
 } from "@opendaw/studio-core"
 
 // DO NOT DELETE THOSE IMPORTS
 // Importing here (even if unused) ensures Vite registers the asset
 // and serves it under a safe URL instead of a blocked /@fs/... path.
-import WorkersUrl from "@opendaw/studio-core/workers.js?worker&url"
-import WorkletsUrl from "@opendaw/studio-core/processors.js?url"
+// DO NOT DELETE THOSE IMPORTS
+// Importing here (even if unused) ensures Vite registers the asset
+// and serves it under a safe URL instead of a blocked /@fs/... path.
+void WorkersUrl
+void WorkletsUrl
 
 window.name = "main"
 
