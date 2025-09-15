@@ -1,7 +1,9 @@
 import {asDefined, Errors, isDefined, isNull, Maps, panic, RuntimeNotifier, TimeSpan} from "@opendaw/lib-std"
-import {CloudHandler} from "./CloudHandler"
 import {Promises} from "@opendaw/lib-runtime"
 import {CloudService} from "./CloudService"
+import {CloudHandler} from "./CloudHandler"
+import {DropboxHandler} from "./DropboxHandler"
+import {GoogleDriveHandler} from "./GoogleDriveHandler"
 
 export class CloudAuthManager {
     static create(): CloudAuthManager {return new CloudAuthManager()}
@@ -199,11 +201,9 @@ export class CloudAuthManager {
     async #createHandler(service: string, token: string): Promise<CloudHandler> {
         switch (service) {
             case "dropbox": {
-                const {DropboxHandler} = await import("./DropboxHandler")
                 return new DropboxHandler(token)
             }
             case "google": {
-                const {GoogleDriveHandler} = await import("./GoogleDriveHandler")
                 return new GoogleDriveHandler(token)
             }
             default:
