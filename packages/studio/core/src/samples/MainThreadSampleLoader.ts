@@ -12,7 +12,7 @@ import {
 import {Promises} from "@opendaw/lib-runtime"
 import {Peaks, SamplePeaks} from "@opendaw/lib-fusion"
 import {AudioData, SampleLoader, SampleLoaderState, SampleMetaData} from "@opendaw/studio-adapters"
-import {WorkerAgents} from "../WorkerAgents"
+import {Workers} from "../Workers"
 import {MainThreadSampleManager} from "./MainThreadSampleManager"
 import {SampleStorage} from "./SampleStorage"
 
@@ -103,7 +103,7 @@ export class MainThreadSampleLoader implements SampleLoader {
         }
         const [audio, meta] = fetchResult.value
         const shifts = SamplePeaks.findBestFit(audio.numberOfFrames)
-        const peaks = await WorkerAgents.Peak.generateAsync(
+        const peaks = await Workers.Peak.generateAsync(
             peakProgress,
             shifts,
             audio.frames,

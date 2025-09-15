@@ -1,7 +1,7 @@
 import {EmptyExec, Notifier, Observer, Option, Subscription, UUID} from "@opendaw/lib-std"
 import {ProjectMeta} from "./ProjectMeta"
 import {Project} from "./Project"
-import {WorkerAgents} from "../WorkerAgents"
+import {Workers} from "../Workers"
 import {ProjectPaths} from "./ProjectPaths"
 
 export class ProjectProfile {
@@ -90,11 +90,11 @@ export class ProjectProfile {
 
     static async #writeFiles({uuid, project, meta, cover}: ProjectProfile): Promise<void> {
         return Promise.all([
-            WorkerAgents.Opfs.write(ProjectPaths.projectFile(uuid), new Uint8Array(project.toArrayBuffer())),
-            WorkerAgents.Opfs.write(ProjectPaths.projectMeta(uuid), new TextEncoder().encode(JSON.stringify(meta))),
+            Workers.Opfs.write(ProjectPaths.projectFile(uuid), new Uint8Array(project.toArrayBuffer())),
+            Workers.Opfs.write(ProjectPaths.projectMeta(uuid), new TextEncoder().encode(JSON.stringify(meta))),
             cover.match({
                 none: () => Promise.resolve(),
-                some: x => WorkerAgents.Opfs.write(ProjectPaths.projectCover(uuid), new Uint8Array(x))
+                some: x => Workers.Opfs.write(ProjectPaths.projectCover(uuid), new Uint8Array(x))
             })
         ]).then(EmptyExec)
     }

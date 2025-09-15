@@ -12,15 +12,15 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./workers.js": "./dist/workers.js",
+    "./workers-main.js": "./dist/workers-main.js",
     "./processors.js": "./dist/processors.js"
   },
   "files": [
     "dist/**"
   ],
   "sideEffects": [
-    "dist/processors.js",
-    "dist/workers.js"
+    "dist/workers-main.js",
+    "dist/processors.js"
   ],
   "scripts": {
     "build": "tsc",

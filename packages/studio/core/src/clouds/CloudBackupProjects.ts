@@ -16,7 +16,7 @@ import {network, Promises} from "@opendaw/lib-runtime"
 import {ProjectMeta} from "../project/ProjectMeta"
 import {ProjectStorage} from "../project/ProjectStorage"
 import {CloudHandler} from "./CloudHandler"
-import {WorkerAgents} from "../WorkerAgents"
+import {Workers} from "../Workers"
 import {ProjectPaths} from "../project/ProjectPaths"
 
 // these get indexed in the cloud with the uuid in the cloud's catalog
@@ -185,13 +185,13 @@ export class CloudBackupProjects {
                     this.#cloudHandler.download(projectPath), network.DefaultRetry)
                 const metaArrayBuffer = await Promises.guardedRetry(() =>
                     this.#cloudHandler.download(metaPath), network.DefaultRetry)
-                await WorkerAgents.Opfs.write(ProjectPaths.projectFile(uuid), new Uint8Array(projectArrayBuffer))
-                await WorkerAgents.Opfs.write(ProjectPaths.projectMeta(uuid), new Uint8Array(metaArrayBuffer))
+                await Workers.Opfs.write(ProjectPaths.projectFile(uuid), new Uint8Array(projectArrayBuffer))
+                await Workers.Opfs.write(ProjectPaths.projectMeta(uuid), new Uint8Array(metaArrayBuffer))
                 const hasCover = files.some(file => file.endsWith("image.bin"))
                 if (hasCover) {
                     const arrayBuffer = await Promises.guardedRetry(() =>
                         this.#cloudHandler.download(coverPath), network.DefaultRetry)
-                    await WorkerAgents.Opfs.write(ProjectPaths.projectCover(uuid), new Uint8Array(arrayBuffer))
+                    await Workers.Opfs.write(ProjectPaths.projectCover(uuid), new Uint8Array(arrayBuffer))
                 }
                 return uuidAsString
             }))

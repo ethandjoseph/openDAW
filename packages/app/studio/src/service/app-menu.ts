@@ -6,7 +6,7 @@ import {EmptyExec, isDefined, panic, RuntimeNotifier, RuntimeSignal} from "@open
 import {Browser, ModfierKeys} from "@opendaw/lib-dom"
 import {SyncLogService} from "@/service/SyncLogService"
 import {IconSymbol} from "@opendaw/studio-adapters"
-import {CloudBackup, Colors, ProjectSignals, WorkerAgents} from "@opendaw/studio-core"
+import {CloudBackup, Colors, ProjectSignals, Workers} from "@opendaw/studio-core"
 import {Promises} from "@opendaw/lib-runtime"
 
 export const initAppMenu = (service: StudioService) => MenuItem.root()
@@ -124,7 +124,7 @@ export const initAppMenu = (service: StudioService) => MenuItem.root()
                                     })
                                     if (approved) {
                                         const {status, error} =
-                                            await Promises.tryCatch(WorkerAgents.Opfs.delete(""))
+                                            await Promises.tryCatch(Workers.Opfs.delete(""))
                                         if (status === "resolved") {
                                             RuntimeSignal.dispatch(ProjectSignals.StorageUpdated)
                                             await RuntimeNotifier.info({

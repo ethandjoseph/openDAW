@@ -5,7 +5,7 @@ import {AudioData, Sample} from "@opendaw/studio-adapters"
 import {OpenSampleAPI} from "../samples/OpenSampleAPI"
 import {SampleStorage} from "../samples/SampleStorage"
 import {CloudHandler} from "./CloudHandler"
-import {WorkerAgents} from "../WorkerAgents"
+import {Workers} from "../Workers"
 import {WavFile} from "../WavFile"
 
 type SampleDomains = Record<"stock" | "local" | "cloud", ReadonlyArray<Sample>>
@@ -134,7 +134,7 @@ export class CloudBackupSamples {
                     frames: waveAudio.channels
                 }
                 const shifts = SamplePeaks.findBestFit(audioData.numberOfFrames)
-                const peaks = await WorkerAgents.Peak.generateAsync(
+                const peaks = await Workers.Peak.generateAsync(
                     Progress.Empty,
                     shifts,
                     audioData.frames,

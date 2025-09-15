@@ -6,4 +6,6 @@ const messenger: Messenger = Messenger.for(self)
 OpfsWorker.init(messenger)
 SamplePeakWorker.install(messenger)
 
+console.debug("workers about to be initialized.")
+
 messenger.channel("initialize").send("ready")

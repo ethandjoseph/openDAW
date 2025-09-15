@@ -7,12 +7,15 @@ import {RecordingWorklet} from "./RecordingWorklet"
 import {RenderQuantum} from "./RenderQuantum"
 
 export class AudioWorklets {
-    static setWorkletUrl(url: string): void {this.#workletUrl = Option.wrap(url)}
+    static setWorkletUrl(url: string): void {
+        console.debug(`setWorkletUrl: '${url}'`)
+        this.#workletUrl = Option.wrap(url)
+    }
 
     static #workletUrl: Option<string> = Option.None
 
     static async install(context: BaseAudioContext): Promise<AudioWorklets> {
-        return context.audioWorklet.addModule(this.#workletUrl.unwrap("WorkletUrl is missing")).then(() => {
+        return context.audioWorklet.addModule(this.#workletUrl.unwrap("WorkletUrl is missing (call 'setWorkletUrl' first)")).then(() => {
             const worklets = new AudioWorklets(context)
             this.#map.set(context, worklets)
             return worklets

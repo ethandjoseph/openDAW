@@ -26,11 +26,11 @@ import {
     OpenSampleAPI,
     SampleProvider,
     SampleStorage,
-    WorkerAgents
+    Workers
 } from "@opendaw/studio-core"
 
+import WorkersUrl from "@opendaw/studio-core/workers-main.js?worker&url"
 import WorkletsUrl from "@opendaw/studio-core/processors.js?url"
-import WorkersUrl from "@opendaw/studio-core/workers.js?worker&url"
 
 window.name = "main"
 
@@ -41,9 +41,9 @@ const loadBuildInfo = async () => fetch(`/build-info.json?v=${Date.now()}`)
         console.time("boot")
         if (!window.crossOriginIsolated) {return panic("window must be crossOriginIsolated")}
         console.debug("booting...")
-        WorkerAgents.setWorkerUrl(WorkersUrl)
+        Workers.setWorkerUrl(WorkersUrl)
         AudioWorklets.setWorkletUrl(WorkletsUrl)
-        await WorkerAgents.install()
+        await Workers.install()
         await FontLoader.load()
         const testFeaturesResult = await Promises.tryCatch(testFeatures())
         if (testFeaturesResult.status === "rejected") {

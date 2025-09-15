@@ -22,7 +22,7 @@ import {
 } from "@opendaw/studio-adapters"
 import {SampleStorage} from "./samples/SampleStorage"
 import {RenderQuantum} from "./RenderQuantum"
-import {WorkerAgents} from "./WorkerAgents"
+import {Workers} from "./Workers"
 import {PeaksWriter} from "./PeaksWriter"
 
 export class RecordingWorklet extends AudioWorkletNode implements Terminable, SampleLoader {
@@ -114,7 +114,7 @@ export class RecordingWorklet extends AudioWorkletNode implements Terminable, Sa
         }
         this.#data = Option.wrap(audioData)
         const shifts = SamplePeaks.findBestFit(totalSamples)
-        const peaks = await WorkerAgents
+        const peaks = await Workers
             .Peak.generateAsync(Progress.Empty, shifts, frames, totalSamples, numberOfChannels)
         this.#peaks = Option.wrap(SamplePeaks.from(new ByteArrayInput(peaks)))
         const bpm = BPMTools.detect(frames[0], sample_rate)

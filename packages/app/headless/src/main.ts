@@ -4,32 +4,22 @@ import {PPQN} from "@opendaw/lib-dsp"
 import {AnimationFrame, Browser} from "@opendaw/lib-dom"
 import {Promises} from "@opendaw/lib-runtime"
 import {AudioData, SampleMetaData} from "@opendaw/studio-adapters"
-import {
-    AudioWorklets,
-    MainThreadSampleManager,
-    OpenSampleAPI,
-    Project,
-    WorkerAgents,
-    WorkersUrl,
-    WorkletsUrl
-} from "@opendaw/studio-core"
+import {AudioWorklets, MainThreadSampleManager, OpenSampleAPI, Project, Workers} from "@opendaw/studio-core"
 import {testFeatures} from "./features"
 import {createExampleProject} from "./ExampleProject"
+import WorkersUrl from "@opendaw/studio-core/workers-main.js?worker&url"
+import WorkletsUrl from "@opendaw/studio-core/processors.js?url"
 
-// DO NOT DELETE THOSE IMPORTS
-// Importing here (even if unused) ensures Vite registers the asset
-// and serves it under a safe URL instead of a blocked /@fs/... path.
-void WorkersUrl
-void WorkletsUrl
-
-;(async () => {
+(async () => {
     assert(crossOriginIsolated, "window must be crossOriginIsolated")
     console.debug("booting...")
     console.debug("openDAW -> headless")
     console.debug("Agent", Browser.userAgent)
     console.debug("isLocalHost", Browser.isLocalHost())
     document.body.textContent = "booting..."
-    await WorkerAgents.install()
+    Workers.setWorkerUrl(WorkersUrl)
+    AudioWorklets.setWorkletUrl(WorkletsUrl)
+    await Workers.install()
     {
         const {status, error} = await Promises.tryCatch(testFeatures())
         if (status === "rejected") {

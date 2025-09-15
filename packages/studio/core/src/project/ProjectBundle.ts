@@ -5,7 +5,7 @@ import {Project} from "./Project"
 import {ProjectEnv} from "./ProjectEnv"
 import {ProjectPaths} from "./ProjectPaths"
 import {ProjectProfile} from "./ProjectProfile"
-import {WorkerAgents} from "../WorkerAgents"
+import {Workers} from "../Workers"
 import {SampleStorage} from "../samples/SampleStorage"
 import {MainThreadSampleLoader} from "../samples/MainThreadSampleLoader"
 import type JSZip from "jszip"
@@ -56,7 +56,7 @@ export namespace ProjectBundle {
         samples.forEach((path, file) => {
             if (file.dir) {return}
             promises.push(file.async("arraybuffer")
-                .then(arrayBuffer => WorkerAgents.Opfs
+                .then(arrayBuffer => Workers.Opfs
                     .write(`${SampleStorage.Folder}/${path}`, new Uint8Array(arrayBuffer))))
         })
         await Promise.all(promises)
@@ -70,9 +70,9 @@ export namespace ProjectBundle {
     const pipeSampleLoaderInto = async (loader: SampleLoader, zip: JSZip): Promise<void> => {
         const exec: Exec = async () => {
             const path = `${SampleStorage.Folder}/${UUID.toString(loader.uuid)}`
-            zip.file("audio.wav", await WorkerAgents.Opfs.read(`${path}/audio.wav`), {binary: true})
-            zip.file("peaks.bin", await WorkerAgents.Opfs.read(`${path}/peaks.bin`), {binary: true})
-            zip.file("meta.json", await WorkerAgents.Opfs.read(`${path}/meta.json`))
+            zip.file("audio.wav", await Workers.Opfs.read(`${path}/audio.wav`), {binary: true})
+            zip.file("peaks.bin", await Workers.Opfs.read(`${path}/peaks.bin`), {binary: true})
+            zip.file("meta.json", await Workers.Opfs.read(`${path}/meta.json`))
         }
         if (loader.state.type === "loaded") {
             return exec()
