@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.27](https://github.com/andremichelle/openDAW/compare/@opendaw/lib-box@0.0.26...@opendaw/lib-box@0.0.27) (2025-09-15)
+
+**Note:** Version bump only for package @opendaw/lib-box
+
 ## [0.0.26](https://github.com/andremichelle/openDAW/compare/@opendaw/lib-box@0.0.25...@opendaw/lib-box@0.0.26) (2025-09-13)
 
 **Note:** Version bump only for package @opendaw/lib-box

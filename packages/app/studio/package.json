@@ -1,7 +1,7 @@
 {
   "name": "@opendaw/app-studio",
   "private": true,
-  "version": "0.0.29",
+  "version": "0.0.30",
   "type": "module",
   "license": "LGPL-3.0-or-later",
   "scripts": {
@@ -11,17 +11,17 @@
     "lint": "eslint \"src/**/*.ts\""
   },
   "dependencies": {
-    "@opendaw/lib-box": "^0.0.26",
-    "@opendaw/lib-dom": "^0.0.26",
-    "@opendaw/lib-dsp": "^0.0.26",
-    "@opendaw/lib-jsx": "^0.0.26",
-    "@opendaw/lib-midi": "^0.0.8",
-    "@opendaw/lib-runtime": "^0.0.26",
-    "@opendaw/lib-std": "^0.0.26",
-    "@opendaw/studio-adapters": "^0.0.26",
-    "@opendaw/studio-boxes": "^0.0.26",
-    "@opendaw/studio-core": "^0.0.29",
-    "@opendaw/studio-enums": "^0.0.20",
+    "@opendaw/lib-box": "^0.0.27",
+    "@opendaw/lib-dom": "^0.0.27",
+    "@opendaw/lib-dsp": "^0.0.27",
+    "@opendaw/lib-jsx": "^0.0.27",
+    "@opendaw/lib-midi": "^0.0.9",
+    "@opendaw/lib-runtime": "^0.0.27",
+    "@opendaw/lib-std": "^0.0.27",
+    "@opendaw/studio-adapters": "^0.0.27",
+    "@opendaw/studio-boxes": "^0.0.27",
+    "@opendaw/studio-core": "^0.0.30",
+    "@opendaw/studio-enums": "^0.0.21",
     "@types/d3-force": "^3.0.10",
     "d3-force": "^3.0.0",
     "dropbox": "^10.34.0",
@@ -32,8 +32,8 @@
     "monaco-editor": "^0.52.2"
   },
   "devDependencies": {
-    "@opendaw/eslint-config": "^0.0.18",
-    "@opendaw/typescript-config": "^0.0.19",
+    "@opendaw/eslint-config": "^0.0.19",
+    "@opendaw/typescript-config": "^0.0.20",
     "@types/markdown-it": "^14.1.2",
     "@types/node": "^22.15.18",
     "eslint": "^8.57.0",
