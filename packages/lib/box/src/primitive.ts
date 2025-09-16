@@ -126,9 +126,7 @@ export abstract class PrimitiveField<
         const value = this.getValue()
         return ArrayBuffer.isView(value) ? panic("not implemented") : value
     }
-    fromJSON(value: JSONValue): void {
-        this.setValue(value as V) // TODO We need to check, if this is really the correct type!
-    }
+    fromJSON(_value: JSONValue): void {return panic("Type mismatch")}
     reset(): void {this.setValue(this.#initValue)}
 }
 
@@ -145,6 +143,13 @@ export class BooleanField<E extends PointerTypes = UnreferenceableType> extends 
     clamp(value: boolean): boolean {return value}
     read(input: DataInput): void {this.setValue(input.readBoolean())}
     write(output: DataOutput): void {output.writeBoolean(this.getValue())}
+    fromJSON(value: JSONValue): void {
+        if (typeof value === "boolean") {
+            this.setValue(value)
+        } else {
+            return panic("Type mismatch")
+        }
+    }
 }
 
 export class Float32Field<E extends PointerTypes = UnreferenceableType> extends PrimitiveField<float, E> {
@@ -159,6 +164,13 @@ export class Float32Field<E extends PointerTypes = UnreferenceableType> extends 
     clamp(value: float): float {return Float.toFloat32(value)}
     read(input: DataInput): void {this.setValue(input.readFloat())}
     write(output: DataOutput): void {output.writeFloat(this.getValue())}
+    fromJSON(value: JSONValue): void {
+        if (typeof value === "number") {
+            this.setValue(value)
+        } else {
+            return panic("Type mismatch")
+        }
+    }
 }
 
 export class Int32Field<E extends PointerTypes = UnreferenceableType> extends PrimitiveField<int, E> {
@@ -173,6 +185,14 @@ export class Int32Field<E extends PointerTypes = UnreferenceableType> extends Pr
     clamp(value: int): int {return Integer.toInt(value)}
     read(input: DataInput): void {this.setValue(input.readInt())}
     write(output: DataOutput): void {output.writeInt(this.getValue())}
+    fromJSON(value: JSONValue): void {
+        if (typeof value === "number" && value === Math.floor(value)
+            && value >= Integer.MIN_VALUE && value <= Integer.MAX_VALUE) {
+            this.setValue(value)
+        } else {
+            return panic("Type mismatch")
+        }
+    }
 }
 
 export class StringField<E extends PointerTypes = UnreferenceableType> extends PrimitiveField<string, E> {
@@ -187,6 +207,13 @@ export class StringField<E extends PointerTypes = UnreferenceableType> extends P
     clamp(value: string): string {return value}
     read(input: DataInput): void {this.setValue(input.readString())}
     write(output: DataOutput): void {output.writeString(this.getValue())}
+    fromJSON(value: JSONValue): void {
+        if (typeof value === "string") {
+            this.setValue(value)
+        } else {
+            return panic("Type mismatch")
+        }
+    }
 }
 
 export class ByteArrayField<E extends PointerTypes = UnreferenceableType> extends PrimitiveField<Readonly<Int8Array>, E> {

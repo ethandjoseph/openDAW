@@ -51,7 +51,8 @@ export const initAppMenu = (service: StudioService) => MenuItem.root()
                             .setTriggerProcedure(async () => service.exportDawproject()),
                         MenuItem.default({label: "JSON...", selectable: service.hasProfile, hidden: !Browser.isLocalHost()})
                             .setTriggerProcedure(async () => {
-                                const arrayBuffer = new TextEncoder().encode(JSON.stringify(service.project.boxGraph.toJSON(), null, 2)).buffer
+                                const arrayBuffer = new TextEncoder().encode(JSON.stringify(
+                                    service.project.boxGraph.toJSON(), null, 2)).buffer
                                 await Files.save(arrayBuffer, {
                                     types: [FilePickerAcceptTypes.JsonFileType],
                                     suggestedName: "project.json"
