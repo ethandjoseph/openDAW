@@ -10,9 +10,11 @@ import {
     DataOutput,
     Func,
     int,
+    JSONValue,
     Lazy,
     Maybe,
     Option,
+    Optional,
     Procedure,
     Subscription,
     UUID
@@ -103,6 +105,16 @@ export abstract class Box<P extends PointerTypes = PointerTypes, F extends Field
         const output = ByteArrayOutput.create()
         this.write(output)
         return output.toArrayBuffer()
+    }
+    toJSON(): Optional<JSONValue> {
+        return {
+            name: this.name,
+            address: this.address.toString(),
+            fields: Object.entries(this.#fields).reduce((result: Record<string, Optional<JSONValue>>, [key, field]) => {
+                result[key] = field.toJSON()
+                return result
+            }, {})
+        }
     }
 
     incomingEdges(): ReadonlyArray<PointerField> {return this.graph.edges().incomingEdgesOf(this)}

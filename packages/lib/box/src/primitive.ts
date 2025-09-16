@@ -10,10 +10,13 @@ import {
     float,
     int,
     Integer,
-    MutableObservableValue,
+    JSONValue,
     Maybe,
+    MutableObservableValue,
     ObservableValue,
     Observer,
+    Optional,
+    panic,
     safeExecute,
     Subscription
 } from "@opendaw/lib-std"
@@ -119,6 +122,10 @@ export abstract class PrimitiveField<
     }
     writeValue(output: ByteArrayOutput, value: V): void {this.serialization().encode(output, value)}
     readValue(input: ByteArrayInput): V {return this.serialization().decode(input)}
+    toJSON(): Optional<JSONValue> {
+        const value = this.getValue()
+        return ArrayBuffer.isView(value) ? panic("not implemented") : value
+    }
     reset(): void {this.setValue(this.#initValue)}
 }
 
@@ -202,4 +209,5 @@ export class ByteArrayField<E extends PointerTypes = UnreferenceableType> extend
         output.writeInt(bytes.length)
         output.writeBytes(bytes)
     }
+    toJSON(): Optional<JSONValue> {return Array.from(this.getValue().values())}
 }

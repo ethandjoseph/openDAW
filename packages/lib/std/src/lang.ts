@@ -46,7 +46,7 @@ export type StructuredCloneable =
     | RegExp
 export type JSONValue = string | number | boolean | null | JSONArray | JSONObject
 export type JSONArray = Array<JSONValue>
-export type JSONObject = { [key: string]: JSONValue }
+export type JSONObject = { [key: string]: Optional<JSONValue> }
 export type Id<T extends unknown> = T & { id: int }
 export type Sign = -1 | 0 | 1
 export type Optional<T> = T | undefined

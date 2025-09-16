@@ -2,7 +2,7 @@ import {ByteArrayInput, ByteArrayOutput, Maybe, Option, safeExecute, Unhandled, 
 import {NoPointers, VertexVisitor} from "./vertex"
 import {Field, FieldConstruct} from "./field"
 import {Box, BoxConstruct} from "./box"
-import {BooleanField, Float32Field, Int32Field, PrimitiveField, StringField} from "./primitive"
+import {BooleanField, ByteArrayField, Float32Field, Int32Field, PrimitiveField, StringField} from "./primitive"
 import {PointerField, UnreferenceableType} from "./pointer"
 import {BoxGraph} from "./graph"
 import {ArrayField} from "./array"
@@ -161,6 +161,7 @@ type FooObjectFields = {
     1: PrimitiveField<string, PointerType.A>
     2: Float32Field
     3: Int32Field<PointerType.B | PointerType.A>
+    4: ByteArrayField
 }
 
 class FooObject extends ObjectField<FooObjectFields> {
@@ -193,7 +194,13 @@ class FooObject extends ObjectField<FooObjectFields> {
                 fieldKey: 3,
                 fieldName: "3",
                 pointerRules: {accepts: [PointerType.A, PointerType.B], mandatory: true}
-            })
+            }),
+            4: ByteArrayField.create({
+                parent: this,
+                fieldKey: 4,
+                fieldName: "4",
+                pointerRules: {accepts: [], mandatory: false}
+            }, new Int8Array([1, 2, 3]))
         }
     }
 
@@ -385,5 +392,18 @@ describe("ArrayField", () => {
         expect(recreation.booleans.getField(4).getValue()).true
         expect(recreation.foo.solo.getValue()).toBe("Hello 👻")
         expect(recreation.foos.getField(3).baz.getValue()).toBe(42)
+    })
+})
+
+describe("JSON", () => {
+    it("serialize Box", () => {
+        const graph: BoxGraph = new BoxGraph()
+        graph.beginTransaction()
+        const fooBox = FooBox.create(graph, UUID.parse("3372511f-fab0-4dcd-a723-0146c949a527"))
+        const barBox = BarBox.create(graph, UUID.parse("41424300-0000-4000-8000-000000000000"))
+        barBox.ref.refer(fooBox)
+        console.debug(JSON.stringify(fooBox.toJSON(), null, 2))
+        console.debug(JSON.stringify(barBox.toJSON(), null, 2))
+        graph.endTransaction()
     })
 })

@@ -6,8 +6,10 @@ import {
     Exec,
     int,
     isDefined,
+    JSONValue,
     Listeners,
     Option,
+    Optional,
     panic,
     Procedure,
     SortedSet,
@@ -317,6 +319,13 @@ export class BoxGraph<BoxMap = any> {
             .sort((a, b) => a.creationIndex - b.creationIndex)
             .forEach(({name, uuid, boxStream}) => this.createBox(name, uuid, box => box.read(boxStream)))
         this.endTransaction()
+    }
+
+    toJSON(): Optional<JSONValue> {
+        return {
+            type: "boxes",
+            value: this.#boxes.values().map(box => box.toJSON())
+        }
     }
 
     #assertTransaction(): void {

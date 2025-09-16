@@ -1,6 +1,17 @@
 import {Field, FieldConstruct} from "./field"
 import {UnreferenceableType} from "./pointer"
-import {Arrays, asDefined, DataInput, DataOutput, int, Maybe, Option, safeExecute} from "@opendaw/lib-std"
+import {
+    Arrays,
+    asDefined,
+    DataInput,
+    DataOutput,
+    int,
+    JSONValue,
+    Maybe,
+    Option,
+    Optional,
+    safeExecute
+} from "@opendaw/lib-std"
 import {NoPointers, VertexVisitor} from "./vertex"
 
 export type ArrayFieldFactory<FIELD extends Field> = (construct: FieldConstruct<UnreferenceableType>) => FIELD
@@ -45,5 +56,5 @@ export class ArrayField<FIELD extends Field = Field>
 
     size(): int {return this.#fields.length}
 
-    toJSON() {return this.#fields}
+    toJSON(): Optional<JSONValue> {return Object.values(this.#fields).map((field) => field.toJSON())}
 }

@@ -3,10 +3,10 @@ import {StudioService} from "@/service/StudioService"
 import {Dialogs} from "@/ui/components/dialogs.tsx"
 import {RouteLocation} from "@opendaw/lib-jsx"
 import {EmptyExec, isDefined, panic, RuntimeNotifier, RuntimeSignal} from "@opendaw/lib-std"
-import {Browser, ModfierKeys} from "@opendaw/lib-dom"
+import {Browser, Files, ModfierKeys} from "@opendaw/lib-dom"
 import {SyncLogService} from "@/service/SyncLogService"
 import {IconSymbol} from "@opendaw/studio-adapters"
-import {CloudBackup, Colors, ProjectSignals, Workers} from "@opendaw/studio-core"
+import {CloudBackup, Colors, FilePickerAcceptTypes, ProjectSignals, Workers} from "@opendaw/studio-core"
 import {Promises} from "@opendaw/lib-runtime"
 
 export const initAppMenu = (service: StudioService) => MenuItem.root()
@@ -48,7 +48,15 @@ export const initAppMenu = (service: StudioService) => MenuItem.root()
                         MenuItem.default({label: "Project Bundle...", selectable: service.hasProfile})
                             .setTriggerProcedure(() => service.exportZip()),
                         MenuItem.default({label: "DAWproject...", selectable: service.hasProfile})
-                            .setTriggerProcedure(async () => service.exportDawproject())
+                            .setTriggerProcedure(async () => service.exportDawproject()),
+                        MenuItem.default({label: "JSON...", selectable: service.hasProfile, hidden: !Browser.isLocalHost()})
+                            .setTriggerProcedure(async () => {
+                                const arrayBuffer = new TextEncoder().encode(JSON.stringify(service.project.boxGraph.toJSON(), null, 2)).buffer
+                                await Files.save(arrayBuffer, {
+                                    types: [FilePickerAcceptTypes.JsonFileType],
+                                    suggestedName: "project.json"
+                                })
+                            })
                     )),
                 MenuItem.default({
                     label: "Cloud Backup",

@@ -1,4 +1,4 @@
-import {DataInput, DataOutput, Maybe, Option} from "@opendaw/lib-std"
+import {DataInput, DataOutput, JSONValue, Maybe, Option, Optional} from "@opendaw/lib-std"
 import {Addressable} from "./address"
 import {Box} from "./box"
 import {Field, Fields} from "./field"
@@ -43,4 +43,5 @@ export interface Vertex<P extends PointerTypes = PointerTypes, F extends Fields 
     optField(key: keyof F): Option<F[keyof F]>
     read(input: DataInput): void
     write(output: DataOutput): void
+    toJSON(): Optional<JSONValue>
 }

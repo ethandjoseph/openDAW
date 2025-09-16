@@ -2,9 +2,11 @@ import {
     assert,
     DataInput,
     DataOutput,
+    JSONValue,
     Maybe,
     Observer,
     Option,
+    Optional,
     panic,
     Provider,
     safeExecute,
@@ -148,6 +150,16 @@ export class PointerField<P extends PointerTypes = PointerTypes> extends Field<U
                 output.writeBoolean(true)
                 address.write(output)
             }
+        })
+    }
+
+    toJSON(): Optional<JSONValue> {
+        return PointerField.#encoder.match({
+            none: () => this.#targetAddress,
+            some: encoder => encoder.map(this)
+        }).match({
+            none: () => undefined,
+            some: address => address.toString()
         })
     }
 }

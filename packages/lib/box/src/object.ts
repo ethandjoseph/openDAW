@@ -1,6 +1,6 @@
 import {Field, FieldConstruct, Fields} from "./field"
 import {UnreferenceableType} from "./pointer"
-import {asDefined, DataInput, DataOutput, Maybe, Option, safeExecute} from "@opendaw/lib-std"
+import {asDefined, DataInput, DataOutput, JSONValue, Maybe, Option, Optional, safeExecute} from "@opendaw/lib-std"
 import {Serializer} from "./serializer"
 import {VertexVisitor} from "./vertex"
 
@@ -26,5 +26,10 @@ export abstract class ObjectField<FIELDS extends Fields> extends Field<Unreferen
     read(input: DataInput): void {Serializer.readFields(input, this.#fields)}
     write(output: DataOutput): void {Serializer.writeFields(output, this.#fields)}
 
-    toJSON() {return this.#fields}
+    toJSON(): Optional<JSONValue> {
+        return Object.entries(this.#fields).reduce((result: Record<string, Optional<JSONValue>>, [key, field]) => {
+            result[key] = field.toJSON()
+            return result
+        }, {})
+    }
 }

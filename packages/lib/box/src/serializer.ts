@@ -20,7 +20,7 @@ export namespace Serializer {
     export const readFields = <FIELDS extends Fields>(input: DataInput, fields: FIELDS) => {
         assert(input.readInt() === MAGIC_HEADER, "Serializer header is corrupt")
         const numFields = input.readShort()
-        for (let fieldIndex = 0; fieldIndex < numFields; fieldIndex++) {
+        for (let i = 0; i < numFields; i++) {
             const key: FieldKey = input.readShort()
             if (isUndefined(fields[key])) {continue}
             const byteLength = input.readInt()

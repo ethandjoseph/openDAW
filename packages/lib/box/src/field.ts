@@ -1,4 +1,16 @@
-import {DataInput, DataOutput, Iterables, Lazy, Maybe, Option, panic, safeExecute, short} from "@opendaw/lib-std"
+import {
+    DataInput,
+    DataOutput,
+    Iterables,
+    JSONValue,
+    Lazy,
+    Maybe,
+    Option,
+    Optional,
+    panic,
+    safeExecute,
+    short
+} from "@opendaw/lib-std"
 import {Address} from "./address"
 import {Box} from "./box"
 import {PointerRules, Vertex, VertexVisitor} from "./vertex"
@@ -65,6 +77,7 @@ export class Field<P extends PointerTypes = PointerTypes, F extends Fields = Fie
     optField(_key: keyof F): Option<F[keyof F]> {return Option.None}
     read(_input: DataInput): void {}
     write(_output: DataOutput): void {}
+    toJSON(): Optional<JSONValue> {return undefined}
     disconnect(): void {
         if (this.pointerHub.isEmpty()) {return}
         const incoming = this.pointerHub.incoming()
