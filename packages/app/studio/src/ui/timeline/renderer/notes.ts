@@ -1,13 +1,13 @@
 import {NoteRegionBoxAdapter} from "@opendaw/studio-adapters"
 import {LoopableRegion} from "@opendaw/lib-dsp"
 import {TimelineRange} from "@/ui/timeline/TimelineRange.ts"
-import {RegionBound, RegionColors} from "@/ui/timeline/renderer/env.ts"
+import {RegionBound} from "@/ui/timeline/renderer/env.ts"
 
 export const renderNotes = (context: CanvasRenderingContext2D,
                             range: TimelineRange,
                             region: NoteRegionBoxAdapter,
                             {top, bottom}: RegionBound,
-                            {contentColor}: RegionColors,
+                            contentColor: string,
                             {rawStart, regionStart, resultStart, resultEnd}: LoopableRegion.LoopCycle) => {
     const collection = region.optCollection.unwrap()
     const height = bottom - top

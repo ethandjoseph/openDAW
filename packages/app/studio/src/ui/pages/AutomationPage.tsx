@@ -5,7 +5,6 @@ import {TAU, unitValue} from "@opendaw/lib-std"
 import {EventCollection, Interpolation, LoopableRegion, PPQN, ValueEvent} from "@opendaw/lib-dsp"
 import {TimelineRange} from "@/ui/timeline/TimelineRange.ts"
 import {renderValueStream} from "@/ui/timeline/renderer/value.ts"
-import {RegionColors} from "@/ui/timeline/renderer/env.ts"
 import {Html} from "@opendaw/lib-dom"
 
 const className = Html.adoptStyleSheet(css, "AutomationPage")
@@ -595,9 +594,7 @@ export const AutomationPage: PageFactory<StudioService> = ({}: PageContext<Studi
     const unitMax = range.unitMax
     const height = 48
     const loopColor = "rgba(64, 255, 64, 0.25)"
-    const colors: RegionColors = {
-        contentColor: "rgba(255, 255, 255, 0.5)"
-    }
+    const contentColor = "rgba(255, 255, 255, 0.5)"
 
     return (
         <div className={className}>
@@ -635,7 +632,7 @@ export const AutomationPage: PageFactory<StudioService> = ({}: PageContext<Studi
                             const windowMin = pass.resultStart - pass.rawStart
                             const windowMax = pass.resultEnd - pass.rawStart
                             const iterator = ValueEvent.iterateWindow(eventCollection, windowMin, windowMax)
-                            renderValueStream(context, range, iterator, valueToY, colors, 0.2, 0.0, pass)
+                            renderValueStream(context, range, iterator, valueToY, contentColor, 0.2, 0.0, pass)
                             context.strokeStyle = "rgba(255, 255, 255, 0.25)"
                         }
                         const offset = section.position - section.loopOffset

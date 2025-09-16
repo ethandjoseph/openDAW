@@ -7,11 +7,12 @@ import {
 } from "@/ui/timeline/tracks/audio-unit/regions/RegionModifyStrategies.ts"
 import {TracksManager} from "@/ui/timeline/tracks/audio-unit/TracksManager.ts"
 import {renderNotes} from "@/ui/timeline/renderer/notes.ts"
-import {RegionBound, RegionColors} from "@/ui/timeline/renderer/env.ts"
+import {RegionBound} from "@/ui/timeline/renderer/env.ts"
 import {renderAudio} from "@/ui/timeline/renderer/audio.ts"
 import {renderValueStream} from "@/ui/timeline/renderer/value.ts"
 import {TimelineRange} from "@/ui/timeline/TimelineRange.ts"
 import {Context2d} from "@opendaw/lib-dom"
+import {RegionPaintBucket} from "@/ui/timeline/tracks/audio-unit/regions/RegionPaintBucket"
 
 export const renderRegions = (context: CanvasRenderingContext2D,
                               tracks: TracksManager,
@@ -62,32 +63,17 @@ export const renderRegions = (context: CanvasRenderingContext2D,
             const x1Int = Math.max(Math.floor(range.unitToX(Math.min(complete, unitMax)) * dpr), x0Int + dpr)
             const xnInt = x1Int - x0Int
 
-            const selected = region.isSelected && !filterSelected
+            const {
+                labelColor, labelBackground, contentColor, contentBackground, loopStrokeColor
+            } = RegionPaintBucket.create(region, region.isSelected && !filterSelected)
 
             context.clearRect(x0Int, 0, xnInt, height)
-
-            // Extract this into a method and return ready-to-use colors
-            const hue = region.hue
-            const saturationFactor = region.mute ? 0.05 : 1.0
-            const fullSat = 100 * saturationFactor
-            const normSat = 60 * saturationFactor
-            const lessSat = 45 * saturationFactor
-            const labelColor = selected ? `hsl(${hue}, ${normSat}%, 10%)` : `hsl(${hue}, ${normSat}%, 60%)`
-            const contentColor = `hsl(${hue}, ${normSat}%, 45%)`
-            const loopColor = `hsla(${hue}, 40%, ${normSat}%, 0.5)`
-            const backgroundColor = selected ? `hsla(${hue}, ${normSat}%, 60%, 0.06)` : `hsla(${hue}, ${normSat}%, 60%, 0.03)`
-            const labelBackgroundColor = selected ? `hsla(${hue}, ${fullSat}%, 60%, 0.75)` : `hsla(${hue}, ${lessSat}%, 60%, 0.15)`
-            const colors: RegionColors = {contentColor} // TODO simplify
-
-            context.fillStyle = labelBackgroundColor
+            context.fillStyle = labelBackground
             context.fillRect(x0Int, 0, xnInt, labelHeight)
-
-            context.fillStyle = backgroundColor
+            context.fillStyle = contentBackground
             context.fillRect(x0Int, labelHeight, xnInt, height - labelHeight)
-
             const maxTextWidth = xnInt - 4 // subtract text-padding
             context.fillStyle = labelColor
-
             if (strategy.readMirror(region)) {
                 context.font = `italic ${em}px ${fontFamily}`
             } else {
@@ -107,10 +93,10 @@ export const renderRegions = (context: CanvasRenderingContext2D,
                     }, unitMin, unitMax)) {
                         if (pass.index > 0) {
                             const x = Math.floor(range.unitToX(pass.resultStart) * dpr)
-                            context.fillStyle = loopColor
+                            context.fillStyle = loopStrokeColor
                             context.fillRect(x, labelHeight, 1, height - labelHeight)
                         }
-                        renderNotes(context, range, region, bound, colors, pass)
+                        renderNotes(context, range, region, bound, contentColor, pass)
                     }
                 },
                 visitAudioRegionBoxAdapter: (region: AudioRegionBoxAdapter): void => {
@@ -122,10 +108,10 @@ export const renderRegions = (context: CanvasRenderingContext2D,
                     }, unitMin, unitMax)) {
                         if (pass.index > 0) {
                             const x = Math.floor(range.unitToX(pass.resultStart) * dpr)
-                            context.fillStyle = loopColor
+                            context.fillStyle = loopStrokeColor
                             context.fillRect(x, labelHeight, 1, height - labelHeight)
                         }
-                        renderAudio(context, range, region.file, region.gain, bound, colors, pass)
+                        renderAudio(context, range, region.file, region.gain, bound, contentColor, pass)
                     }
                     // TODO Record indicator?
                     const isRecording = region.file.getOrCreateLoader().state.type === "record"
@@ -149,24 +135,26 @@ export const renderRegions = (context: CanvasRenderingContext2D,
                     }, unitMin, unitMax)) {
                         if (pass.index > 0) {
                             const x = Math.floor(range.unitToX(pass.resultStart) * dpr)
-                            context.fillStyle = loopColor
+                            context.fillStyle = loopStrokeColor
                             context.fillRect(x, labelHeight, 1, height - labelHeight)
                         }
                         const windowMin = pass.resultStart - pass.rawStart
                         const windowMax = pass.resultEnd - pass.rawStart
                         context.strokeStyle = contentColor
                         context.beginPath()
-                        renderValueStream(context, range, ValueEvent.iterateWindow(events, windowMin, windowMax), valueToY, colors, 0.2, 0.0, pass)
+                        const adapters = ValueEvent.iterateWindow(events, windowMin, windowMax)
+                        renderValueStream(context, range, adapters, valueToY, contentColor, 0.2, 0.0, pass)
                         context.stroke()
                     }
                     context.restore()
                 }
             })
-            if (tracks.service.project.userEditingManager.timeline.isEditing(region.box)) {
-                context.strokeStyle = `hsla(${hue}, ${normSat}%, 45%, 0.1)`
-                context.beginPath()
-                context.rect(x0Int + dpr, dpr, xnInt - 2 * dpr, height - 2 * dpr)
-                context.stroke()
+            const isEditing = tracks.service.project.userEditingManager.timeline.isEditing(region.box)
+            if (isEditing) {
+                context.fillStyle = labelBackground
+                context.fillRect(x1Int - dpr, labelHeight, dpr, height - labelHeight)
+                context.fillRect(x0Int, labelHeight, 1, height - labelHeight)
+                context.fillRect(x0Int, height - dpr, xnInt, height - dpr)
             }
         }
     }

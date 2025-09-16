@@ -45,11 +45,8 @@ export const AudioEditorCanvas = ({lifecycle, range, snapping, reader}: Construc
 
         const pass = LoopableRegion.locateLoop(reader, range.unitMin - range.unitPadding, range.unitMax)
         if (pass.isEmpty()) {return}
-        renderAudio(context, range, reader.file, reader.gain,
-            {top: 0, bottom: actualHeight},
-            {
-                contentColor: `hsl(${reader.hue}, ${60}%, 45%)`
-            }, pass.unwrap())
+        renderAudio(context, range, reader.file, reader.gain, {top: 0, bottom: actualHeight},
+            `hsl(${reader.hue}, ${60}%, 45%)`, pass.unwrap())
     }))
     lifecycle.ownAll(
         installEditorMainBody({element: canvas, range, reader}),

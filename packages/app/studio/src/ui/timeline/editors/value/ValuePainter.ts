@@ -2,7 +2,6 @@ import {Arrays, Func, Option, Procedure, Provider, TAU, unitValue} from "@openda
 import {TimelineRange} from "@/ui/timeline/TimelineRange.ts"
 import {Snapping} from "@/ui/timeline/Snapping.ts"
 import {CanvasPainter} from "@/ui/canvas/painter.ts"
-import {RegionColors} from "@/ui/timeline/renderer/env.ts"
 import {renderValueStream} from "@/ui/timeline/renderer/value.ts"
 import {ValueEvent} from "@opendaw/lib-dsp"
 import {renderTimeGrid} from "@/ui/timeline/editors/TimeGridRenderer.ts"
@@ -70,9 +69,7 @@ export const createValuePainter =
         context.stroke()
         context.setLineDash(Arrays.empty())
         context.lineWidth = devicePixelRatio
-        const colors: RegionColors = {
-            contentColor: `hsl(${reader.hue}, 60%, 45%)`
-        }
+        const contentColor = `hsl(${reader.hue}, 60%, 45%)`
         const start = range.unitMin - range.unitPadding
         const end = range.unitMax
         const events = reader.content.events
@@ -95,7 +92,7 @@ export const createValuePainter =
                 return () => Arrays.iterate(valueEvents)
             }
         })
-        renderValueStream(context, range, createIterator(), valueToPixel, colors, 0.04, valueEditing.anchorModel.getValue(), {
+        renderValueStream(context, range, createIterator(), valueToPixel, contentColor, 0.04, valueEditing.anchorModel.getValue(), {
             index: 0,
             rawStart: offset,
             rawEnd: offset + reader.loopDuration,
@@ -107,7 +104,7 @@ export const createValuePainter =
             resultEndValue: 1.0
         })
         for (const event of createIterator()) {
-            context.fillStyle = event.isSelected ? "white" : colors.contentColor
+            context.fillStyle = event.isSelected ? "white" : contentColor
             const x = range.unitToX(offset + event.position) * devicePixelRatio
             const y = valueToPixel(event.value)
             context.beginPath()
