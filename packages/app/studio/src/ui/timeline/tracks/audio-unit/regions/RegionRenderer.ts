@@ -51,13 +51,12 @@ export const renderRegions = (context: CanvasRenderingContext2D,
         const regions = strategy.iterateRange(trackBoxAdapter.regions.collection, unitMin, unitMax)
         const dpr = devicePixelRatio
 
-        for (const [region, _next] of Iterables.pairWise(regions)) {
+        for (const [region, next] of Iterables.pairWise(regions)) {
             if (region.isSelected ? hideSelected : !filterSelected) {continue}
 
-            // TODO Scale and truncate, if region is audio and not bpm-synced
-
+            const actualComplete = strategy.readComplete(region)
             const position = strategy.readPosition(region)
-            const complete = strategy.readComplete(region) - unitsPerPixel
+            const complete = Math.min(actualComplete, next?.position ?? Number.POSITIVE_INFINITY) - unitsPerPixel
 
             const x0Int = Math.floor(range.unitToX(Math.max(position, unitMin)) * dpr)
             const x1Int = Math.max(Math.floor(range.unitToX(Math.min(complete, unitMax)) * dpr), x0Int + dpr)
