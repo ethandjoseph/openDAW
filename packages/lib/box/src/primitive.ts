@@ -126,6 +126,9 @@ export abstract class PrimitiveField<
         const value = this.getValue()
         return ArrayBuffer.isView(value) ? panic("not implemented") : value
     }
+    fromJSON(value: JSONValue): void {
+        this.setValue(value as V) // TODO We need to check, if this is really the correct type!
+    }
     reset(): void {this.setValue(this.#initValue)}
 }
 
@@ -210,4 +213,11 @@ export class ByteArrayField<E extends PointerTypes = UnreferenceableType> extend
         output.writeBytes(bytes)
     }
     toJSON(): Optional<JSONValue> {return Array.from(this.getValue().values())}
+    fromJSON(value: JSONValue): void {
+        if (Array.isArray(value) && value.every(number => typeof number === "number")) {
+            this.setValue(new Int8Array(value))
+        } else {
+            return panic("Bytes: Type mismatch")
+        }
+    }
 }

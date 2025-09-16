@@ -1,4 +1,5 @@
 import {
+    asDefined,
     assert,
     ByteArrayInput,
     ByteArrayOutput,
@@ -322,10 +323,11 @@ export class BoxGraph<BoxMap = any> {
     }
 
     toJSON(): Optional<JSONValue> {
-        return {
-            type: "boxes",
-            value: this.#boxes.values().map(box => box.toJSON())
-        }
+        return this.#boxes.values().map(box => ({
+            name: box.name,
+            uuid: box.address.toString(),
+            fields: asDefined(box.toJSON())
+        }))
     }
 
     #assertTransaction(): void {

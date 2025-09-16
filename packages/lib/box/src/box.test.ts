@@ -353,7 +353,7 @@ describe("ArrayField", () => {
         expect(fooBox.foo.solo.pointerHub.isEmpty()).true
         expect(fooBox.foo.solo.pointerHub.size()).toBe(0)
     })
-    it("fields io", () => {
+    it("fields bytes io", () => {
         const graphA = new BoxGraph()
         graphA.beginTransaction()
         const template = FooBox.create(graphA, UUID.parse("3372511f-fab0-4dcd-a723-0146c949a527"))
@@ -372,6 +372,29 @@ describe("ArrayField", () => {
         expect(recreation.foos.getField(3).baz.getValue()).toBe(0)
         graphB.beginTransaction()
         recreation.read(new ByteArrayInput(output.toArrayBuffer()))
+        graphB.endTransaction()
+        expect(recreation.booleans.getField(4).getValue()).true
+        expect(recreation.foo.solo.getValue()).toBe("Hello 👻")
+        expect(recreation.foos.getField(3).baz.getValue()).toBe(42)
+    })
+    it("fields json io", () => {
+        const graphA = new BoxGraph()
+        graphA.beginTransaction()
+        const template = FooBox.create(graphA, UUID.parse("3372511f-fab0-4dcd-a723-0146c949a527"))
+        template.booleans.getField(4).setValue(true)
+        template.foo.solo.setValue("Hello 👻")
+        template.foos.getField(3).baz.setValue(42)
+        graphA.endTransaction()
+        const json = JSON.stringify(template.toJSON())
+        const graphB = new BoxGraph()
+        graphB.beginTransaction()
+        const recreation = FooBox.create(graphB, UUID.parse("3372511f-fab0-4dcd-a723-0146c949a527"))
+        graphB.endTransaction()
+        expect(recreation.booleans.getField(4).getValue()).false
+        expect(recreation.foo.solo.getValue()).toBe("")
+        expect(recreation.foos.getField(3).baz.getValue()).toBe(0)
+        graphB.beginTransaction()
+        recreation.fromJSON(JSON.parse(json))
         graphB.endTransaction()
         expect(recreation.booleans.getField(4).getValue()).true
         expect(recreation.foo.solo.getValue()).toBe("Hello 👻")

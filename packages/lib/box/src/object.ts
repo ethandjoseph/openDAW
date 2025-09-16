@@ -1,6 +1,18 @@
-import {Field, FieldConstruct, Fields} from "./field"
+import {Field, FieldConstruct, FieldKey, Fields} from "./field"
 import {UnreferenceableType} from "./pointer"
-import {asDefined, DataInput, DataOutput, JSONValue, Maybe, Option, Optional, safeExecute} from "@opendaw/lib-std"
+import {
+    asDefined,
+    DataInput,
+    DataOutput,
+    isDefined,
+    isRecord,
+    JSONValue,
+    Maybe,
+    Option,
+    Optional,
+    panic,
+    safeExecute
+} from "@opendaw/lib-std"
 import {Serializer} from "./serializer"
 import {VertexVisitor} from "./vertex"
 
@@ -31,5 +43,18 @@ export abstract class ObjectField<FIELDS extends Fields> extends Field<Unreferen
             result[key] = field.toJSON()
             return result
         }, {})
+    }
+
+    fromJSON(record: JSONValue): void {
+        if (isRecord(record)) {
+            Object.entries(record).forEach(([key, value]) => {
+                const field: Field = this.#fields[parseInt(key) as FieldKey]
+                if (isDefined(value)) {
+                    field.fromJSON(value)
+                }
+            })
+        } else {
+            return panic("Type mismatch")
+        }
     }
 }

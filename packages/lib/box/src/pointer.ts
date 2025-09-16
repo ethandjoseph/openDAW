@@ -1,7 +1,7 @@
 import {
     assert,
     DataInput,
-    DataOutput,
+    DataOutput, isNull,
     JSONValue,
     Maybe,
     Observer,
@@ -161,5 +161,16 @@ export class PointerField<P extends PointerTypes = PointerTypes> extends Field<U
             none: () => undefined,
             some: address => address.toString()
         })
+    }
+    fromJSON(value: JSONValue): void {
+        if (isNull(value) || typeof value === "string") {
+            const address = Option.wrap(isNull(value) ? null : Address.decode(value))
+            this.targetAddress = PointerField.#decoder.match({
+                none: () => address,
+                some: decoder => decoder.map(this, address)
+            })
+        } else {
+            return panic(`Pointer: Type mismatch. value (${typeof value}) must be a string.`)
+        }
     }
 }

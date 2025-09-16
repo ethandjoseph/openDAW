@@ -44,4 +44,5 @@ export interface Vertex<P extends PointerTypes = PointerTypes, F extends Fields 
     read(input: DataInput): void
     write(output: DataOutput): void
     toJSON(): Optional<JSONValue>
+    fromJSON(value: JSONValue): void
 }

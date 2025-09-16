@@ -10,11 +10,14 @@ import {
     DataOutput,
     Func,
     int,
+    isDefined,
+    isRecord,
     JSONValue,
     Lazy,
     Maybe,
     Option,
     Optional,
+    panic,
     Procedure,
     Subscription,
     UUID
@@ -107,13 +110,24 @@ export abstract class Box<P extends PointerTypes = PointerTypes, F extends Field
         return output.toArrayBuffer()
     }
     toJSON(): Optional<JSONValue> {
-        return {
-            name: this.name,
-            address: this.address.toString(),
-            fields: Object.entries(this.#fields).reduce((result: Record<string, Optional<JSONValue>>, [key, field]) => {
-                result[key] = field.toJSON()
-                return result
-            }, {})
+        return Object.entries(this.#fields).reduce((result: Record<string, Optional<JSONValue>>, [key, field]) => {
+            const value = field.toJSON()
+            if (isDefined(value)) {
+                result[key] = value
+            }
+            return result
+        }, {})
+    }
+    fromJSON(record: JSONValue): void {
+        if (isRecord(record)) {
+            Object.entries(record).forEach(([key, value]) => {
+                const field: Field = this.#fields[parseInt(key) as FieldKey]
+                if (isDefined(value)) {
+                    field.fromJSON(value)
+                }
+            })
+        } else {
+            return panic("Type mismatch")
         }
     }
 

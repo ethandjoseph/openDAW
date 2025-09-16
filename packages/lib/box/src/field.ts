@@ -78,6 +78,7 @@ export class Field<P extends PointerTypes = PointerTypes, F extends Fields = Fie
     read(_input: DataInput): void {}
     write(_output: DataOutput): void {}
     toJSON(): Optional<JSONValue> {return undefined}
+    fromJSON(_value: JSONValue): void {return panic("fromJSON should never be called on a field")}
     disconnect(): void {
         if (this.pointerHub.isEmpty()) {return}
         const incoming = this.pointerHub.incoming()

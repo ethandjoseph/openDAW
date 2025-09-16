@@ -10,6 +10,7 @@ import {
     Maybe,
     Option,
     Optional,
+    panic,
     safeExecute
 } from "@opendaw/lib-std"
 import {NoPointers, VertexVisitor} from "./vertex"
@@ -56,5 +57,12 @@ export class ArrayField<FIELD extends Field = Field>
 
     size(): int {return this.#fields.length}
 
-    toJSON(): Optional<JSONValue> {return Object.values(this.#fields).map((field) => field.toJSON())}
+    toJSON(): Optional<JSONValue> {return Object.values(this.#fields).map((field) => field.toJSON() ?? null)}
+    fromJSON(values: JSONValue): void {
+        if (Array.isArray(values)) {
+            values.forEach((value, index) => this.#fields[index].fromJSON(value))
+        } else {
+            return panic("Type mismatch")
+        }
+    }
 }
