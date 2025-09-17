@@ -1,5 +1,7 @@
 // noinspection PlatformDetectionJS
 
+import {isDefined, UUID} from "@opendaw/lib-std"
+
 export namespace Browser {
     const hasLocation = typeof self !== "undefined" && "location" in self && typeof self.location !== undefined
     const hasNavigator = typeof self !== "undefined" && "navigator" in self && typeof self.navigator !== undefined
@@ -17,4 +19,13 @@ export namespace Browser {
         .replace(/\bSafari\/[\d.]+\s*/g, "")
         .replace(/\s+/g, " ")
         .trim() : "N/A"
+    export const id = () => {
+        if (!hasLocation) {return ""}
+        const key = "__id__"
+        const id = localStorage.getItem(key)
+        if (isDefined(id)) {return id}
+        const newID = UUID.toString(UUID.generate())
+        localStorage.setItem(key, newID)
+        return newID
+    }
 }
