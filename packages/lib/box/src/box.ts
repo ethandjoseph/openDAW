@@ -134,7 +134,7 @@ export abstract class Box<P extends PointerTypes = PointerTypes, F extends Field
     incomingEdges(): ReadonlyArray<PointerField> {return this.graph.edges().incomingEdgesOf(this)}
     outgoingEdges(): ReadonlyArray<[PointerField, Address]> {return this.graph.edges().outgoingEdgesOf(this)}
 
-    mapFields<T>(map: Func<Field, T>, ...keys: FieldKey[]): ReadonlyArray<T> {
+    mapFields<T>(map: Func<Field, T>, ...keys: ReadonlyArray<FieldKey>): ReadonlyArray<T> {
         if (keys.length === 0) {return Arrays.empty()}
         let parent: Field = this.getField(keys[0])
         const result: Array<T> = [map(parent)]

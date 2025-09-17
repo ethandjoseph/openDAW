@@ -417,16 +417,3 @@ describe("ArrayField", () => {
         expect(recreation.foos.getField(3).baz.getValue()).toBe(42)
     })
 })
-
-describe("JSON", () => {
-    it("serialize Box", () => {
-        const graph: BoxGraph = new BoxGraph()
-        graph.beginTransaction()
-        const fooBox = FooBox.create(graph, UUID.parse("3372511f-fab0-4dcd-a723-0146c949a527"))
-        const barBox = BarBox.create(graph, UUID.parse("41424300-0000-4000-8000-000000000000"))
-        barBox.ref.refer(fooBox)
-        console.debug(JSON.stringify(fooBox.toJSON(), null, 2))
-        console.debug(JSON.stringify(barBox.toJSON(), null, 2))
-        graph.endTransaction()
-    })
-})
