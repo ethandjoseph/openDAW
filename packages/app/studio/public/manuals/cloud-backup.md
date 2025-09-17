@@ -38,7 +38,7 @@ cause it to stop working as expected.
     - **Disconnect from Drive** → removes openDAW’s access to your Drive
     - **Delete hidden app data** (if shown) → permanently deletes all files openDAW stored in your hidden appData space
 
-### Dropbox
+### Dropbox (recommended, faster)
 
 1. Go to [Dropbox connected apps](https://www.dropbox.com/account/connected_apps?utm_source=opendaw.studio)
 2. Find **openDAW** in the list
