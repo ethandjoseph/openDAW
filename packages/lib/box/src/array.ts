@@ -42,7 +42,7 @@ export class ArrayField<FIELD extends Field = Field>
         return safeExecute(visitor.visitArrayField, this)
     }
 
-    fields(): Iterable<FIELD> {return this.#fields}
+    fields(): ReadonlyArray<FIELD> {return this.#fields}
 
     getField(key: keyof Record<int, FIELD>): Record<int, FIELD>[keyof Record<int, FIELD>] {
         return asDefined(this.#fields[key])

@@ -66,7 +66,7 @@ export abstract class Box<P extends PointerTypes = PointerTypes, F extends Field
 
     abstract accept<VISITOR extends VertexVisitor<any>>(visitor: VISITOR): VISITOR extends VertexVisitor<infer R> ? Maybe<R> : void
 
-    fields(): Iterable<Field> {return Object.values(this.#fields)}
+    fields(): ReadonlyArray<Field> {return Object.values(this.#fields)}
     getField<K extends keyof F>(key: K): F[K] {return asDefined(this.#fields[key])}
     optField<K extends keyof F>(key: K): Option<F[K]> {return Option.wrap(this.#fields[key])}
     subscribe(propagation: Propagation, procedure: Procedure<Update>): Subscription {
