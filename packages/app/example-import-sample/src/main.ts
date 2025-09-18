@@ -95,5 +95,6 @@ import {importSample} from "./helper"
             const {bars, beats} = PPQN.toParts(ppqn)
             output.textContent = `${bars + 1}:${beats + 1}`
         })
+        button.remove()
     }
 })()
