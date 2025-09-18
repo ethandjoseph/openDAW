@@ -11,7 +11,7 @@ export const importSample = async ({api, boxGraph, timelineBox, rootBox}
     const {trackBox, audioUnitBox} = api.createInstrument(InstrumentFactories.Tape)
     // route to output
     audioUnitBox.output.refer(rootBox.outputDevice)
-    // using web-audio-api to decode audio file
+    // using web-audio-api to decode the audio file
     const audioBuffer = await context.decodeAudioData(arrayBuffer)
     // convert into openDAWs own AudioData type
     const audioData: AudioData = {
@@ -27,7 +27,7 @@ export const importSample = async ({api, boxGraph, timelineBox, rootBox}
         audioData.frames,
         audioData.numberOfFrames,
         audioData.numberOfChannels) as ArrayBuffer
-    // create SampleMetaData
+    // create SampleMetaData (this does not affect playback)
     const meta: SampleMetaData = {
         bpm: estimateBpm(audioBuffer.duration),
         name: name.substring(0, name.lastIndexOf(".")),
