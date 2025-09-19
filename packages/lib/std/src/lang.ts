@@ -69,7 +69,9 @@ export type AssertType<T> = (value: unknown) => value is T
 export const identity = <T>(value: T): T => value
 export const isDefined = <T>(value: Maybe<T>): value is T => value !== undefined && value !== null
 export const isNull = (value: unknown): value is null => value === null
+export const isNotNull = <T>(value: Nullable<T>): value is T => value !== null
 export const isUndefined = (value: unknown): value is undefined => value === undefined
+export const isNotUndefined = <T>(value: Optional<T>): value is T => value !== undefined
 export const isAbsent = (value: unknown): value is undefined | null => value === undefined || value === null
 export const ifDefined = <T, R = void>(value: Maybe<T>, procedure: Func<T, R>): R | undefined =>
     value !== undefined && value !== null ? procedure(value) : undefined
