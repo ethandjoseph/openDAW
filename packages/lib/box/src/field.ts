@@ -1,7 +1,7 @@
 import {
+    Arrays,
     DataInput,
     DataOutput,
-    Iterables,
     JSONValue,
     Lazy,
     Maybe,
@@ -72,7 +72,7 @@ export class Field<P extends PointerTypes = PointerTypes, F extends Fields = Fie
     isBox(): this is Box {return false}
     isField(): this is Field {return true}
     isAttached(): boolean {return this.graph.findBox(this.address.uuid).nonEmpty()}
-    fields(): Iterable<Field> {return Iterables.empty()}
+    fields(): ReadonlyArray<Field> {return Arrays.empty()}
     getField(_key: keyof F): F[keyof F] {return panic()}
     optField(_key: keyof F): Option<F[keyof F]> {return Option.None}
     read(_input: DataInput): void {}

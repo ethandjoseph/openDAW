@@ -38,7 +38,7 @@ export interface Vertex<P extends PointerTypes = PointerTypes, F extends Fields 
     isBox(): this is Box
     isField(): this is Field
     isAttached(): boolean
-    fields(): Iterable<Field>
+    fields(): ReadonlyArray<Field>
     getField(key: keyof F): F[keyof F]
     optField(key: keyof F): Option<F[keyof F]>
     read(input: DataInput): void
