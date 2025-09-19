@@ -1,4 +1,4 @@
-import {asDefined, isNotUndefined, JSONValue, Optional, UUID} from "@opendaw/lib-std"
+import {asDefined, EmptyExec, isNotUndefined, JSONValue, Optional, Terminable, Terminator, UUID} from "@opendaw/lib-std"
 import {
     Address,
     ArrayField,
@@ -12,11 +12,11 @@ import {
     PointerField,
     PrimitiveField,
     PrimitiveUpdate,
+    Update,
     Vertex
 } from "@opendaw/lib-box"
 import {Lson} from "@liveblocks/core"
 import {LiveList, LiveMap, LiveObject, LsonObject} from "@liveblocks/client"
-import {BoxIO} from "@opendaw/studio-boxes"
 
 export type BoxLiveObject = {
     id: string,
@@ -26,11 +26,33 @@ export type BoxLiveObject = {
 
 export type AnyLiveNode = LiveObject<any> | LiveList<any> | LiveMap<any, any>
 
-export class Liveblocks {
+export class Liveblocks<T> implements Terminable {
+    readonly #terminator = new Terminator()
     readonly #pathMap: WeakMap<AnyLiveNode, FieldKeys>
+    readonly #updates: Array<Update>
 
-    constructor() {
+    constructor(boxGraph: BoxGraph<T>, boxes: LiveMap<string, LiveObject<BoxLiveObject>>) {
         this.#pathMap = new WeakMap()
+        this.#updates = []
+
+        this.#terminator.ownAll(
+            boxGraph.subscribeTransaction({
+                onBeginTransaction: EmptyExec,
+                onEndTransaction: () => {
+                    this.#updates.forEach(update => {
+                        if (update.type === "primitive") {
+                            const key = UUID.toString(update.address.uuid)
+                            const boxRoot = asDefined(boxes.get(key), "Could not find box") as LiveObject<BoxLiveObject>
+                            this.updatePrimitiveInBoxLiveObject(boxRoot, update)
+                        }
+                    })
+                    this.#updates.length = 0
+                }
+            }),
+            boxGraph.subscribeToAllUpdatesImmediate({
+                onUpdate: (update: Update): unknown => this.#updates.push(update)
+            })
+        )
     }
 
     boxToLiveObject(box: Box): LiveObject<BoxLiveObject> {
@@ -41,8 +63,8 @@ export class Liveblocks {
         })
     }
 
-    createNewBoxFromLiveObject(boxGraph: BoxGraph, object: LiveObject<BoxLiveObject>): Box {
-        const name = object.get("name") as keyof BoxIO.TypeMap
+    createNewBoxFromLiveObject(boxGraph: BoxGraph<T>, object: LiveObject<BoxLiveObject>): Box {
+        const name = object.get("name") as keyof T
         const uuid = UUID.parse(object.get("id"))
         const box = boxGraph.createBox(name, uuid, box => box.fromJSON(object.toImmutable().fields as JSONValue))
         this.#collectFieldKeys(box, object.get("fields"))
@@ -72,6 +94,8 @@ export class Liveblocks {
         console.debug("fieldKeysForAnyLiveNode", this.#pathMap)
         return asDefined(this.#pathMap.get(node), `No 'FieldKeys' for node '${node}'`)
     }
+
+    terminate(): void {this.#terminator.terminate()}
 
     #fieldToLson(field: Field): Optional<Lson> {
         return field.accept<Optional<Lson>>({
