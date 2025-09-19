@@ -1,9 +1,9 @@
 import "./style.css"
 import {createClient, LiveMap, LiveObject} from "@liveblocks/client"
-import {isUndefined, Option, Optional, UUID} from "@opendaw/lib-std"
+import {isUndefined, Option, UUID} from "@opendaw/lib-std"
 import {BoxGraph} from "@opendaw/lib-box"
 import {BoxIO, TimelineBox} from "@opendaw/studio-boxes"
-import {BoxLiveObject, Mapper} from "./liveblocks/Mapper"
+import {BoxLiveObject, Mapper, ProjectRoot} from "./liveblocks/Mapper"
 
 const publicApiKey = "pk_dev_rAx9bMAt_7AW8Ha_s3xkqd-l_9lYElzlpfOCImMJRSZYnhJ4uI5TelBFtbKUeWP4"
 
@@ -13,19 +13,28 @@ const publicApiKey = "pk_dev_rAx9bMAt_7AW8Ha_s3xkqd-l_9lYElzlpfOCImMJRSZYnhJ4uI5
     const client = createClient({publicApiKey, throttle: 80})
     const {room} = client.enterRoom("opendaw-sandbox")
     const {root} = await room.getStorage()
-    const getBoxes = (): LiveMap<string, LiveObject<BoxLiveObject>> => {
-        let boxes = root.get("boxes") as Optional<LiveMap<string, LiveObject<BoxLiveObject>>>
-        if (isUndefined(boxes)) {
-            console.debug("Creating boxes")
-            boxes = new LiveMap<string, LiveObject<BoxLiveObject>>()
-            root.set("boxes", boxes)
+    const boxGraph = new BoxGraph(Option.wrap(BoxIO.create))
+
+    const getOrCreateProjectRoot = (): LiveObject<ProjectRoot> => {
+        let projectRoot = root.get("project") as LiveObject<ProjectRoot>
+        if (isUndefined(projectRoot)) {
+            projectRoot = new LiveObject({boxes: new LiveMap<string, LiveObject<BoxLiveObject>>()})
+            root.set("project", projectRoot)
         }
-        return boxes
+        return projectRoot
     }
 
-    const boxes = getBoxes()
-    const boxGraph = new BoxGraph(Option.wrap(BoxIO.create))
-    const mapper = new Mapper<BoxIO.TypeMap>(boxGraph, room, boxes)
+    const projectRoot = getOrCreateProjectRoot()
+    const boxes = projectRoot.get("boxes")
+    console.debug("projectRoot", projectRoot)
+    const mapper = new Mapper<BoxIO.TypeMap>(boxGraph, room, projectRoot)
+
+    if (!boxes.has(UUID.toString(UUID.Lowest))) {
+        boxGraph.beginTransaction()
+        const timelineBox = TimelineBox.create(boxGraph, UUID.Lowest)
+        boxGraph.endTransaction()
+        boxes.set(timelineBox.address.toString(), mapper.boxToLiveObject(timelineBox))
+    }
 
     room.subscribe(boxes, (events) => {
         console.debug("Boxes map changed:", events)

@@ -6,6 +6,8 @@ import {
     isNotUndefined,
     JSONValue,
     Optional,
+    SortedSet,
+    Subscription,
     Terminable,
     Terminator,
     UUID
@@ -29,6 +31,10 @@ import {
 import {Lson} from "@liveblocks/core"
 import {LiveList, LiveMap, LiveObject, LsonObject, Room} from "@liveblocks/client"
 
+export type ProjectRoot = {
+    boxes: LiveMap<string, LiveObject<BoxLiveObject>>
+}
+
 export type BoxLiveObject = {
     id: string,
     name: string,
@@ -37,6 +43,11 @@ export type BoxLiveObject = {
 
 export type AnyLiveNode = LiveObject<any> | LiveList<any> | LiveMap<any, any>
 
+type BoxSubscription = {
+    uuid: UUID.Bytes,
+    subscription: Subscription
+}
+
 export class Mapper<T> implements Terminable {
     readonly #terminator = new Terminator()
 
@@ -44,17 +55,20 @@ export class Mapper<T> implements Terminable {
     readonly #room: Room
     readonly #boxes: LiveMap<string, LiveObject<BoxLiveObject>>
 
-    readonly #pathMap: WeakMap<AnyLiveNode, FieldKeys>
+    readonly #fieldKeysMap: WeakMap<AnyLiveNode, FieldKeys>
+    readonly #boxSubscriptions: SortedSet<UUID.Bytes, BoxSubscription>
     readonly #updates: Array<Update>
 
+    // TODO This is not enough. There are plenty of updates coming in. Need to completely understand what is going on.
     #ignoreUpdate: boolean = false
 
-    constructor(boxGraph: BoxGraph<T>, room: Room, boxes: LiveMap<string, LiveObject<BoxLiveObject>>) {
+    constructor(boxGraph: BoxGraph<T>, room: Room, root: LiveObject<ProjectRoot>) {
         this.#boxGraph = boxGraph
         this.#room = room
-        this.#boxes = boxes
+        this.#boxes = root.get("boxes")
 
-        this.#pathMap = new WeakMap()
+        this.#fieldKeysMap = new WeakMap()
+        this.#boxSubscriptions = UUID.newSet<BoxSubscription>(({uuid}) => uuid)
         this.#updates = []
 
         assert(boxGraph.boxes().length === 0, "BoxGraph must be empty")
@@ -63,7 +77,7 @@ export class Mapper<T> implements Terminable {
         this.#boxes.forEach((object: LiveObject<BoxLiveObject>) => {
             const box = this.#createNewBoxFromLiveObject(boxGraph, object)
             console.debug("created", JSON.stringify(box.toJSON()))
-            this.#subscribeToBoxLiveObject(object) // TODO Terminate
+            this.#boxSubscriptions.add({uuid: box.address.uuid, subscription: this.#subscribeToBoxLiveObject(object)})
         })
         this.#boxGraph.endTransaction()
 
@@ -74,8 +88,10 @@ export class Mapper<T> implements Terminable {
                     room.batch(() => this.#updates.forEach(update => {
                         if (update.type === "primitive") {
                             const key = UUID.toString(update.address.uuid)
-                            const boxObject = asDefined(boxes.get(key), "Could not find box") as LiveObject<BoxLiveObject>
+                            const boxObject = asDefined(this.#boxes.get(key), "Could not find box") as LiveObject<BoxLiveObject>
                             this.#updatePrimitiveInBoxLiveObject(boxObject, update)
+                        } else if (update.type === "delete") {
+                            this.#boxSubscriptions.removeByKey(update.uuid).subscription.terminate()
                         }
                     }))
                     this.#updates.length = 0
@@ -104,22 +120,23 @@ export class Mapper<T> implements Terminable {
     }
 
     fieldKeysForAnyLiveNode(node: AnyLiveNode): FieldKeys {
-        return asDefined(this.#pathMap.get(node), `No 'FieldKeys' for node '${node}'`)
+        return asDefined(this.#fieldKeysMap.get(node), `No 'FieldKeys' for node '${node}'`)
     }
 
     terminate(): void {this.#terminator.terminate()}
 
     #subscribeToBoxLiveObject(liveObject: LiveObject<BoxLiveObject>) {
-        this.#room.subscribe(liveObject, ([event]) => {
+        return Terminable.create(this.#room.subscribe(liveObject, ([event]) => {
             if (this.#ignoreUpdate) {return}
-            console.debug("-- ROOM CHANGE --- inTransaction", this.#boxGraph.inTransaction())
+            console.debug("-- ROOM CHANGE --")
             this.#boxGraph.beginTransaction()
             const id = liveObject.get("id")
             const box = this.#boxGraph.findBox(UUID.parse(id)).unwrap("Could not locate box")
-            console.debug(`Box ${id} (${liveObject.get("name")}) was updated:`, event)
             const node = event.node as AnyLiveNode
             const fieldKeys = this.fieldKeysForAnyLiveNode(node)
-            Object.entries(event.updates).forEach(([key, value]) => {
+            const updates = Object.entries(event.updates)
+            console.debug(`Box ${id} (${liveObject.get("name")}) was updated`, updates.length)
+            updates.forEach(([key, value]) => {
                 console.debug(`We have an '${value?.type}' at: [${fieldKeys},${key}]. value: '${node.get(key)}'`)
                 const target = box.searchVertex(new Int16Array([...fieldKeys, parseInt(key)]))
                     .unwrap("Could not locate field to be updated")
@@ -128,7 +145,7 @@ export class Mapper<T> implements Terminable {
             this.#ignoreUpdate = true
             this.#boxGraph.endTransaction()
             this.#ignoreUpdate = false
-        }, {isDeep: true})
+        }, {isDeep: true}))
     }
 
     #createNewBoxFromLiveObject(boxGraph: BoxGraph<T>, object: LiveObject<BoxLiveObject>): Box {
@@ -183,7 +200,7 @@ export class Mapper<T> implements Terminable {
     }
 
     #storePath<T extends AnyLiveNode>(value: T, address: Address): T {
-        this.#pathMap.set(value, address.fieldKeys)
+        this.#fieldKeysMap.set(value, address.fieldKeys)
         return value
     }
 }
