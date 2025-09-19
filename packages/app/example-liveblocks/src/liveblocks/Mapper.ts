@@ -36,7 +36,6 @@ export type ProjectRoot = {
 }
 
 export type BoxLiveObject = {
-    id: string,
     name: string,
     fields: LiveObject<LsonObject>
 }
@@ -59,7 +58,6 @@ export class Mapper<T> implements Terminable {
     readonly #boxSubscriptions: SortedSet<UUID.Bytes, BoxSubscription>
     readonly #updates: Array<Update>
 
-    // TODO This is not enough. There are plenty of updates coming in. Need to completely understand what is going on.
     #doNotSend: boolean = false
 
     constructor(boxGraph: BoxGraph<T>, room: Room, root: LiveObject<ProjectRoot>) {
@@ -74,10 +72,13 @@ export class Mapper<T> implements Terminable {
         assert(boxGraph.boxes().length === 0, "BoxGraph must be empty")
 
         this.#boxGraph.beginTransaction()
-        this.#boxes.forEach((object: LiveObject<BoxLiveObject>) => {
-            const box = this.#createNewBoxFromLiveObject(boxGraph, object)
+        this.#boxes.forEach((object: LiveObject<BoxLiveObject>, id) => {
+            const box = this.#createNewBoxFromLiveObject(UUID.parse(id), object)
             console.debug("created", JSON.stringify(box.toJSON()))
-            this.#boxSubscriptions.add({uuid: box.address.uuid, subscription: this.#subscribeToBoxLiveObject(object)})
+            this.#boxSubscriptions.add({
+                uuid: box.address.uuid,
+                subscription: this.#subscribeToBoxLiveObject(box.address.uuid, object)
+            })
         })
         this.#boxGraph.endTransaction()
 
@@ -113,7 +114,6 @@ export class Mapper<T> implements Terminable {
 
     boxToLiveObject(box: Box): LiveObject<BoxLiveObject> {
         return new LiveObject<BoxLiveObject>({
-            id: box.address.toString(),
             name: box.name,
             fields: new LiveObject(this.#fieldsToLsonObject(box.fields()))
         })
@@ -125,17 +125,16 @@ export class Mapper<T> implements Terminable {
 
     terminate(): void {this.#terminator.terminate()}
 
-    #subscribeToBoxLiveObject(liveObject: LiveObject<BoxLiveObject>) {
+    #subscribeToBoxLiveObject(uuid: UUID.Bytes, liveObject: LiveObject<BoxLiveObject>) {
         return Terminable.create(this.#room.subscribe(liveObject, ([event, ...rest]) => {
             assert(rest.length === 0, `We received more events: '${rest}'`)
             console.debug("-- ROOM CHANGE --")
             this.#boxGraph.beginTransaction()
-            const id = liveObject.get("id")
-            const box = this.#boxGraph.findBox(UUID.parse(id)).unwrap("Could not locate box")
+            const box = this.#boxGraph.findBox(uuid).unwrap("Could not locate box")
             const node = event.node as AnyLiveNode
             const fieldKeys = this.fieldKeysForAnyLiveNode(node)
             const updates = Object.entries(event.updates)
-            console.debug(`Box ${id} (${liveObject.get("name")}) was updated`, updates.length)
+            console.debug(`Box ${UUID.toString(uuid)} (${liveObject.get("name")}) was updated`, updates.length)
             updates.forEach(([key, value]) => {
                 console.debug(`We have an '${value?.type}' at: [${fieldKeys},${key}]. value: '${node.get(key)}'`)
                 const target = box.searchVertex(new Int16Array([...fieldKeys, parseInt(key)]))
@@ -148,10 +147,9 @@ export class Mapper<T> implements Terminable {
         }, {isDeep: true}))
     }
 
-    #createNewBoxFromLiveObject(boxGraph: BoxGraph<T>, object: LiveObject<BoxLiveObject>): Box {
+    #createNewBoxFromLiveObject(uuid: UUID.Bytes, object: LiveObject<BoxLiveObject>): Box {
         const name = object.get("name") as keyof T
-        const uuid = UUID.parse(object.get("id"))
-        const box = boxGraph.createBox(name, uuid, box => box.fromJSON(object.toImmutable().fields as JSONValue))
+        const box = this.#boxGraph.createBox(name, uuid, box => box.fromJSON(object.toImmutable().fields as JSONValue))
         this.#collectFieldKeys(box, object.get("fields"))
         return box
     }
