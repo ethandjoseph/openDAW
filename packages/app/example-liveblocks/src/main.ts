@@ -42,7 +42,7 @@ const publicApiKey = "pk_dev_rAx9bMAt_7AW8Ha_s3xkqd-l_9lYElzlpfOCImMJRSZYnhJ4uI5
 
     window.onpointerdown = () => {
         console.debug("CLICK")
-        mapper.debugAction(() => {
+        mapper.debugEdit(() => {
             const box = boxGraph.findBox(UUID.Lowest).unwrap() as TimelineBox
             box.loopArea.from.setValue(Math.floor(Math.random() * 0xFFFF))
             box.loopArea.to.setValue(Math.floor(Math.random() * 0xFFFF))

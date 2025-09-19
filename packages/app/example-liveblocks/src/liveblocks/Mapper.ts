@@ -60,7 +60,7 @@ export class Mapper<T> implements Terminable {
     readonly #updates: Array<Update>
 
     // TODO This is not enough. There are plenty of updates coming in. Need to completely understand what is going on.
-    #ignoreUpdate: boolean = false
+    #doNotSend: boolean = false
 
     constructor(boxGraph: BoxGraph<T>, room: Room, root: LiveObject<ProjectRoot>) {
         this.#boxGraph = boxGraph
@@ -85,6 +85,7 @@ export class Mapper<T> implements Terminable {
             this.#boxGraph.subscribeTransaction({
                 onBeginTransaction: EmptyExec,
                 onEndTransaction: () => {
+                    if (this.#doNotSend) {return}
                     room.batch(() => this.#updates.forEach(update => {
                         if (update.type === "primitive") {
                             const key = UUID.toString(update.address.uuid)
@@ -103,12 +104,11 @@ export class Mapper<T> implements Terminable {
         )
     }
 
-    debugAction(exec: Exec): void {
+    debugEdit(exec: Exec): void {
+        assert(!this.#doNotSend, "Cannot send")
         this.#boxGraph.beginTransaction()
         exec()
-        this.#ignoreUpdate = true
         this.#boxGraph.endTransaction()
-        this.#ignoreUpdate = false
     }
 
     boxToLiveObject(box: Box): LiveObject<BoxLiveObject> {
@@ -126,8 +126,8 @@ export class Mapper<T> implements Terminable {
     terminate(): void {this.#terminator.terminate()}
 
     #subscribeToBoxLiveObject(liveObject: LiveObject<BoxLiveObject>) {
-        return Terminable.create(this.#room.subscribe(liveObject, ([event]) => {
-            if (this.#ignoreUpdate) {return}
+        return Terminable.create(this.#room.subscribe(liveObject, ([event, ...rest]) => {
+            assert(rest.length === 0, `We received more events: '${rest}'`)
             console.debug("-- ROOM CHANGE --")
             this.#boxGraph.beginTransaction()
             const id = liveObject.get("id")
@@ -142,9 +142,9 @@ export class Mapper<T> implements Terminable {
                     .unwrap("Could not locate field to be updated")
                 target.fromJSON(node.get(key) as JSONValue)
             })
-            this.#ignoreUpdate = true
+            this.#doNotSend = true
             this.#boxGraph.endTransaction()
-            this.#ignoreUpdate = false
+            this.#doNotSend = false
         }, {isDeep: true}))
     }
 
