@@ -29,6 +29,11 @@ const publicApiKey = "pk_dev_rAx9bMAt_7AW8Ha_s3xkqd-l_9lYElzlpfOCImMJRSZYnhJ4uI5
     console.debug("projectRoot", projectRoot)
     const mapper = new Mapper<BoxIO.TypeMap>(boxGraph, room, projectRoot)
 
+    // TODO There is a bug, that updates are not seen, when we needed to initially populate the boxes.
+    //  1. Clear storage
+    //  2. Open first page (will create box)
+    //  3. Open second page and click to update > first page does not see this update
+
     if (!boxes.has(UUID.toString(UUID.Lowest))) {
         boxGraph.beginTransaction()
         const timelineBox = TimelineBox.create(boxGraph, UUID.Lowest)
