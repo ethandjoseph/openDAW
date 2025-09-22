@@ -147,7 +147,7 @@ export class BooleanField<E extends PointerTypes = UnreferenceableType> extends 
         if (typeof value === "boolean") {
             this.setValue(value)
         } else {
-            return panic("Type mismatch")
+            console.warn("BooleanField Type mismatch", value, this.address.toString())
         }
     }
 }
@@ -168,7 +168,7 @@ export class Float32Field<E extends PointerTypes = UnreferenceableType> extends 
         if (typeof value === "number") {
             this.setValue(value)
         } else {
-            return panic("Type mismatch")
+            console.warn("Float32Field Type mismatch", value, this.address.toString())
         }
     }
 }
@@ -190,7 +190,7 @@ export class Int32Field<E extends PointerTypes = UnreferenceableType> extends Pr
             && value >= Integer.MIN_VALUE && value <= Integer.MAX_VALUE) {
             this.setValue(value)
         } else {
-            return panic("Type mismatch")
+            console.warn("Int32Field Type mismatch", value, this.address.toString())
         }
     }
 }
@@ -211,7 +211,7 @@ export class StringField<E extends PointerTypes = UnreferenceableType> extends P
         if (typeof value === "string") {
             this.setValue(value)
         } else {
-            return panic("Type mismatch")
+            console.warn("StringField Type mismatch", value, this.address.toString())
         }
     }
 }
@@ -244,7 +244,7 @@ export class ByteArrayField<E extends PointerTypes = UnreferenceableType> extend
         if (Array.isArray(value) && value.every(number => typeof number === "number")) {
             this.setValue(new Int8Array(value))
         } else {
-            return panic("Bytes: Type mismatch")
+            console.warn("ByteArrayField Type mismatch", value, this.address.toString())
         }
     }
 }

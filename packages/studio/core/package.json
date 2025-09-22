@@ -36,6 +36,7 @@
     "@opendaw/studio-adapters": "^0.0.28",
     "@opendaw/studio-boxes": "^0.0.27",
     "@opendaw/studio-enums": "^0.0.21",
+    "@liveblocks/client": "^3.7.1",
     "dropbox": "^10.34.0"
   },
   "devDependencies": {

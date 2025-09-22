@@ -75,8 +75,8 @@ export const isNotUndefined = <T>(value: Optional<T>): value is T => value !== u
 export const isAbsent = (value: unknown): value is undefined | null => value === undefined || value === null
 export const ifDefined = <T, R = void>(value: Maybe<T>, procedure: Func<T, R>): R | undefined =>
     value !== undefined && value !== null ? procedure(value) : undefined
-export const asDefined = <T>(value: Maybe<T>, fail: string = "asDefined failed"): T =>
-    value === null || value === undefined ? panic(fail) : value
+export const asDefined = <T>(value: Maybe<T>, fail: ValueOrProvider<string> = "asDefined failed"): T =>
+    value === null || value === undefined ? panic(getOrProvide(fail)) : value
 export const isInstanceOf = <T>(obj: unknown, clazz: Class<T>): obj is T => obj instanceof clazz
 export const asInstanceOf = <T>(obj: unknown, clazz: Class<T>): T =>
     obj instanceof clazz ? obj as T : panic(`${obj} is not instance of ${clazz}`)

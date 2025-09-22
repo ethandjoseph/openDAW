@@ -12,6 +12,9 @@ export * from "./dawproject/DawProjectImport"
 export * from "./midi/MidiDevices"
 export * from "./midi/MIDILearning"
 
+export * from "./liveblocks/LiveblocksSync"
+export * from "./liveblocks/LiveblocksSerializer"
+
 export * from "./project/Project"
 export * from "./project/ProjectApi"
 export * from "./project/ProjectBundle"

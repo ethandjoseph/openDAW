@@ -2,12 +2,25 @@ import {MenuItem} from "@/ui/model/menu-item"
 import {StudioService} from "@/service/StudioService"
 import {Dialogs} from "@/ui/components/dialogs.tsx"
 import {RouteLocation} from "@opendaw/lib-jsx"
-import {EmptyExec, isDefined, panic, RuntimeNotifier, RuntimeSignal} from "@opendaw/lib-std"
+import {EmptyExec, isAbsent, isDefined, Option, panic, RuntimeNotifier, RuntimeSignal} from "@opendaw/lib-std"
 import {Browser, Files, ModfierKeys} from "@opendaw/lib-dom"
 import {SyncLogService} from "@/service/SyncLogService"
-import {IconSymbol} from "@opendaw/studio-adapters"
-import {CloudBackup, Colors, FilePickerAcceptTypes, ProjectSignals, Workers} from "@opendaw/studio-core"
+import {IconSymbol, ProjectDecoder} from "@opendaw/studio-adapters"
+import {
+    BoxLiveObject,
+    CloudBackup,
+    Colors,
+    FilePickerAcceptTypes,
+    LiveblocksSync,
+    Project,
+    ProjectRoot,
+    ProjectSignals,
+    Workers
+} from "@opendaw/studio-core"
 import {Promises} from "@opendaw/lib-runtime"
+import {createClient, LiveMap, LiveObject} from "@liveblocks/client"
+import {BoxGraph} from "@opendaw/lib-box"
+import {BoxIO} from "@opendaw/studio-boxes"
 
 export const initAppMenu = (service: StudioService) => MenuItem.root()
     .setRuntimeChildrenProcedure(parent => {
@@ -78,6 +91,38 @@ export const initAppMenu = (service: StudioService) => MenuItem.root()
                             .setTriggerProcedure(() => RouteLocation.get().navigateTo("/manuals/cloud-backup"))
                     )
                 }),
+                MenuItem.default({label: "Liveblocks.io"})
+                    .setRuntimeChildrenProcedure(parent => {
+                        const publicApiKey = "pk_dev_rAx9bMAt_7AW8Ha_s3xkqd-l_9lYElzlpfOCImMJRSZYnhJ4uI5TelBFtbKUeWP4"
+                        parent.addMenuItem(
+                            MenuItem.default({label: "Create Room...", selectable: service.hasProfile})
+                                .setTriggerProcedure(async () => {
+                                    const roomName = prompt("Enter a room name:", "")
+                                    if (isAbsent(roomName) || !service.hasProfile) {return}
+                                    const client = createClient({publicApiKey, throttle: 80})
+                                    const {room} = client.enterRoom(roomName)
+                                    const {root} = await room.getStorage()
+                                    const projectRoot = new LiveObject({boxes: new LiveMap<string, LiveObject<BoxLiveObject>>()})
+                                    root.set("project", projectRoot)
+                                    LiveblocksSync.populate(service.project.boxGraph, room, projectRoot)
+                                }),
+                            MenuItem.default({label: "Join Room...", selectable: !service.hasProfile})
+                                .setTriggerProcedure(async () => {
+                                    const roomName = prompt("Enter a room name:", "")
+                                    if (isAbsent(roomName) || service.hasProfile) {return}
+                                    const client = createClient({publicApiKey, throttle: 80})
+                                    const {room} = client.enterRoom(roomName)
+                                    const {root} = await room.getStorage()
+                                    const projectRoot = root.get("project") as LiveObject<ProjectRoot>
+                                    const boxGraph = new BoxGraph<BoxIO.TypeMap>(Option.wrap(BoxIO.create))
+                                    LiveblocksSync.join(boxGraph, room, projectRoot)
+                                    service.fromProject(Project.skeleton(service, {
+                                        boxGraph,
+                                        mandatoryBoxes: ProjectDecoder.findMandatoryBoxes(boxGraph)
+                                    }), roomName)
+                                })
+                        )
+                    }),
                 MenuItem.default({label: "Debug", separatorBefore: true})
                     .setRuntimeChildrenProcedure(parent => {
                         return parent.addMenuItem(
