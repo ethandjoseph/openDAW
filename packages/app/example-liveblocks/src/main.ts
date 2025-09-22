@@ -2,8 +2,8 @@ import "./style.css"
 import {createClient, LiveMap, LiveObject} from "@liveblocks/client"
 import {isUndefined, Option, UUID} from "@opendaw/lib-std"
 import {BoxGraph} from "@opendaw/lib-box"
-import {BoxIO, TimelineBox} from "@opendaw/studio-boxes"
-import {BoxLiveObject, Mapper, ProjectRoot} from "./liveblocks/Mapper"
+import {BoxIO, NoteEventBox, NoteEventCollectionBox, TimelineBox} from "@opendaw/studio-boxes"
+import {BoxLiveObject, LiveblocksSync, ProjectRoot} from "./liveblocks/LiveblocksSync"
 
 const publicApiKey = "pk_dev_rAx9bMAt_7AW8Ha_s3xkqd-l_9lYElzlpfOCImMJRSZYnhJ4uI5TelBFtbKUeWP4"
 
@@ -27,31 +27,30 @@ const publicApiKey = "pk_dev_rAx9bMAt_7AW8Ha_s3xkqd-l_9lYElzlpfOCImMJRSZYnhJ4uI5
     const projectRoot = getOrCreateProjectRoot()
     const boxes = projectRoot.get("boxes")
     console.debug("projectRoot", projectRoot)
-    const mapper = new Mapper<BoxIO.TypeMap>(boxGraph, room, projectRoot)
-
-    // TODO There is a bug, that updates are not seen, when we needed to initially populate the boxes.
-    //  1. Clear storage
-    //  2. Open first page (will create box)
-    //  3. Open second page and click to update > first page does not see this update
+    const sync = new LiveblocksSync<BoxIO.TypeMap>(boxGraph, room, projectRoot)
 
     if (!boxes.has(UUID.toString(UUID.Lowest))) {
+        console.debug("creating initial box")
         boxGraph.beginTransaction()
-        const timelineBox = TimelineBox.create(boxGraph, UUID.Lowest)
+        TimelineBox.create(boxGraph, UUID.Lowest)
         boxGraph.endTransaction()
-        boxes.set(timelineBox.address.toString(), mapper.boxToLiveObject(timelineBox))
     }
 
-    room.subscribe(boxes, (events) => {
-        console.debug("Boxes map changed:", events)
-    })
-
-    window.onpointerdown = () => {
-        console.debug("CLICK")
-        mapper.debugEdit(() => {
-            const box = boxGraph.findBox(UUID.Lowest).unwrap() as TimelineBox
-            box.loopArea.from.setValue(Math.floor(Math.random() * 0xFFFF))
-            box.loopArea.to.setValue(Math.floor(Math.random() * 0xFFFF))
-            console.debug(`[update] from: ${box.loopArea.from.getValue()}, to: ${box.loopArea.to.getValue()}`)
-        })
+    window.onpointerdown = (event) => {
+        console.debug("CLICK", event.shiftKey)
+        if (event.shiftKey) {
+            sync.localEdit(() => {
+                const x = NoteEventCollectionBox.create(boxGraph, UUID.generate())
+                NoteEventBox.create(boxGraph, UUID.generate(), box => box.events.refer(x.events))
+                NoteEventBox.create(boxGraph, UUID.generate(), box => box.events.refer(x.events))
+            })
+        } else {
+            sync.localEdit(() => {
+                const box = boxGraph.findBox(UUID.Lowest).unwrap() as TimelineBox
+                box.loopArea.from.setValue(Math.floor(Math.random() * 0xFFFF))
+                box.loopArea.to.setValue(Math.floor(Math.random() * 0xFFFF))
+                console.debug(`[update] from: ${box.loopArea.from.getValue()}, to: ${box.loopArea.to.getValue()}`)
+            })
+        }
     }
 })()
