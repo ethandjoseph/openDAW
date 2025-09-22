@@ -1,7 +1,8 @@
 import {
     assert,
     DataInput,
-    DataOutput, isNull,
+    DataOutput,
+    isNull,
     JSONValue,
     Maybe,
     Observer,
@@ -158,7 +159,7 @@ export class PointerField<P extends PointerTypes = PointerTypes> extends Field<U
             none: () => this.#targetAddress,
             some: encoder => encoder.map(this)
         }).match({
-            none: () => undefined,
+            none: () => null,
             some: address => address.toString()
         })
     }

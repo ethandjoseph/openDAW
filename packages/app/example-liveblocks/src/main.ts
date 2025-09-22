@@ -27,7 +27,7 @@ const publicApiKey = "pk_dev_rAx9bMAt_7AW8Ha_s3xkqd-l_9lYElzlpfOCImMJRSZYnhJ4uI5
     const projectRoot = getOrCreateProjectRoot()
     const boxes = projectRoot.get("boxes")
     console.debug("projectRoot", projectRoot)
-    const sync = new LiveblocksSync<BoxIO.TypeMap>(boxGraph, room, projectRoot)
+    const sync = LiveblocksSync.join(boxGraph, room, projectRoot)
 
     if (!boxes.has(UUID.toString(UUID.Lowest))) {
         console.debug("creating initial box")

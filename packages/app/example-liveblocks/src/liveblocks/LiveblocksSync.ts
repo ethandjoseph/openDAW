@@ -15,6 +15,24 @@ export type BoxLiveObject = {
 export type AnyLiveNode = LiveObject<any> | LiveList<any> | LiveMap<any, any>
 
 export class LiveblocksSync<T> implements Terminable {
+    static join<T>(boxGraph: BoxGraph<T>, room: Room, root: LiveObject<ProjectRoot>): LiveblocksSync<T> {
+        assert(boxGraph.boxes().length === 0, "BoxGraph must be empty")
+        const sync = new LiveblocksSync<T>(boxGraph, room, root)
+        sync.#boxGraph.beginTransaction()
+        sync.#liveBoxMap.forEach((object: LiveObject<BoxLiveObject>, id) => sync.#newBoxFromLiveObject(UUID.parse(id), object))
+        sync.#boxGraph.endTransaction()
+        // sync.#boxGraph.verifyPointers()
+        return sync
+    }
+
+    static populate<T>(boxGraph: BoxGraph<T>, room: Room, root: LiveObject<ProjectRoot>): LiveblocksSync<T> {
+        const boxes = root.get("boxes")
+        assert(boxes.size === 0, "root must be empty")
+        const sync = new LiveblocksSync<T>(boxGraph, room, root)
+        boxGraph.boxes().forEach(box => boxes.set(box.address.toString(), LiveblocksSerializer.fromBox(box)))
+        return sync
+    }
+
     readonly #terminator = new Terminator()
 
     readonly #boxGraph: BoxGraph<T>
@@ -22,25 +40,17 @@ export class LiveblocksSync<T> implements Terminable {
     readonly #liveBoxMap: LiveMap<string, LiveObject<BoxLiveObject>>
 
     readonly #addressMap: WeakMap<AnyLiveNode, Address>
-
     readonly #updates: Array<Update>
 
     #doNotSend: boolean = false
 
-    constructor(boxGraph: BoxGraph<T>, room: Room, root: LiveObject<ProjectRoot>) {
+    private constructor(boxGraph: BoxGraph<T>, room: Room, root: LiveObject<ProjectRoot>) {
         this.#boxGraph = boxGraph
         this.#room = room
         this.#liveBoxMap = root.get("boxes")
 
         this.#addressMap = new WeakMap()
-
         this.#updates = []
-
-        assert(boxGraph.boxes().length === 0, "BoxGraph must be empty")
-
-        this.#boxGraph.beginTransaction()
-        this.#liveBoxMap.forEach((object: LiveObject<BoxLiveObject>, id) => this.#newBoxFromLiveObject(UUID.parse(id), object))
-        this.#boxGraph.endTransaction()
 
         this.#terminator.ownAll(
             this.#boxGraph.subscribeTransaction({
@@ -122,6 +132,7 @@ export class LiveblocksSync<T> implements Terminable {
             }, {isDeep: true}))
         )
     }
+
     localEdit(exec: Exec): void {
         assert(!this.#doNotSend, "Cannot send")
         console.debug("localEdit")
@@ -136,7 +147,7 @@ export class LiveblocksSync<T> implements Terminable {
         const name = liveObject.get("name") as keyof T
         const box = this.#boxGraph.createBox(name, uuid, box => box.fromJSON(liveObject.toImmutable().fields as JSONValue))
         this.#collectFieldKeys(box, liveObject.get("fields"))
-        console.debug("new box from liveblocks", JSON.stringify(box.toJSON()))
+        console.debug("new box from liveblocks", box.name, JSON.stringify(box.toJSON()))
         return box
     }
 
