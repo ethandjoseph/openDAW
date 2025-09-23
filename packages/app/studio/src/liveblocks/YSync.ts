@@ -2,81 +2,31 @@ import {
     asDefined,
     assert,
     EmptyExec,
-    Errors,
     JSONValue,
-    Option,
     panic,
-    RuntimeNotifier,
     Subscription,
     Terminable,
     Terminator,
     UUID
 } from "@opendaw/lib-std"
 import {ArrayField, BoxGraph, Field, ObjectField, PointerField, PrimitiveField, Update} from "@opendaw/lib-box"
-import {LiveblocksYjsProvider} from "@liveblocks/yjs"
-import * as Y from "yjs"
 import {Utils} from "./Utils"
-import {Project} from "@opendaw/studio-core"
-import {BoxIO} from "@opendaw/studio-boxes"
-import {ProjectDecoder} from "@opendaw/studio-adapters"
-import {StudioService} from "@/service/StudioService"
+import * as Y from "yjs"
 
 const boxesMapKey = "y-boxes"
 
 type EventHandler = (events: Array<Y.YEvent<any>>, transaction: Y.Transaction) => void
 
-export class LiveblocksSync<T> implements Terminable {
-    static async getOrCreate(service: StudioService, provider: LiveblocksYjsProvider, roomName: string): Promise<void> {
-        console.debug("getOrCreate", roomName)
-        const doc: Y.Doc = provider.getYDoc()
-        await new Promise<void>((resolve) => {
-            if (provider.synced) {
-                resolve()
-            } else {
-                provider.on("synced", resolve)
-            }
-        })
-        const boxesMap = doc.getMap(boxesMapKey)
-        const isRoomEmpty = boxesMap.size === 0
-        if (isRoomEmpty) {
-            if (!service.hasProfile) {
-                await service.cleanSlate()
-            }
-            const project = service.project
-            const sync = await this.populate(project.boxGraph, provider)
-            project.own(sync)
-            project.own(Terminable.create(() => console.debug("TERMINATE")))
-            project.editing.disable()
-        } else {
-            if (service.hasProfile) {
-                const approved = await RuntimeNotifier.approve({
-                    headline: "Room Already Exists",
-                    message: "Do you want to join it?",
-                    approveText: "Join",
-                    cancelText: "Cancel"
-                })
-                if (!approved) {
-                    return Promise.reject(Errors.AbortError)
-                }
-            }
-            const boxGraph = new BoxGraph<BoxIO.TypeMap>(Option.wrap(BoxIO.create))
-            const sync = await this.join(boxGraph, provider)
-            const project = Project.skeleton(service, {
-                boxGraph,
-                mandatoryBoxes: ProjectDecoder.findMandatoryBoxes(boxGraph)
-            })
-            project.own(sync)
-            project.editing.disable()
-            service.fromProject(project, roomName)
-        }
+export class YSync<T> implements Terminable {
+    static isEmpty(doc: Y.Doc): boolean {
+        return doc.getMap(boxesMapKey).size === 0
     }
 
-    static async populate<T>(boxGraph: BoxGraph<T>, provider: LiveblocksYjsProvider): Promise<LiveblocksSync<T>> {
+    static async populate<T>(boxGraph: BoxGraph<T>, doc: Y.Doc): Promise<YSync<T>> {
         console.debug("populate")
-        const doc: Y.Doc = provider.getYDoc()
         const boxesMap = doc.getMap(boxesMapKey)
         assert(boxesMap.size === 0, "BoxesMap must be empty")
-        const sync = new LiveblocksSync<T>(boxGraph, doc)
+        const sync = new YSync<T>(boxGraph, doc)
         doc.transact(() => boxGraph.boxes().forEach(box => {
             const key = UUID.toString(box.address.uuid)
             const map = Utils.createBoxMap(box)
@@ -85,11 +35,10 @@ export class LiveblocksSync<T> implements Terminable {
         return sync
     }
 
-    static async join<T>(boxGraph: BoxGraph<T>, provider: LiveblocksYjsProvider): Promise<LiveblocksSync<T>> {
+    static async join<T>(boxGraph: BoxGraph<T>, doc: Y.Doc): Promise<YSync<T>> {
         console.debug("join")
         assert(boxGraph.boxes().length === 0, "BoxGraph must be empty")
-        const doc: Y.Doc = provider.getYDoc()
-        const sync = new LiveblocksSync<T>(boxGraph, doc)
+        const sync = new YSync<T>(boxGraph, doc)
         sync.#boxGraph.beginTransaction()
         const boxesMap: Y.Map<unknown> = doc.getMap(boxesMapKey)
         boxesMap.forEach((value, key) => {
@@ -207,7 +156,6 @@ export class LiveblocksSync<T> implements Terminable {
                         return
                     }
                     this.#doc.transact(() => this.#updates.forEach(update => {
-                        console.debug(update)
                         /**
                          * TRANSFER CHANGES FROM OPENDAW TO LIVEBLOCKS
                          */
@@ -221,7 +169,6 @@ export class LiveblocksSync<T> implements Terminable {
                             const boxObject = asDefined(this.#boxesMap.get(key),
                                 "Could not find box") as Y.Map<unknown>
                             const {address: {fieldKeys}, newValue} = update
-                            console.debug("P", boxObject, fieldKeys, newValue)
                             let field = boxObject.get("fields") as Y.Map<unknown>
                             for (let i = 0; i < fieldKeys.length - 1; i++) {
                                 field = asDefined(field.get(String(fieldKeys[i])),
