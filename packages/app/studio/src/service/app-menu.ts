@@ -10,6 +10,7 @@ import {CloudBackup, Colors, FilePickerAcceptTypes, ProjectSignals, Workers} fro
 import {Promises} from "@opendaw/lib-runtime"
 
 const isBeta = Browser.isLocalHost() || location.hash === "#beta"
+console.debug("isBeta", isBeta)
 
 export const initAppMenu = (service: StudioService) => MenuItem.root()
     .setRuntimeChildrenProcedure(parent => {
