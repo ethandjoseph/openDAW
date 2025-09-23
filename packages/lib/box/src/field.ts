@@ -5,6 +5,7 @@ import {
     JSONValue,
     Lazy,
     Maybe,
+    Objects,
     Option,
     Optional,
     panic,
@@ -73,6 +74,7 @@ export class Field<P extends PointerTypes = PointerTypes, F extends Fields = Fie
     isField(): this is Field {return true}
     isAttached(): boolean {return this.graph.findBox(this.address.uuid).nonEmpty()}
     fields(): ReadonlyArray<Field> {return Arrays.empty()}
+    record(): Record<string, Field> {return Objects.empty()}
     getField(_key: keyof F): F[keyof F] {return panic()}
     optField(_key: keyof F): Option<F[keyof F]> {return Option.None}
     read(_input: DataInput): void {}

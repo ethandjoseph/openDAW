@@ -39,6 +39,7 @@ export interface Vertex<P extends PointerTypes = PointerTypes, F extends Fields 
     isField(): this is Field
     isAttached(): boolean
     fields(): ReadonlyArray<Field>
+    record(): Readonly<Record<string, Field>>
     getField(key: keyof F): F[keyof F]
     optField(key: keyof F): Option<F[keyof F]>
     read(input: DataInput): void

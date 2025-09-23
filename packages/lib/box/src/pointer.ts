@@ -163,6 +163,7 @@ export class PointerField<P extends PointerTypes = PointerTypes> extends Field<U
             some: address => address.toString()
         })
     }
+
     fromJSON(value: JSONValue): void {
         if (isNull(value) || typeof value === "string") {
             const address = Option.wrap(isNull(value) ? null : Address.decode(value))

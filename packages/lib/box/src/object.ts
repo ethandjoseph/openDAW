@@ -32,6 +32,7 @@ export abstract class ObjectField<FIELDS extends Fields> extends Field<Unreferen
     }
 
     fields(): ReadonlyArray<Field> {return Object.values(this.#fields)}
+    record(): Readonly<Record<string, Field>> {return this.#fields}
     getField<K extends keyof FIELDS>(key: K): FIELDS[K] {return asDefined(this.#fields[key])}
     optField<K extends keyof FIELDS>(key: K): Option<FIELDS[K]> {return Option.wrap(this.#fields[key])}
 

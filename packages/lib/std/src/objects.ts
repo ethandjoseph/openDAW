@@ -1,6 +1,10 @@
 import {panic} from "./lang"
 
 export namespace Objects {
+    const Empty = Object.freeze({})
+
+    export const empty = <K extends keyof any, V>(): Readonly<Record<K, V>> => Empty as Readonly<Record<K, V>>
+
     export type Disjoint<U, V> = keyof U & keyof V extends never ? V : never
 
     export const mergeNoOverlap = <U extends {}, V extends {}>(u: U, v: Disjoint<U, V>): U & V => {

@@ -6,21 +6,12 @@ import {EmptyExec, isAbsent, isDefined, Option, panic, RuntimeNotifier, RuntimeS
 import {Browser, Files, ModfierKeys} from "@opendaw/lib-dom"
 import {SyncLogService} from "@/service/SyncLogService"
 import {IconSymbol, ProjectDecoder} from "@opendaw/studio-adapters"
-import {
-    BoxLiveObject,
-    CloudBackup,
-    Colors,
-    FilePickerAcceptTypes,
-    LiveblocksSync,
-    Project,
-    ProjectRoot,
-    ProjectSignals,
-    Workers
-} from "@opendaw/studio-core"
+import {CloudBackup, Colors, FilePickerAcceptTypes, Project, ProjectSignals, Workers} from "@opendaw/studio-core"
 import {Promises} from "@opendaw/lib-runtime"
-import {createClient, LiveMap, LiveObject} from "@liveblocks/client"
+import {createClient} from "@liveblocks/client"
 import {BoxGraph} from "@opendaw/lib-box"
 import {BoxIO} from "@opendaw/studio-boxes"
+import {LiveblocksSync} from "@/liveblocks/LiveblocksSync"
 
 export const initAppMenu = (service: StudioService) => MenuItem.root()
     .setRuntimeChildrenProcedure(parent => {
@@ -91,20 +82,23 @@ export const initAppMenu = (service: StudioService) => MenuItem.root()
                             .setTriggerProcedure(() => RouteLocation.get().navigateTo("/manuals/cloud-backup"))
                     )
                 }),
-                MenuItem.default({label: "Liveblocks.io"})
+                MenuItem.default({label: "Liveblocks.io", hidden: !Browser.isLocalHost()})
                     .setRuntimeChildrenProcedure(parent => {
                         const publicApiKey = "pk_dev_rAx9bMAt_7AW8Ha_s3xkqd-l_9lYElzlpfOCImMJRSZYnhJ4uI5TelBFtbKUeWP4"
                         parent.addMenuItem(
-                            MenuItem.default({label: "Create Room...", selectable: service.hasProfile})
+                            MenuItem.default({label: service.hasProfile ? "Create Room..." : "New Room..."})
                                 .setTriggerProcedure(async () => {
                                     const roomName = prompt("Enter a room name:", "")
-                                    if (isAbsent(roomName) || !service.hasProfile) {return}
-                                    const client = createClient({publicApiKey, throttle: 80})
+                                    if (isAbsent(roomName)) {return}
+                                    if (!service.hasProfile) {
+                                        await service.cleanSlate()
+                                    }
+                                    const client = createClient({publicApiKey, throttle: 20})
                                     const {room} = client.enterRoom(roomName)
-                                    const {root} = await room.getStorage()
-                                    const projectRoot = new LiveObject({boxes: new LiveMap<string, LiveObject<BoxLiveObject>>()})
-                                    root.set("project", projectRoot)
-                                    LiveblocksSync.populate(service.project.boxGraph, room, projectRoot)
+                                    await room.waitUntilStorageReady()
+                                    await room.waitUntilPresenceReady()
+                                    LiveblocksSync.populate(service.project.boxGraph, room)
+                                    console.debug(`Joined room '${roomName}'`)
                                 }),
                             MenuItem.default({label: "Join Room...", selectable: !service.hasProfile})
                                 .setTriggerProcedure(async () => {
@@ -112,10 +106,10 @@ export const initAppMenu = (service: StudioService) => MenuItem.root()
                                     if (isAbsent(roomName) || service.hasProfile) {return}
                                     const client = createClient({publicApiKey, throttle: 80})
                                     const {room} = client.enterRoom(roomName)
-                                    const {root} = await room.getStorage()
-                                    const projectRoot = root.get("project") as LiveObject<ProjectRoot>
+                                    await room.waitUntilStorageReady()
+                                    await room.waitUntilPresenceReady()
                                     const boxGraph = new BoxGraph<BoxIO.TypeMap>(Option.wrap(BoxIO.create))
-                                    LiveblocksSync.join(boxGraph, room, projectRoot)
+                                    await LiveblocksSync.join(boxGraph, room)
                                     service.fromProject(Project.skeleton(service, {
                                         boxGraph,
                                         mandatoryBoxes: ProjectDecoder.findMandatoryBoxes(boxGraph)
