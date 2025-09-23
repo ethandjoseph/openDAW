@@ -31,6 +31,7 @@ export class Editing {
     readonly #marked: Array<ReadonlyArray<Modification>> = []
 
     #modifying: boolean = false
+    #disabled: boolean = false
 
     #historyIndex: int = 0
 
@@ -50,6 +51,7 @@ export class Editing {
     }
 
     undo(): boolean {
+        if (this.#disabled) {return false}
         if (this.#pending.length > 0) {this.mark()}
         if (this.#historyIndex === 0) {return false}
         const modifications = this.#marked[--this.#historyIndex]
@@ -59,6 +61,7 @@ export class Editing {
     }
 
     redo(): boolean {
+        if (this.#disabled) {return false}
         if (this.#historyIndex === this.#marked.length) {return false}
         if (this.#pending.length > 0) {
             console.warn("redo while having pending updates?")
@@ -129,5 +132,9 @@ export class Editing {
         if (this.#pending.length === 0) {return}
         this.#pending.reverse().forEach(modification => modification.inverse(this.#graph))
         this.#pending.length = 0
+    }
+
+    disable(): void {
+        this.#disabled = true
     }
 }
