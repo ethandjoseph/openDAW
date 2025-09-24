@@ -93,7 +93,12 @@ export const initAppMenu = (service: StudioService) => {
                                     .setTriggerProcedure(async () => {
                                         const roomName = prompt("Enter a room name:", "")
                                         if (isAbsent(roomName)) {return}
+                                        const dialog = RuntimeNotifier.progress({
+                                            headline: "Connecting to Room...",
+                                            message: "Please wait while we connect to the room..."
+                                        })
                                         await YService.getOrCreateRoom(service, roomName)
+                                        dialog.terminate()
                                     })
                             )
                         }),
