@@ -30,7 +30,7 @@ import {
     ClipSequencing,
     ClipSequencingUpdates,
     EngineCommands,
-    EngineProcessorOptions,
+    EngineProcessorAttachment,
     EngineStateSchema,
     EngineToClient,
     NoteSignal,
@@ -95,8 +95,8 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
     #playbackTimestamp: ppqn = 0.0 // this is where we start playing again (after paused)
     #countInBeatsTotal: int = 4
 
-    constructor({processorOptions: {sab, project, exportConfiguration}}: {
-        processorOptions: EngineProcessorOptions
+    constructor({processorOptions: {sab, project, exportConfiguration, options}}: {
+        processorOptions: EngineProcessorAttachment
     } & AudioNodeOptions) {
         super()
 
@@ -126,7 +126,7 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
         this.#notifier = new Notifier<ProcessPhase>()
         this.#mixer = new Mixer()
         this.#metronome = new Metronome(this.#timeInfo)
-        this.#renderer = new BlockRenderer(this)
+        this.#renderer = new BlockRenderer(this, options)
         this.#ignoredRegions = UUID.newSet<UUID.Bytes>(uuid => uuid)
         this.#stateSender = SyncStream.writer(EngineStateSchema(), sab, x => {
             const {transporting, isCountingIn, isRecording, position} = this.#timeInfo

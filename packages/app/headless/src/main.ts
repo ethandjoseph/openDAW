@@ -46,7 +46,7 @@ import WorkletsUrl from "@opendaw/studio-core/processors.js?url"
         const project = loadProject
             ? Project.load(env, await fetch("subset.od").then(x => x.arrayBuffer()))
             : createExampleProject(env)
-        const worklet = AudioWorklets.get(context).createEngine(project)
+        const worklet = AudioWorklets.get(context).createEngine({project: project})
         await worklet.isReady()
         while (!await worklet.queryLoadingComplete()) {}
         worklet.connect(context.destination)

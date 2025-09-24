@@ -1,10 +1,13 @@
 import {int, Option} from "@opendaw/lib-std"
 
+export type ProcessorOptions = { pauseOnLoopDisabled?: boolean }
+
 // This is the type for passing over information to the main audio-worklet
-export type EngineProcessorOptions = {
+export type EngineProcessorAttachment = {
     sab: SharedArrayBuffer // SyncStream SharedArrayBuffer
     project: ArrayBufferLike
     exportConfiguration?: ExportStemsConfiguration
+    options?: ProcessorOptions
 }
 
 export type ExportStemConfiguration = {

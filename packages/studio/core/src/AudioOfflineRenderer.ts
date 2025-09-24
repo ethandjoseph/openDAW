@@ -25,7 +25,10 @@ export namespace AudioOfflineRenderer {
         const context = new OfflineAudioContext(numStems * 2, numSamples, sampleRate)
         const durationInSeconds = numSamples / sampleRate
         const worklets = await AudioWorklets.createFor(context)
-        const engineWorklet = worklets.createEngine(project, optExportConfiguration.unwrapOrUndefined())
+        const engineWorklet = worklets.createEngine({
+            project: project,
+            exportConfiguration: optExportConfiguration.unwrapOrUndefined()
+        })
         engineWorklet.play()
         engineWorklet.connect(context.destination)
         await engineWorklet.isReady()

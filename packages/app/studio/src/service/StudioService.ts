@@ -182,7 +182,7 @@ export class StudioService implements ProjectEnv {
                         this.switchScreen(screen)
                     }
                 }
-                this.engine.setWorklet(project.startAudioWorklet(restart))
+                this.engine.setWorklet(project.startAudioWorklet(restart, {pauseOnLoopDisabled: false}))
                 if (root) {this.switchScreen("default")}
             } else {
                 this.engine.releaseWorklet()

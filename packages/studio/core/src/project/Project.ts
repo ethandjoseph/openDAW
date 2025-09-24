@@ -29,6 +29,7 @@ import {
     IconSymbol,
     MandatoryBoxes,
     ParameterFieldAdapters,
+    ProcessorOptions,
     ProjectDecoder,
     RootBoxAdapter,
     SampleManager,
@@ -157,10 +158,10 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
         console.debug(`Project was created on ${this.rootBoxAdapter.created.toString()}`)
     }
 
-    startAudioWorklet(restart?: RestartWorklet): EngineWorklet {
+    startAudioWorklet(restart?: RestartWorklet, options?: ProcessorOptions): EngineWorklet {
         console.debug(`start AudioWorklet`)
         const lifecycle = this.#terminator.spawn()
-        const engine: EngineWorklet = lifecycle.own(this.#env.audioWorklets.createEngine(this))
+        const engine: EngineWorklet = lifecycle.own(this.#env.audioWorklets.createEngine({project: this, options}))
         const handler = async (event: unknown) => {
             console.warn(event)
             // we will only accept the first error

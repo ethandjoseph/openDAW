@@ -1,5 +1,5 @@
 import {asDefined, int, Option} from "@opendaw/lib-std"
-import {ExportStemsConfiguration, RingBuffer} from "@opendaw/studio-adapters"
+import {ExportStemsConfiguration, ProcessorOptions, RingBuffer} from "@opendaw/studio-adapters"
 import {Project} from "./project/Project"
 import {EngineWorklet} from "./EngineWorklet"
 import {MeterWorklet} from "./MeterWorklet"
@@ -36,8 +36,12 @@ export class AudioWorklets {
         return new MeterWorklet(this.#context, numberOfChannels)
     }
 
-    createEngine(project: Project, exportConfiguration?: ExportStemsConfiguration): EngineWorklet {
-        return new EngineWorklet(this.#context, project, exportConfiguration)
+    createEngine({project, exportConfiguration, options}: {
+        project: Project,
+        exportConfiguration?: ExportStemsConfiguration,
+        options?: ProcessorOptions
+    }): EngineWorklet {
+        return new EngineWorklet(this.#context, project, exportConfiguration, options)
     }
 
     createRecording(numberOfChannels: int, numChunks: int, outputLatency: number): RecordingWorklet {

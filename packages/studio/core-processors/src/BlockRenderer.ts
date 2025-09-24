@@ -14,16 +14,18 @@ export class BlockRenderer {
     readonly #context: EngineContext
 
     readonly #callbacks: SetMultimap<ppqn, Exec>
+    readonly #pauseOnLoopDisabled: boolean = true
 
     #tempoChanged: boolean = false
     #currentMarker: Nullable<[MarkerBoxAdapter, int]> = null
     #someMarkersChanged: boolean = false
     #freeRunningPosition: ppqn = 0.0 // synced with timeInfo when transporting
 
-    constructor(context: EngineContext) {
+    constructor(context: EngineContext, options?: { pauseOnLoopDisabled?: boolean }) {
         this.#context = context
         this.#context.timelineBoxAdapter.markerTrack.subscribe(() => this.#someMarkersChanged = true)
         this.#context.timelineBoxAdapter.box.bpm.subscribe(() => this.#tempoChanged = true)
+        this.#pauseOnLoopDisabled = options?.pauseOnLoopDisabled ?? false
 
         this.#callbacks = new SetMultimap()
     }
@@ -96,7 +98,7 @@ export class BlockRenderer {
                 const {isRecording, isCountingIn} = this.#context.timeInfo // TODO We need a concept for loops in recording
                 const {from, to, enabled} = timelineBox.loopArea
                 const loopEnabled = enabled.getValue()
-                if (loopEnabled && !(isRecording || isCountingIn)) {
+                if ((loopEnabled && !(isRecording || isCountingIn)) || this.#pauseOnLoopDisabled) {
                     const loopTo = to.getValue()
                     if (p0 < loopTo && p1 > loopTo && loopTo < actionPosition) {
                         action = {type: "loop", target: from.getValue()}
@@ -138,11 +140,26 @@ export class BlockRenderer {
                             s0 = s1
                         }
                     }
+                    const releaseBlock = () => {
+                        if (s0 < RenderQuantum) {
+                            const s1 = s0 + PPQN.pulsesToSamples(p1 - p0, bpm, sampleRate) | 0
+                            blocks.push({
+                                index: index++, p0, p1: actionPosition, s0, s1, bpm,
+                                flags: BlockFlags.create(false, false, false, this.#tempoChanged)
+                            })
+                            s0 = s1
+                        }
+                    }
                     switch (action.type) {
                         case "loop": {
                             advanceToEvent()
-                            p0 = action.target
-                            discontinuous = true
+                            if (this.#pauseOnLoopDisabled) {
+                                this.#context.timeInfo.pause()
+                                releaseBlock()
+                            } else {
+                                p0 = action.target
+                                discontinuous = true
+                            }
                             break
                         }
                         case "marker": {

@@ -22,12 +22,13 @@ import {
     ClipNotification,
     ClipSequencingUpdates,
     EngineCommands,
-    EngineProcessorOptions,
+    EngineProcessorAttachment,
     EngineState,
     EngineStateSchema,
     EngineToClient,
     ExportStemsConfiguration,
-    NoteSignal
+    NoteSignal,
+    ProcessorOptions
 } from "@opendaw/studio-adapters"
 import {BoxIO} from "@opendaw/studio-boxes"
 import {Project} from "./project/Project"
@@ -58,7 +59,8 @@ export class EngineWorklet extends AudioWorkletNode implements Engine {
 
     constructor(context: BaseAudioContext,
                 project: Project,
-                exportConfiguration?: ExportStemsConfiguration) {
+                exportConfiguration?: ExportStemsConfiguration,
+                options?: ProcessorOptions) {
         const numberOfChannels = ExportStemsConfiguration.countStems(Option.wrap(exportConfiguration)) * 2
         const reader = SyncStream.reader<EngineState>(EngineStateSchema(), state => {
             this.#isPlaying.setValue(state.isPlaying)
@@ -77,8 +79,9 @@ export class EngineWorklet extends AudioWorkletNode implements Engine {
                 processorOptions: {
                     sab: reader.buffer,
                     project: project.toArrayBuffer(),
-                    exportConfiguration
-                } satisfies EngineProcessorOptions
+                    exportConfiguration,
+                    options
+                } satisfies EngineProcessorAttachment
             }
         )
 

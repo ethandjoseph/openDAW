@@ -27,5 +27,11 @@ export class TimeInfo {
         this.#transporting = value
     }
 
+    pause(): void {
+        this.#transporting = false
+        this.isRecording = false
+        this.isCountingIn = false
+    }
+
     advanceTo(position: ppqn): void {this.#position = position}
 }
