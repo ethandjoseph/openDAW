@@ -97,7 +97,7 @@ export const initAppMenu = (service: StudioService) => {
                                             headline: "Connecting to Room...",
                                             message: "Please wait while we connect to the room..."
                                         })
-                                        await YService.getOrCreateRoom(service, roomName)
+                                        await Promises.tryCatch(YService.getOrCreateRoom(service, roomName))
                                         dialog.terminate()
                                     })
                             )
