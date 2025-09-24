@@ -1,4 +1,5 @@
 import {
+    Arrays,
     ByteArrayOutput,
     Option,
     panic,
@@ -14,9 +15,11 @@ import {
     AudioBusBox,
     AudioUnitBox,
     BoxIO,
+    BoxVisitor,
     GrooveShuffleBox,
     RootBox,
     TimelineBox,
+    TrackBox,
     UserInterfaceBox
 } from "@opendaw/studio-boxes"
 import {
@@ -30,6 +33,7 @@ import {
     RootBoxAdapter,
     SampleManager,
     TimelineBoxAdapter,
+    UnionBoxTypes,
     UserEditingManager,
     VertexSelection
 } from "@opendaw/studio-adapters"
@@ -42,7 +46,6 @@ import {ProjectMigration} from "./ProjectMigration"
 import {CaptureDevices} from "../capture/CaptureDevices"
 import {EngineFacade} from "../EngineFacade"
 import {EngineWorklet} from "../EngineWorklet"
-import {AudioWorklets} from "../AudioWorklets"
 import {Recording} from "../capture/Recording"
 import {MIDILearning} from "../midi/MIDILearning"
 
@@ -225,6 +228,21 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
     }
 
     copy(): Project {return Project.load(this.#env, this.toArrayBuffer() as ArrayBuffer)}
+
+    invalid(): boolean {
+        return this.boxGraph.boxes().some(box => box.accept<BoxVisitor<boolean>>({
+            visitTrackBox: (box: TrackBox): boolean => {
+                for (const {current, next} of Arrays.iterateAdjacent(box.regions.pointerHub.incoming()
+                    .map(({box}) => UnionBoxTypes.asRegionBox(box))
+                    .sort(({position: a}, {position: b}) => a.getValue() - b.getValue()))) {
+                    if (current.position.getValue() + current.duration.getValue() > next.position.getValue()) {
+                        return true
+                    }
+                }
+                return false
+            }
+        }) ?? false)
+    }
 
     terminate(): void {
         console.debug("Project terminated")

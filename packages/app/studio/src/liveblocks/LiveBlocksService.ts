@@ -1,4 +1,4 @@
-import {Errors, Option, RuntimeNotifier, Terminable} from "@opendaw/lib-std"
+import {Errors, Option, RuntimeNotifier} from "@opendaw/lib-std"
 import {Promises} from "@opendaw/lib-runtime"
 import {BoxGraph} from "@opendaw/lib-box"
 import {BoxIO} from "@opendaw/studio-boxes"
@@ -47,9 +47,8 @@ export namespace LiveBlocksService {
                 await service.cleanSlate()
             }
             const project = service.project
-            const sync = await YSync.populate(project.boxGraph, doc)
+            const sync = await YSync.populate({boxGraph: project.boxGraph, doc, conflict: () => project.invalid()})
             project.own(sync)
-            project.own(Terminable.create(() => console.debug("TERMINATE")))
             project.editing.disable()
         } else {
             if (service.hasProfile) {
@@ -64,7 +63,7 @@ export namespace LiveBlocksService {
                 }
             }
             const boxGraph = new BoxGraph<BoxIO.TypeMap>(Option.wrap(BoxIO.create))
-            const sync = await YSync.join(boxGraph, doc)
+            const sync = await YSync.join({boxGraph, doc, conflict: () => project.invalid()})
             const project = Project.skeleton(service, {
                 boxGraph,
                 mandatoryBoxes: ProjectDecoder.findMandatoryBoxes(boxGraph)

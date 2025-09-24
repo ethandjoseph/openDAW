@@ -134,6 +134,14 @@ export class Arrays {
             yield {value: array[i], isFirst: i === 0, isLast: i === maxIndex}
         }
     }
+    static* iterateAdjacent<T>(array: ArrayLike<T>): Generator<{ current: T, next: T }> {
+        if (array.length <= 1) {return}
+        for (let i = 1, current = array[0]; i < array.length; i++) {
+            const next = array[i]
+            yield {current, next}
+            current = next
+        }
+    }
     static isSorted<ARRAY extends NumberArray>(array: ARRAY, sorting: Sorting = Sorting.Ascending): boolean {
         if (array.length < 2) {return true}
         let prev: number = array[0]

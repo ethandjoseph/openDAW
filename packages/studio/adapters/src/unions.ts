@@ -8,6 +8,7 @@ import {
     ValueRegionBox
 } from "@opendaw/studio-boxes"
 import {Box} from "@opendaw/lib-box"
+import {panic} from "@opendaw/lib-std"
 
 export type AnyClipBox = NoteClipBox | ValueClipBox | AudioClipBox
 export type AnyRegionBox = AudioRegionBox | NoteRegionBox | ValueRegionBox
@@ -24,6 +25,11 @@ export const UnionBoxTypes = {
         visitAudioRegionBox: (_box: AudioRegionBox): boolean => true,
         visitValueRegionBox: (_box: ValueRegionBox): boolean => true
     }) ?? false,
+    asRegionBox: (box: Box): AnyRegionBox => box.accept<BoxVisitor<AnyRegionBox>>({
+        visitNoteRegionBox: (box: NoteRegionBox): AnyRegionBox => box,
+        visitAudioRegionBox: (box: AudioRegionBox): AnyRegionBox => box,
+        visitValueRegionBox: (box: ValueRegionBox): AnyRegionBox => box
+    }) ?? panic("Could not cast to AnyRegionBox"),
     isLoopableRegionBox: (box: Box): box is AnyLoopableRegionBox => box.accept<BoxVisitor<boolean>>({
         visitNoteRegionBox: (_box: NoteRegionBox): boolean => true,
         visitAudioRegionBox: (_box: AudioRegionBox): boolean => true,

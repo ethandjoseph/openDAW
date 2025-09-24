@@ -2,8 +2,12 @@ import {
     asDefined,
     assert,
     EmptyExec,
+    isInstanceOf,
+    isUndefined,
     JSONValue,
+    Option,
     panic,
+    Provider,
     Subscription,
     Terminable,
     Terminator,
@@ -17,16 +21,22 @@ const boxesMapKey = "y-boxes"
 
 type EventHandler = (events: Array<Y.YEvent<any>>, transaction: Y.Transaction) => void
 
+export type Construct<T> = {
+    boxGraph: BoxGraph<T>,
+    doc: Y.Doc
+    conflict?: Provider<boolean>
+}
+
 export class YSync<T> implements Terminable {
     static isEmpty(doc: Y.Doc): boolean {
         return doc.getMap(boxesMapKey).size === 0
     }
 
-    static async populate<T>(boxGraph: BoxGraph<T>, doc: Y.Doc): Promise<YSync<T>> {
+    static async populate<T>({boxGraph, doc}: Construct<T>): Promise<YSync<T>> {
         console.debug("populate")
         const boxesMap = doc.getMap(boxesMapKey)
         assert(boxesMap.size === 0, "BoxesMap must be empty")
-        const sync = new YSync<T>(boxGraph, doc)
+        const sync = new YSync<T>({boxGraph: boxGraph, doc: doc})
         doc.transact(() => boxGraph.boxes().forEach(box => {
             const key = UUID.toString(box.address.uuid)
             const map = Utils.createBoxMap(box)
@@ -35,10 +45,10 @@ export class YSync<T> implements Terminable {
         return sync
     }
 
-    static async join<T>(boxGraph: BoxGraph<T>, doc: Y.Doc): Promise<YSync<T>> {
+    static async join<T>({boxGraph, doc}: Construct<T>): Promise<YSync<T>> {
         console.debug("join")
         assert(boxGraph.boxes().length === 0, "BoxGraph must be empty")
-        const sync = new YSync<T>(boxGraph, doc)
+        const sync = new YSync<T>({boxGraph: boxGraph, doc: doc})
         sync.#boxGraph.beginTransaction()
         const boxesMap: Y.Map<unknown> = doc.getMap(boxesMapKey)
         boxesMap.forEach((value, key) => {
@@ -57,14 +67,16 @@ export class YSync<T> implements Terminable {
 
     readonly #boxGraph: BoxGraph<T>
     readonly #doc: Y.Doc
+    readonly #conflict: Option<Provider<boolean>>
     readonly #boxesMap: Y.Map<unknown>
     readonly #updates: Array<Update>
 
     #ignoreUpdates: boolean = false
 
-    constructor(boxGraph: BoxGraph<T>, doc: Y.Doc) {
+    constructor({boxGraph, doc, conflict}: Construct<T>) {
         this.#boxGraph = boxGraph
         this.#doc = doc
+        this.#conflict = Option.wrap(conflict)
         this.#boxesMap = doc.getMap(boxesMapKey)
         this.#updates = []
         this.#terminator.ownAll(this.#setupYjs(), this.#setupOpenDAW())
@@ -88,25 +100,18 @@ export class YSync<T> implements Terminable {
                     oldValue: any
                 }]) => {
                     if (change.action === "add") {
-                        assert(path.length === 0, "Add cannot have a path")
-                        const boxMap = this.#boxesMap.get(key) as Y.Map<unknown>
-                        const name = boxMap.get("name") as keyof T
-                        const fields = boxMap.get("fields") as Y.Map<unknown>
+                        assert(path.length === 0, "'Add' cannot have a path")
+                        const map = this.#boxesMap.get(key) as Y.Map<unknown>
+                        const name = map.get("name") as keyof T
+                        const fields = map.get("fields") as Y.Map<unknown>
                         const uuid = UUID.parse(key)
                         this.#boxGraph.createBox(name, uuid, box => Utils.applyFromBoxMap(box, fields))
                     } else if (change.action === "update") {
-                        if (path.length === 0) {
-                            console.debug("Mystery update - Box:", key)
-                            console.debug("Old value:", change.oldValue)
-                            console.debug("New value:", this.#boxesMap.get(key))
-                            console.debug("Are they equal?", change.oldValue === this.#boxesMap.get(key))
-                            console.debug("Transaction origin:", transaction.origin)
-                            return
-                        }
-                        // TODO resolve map and field (object or array) once and use it for all changes (optimization)
+                        if (path.length === 0) {return}
+                        assert(path.length >= 2, "Invalid path: must have at least 2 elements (uuid, 'fields').")
                         this.#updateValue(path, key)
                     } else if (change.action === "delete") {
-                        assert(path.length === 0, "Delete cannot have a path")
+                        assert(path.length === 0, "'Delete' cannot have a path")
                         const remove = this.#boxGraph.findBox(UUID.parse(key))
                             .unwrap("Could not find box to delete")
                         const {pointers} = this.#boxGraph.dependenciesOf(remove)
@@ -120,30 +125,59 @@ export class YSync<T> implements Terminable {
             })
             this.#ignoreUpdates = true
             this.#boxGraph.endTransaction()
-            // TODO This is the place where we should check for invalid high-level conflicts and revert the transaction.
-            //  We need to store all updates in BoxGraph and have an API to rollback any transaction.
             this.#boxGraph.verifyPointers()
             this.#ignoreUpdates = false
+
+            const highLevelConflict = this.#conflict.mapOr(check => check(), false)
+            if (highLevelConflict) {
+                this.#rollbackTransaction(events)
+            }
         }
         this.#boxesMap.observeDeep(eventHandler)
         return {terminate: () => {this.#boxesMap.unobserveDeep(eventHandler)}}
     }
 
-    #updateValue([uuidAsString, fieldsKey, ...fieldKeys]: ReadonlyArray<string | number>, key: string): void {
-        uuidAsString = String(uuidAsString)
-        const uuid = UUID.parse(uuidAsString)
-        const boxMap = this.#boxesMap.get(uuidAsString) as Y.Map<unknown>
-        const fields = boxMap.get(String(fieldsKey)) as Y.Map<unknown>
-        const box = this.#boxGraph.findBox(uuid).unwrap("Could not find box")
-        const targetMap = Utils.findMap(fields, fieldKeys)
-        const vertexOption = box.searchVertex(Utils.pathKeyToFieldKeys(fieldKeys, key))
-        vertexOption.unwrap("Could not find field").accept({
+    #updateValue(path: ReadonlyArray<string | number>, key: string): void {
+        const [uuidAsString, fieldsKey, ...fieldKeys] = path
+        const targetMap = Utils.findMap((this.#boxesMap
+            .get(String(uuidAsString)) as Y.Map<unknown>)
+            .get(String(fieldsKey)) as Y.Map<unknown>, fieldKeys)
+        const vertexOption = this.#boxGraph.findVertex(Utils.pathToAddress(path, key))
+        const vertex = vertexOption.unwrap("Could not find field")
+        assert(vertex.isField(), "Vertex must be either Primitive or Pointer")
+        vertex.accept({
             visitField: (_: Field) => panic("Vertex must be either Primitive or Pointer"),
             visitArrayField: (_: ArrayField) => panic("Vertex must be either Primitive or Pointer"),
             visitObjectField: (_: ObjectField<any>) => panic("Vertex must be either Primitive or Pointer"),
             visitPointerField: (field: PointerField) => field.fromJSON(targetMap.get(key) as JSONValue),
             visitPrimitiveField: (field: PrimitiveField) => field.fromJSON(targetMap.get(key) as JSONValue)
         })
+    }
+
+    #rollbackTransaction(events: ReadonlyArray<Y.YEvent<any>>): void {
+        console.debug("rollbackTransaction", events.length)
+        for (let i = events.length - 1; i >= 0; i--) {
+            const event = events[i]
+            const target = event.target
+            if (!isInstanceOf(target, Y.Map)) {
+                return panic("Only Y.Map events are supported")
+            }
+            Array.from(event.changes.keys.entries())
+                .reverse()
+                .forEach(([key, change]) => {
+                    if (change.action === "add") {
+                        target.delete(key)
+                    } else if (change.action === "update") {
+                        if (isUndefined(change.oldValue)) {
+                            target.delete(key)
+                        } else {
+                            target.set(key, change.oldValue)
+                        }
+                    } else if (change.action === "delete") {
+                        target.set(key, change.oldValue)
+                    }
+                })
+        }
     }
 
     #setupOpenDAW(): Terminable {
