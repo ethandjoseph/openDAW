@@ -8,6 +8,8 @@ import {BoxIO} from "@opendaw/studio-boxes"
 import {Project} from "@opendaw/studio-core"
 import {ProjectDecoder} from "@opendaw/studio-adapters"
 
+// https://inspector.yjs.dev/
+
 export namespace YService {
     export const getOrCreateRoom = async (service: StudioService, roomName: string) => {
         const doc = new Y.Doc()

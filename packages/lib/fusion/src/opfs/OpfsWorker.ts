@@ -5,32 +5,32 @@ import "../types"
 
 export namespace OpfsWorker {
     const DEBUG = true
-    const readLimiter = new Promises.Limit<Uint8Array>(1)
-    const writeLimiter = new Promises.Limit<void>(1)
 
     export const init = (messenger: Messenger) =>
         Communicator.executor(messenger.channel("opfs"), new class implements OpfsProtocol {
             async write(path: string, data: Uint8Array): Promise<void> {
                 if (DEBUG) {console.debug(`write ${data.length}b to ${path}`)}
-                return writeLimiter.add(() => this.#resolveFile(path, {create: true})
-                    .then(handle => {
-                        handle.truncate(data.length)
-                        handle.write(data.buffer as ArrayBuffer, {at: 0})
-                        handle.flush()
-                        handle.close()
-                    }))
+                const handle = await this.#resolveFile(path, {create: true})
+                try {
+                    handle.truncate(data.length)
+                    handle.write(data.buffer as ArrayBuffer, {at: 0})
+                    handle.flush()
+                } finally {
+                    handle.close()
+                }
             }
 
             async read(path: string): Promise<Uint8Array> {
                 if (DEBUG) {console.debug(`read ${path}`)}
-                return readLimiter.add(() => this.#resolveFile(path)
-                    .then(handle => {
-                        const size = handle.getSize()
-                        const buffer = new Uint8Array(size)
-                        handle.read(buffer)
-                        handle.close()
-                        return buffer
-                    }))
+                const handle = await this.#resolveFile(path)
+                try {
+                    const size = handle.getSize()
+                    const buffer = new Uint8Array(size)
+                    handle.read(buffer)
+                    return buffer
+                } finally {
+                    handle.close()
+                }
             }
 
             async delete(path: string): Promise<void> {
@@ -64,9 +64,9 @@ export namespace OpfsWorker {
 
             async #resolveFile(path: string, options?: FileSystemGetDirectoryOptions): Promise<FileSystemSyncAccessHandle> {
                 const segments = pathToSegments(path)
-                return this.#resolveFolder(segments.slice(0, -1), options)
-                    .then((folder) => folder.getFileHandle(asDefined(segments.at(-1)), options)
-                        .then(handle => handle.createSyncAccessHandle()))
+                const folder = await this.#resolveFolder(segments.slice(0, -1), options)
+                const fileHandle = await folder.getFileHandle(asDefined(segments.at(-1)), options)
+                return await fileHandle.createSyncAccessHandle()
             }
 
             async #resolveFolder(segments: ReadonlyArray<string>,
