@@ -89,10 +89,13 @@ export class CloudAuthManager {
             message: "Please wait for authentication...",
             cancel: () => reject("cancelled")
         })
+        let handled = false
         channel.onmessage = async (event: MessageEvent<any>) => {
             const data = asDefined(event.data, "No data")
             console.debug("[CloudAuth] Received via BroadcastChannel:", this.id, data)
             if (data.type === "auth-callback" && isDefined(data.code)) {
+                if (handled) {return}
+                handled = true
                 console.debug("[CloudAuth] Processing code from BroadcastChannel...", data.type, data.code)
                 try {
                     const tokenParams = new URLSearchParams({
@@ -124,8 +127,11 @@ export class CloudAuthManager {
                     reject(err)
                 }
             } else if (data.type === "closed") {
-                console.debug("[CloudAuth] Callback window closed")
-                reject(null)
+                // Only reject if we did not already start handling a code
+                if (!handled) {
+                    console.debug("[CloudAuth] Callback window closed before code received")
+                    reject(null)
+                }
             }
         }
         return promise.finally(() => {
