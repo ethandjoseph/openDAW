@@ -110,8 +110,8 @@ export class YSync<T> implements Terminable {
                         const box = this.#boxGraph.findBox(UUID.parse(key))
                             .unwrap("Could not find box to delete")
                         // It is possible that Yjs have swallowed the pointer updates since were are 'inside' the box.
-                        // However, incoming pointers are still not allowed and will panic in unstageBox.
                         box.outgoingEdges().forEach(([pointer]) => pointer.defer())
+                        box.incomingEdges().forEach(pointer => pointer.defer())
                         this.#boxGraph.unstageBox(box)
                     }
                 })
