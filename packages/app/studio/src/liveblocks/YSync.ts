@@ -95,10 +95,7 @@ export class YSync<T> implements Terminable {
             events.forEach(event => {
                 const path = event.path
                 const keys = event.changes.keys
-                keys.entries().forEach(([key, change]: [string, {
-                    action: "add" | "delete" | "update",
-                    oldValue: any
-                }]) => {
+                keys.entries().forEach(([key, change]: [string, { action: "add" | "delete" | "update" }]) => {
                     if (change.action === "add") {
                         assert(path.length === 0, "'Add' cannot have a path")
                         const map = this.#boxesMap.get(key) as Y.Map<unknown>
@@ -112,14 +109,12 @@ export class YSync<T> implements Terminable {
                         this.#updateValue(path, key)
                     } else if (change.action === "delete") {
                         assert(path.length === 0, "'Delete' cannot have a path")
-                        const remove = this.#boxGraph.findBox(UUID.parse(key))
+                        const box = this.#boxGraph.findBox(UUID.parse(key))
                             .unwrap("Could not find box to delete")
-                        const {pointers} = this.#boxGraph.dependenciesOf(remove)
-                        for (const pointer of pointers) {
-                            console.warn(`Deleting box ${remove} while it is referenced by ${pointer}.`)
-                            pointer.defer()
-                        }
-                        this.#boxGraph.unstageBox(remove)
+                        // It is possible that Yjs have swallowed the pointer updates since were are 'inside' the box.
+                        // However, incoming pointers are still not allowed and will panic in unstageBox.
+                        box.outgoingEdges().forEach(([pointer]) => pointer.defer())
+                        this.#boxGraph.unstageBox(box)
                     }
                 })
             })
