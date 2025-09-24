@@ -14,10 +14,8 @@ import {
     Terminator,
     UUID
 } from "@opendaw/lib-std"
-import {AudioUnitBoxAdapter} from "@opendaw/studio-adapters"
-import {IndexComparator} from "@opendaw/studio-adapters"
+import {AudioUnitBoxAdapter, IndexComparator, TrackBoxAdapter} from "@opendaw/studio-adapters"
 import {RegionModifier} from "@/ui/timeline/tracks/audio-unit/regions/RegionModifier.ts"
-import {TrackBoxAdapter} from "@opendaw/studio-adapters"
 import {StudioService} from "@/service/StudioService.ts"
 import {AudioUnitTracks} from "@/ui/timeline/tracks/audio-unit/AudioUnitTracks.tsx"
 import {ClipModifier} from "./clips/ClipModifier"

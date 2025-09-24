@@ -1,10 +1,12 @@
-import {AnyRegionBoxAdapter} from "@opendaw/studio-adapters"
-import {NoteRegionBoxAdapter} from "@opendaw/studio-adapters"
-import {AudioRegionBoxAdapter} from "@opendaw/studio-adapters"
-import {ValueRegionBoxAdapter} from "@opendaw/studio-adapters"
+import {
+    AnyClipBox,
+    AnyRegionBoxAdapter,
+    AudioRegionBoxAdapter,
+    NoteRegionBoxAdapter,
+    ValueRegionBoxAdapter
+} from "@opendaw/studio-adapters"
 import {AudioClipBox, NoteClipBox, ValueClipBox} from "@opendaw/studio-boxes"
 import {asDefined, UUID} from "@opendaw/lib-std"
-import {AnyClipBox} from "@opendaw/studio-adapters"
 
 export namespace RegionTransformer {
     export const toClip = (region: AnyRegionBoxAdapter, copyEvents: boolean = true): AnyClipBox => {

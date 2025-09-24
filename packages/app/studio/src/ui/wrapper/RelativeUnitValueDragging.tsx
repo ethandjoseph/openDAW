@@ -1,4 +1,15 @@
-import {EmptyExec, Lifecycle, Nullable, Option, panic, Parameter, Primitive, Strings, unitValue, ValueGuide} from "@opendaw/lib-std"
+import {
+    EmptyExec,
+    Lifecycle,
+    Nullable,
+    Option,
+    panic,
+    Parameter,
+    Primitive,
+    Strings,
+    unitValue,
+    ValueGuide
+} from "@opendaw/lib-std"
 import {createElement, Group, JsxValue} from "@opendaw/lib-jsx"
 import {ValueDragging} from "@/ui/hooks/dragging"
 import {FloatingTextInput} from "@/ui/components/FloatingTextInput.tsx"

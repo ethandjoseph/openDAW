@@ -1,5 +1,4 @@
-import {TrackBoxAdapter} from "@opendaw/studio-adapters"
-import {AudioUnitBoxAdapter} from "@opendaw/studio-adapters"
+import {AudioUnitBoxAdapter, TrackBoxAdapter} from "@opendaw/studio-adapters"
 import {asDefined, Terminable} from "@opendaw/lib-std"
 
 export type Construct = {

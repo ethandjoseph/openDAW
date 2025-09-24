@@ -46,6 +46,6 @@ export namespace NoteModifyStrategy {
         readCent: (note: UINoteEvent): number => note.cent,
         readChance: (note: UINoteEvent): number => note.chance,
         iterateRange: <E extends UINoteEvent>(events: EventCollection<E>,
-                       from: ppqn, to: ppqn): Iterable<E> => events.iterateRange(from, to)
+                                              from: ppqn, to: ppqn): Iterable<E> => events.iterateRange(from, to)
     })
 }

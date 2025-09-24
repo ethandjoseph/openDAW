@@ -5,10 +5,10 @@ import {ppqn, RegionCollection} from "@opendaw/lib-dsp"
 import {
     AnyLoopableRegionBoxAdapter,
     AnyRegionBoxAdapter,
+    TrackBoxAdapter,
     UnionAdapterTypes
 } from "@opendaw/studio-adapters"
 import {Snapping} from "@/ui/timeline/Snapping.ts"
-import {TrackBoxAdapter} from "@opendaw/studio-adapters"
 import {RegionClipResolver} from "@/ui/timeline/tracks/audio-unit/regions/RegionClipResolver.ts"
 import {RegionModifyStrategy} from "@/ui/timeline/tracks/audio-unit/regions/RegionModifyStrategies.ts"
 import {Dragging} from "@opendaw/lib-dom"

@@ -1,5 +1,5 @@
 import {Dialog} from "@/ui/components/Dialog"
-import { IconSymbol } from "@opendaw/studio-adapters"
+import {IconSymbol} from "@opendaw/studio-adapters"
 import {Surface} from "@/ui/surface/Surface"
 import {Promises} from "@opendaw/lib-runtime"
 import {createElement} from "@opendaw/lib-jsx"

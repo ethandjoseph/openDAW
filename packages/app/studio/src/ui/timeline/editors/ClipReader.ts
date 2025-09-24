@@ -1,5 +1,12 @@
 import {
-    NoteEventCollectionBoxAdapter
+    AudioClipBoxAdapter,
+    AudioFileBoxAdapter,
+    ClipBoxAdapter,
+    NoteClipBoxAdapter,
+    NoteEventCollectionBoxAdapter,
+    TrackBoxAdapter,
+    ValueClipBoxAdapter,
+    ValueEventCollectionBoxAdapter
 } from "@opendaw/studio-adapters"
 import {ppqn} from "@opendaw/lib-dsp"
 import {mod, Observer, Option, Subscription} from "@opendaw/lib-std"
@@ -11,15 +18,6 @@ import {
     NoteEventOwnerReader,
     ValueEventOwnerReader
 } from "@/ui/timeline/editors/EventOwnerReader.ts"
-import {ClipBoxAdapter} from "@opendaw/studio-adapters"
-import {NoteClipBoxAdapter} from "@opendaw/studio-adapters"
-import {
-    ValueEventCollectionBoxAdapter
-} from "@opendaw/studio-adapters"
-import {ValueClipBoxAdapter} from "@opendaw/studio-adapters"
-import {AudioClipBoxAdapter} from "@opendaw/studio-adapters"
-import {AudioFileBoxAdapter} from "@opendaw/studio-adapters"
-import {TrackBoxAdapter} from "@opendaw/studio-adapters"
 
 export class ClipReader<CONTENT> implements EventOwnerReader<CONTENT> {
     static forAudioClipBoxAdapter(clip: AudioClipBoxAdapter): AudioEventOwnerReader {

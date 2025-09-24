@@ -1,7 +1,7 @@
 import css from "./PitchEditor.sass?inline"
 import {Lifecycle, MutableObservableValue, Nullable, Option, panic, Selection, UUID} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
-import {TimelineRange} from "@opendaw/studio-core"
+import {CaptureMidi, TimelineRange} from "@opendaw/studio-core"
 import {PitchPositioner} from "./PitchPositioner.ts"
 import {Snapping} from "@/ui/timeline/Snapping.ts"
 import {Scroller} from "@/ui/components/Scroller.tsx"
@@ -28,7 +28,6 @@ import {CanvasPainter} from "@/ui/canvas/painter.ts"
 import {BoxGraph, Editing} from "@opendaw/lib-box"
 import {NoteEventOwnerReader} from "@/ui/timeline/editors/EventOwnerReader.ts"
 import {CssUtils, Dragging, Events, Html, Keyboard} from "@opendaw/lib-dom"
-import {CaptureMidi} from "@opendaw/studio-core"
 
 const className = Html.adoptStyleSheet(css, "PitchEditor")
 

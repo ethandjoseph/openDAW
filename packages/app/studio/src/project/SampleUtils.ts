@@ -17,7 +17,10 @@ export namespace SampleUtils {
             const online = UUID.newSet<{ uuid: UUID.Bytes, sample: Sample }>(x => x.uuid)
             online.addMany((await sampleAPI.all()).map(sample => ({uuid: UUID.parse(sample.uuid), sample})))
             const offline = UUID.newSet<{ uuid: UUID.Bytes, sample: Sample }>(x => x.uuid)
-            offline.addMany((await SampleStorage.listSamples()).map(sample => ({uuid: UUID.parse(sample.uuid), sample})))
+            offline.addMany((await SampleStorage.listSamples()).map(sample => ({
+                uuid: UUID.parse(sample.uuid),
+                sample
+            })))
             for (const box of boxes) {
                 const uuid = box.address.uuid
                 if (online.hasKey(uuid)) {continue}

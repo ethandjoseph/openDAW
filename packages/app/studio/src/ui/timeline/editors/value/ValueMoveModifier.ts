@@ -16,15 +16,15 @@ import {
 } from "@opendaw/lib-std"
 import {Snapping} from "@/ui/timeline/Snapping.ts"
 import {Editing} from "@opendaw/lib-box"
-import {ValueEventBoxAdapter} from "@opendaw/studio-adapters"
+import {
+    AutomatableParameterFieldAdapter,
+    ValueEventBoxAdapter,
+    ValueEventCollectionBoxAdapter
+} from "@opendaw/studio-adapters"
 import {EventCollection, Interpolation, ppqn, ValueEvent} from "@opendaw/lib-dsp"
 import {ValueModifier} from "./ValueModifier"
 import {ValueEventDraft} from "./ValueEventDraft.ts"
-import {
-    ValueEventCollectionBoxAdapter
-} from "@opendaw/studio-adapters"
 import {ValueEventOwnerReader} from "@/ui/timeline/editors/EventOwnerReader.ts"
-import {AutomatableParameterFieldAdapter} from "@opendaw/studio-adapters"
 import {Dragging} from "@opendaw/lib-dom"
 import {UIValueEvent} from "@/ui/timeline/editors/value/UIValueEvent.ts"
 

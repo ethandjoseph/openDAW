@@ -7,9 +7,8 @@ import {SampleSelector} from "@/ui/devices/SampleSelector"
 import {SlotDragAndDrop} from "@/ui/devices/instruments/PlayfieldDeviceEditor/SlotDragAndDrop"
 import {NoteLabel} from "@/ui/devices/instruments/PlayfieldDeviceEditor/NoteLabel"
 import {Icon} from "@/ui/components/Icon"
-import {IconSymbol} from "@opendaw/studio-adapters"
+import {IconSymbol, NoteStreamReceiver} from "@opendaw/studio-adapters"
 import {ContextMenu} from "@/ui/ContextMenu"
-import {NoteStreamReceiver} from "@opendaw/studio-adapters"
 
 const className = Html.adoptStyleSheet(css, "EmptySlot")
 

@@ -19,7 +19,8 @@ import {
     ProjectBundle,
     ProjectEnv,
     ProjectMeta,
-    ProjectProfile, ProjectStorage,
+    ProjectProfile,
+    ProjectStorage,
     SampleAPI,
     SampleImporter
 } from "@opendaw/studio-core"

@@ -1,4 +1,14 @@
-import {Arrays, Client, InaccessibleProperty, int, isDefined, Nullable, Option, Provider, Terminable} from "@opendaw/lib-std"
+import {
+    Arrays,
+    Client,
+    InaccessibleProperty,
+    int,
+    isDefined,
+    Nullable,
+    Option,
+    Provider,
+    Terminable
+} from "@opendaw/lib-std"
 import {AnyDragData, DragFile} from "@/ui/AnyDragData"
 import {Events, Keyboard} from "@opendaw/lib-dom"
 

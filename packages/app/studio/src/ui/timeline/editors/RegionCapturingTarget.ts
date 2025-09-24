@@ -1,8 +1,4 @@
-import {
-    AnyLoopableRegionBoxAdapter,
-    AnyRegionBoxAdapter,
-    UnionAdapterTypes
-} from "@opendaw/studio-adapters"
+import {AnyLoopableRegionBoxAdapter, AnyRegionBoxAdapter, UnionAdapterTypes} from "@opendaw/studio-adapters"
 import {ElementCapturing} from "@/ui/canvas/capturing.ts"
 import {isDefined, Nullable, Option, Provider} from "@opendaw/lib-std"
 import {PointerRadiusDistance} from "@/ui/timeline/constants.ts"

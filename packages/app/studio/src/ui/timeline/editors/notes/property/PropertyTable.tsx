@@ -6,13 +6,12 @@ import {PropertyParameters} from "@/ui/timeline/editors/notes/property/PropertyP
 import {NumberInput} from "@/ui/components/NumberInput.tsx"
 import {createElement, Inject} from "@opendaw/lib-jsx"
 import {MidiKeys} from "@opendaw/lib-dsp"
-import {NoteEventBoxAdapter} from "@opendaw/studio-adapters"
+import {IconSymbol, NoteEventBoxAdapter} from "@opendaw/studio-adapters"
 import {Editing} from "@opendaw/lib-box"
 import {ObservableModifyContext} from "@/ui/timeline/ObservableModifyContext.ts"
 import {NoteModifier} from "@/ui/timeline/editors/notes/NoteModifier.ts"
 import {NoteModifyStrategies} from "@/ui/timeline/editors/notes/NoteModifyStrategies.ts"
 import {Icon} from "@/ui/components/Icon.tsx"
-import {IconSymbol} from "@opendaw/studio-adapters"
 
 const className = Html.adoptStyleSheet(css, "PropertyTable")
 

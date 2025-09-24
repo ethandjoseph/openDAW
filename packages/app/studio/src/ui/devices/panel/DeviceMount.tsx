@@ -1,9 +1,4 @@
-import {
-    AudioEffectDeviceAdapter,
-    DeviceBoxAdapter,
-    DeviceHost,
-    MidiEffectDeviceAdapter
-} from "@opendaw/studio-adapters"
+import {AudioEffectDeviceAdapter, DeviceBoxAdapter, DeviceHost, MidiEffectDeviceAdapter} from "@opendaw/studio-adapters"
 import {DeviceEditorFactory} from "@/ui/devices/DeviceEditorFactory"
 import {Exec, Lifecycle, Option, Subscription, Terminable, Terminator, UUID} from "@opendaw/lib-std"
 import {JsxValue} from "@opendaw/lib-jsx"

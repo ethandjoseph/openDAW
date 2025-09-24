@@ -1,12 +1,12 @@
 import {Notifier, Nullable, Observer, Subscription, Terminable} from "@opendaw/lib-std"
 import {CanvasUnitPainter} from "@/ui/canvas/painter.ts"
 import {
+    AutomatableParameterFieldAdapter,
     BellParameters,
     Parameters,
     PassParameters,
     ShelfParameters
 } from "@opendaw/studio-adapters"
-import {AutomatableParameterFieldAdapter} from "@opendaw/studio-adapters"
 import {biquad} from "@/ui/devices/audio-effects/RevampDeviceEditor/constants.ts"
 import {gainToDb} from "@opendaw/lib-dsp"
 
