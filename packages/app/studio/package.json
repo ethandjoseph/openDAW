@@ -29,7 +29,8 @@
     "jszip": "^3.10.1",
     "markdown-it": "^14.1.0",
     "markdown-it-table": "^4.1.1",
-    "monaco-editor": "^0.52.2"
+    "monaco-editor": "^0.52.2",
+    "y-websocket": "^1.4.5"
   },
   "devDependencies": {
     "@opendaw/eslint-config": "^0.0.19",

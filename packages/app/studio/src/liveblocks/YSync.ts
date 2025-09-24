@@ -17,8 +17,6 @@ import {ArrayField, BoxGraph, Field, ObjectField, PointerField, PrimitiveField, 
 import {Utils} from "./Utils"
 import * as Y from "yjs"
 
-const boxesMapKey = "y-boxes"
-
 type EventHandler = (events: Array<Y.YEvent<any>>, transaction: Y.Transaction) => void
 
 export type Construct<T> = {
@@ -29,12 +27,12 @@ export type Construct<T> = {
 
 export class YSync<T> implements Terminable {
     static isEmpty(doc: Y.Doc): boolean {
-        return doc.getMap(boxesMapKey).size === 0
+        return doc.getMap("boxes").size === 0
     }
 
     static async populate<T>({boxGraph, doc}: Construct<T>): Promise<YSync<T>> {
         console.debug("populate")
-        const boxesMap = doc.getMap(boxesMapKey)
+        const boxesMap = doc.getMap("boxes")
         assert(boxesMap.size === 0, "BoxesMap must be empty")
         const sync = new YSync<T>({boxGraph: boxGraph, doc: doc})
         doc.transact(() => boxGraph.boxes().forEach(box => {
@@ -50,7 +48,7 @@ export class YSync<T> implements Terminable {
         assert(boxGraph.boxes().length === 0, "BoxGraph must be empty")
         const sync = new YSync<T>({boxGraph: boxGraph, doc: doc})
         sync.#boxGraph.beginTransaction()
-        const boxesMap: Y.Map<unknown> = doc.getMap(boxesMapKey)
+        const boxesMap: Y.Map<unknown> = doc.getMap("boxes")
         boxesMap.forEach((value, key) => {
             const boxMap = value as Y.Map<any>
             const uuid = UUID.parse(key)
@@ -77,7 +75,7 @@ export class YSync<T> implements Terminable {
         this.#boxGraph = boxGraph
         this.#doc = doc
         this.#conflict = Option.wrap(conflict)
-        this.#boxesMap = doc.getMap(boxesMapKey)
+        this.#boxesMap = doc.getMap("boxes")
         this.#updates = []
         this.#terminator.ownAll(this.#setupYjs(), this.#setupOpenDAW())
     }

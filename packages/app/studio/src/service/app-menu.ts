@@ -8,6 +8,7 @@ import {SyncLogService} from "@/service/SyncLogService"
 import {IconSymbol} from "@opendaw/studio-adapters"
 import {CloudBackup, Colors, FilePickerAcceptTypes, ProjectSignals, Workers} from "@opendaw/studio-core"
 import {Promises} from "@opendaw/lib-runtime"
+import {YService} from "@/liveblocks/YService"
 
 export const initAppMenu = (service: StudioService) => {
     const isBeta = Browser.isLocalHost() || location.hash === "#beta"
@@ -87,14 +88,12 @@ export const initAppMenu = (service: StudioService) => {
                     }),
                     MenuItem.default({label: "Beta Features", hidden: !isBeta, separatorBefore: true})
                         .setRuntimeChildrenProcedure(parent => {
-                            const publicApiKey = "pk_dev_ilGrlOlcHN6_ysWQ6dYCx9ljTjPkVSjrATcetRzHxNTJbYtH9TuvV_m-vkIRWaLB"
                             parent.addMenuItem(
                                 MenuItem.default({label: "Connect Room..."})
                                     .setTriggerProcedure(async () => {
                                         const roomName = prompt("Enter a room name:", "")
                                         if (isAbsent(roomName)) {return}
-                                        const {LiveBlocksService} = await import  ("../liveblocks/LiveBlocksService")
-                                        await LiveBlocksService.getOrCreateRoom(service, publicApiKey, roomName)
+                                        await YService.getOrCreateRoom(service, roomName)
                                     })
                             )
                         }),
