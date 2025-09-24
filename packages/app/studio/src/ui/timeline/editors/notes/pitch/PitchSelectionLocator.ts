@@ -1,4 +1,4 @@
-import {TimelineRange} from "@/ui/timeline/TimelineRange.ts"
+import {TimelineRange} from "@opendaw/studio-core"
 import {ElementCapturing} from "@/ui/canvas/capturing.ts"
 import {TimelineCoordinates, TimelineSelectableLocator} from "@/ui/timeline/TimelineSelectableLocator.ts"
 import {NoteEventBoxAdapter} from "@opendaw/studio-adapters"

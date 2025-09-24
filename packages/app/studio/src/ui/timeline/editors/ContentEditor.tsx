@@ -23,7 +23,7 @@ import {
 import {Box, PointerField, Vertex} from "@opendaw/lib-box"
 import {SnapSelector} from "@/ui/timeline/SnapSelector.tsx"
 import {Snapping} from "@/ui/timeline/Snapping.ts"
-import {TimelineRange} from "@/ui/timeline/TimelineRange.ts"
+import {Colors, TimelineRange} from "@opendaw/studio-core"
 import {TimeAxis} from "@/ui/timeline/TimeAxis.tsx"
 import {TimelineRangeSlider} from "@/ui/timeline/TimelineRangeSlider.tsx"
 import {ValueEventsEditor} from "./value/ValueEventsEditor.tsx"
@@ -46,7 +46,6 @@ import {RegionReader} from "@/ui/timeline/editors/RegionReader.ts"
 import {Pointers} from "@opendaw/studio-enums"
 import {ValueEditingContext} from "@/ui/timeline/editors/value/ValueEditingContext.ts"
 import {AnimationFrame, Events, Html, Keyboard} from "@opendaw/lib-dom"
-import {Colors} from "@opendaw/studio-core"
 
 const className = Html.adoptStyleSheet(css, "ContentEditor")
 

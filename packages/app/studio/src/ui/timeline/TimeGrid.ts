@@ -1,6 +1,6 @@
 import {PPQN} from "@opendaw/lib-dsp"
 import {int, quantizeFloor} from "@opendaw/lib-std"
-import {TimelineRange} from "@/ui/timeline/TimelineRange.ts"
+import {TimelineRange} from "@opendaw/studio-core"
 
 export namespace TimeGrid {
     export type Signature = [int, int]

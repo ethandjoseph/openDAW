@@ -1,25 +1,23 @@
-import {ValueRegionBoxAdapter} from "@opendaw/studio-adapters"
 import {
-    ValueEventCollectionBoxAdapter
+    AudioFileBoxAdapter,
+    AudioRegionBoxAdapter,
+    LoopableRegionBoxAdapter,
+    NoteEventCollectionBoxAdapter,
+    NoteRegionBoxAdapter,
+    TrackBoxAdapter,
+    ValueEventCollectionBoxAdapter,
+    ValueRegionBoxAdapter
 } from "@opendaw/studio-adapters"
-import {AudioRegionBoxAdapter} from "@opendaw/studio-adapters"
-import {LoopableRegionBoxAdapter} from "@opendaw/studio-adapters"
 import {
     AudioEventOwnerReader,
     EventOwnerReader,
     NoteEventOwnerReader,
     ValueEventOwnerReader
 } from "@/ui/timeline/editors/EventOwnerReader.ts"
-import {NoteRegionBoxAdapter} from "@opendaw/studio-adapters"
-import {
-    NoteEventCollectionBoxAdapter
-} from "@opendaw/studio-adapters"
 import {ppqn} from "@opendaw/lib-dsp"
 import {mod, Observer, Option, Subscription} from "@opendaw/lib-std"
-import {TimelineRange} from "@/ui/timeline/TimelineRange.ts"
 import {Propagation} from "@opendaw/lib-box"
-import {AudioFileBoxAdapter} from "@opendaw/studio-adapters"
-import {TrackBoxAdapter} from "@opendaw/studio-adapters"
+import {TimelineRange} from "@opendaw/studio-core"
 
 export class RegionReader<REGION extends LoopableRegionBoxAdapter<CONTENT>, CONTENT> implements EventOwnerReader<CONTENT> {
     static forAudioRegionBoxAdapter(region: AudioRegionBoxAdapter): AudioEventOwnerReader {

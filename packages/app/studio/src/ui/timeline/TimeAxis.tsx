@@ -4,14 +4,13 @@ import {createElement} from "@opendaw/lib-jsx"
 import {Propagation} from "@opendaw/lib-box"
 import {StudioService} from "@/service/StudioService.ts"
 import {TimeGrid} from "@/ui/timeline/TimeGrid.ts"
-import {TimelineRange} from "@/ui/timeline/TimelineRange.ts"
+import {Colors, TimelineRange} from "@opendaw/studio-core"
 import {Snapping} from "@/ui/timeline/Snapping.ts"
 import {CanvasPainter} from "@/ui/canvas/painter.ts"
 import {ppqn, PPQN} from "@opendaw/lib-dsp"
 import {Dragging, Events, Html} from "@opendaw/lib-dom"
 import {DblClckTextInput} from "@/ui/wrapper/DblClckTextInput"
 import {TextTooltip} from "@/ui/surface/TextTooltip"
-import {Colors} from "@opendaw/studio-core"
 
 const className = Html.adoptStyleSheet(css, "time-axis")
 

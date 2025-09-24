@@ -1,11 +1,11 @@
 import {ElementCapturing} from "@/ui/canvas/capturing.ts"
 import {Arrays, Curve, Func, isDefined, Nullable, unitValue} from "@opendaw/lib-std"
 import {ValueEventBoxAdapter} from "@opendaw/studio-adapters"
-import {TimelineRange} from "@/ui/timeline/TimelineRange.ts"
 import {ValueEvent} from "@opendaw/lib-dsp"
 import {EventRadius} from "./Constants"
 import {PointerRadiusDistance} from "@/ui/timeline/constants.ts"
 import {ValueEventOwnerReader} from "@/ui/timeline/editors/EventOwnerReader.ts"
+import {TimelineRange} from "@opendaw/studio-core"
 
 export type ValueCaptureTarget =
     | { type: "event", event: ValueEventBoxAdapter }

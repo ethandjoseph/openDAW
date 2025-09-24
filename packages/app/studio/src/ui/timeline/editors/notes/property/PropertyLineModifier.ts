@@ -10,11 +10,10 @@ import {
     NotePropertyVelocity,
     PropertyAccessor
 } from "@/ui/timeline/editors/notes/property/PropertyAccessor.ts"
-import {TimelineRange} from "@/ui/timeline/TimelineRange.ts"
-
 import {NoteEventOwnerReader} from "@/ui/timeline/editors/EventOwnerReader.ts"
 import {UINoteEvent} from "@/ui/timeline/editors/notes/UINoteEvent.ts"
 import {Dragging} from "@opendaw/lib-dom"
+import {TimelineRange} from "@opendaw/studio-core"
 
 type Construct = Readonly<{
     element: Element

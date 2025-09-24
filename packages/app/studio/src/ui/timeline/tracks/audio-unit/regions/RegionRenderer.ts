@@ -10,9 +10,9 @@ import {renderNotes} from "@/ui/timeline/renderer/notes.ts"
 import {RegionBound} from "@/ui/timeline/renderer/env.ts"
 import {renderAudio} from "@/ui/timeline/renderer/audio.ts"
 import {renderValueStream} from "@/ui/timeline/renderer/value.ts"
-import {TimelineRange} from "@/ui/timeline/TimelineRange.ts"
 import {Context2d} from "@opendaw/lib-dom"
 import {RegionPaintBucket} from "@/ui/timeline/tracks/audio-unit/regions/RegionPaintBucket"
+import {TimelineRange} from "@opendaw/studio-core"
 
 export const renderRegions = (context: CanvasRenderingContext2D,
                               tracks: TracksManager,

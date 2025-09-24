@@ -11,7 +11,6 @@ import {
 } from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {CutCursor} from "@/ui/timeline/CutCursor.tsx"
-import {TimelineRange} from "@/ui/timeline/TimelineRange.ts"
 import {PPQN, ppqn} from "@opendaw/lib-dsp"
 import {installAutoScroll} from "@/ui/AutoScroll.ts"
 import {Config} from "@/ui/timeline/Config.ts"
@@ -42,6 +41,7 @@ import {CssUtils, Dragging, Events, Html, Keyboard} from "@opendaw/lib-dom"
 import {DragAndDrop} from "@/ui/DragAndDrop"
 import {AnyDragData} from "@/ui/AnyDragData"
 import {Dialogs} from "@/ui/components/dialogs"
+import {TimelineRange} from "@opendaw/studio-core"
 
 const className = Html.adoptStyleSheet(css, "RegionsArea")
 

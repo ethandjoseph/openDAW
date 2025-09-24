@@ -1,12 +1,11 @@
 import {Capturing} from "@/ui/canvas/capturing.ts"
 import {Nullable, ObservableValue, ValueAxis} from "@opendaw/lib-std"
-import {TimelineRange} from "@/ui/timeline/TimelineRange.ts"
 import {NoteEventBoxAdapter} from "@opendaw/studio-adapters"
 import {EventRadius} from "@/ui/timeline/editors/notes/Constants.ts"
 import {PropertyAccessor} from "@/ui/timeline/editors/notes/property/PropertyAccessor.ts"
 import {NoteModifyStrategy} from "@/ui/timeline/editors/notes/NoteModifyStrategies.ts"
-
 import {NoteEventOwnerReader} from "@/ui/timeline/editors/EventOwnerReader.ts"
+import {TimelineRange} from "@opendaw/studio-core"
 
 export const createPropertyCapturing = (valueAxis: ValueAxis,
                                         range: TimelineRange,

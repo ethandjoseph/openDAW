@@ -20,7 +20,6 @@ import {
     Terminator,
     UUID
 } from "@opendaw/lib-std"
-import {TimelineRange} from "@/ui/timeline/TimelineRange.ts"
 import {initAppMenu} from "@/service/app-menu"
 import {Snapping} from "@/ui/timeline/Snapping.ts"
 import {PanelContents} from "@/ui/workspace/PanelContents.tsx"
@@ -62,7 +61,8 @@ import {
     ProjectProfile,
     ProjectStorage,
     RestartWorklet,
-    SampleAPI
+    SampleAPI,
+    TimelineRange
 } from "@opendaw/studio-core"
 import {ProjectDialogs} from "@/project/ProjectDialogs"
 import {AudioImporter} from "@/audio/AudioImport"

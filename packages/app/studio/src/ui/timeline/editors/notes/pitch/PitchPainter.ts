@@ -1,7 +1,6 @@
 import {int, linear, Option, Procedure} from "@opendaw/lib-std"
 import {CanvasPainter} from "@/ui/canvas/painter.ts"
 import {PitchPositioner} from "@/ui/timeline/editors/notes/pitch/PitchPositioner.ts"
-import {TimelineRange} from "@/ui/timeline/TimelineRange.ts"
 import {Snapping} from "@/ui/timeline/Snapping.ts"
 import {MidiKeys, NoteEvent, ppqn} from "@opendaw/lib-dsp"
 import {ScaleConfig} from "@/ui/timeline/editors/notes/pitch/ScaleConfig.ts"
@@ -10,6 +9,7 @@ import {NoteModifyStrategies, NoteModifyStrategy} from "@/ui/timeline/editors/no
 import {renderTimeGrid} from "@/ui/timeline/editors/TimeGridRenderer.ts"
 import {NoteModifier} from "@/ui/timeline/editors/notes/NoteModifier.ts"
 import {NoteEventOwnerReader} from "@/ui/timeline/editors/EventOwnerReader.ts"
+import {TimelineRange} from "@opendaw/studio-core"
 
 type Construct = {
     canvas: HTMLCanvasElement,

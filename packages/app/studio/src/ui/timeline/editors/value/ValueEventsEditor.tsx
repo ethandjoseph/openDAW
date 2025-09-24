@@ -2,7 +2,6 @@ import css from "./ValueEventsEditor.sass?inline"
 import {Lifecycle} from "@opendaw/lib-std"
 import {StudioService} from "@/service/StudioService.ts"
 import {createElement} from "@opendaw/lib-jsx"
-import {TimelineRange} from "@/ui/timeline/TimelineRange.ts"
 import {Snapping} from "@/ui/timeline/Snapping.ts"
 import {ValueEditor} from "@/ui/timeline/editors/value/ValueEditor.tsx"
 import {ValueEditorHeader} from "@/ui/timeline/editors/value/ValueEditorHeader.tsx"
@@ -10,6 +9,7 @@ import {EditorMenuCollector} from "@/ui/timeline/editors/EditorMenuCollector.ts"
 import {ValueEventOwnerReader} from "@/ui/timeline/editors/EventOwnerReader.ts"
 import {ValueEditingContext} from "@/ui/timeline/editors/value/ValueEditingContext.ts"
 import {Html} from "@opendaw/lib-dom"
+import {TimelineRange} from "@opendaw/studio-core"
 
 const className = Html.adoptStyleSheet(css, "ValueEventsEditor")
 

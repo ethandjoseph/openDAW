@@ -31,7 +31,6 @@ import {installCursor} from "@/ui/hooks/cursor.ts"
 import {Cursor} from "@/ui/Cursors.ts"
 import {installValueContextMenu} from "@/ui/timeline/editors/value/ValueContextMenu.ts"
 import {createElement} from "@opendaw/lib-jsx"
-import {TimelineRange} from "@/ui/timeline/TimelineRange.ts"
 import {Snapping} from "@/ui/timeline/Snapping.ts"
 import {CutCursor} from "@/ui/timeline/CutCursor.tsx"
 import {installValueInput} from "@/ui/timeline/editors/ValueInput.ts"
@@ -42,6 +41,7 @@ import {ValueContentDurationModifier} from "./ValueContentDurationModifier"
 import {Dragging, Events, Html, Keyboard} from "@opendaw/lib-dom"
 import {ValueTooltip} from "./ValueTooltip"
 import {ValueEventEditing} from "./ValueEventEditing"
+import {TimelineRange} from "@opendaw/studio-core"
 
 const className = Html.adoptStyleSheet(css, "ValueEditor")
 

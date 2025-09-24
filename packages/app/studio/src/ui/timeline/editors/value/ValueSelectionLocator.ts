@@ -2,10 +2,10 @@ import {TimelineCoordinates, TimelineSelectableLocator} from "@/ui/timeline/Time
 import {ValueEventBoxAdapter} from "@opendaw/studio-adapters"
 import {Iterables, ValueAxis} from "@opendaw/lib-std"
 import {ValueEvent} from "@opendaw/lib-dsp"
-import {TimelineRange} from "@/ui/timeline/TimelineRange.ts"
 import {ElementCapturing} from "@/ui/canvas/capturing.ts"
 import {ValueCaptureTarget} from "@/ui/timeline/editors/value/ValueEventCapturing.ts"
 import {ValueEventOwnerReader} from "@/ui/timeline/editors/EventOwnerReader.ts"
+import {TimelineRange} from "@opendaw/studio-core"
 
 export const createValueSelectionLocator = (reader: ValueEventOwnerReader,
                                             range: TimelineRange,

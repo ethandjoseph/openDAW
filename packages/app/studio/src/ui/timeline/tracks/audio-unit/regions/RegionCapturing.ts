@@ -1,15 +1,11 @@
-import {
-    AnyLoopableRegionBoxAdapter,
-    AnyRegionBoxAdapter,
-    UnionAdapterTypes
-} from "@opendaw/studio-adapters"
+import {AnyLoopableRegionBoxAdapter, AnyRegionBoxAdapter, UnionAdapterTypes} from "@opendaw/studio-adapters"
 import {ElementCapturing} from "@/ui/canvas/capturing.ts"
 import {BinarySearch, Nullable, NumberComparator} from "@opendaw/lib-std"
 import {PointerRadiusDistance} from "@/ui/timeline/constants.ts"
-import {TimelineRange} from "@/ui/timeline/TimelineRange.ts"
 import {TracksManager} from "@/ui/timeline/tracks/audio-unit/TracksManager.ts"
 import {TrackContext} from "@/ui/timeline/tracks/audio-unit/TrackContext.ts"
 import {ExtraSpace} from "@/ui/timeline/tracks/audio-unit/Constants"
+import {TimelineRange} from "@opendaw/studio-core"
 
 export type RegionCaptureTarget =
     | { type: "region", part: "position", region: AnyRegionBoxAdapter }

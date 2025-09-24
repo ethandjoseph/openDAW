@@ -1,5 +1,4 @@
 import {Arrays, Func, Option, Procedure, Provider, TAU, unitValue} from "@opendaw/lib-std"
-import {TimelineRange} from "@/ui/timeline/TimelineRange.ts"
 import {Snapping} from "@/ui/timeline/Snapping.ts"
 import {CanvasPainter} from "@/ui/canvas/painter.ts"
 import {renderValueStream} from "@/ui/timeline/renderer/value.ts"
@@ -12,6 +11,7 @@ import {ValueModifyStrategy} from "@/ui/timeline/editors/value/ValueModifyStrate
 import {ValueEventOwnerReader} from "@/ui/timeline/editors/EventOwnerReader.ts"
 import {UIValueEvent} from "@/ui/timeline/editors/value/UIValueEvent.ts"
 import {ValueEditingContext} from "@/ui/timeline/editors/value/ValueEditingContext"
+import {TimelineRange} from "@opendaw/studio-core"
 
 export type Construct = {
     range: TimelineRange

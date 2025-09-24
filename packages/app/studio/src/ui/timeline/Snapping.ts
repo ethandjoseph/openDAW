@@ -1,7 +1,8 @@
 import {clamp, int, Notifier, Observable, Observer, Subscription} from "@opendaw/lib-std"
 import {ppqn, PPQN} from "@opendaw/lib-dsp"
-import {TimelineRange} from "@/ui/timeline/TimelineRange.ts"
+
 import {MenuItem, MenuRootData} from "@/ui/model/menu-item"
+import {TimelineRange} from "@opendaw/studio-core"
 
 export interface SnapUnit {
     get name(): string

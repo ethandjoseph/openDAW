@@ -3,7 +3,7 @@ import {
 } from "@opendaw/studio-adapters"
 import {ppqn} from "@opendaw/lib-dsp"
 import {mod, Observer, Option, Subscription} from "@opendaw/lib-std"
-import {TimelineRange} from "@/ui/timeline/TimelineRange.ts"
+import {TimelineRange} from "@opendaw/studio-core"
 import {Propagation} from "@opendaw/lib-box"
 import {
     AudioEventOwnerReader,

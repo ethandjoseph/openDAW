@@ -6,7 +6,7 @@ import {
 import {ElementCapturing} from "@/ui/canvas/capturing.ts"
 import {isDefined, Nullable, Option, Provider} from "@opendaw/lib-std"
 import {PointerRadiusDistance} from "@/ui/timeline/constants.ts"
-import {TimelineRange} from "../TimelineRange"
+import {TimelineRange} from "@opendaw/studio-core"
 
 export type CaptureTarget =
     | { type: "region-position", region: AnyRegionBoxAdapter }

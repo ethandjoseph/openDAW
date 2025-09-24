@@ -3,7 +3,7 @@ import {createElement, PageContext, PageFactory} from "@opendaw/lib-jsx"
 import {StudioService} from "@/service/StudioService.ts"
 import {TAU, unitValue} from "@opendaw/lib-std"
 import {EventCollection, Interpolation, LoopableRegion, PPQN, ValueEvent} from "@opendaw/lib-dsp"
-import {TimelineRange} from "@/ui/timeline/TimelineRange.ts"
+import {TimelineRange} from "@opendaw/studio-core"
 import {renderValueStream} from "@/ui/timeline/renderer/value.ts"
 import {Html} from "@opendaw/lib-dom"
 

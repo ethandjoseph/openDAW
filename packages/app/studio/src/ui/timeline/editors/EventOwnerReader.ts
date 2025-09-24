@@ -1,15 +1,13 @@
 import {ppqn} from "@opendaw/lib-dsp"
 import {int, Observer, Option, Subscription} from "@opendaw/lib-std"
-import {TimelineRange} from "@/ui/timeline/TimelineRange.ts"
 import {TimeAxisCursorMapper} from "@/ui/timeline/TimeAxis.tsx"
 import {
-    NoteEventCollectionBoxAdapter
-} from "@opendaw/studio-adapters"
-import {
+    AudioFileBoxAdapter,
+    NoteEventCollectionBoxAdapter,
+    TrackBoxAdapter,
     ValueEventCollectionBoxAdapter
 } from "@opendaw/studio-adapters"
-import {AudioFileBoxAdapter} from "@opendaw/studio-adapters"
-import {TrackBoxAdapter} from "@opendaw/studio-adapters"
+import {TimelineRange} from "@opendaw/studio-core"
 
 export interface AudioEventOwnerReader extends EventOwnerReader<never> {
     get file(): AudioFileBoxAdapter

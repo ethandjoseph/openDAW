@@ -38,6 +38,8 @@ export * from "./clouds/CloudAuthManager"
 export * from "./clouds/CloudHandler"
 export * from "./clouds/CloudBackup"
 
+export * from "./ui/TimelineRange"
+
 export * from "./AudioDevices"
 export * from "./AudioOfflineRenderer"
 export * from "./AudioUnitOrdering"

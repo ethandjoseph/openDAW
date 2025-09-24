@@ -7,8 +7,8 @@ import {MarkerBoxAdapter} from "@opendaw/studio-adapters"
 import {Arrays, EmptyExec} from "@opendaw/lib-std"
 import {Editing} from "@opendaw/lib-box"
 import {DebugMenus} from "@/ui/menu/debug"
-import {TimelineRange} from "@/ui/timeline/TimelineRange"
 import {Markers} from "@/ui/timeline/tracks/primary/marker/Markers"
+import {TimelineRange} from "@opendaw/studio-core"
 
 export namespace MarkerContextMenu {
     export const install = (element: Element,

@@ -1,7 +1,7 @@
 import css from "./CutCursor.sass?inline"
 import {isDefined, Lifecycle, Nullable, ObservableValue} from "@opendaw/lib-std"
 import {ppqn} from "@opendaw/lib-dsp"
-import {TimelineRange} from "@/ui/timeline/TimelineRange.ts"
+import {TimelineRange} from "@opendaw/studio-core"
 import {createElement} from "@opendaw/lib-jsx"
 import {Html} from "@opendaw/lib-dom"
 

@@ -1,5 +1,5 @@
 import {Events} from "@opendaw/lib-dom"
-import {TimelineRange} from "@/ui/timeline/TimelineRange.ts"
+import {TimelineRange} from "@opendaw/studio-core"
 
 export const attachWheelScroll = (element: Element, range: TimelineRange) =>
     Events.subscribe(element, "wheel", (event: WheelEvent) => {

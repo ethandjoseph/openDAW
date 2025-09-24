@@ -1,6 +1,5 @@
 import {Notifier, Observer, Option, Subscription, Terminator} from "@opendaw/lib-std"
 import {Editing} from "@opendaw/lib-box"
-
 import {ObservableModifier} from "@/ui/timeline/ObservableModifier.ts"
 import {Dragging} from "@opendaw/lib-dom"
 
