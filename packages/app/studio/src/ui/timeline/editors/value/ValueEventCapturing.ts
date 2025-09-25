@@ -70,7 +70,7 @@ export const createValueEventCapturing = (element: Element,
             if (interpolation.type === "linear") {
                 const numerator = Math.abs((y1 - y0) * x - (x1 - x0) * y + x1 * y0 - y1 * x0)
                 const denominator = Math.sqrt((y1 - y0) ** 2 + (x1 - x0) ** 2)
-                if (numerator / denominator < PointerRadiusDistance) {
+                if (n0.interpolation.type === "curve" && numerator / denominator < PointerRadiusDistance) {
                     return {type: "curve", event: n0}
                 }
             } else if (interpolation.type === "curve") {
