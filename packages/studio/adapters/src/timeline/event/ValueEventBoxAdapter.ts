@@ -76,10 +76,9 @@ export class ValueEventBoxAdapter implements ValueEvent, BoxAdapter, Selectable 
             }),
             this.#box.interpolation.subscribe(invalidateInterpolation),
             this.#box.interpolation.pointerHub.subscribeImmediate({
-                onAdd: ({targetVertex}) => {
+                onAdd: ({box}) => {
                     this.#interpolationSubscription.terminate()
-                    this.#interpolationSubscription = targetVertex.unwrap().box
-                        .subscribe(Propagation.Children, invalidateInterpolation)
+                    this.#interpolationSubscription = box.subscribe(Propagation.Children, invalidateInterpolation)
                     invalidateInterpolation()
                 },
                 onRemove: () => {

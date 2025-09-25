@@ -12,7 +12,7 @@ import {
 } from "@opendaw/lib-std"
 import {Editing} from "@opendaw/lib-box"
 import {ValueEventBoxAdapter, ValueEventCollectionBoxAdapter} from "@opendaw/studio-adapters"
-import {EventCollection, Interpolation, ppqn, ValueEvent} from "@opendaw/lib-dsp"
+import {Interpolation, ppqn, ValueEvent} from "@opendaw/lib-dsp"
 import {ValueModifier} from "./ValueModifier"
 import {ValueEventDraft} from "@/ui/timeline/editors/value/ValueEventDraft.ts"
 import {ValueEventOwnerReader} from "../EventOwnerReader"
@@ -60,7 +60,7 @@ export class ValueSlopeModifier implements ValueModifier {
     readPosition(event: ValueEvent): ppqn {return event.position}
     readValue(event: ValueEvent): unitValue {return event.value}
     readInterpolation(event: ValueEventBoxAdapter): Interpolation {
-        const successor = ValueEvent.nextEvent<ValueEventBoxAdapter>(this.#unwrapEventCollection(), event)
+        const successor = ValueEvent.nextEvent<ValueEventBoxAdapter>(this.#collection.events, event)
         if (successor === null) {return event.interpolation} // the last event has no successor hence no curve
         const interpolation = event.interpolation
         if (interpolation.type === "none") {
@@ -75,7 +75,7 @@ export class ValueSlopeModifier implements ValueModifier {
     }
     readContentDuration(owner: ValueEventOwnerReader): number {return owner.contentDuration}
     iterator(searchMin: ppqn, searchMax: ppqn): IteratorObject<ValueEventDraft> {
-        return Iterables.map(ValueEvent.iterateWindow(this.#unwrapEventCollection(), searchMin, searchMax), event => ({
+        return Iterables.map(ValueEvent.iterateWindow(this.#collection.events, searchMin, searchMax), event => ({
             type: "value-event",
             position: event.position,
             value: event.value,
@@ -111,6 +111,4 @@ export class ValueSlopeModifier implements ValueModifier {
     }
 
     #dispatchChange(): void {this.#notifier.notify()}
-
-    #unwrapEventCollection(): EventCollection<ValueEventBoxAdapter> {return this.#collection.events}
 }
