@@ -240,7 +240,7 @@ export const RegionsArea = ({lifecycle, service, manager, scrollModel, scrollCon
                             {element, snapping, pointerPulse, reference}))
                     case "complete":
                         return manager.startRegionModifier(RegionDurationModifier.create(regionSelection.selected(),
-                            {element, snapping, pointerPulse, reference}))
+                            {element, snapping, pointerPulse, bounds: [reference.position, reference.complete]}))
                     case "position":
                         const pointerIndex = manager.globalToIndex(event.clientY)
                         return manager.startRegionModifier(RegionMoveModifier.create(manager, regionSelection,

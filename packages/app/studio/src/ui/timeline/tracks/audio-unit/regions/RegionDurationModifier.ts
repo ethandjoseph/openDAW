@@ -22,13 +22,14 @@ class SelectedModifyStrategy implements RegionModifyStrategy {
     readDuration(region: AnyRegionBoxAdapter): ppqn {return this.readComplete(region) - this.readPosition(region)}
     readComplete(region: AnyRegionBoxAdapter): ppqn {
         const duration = this.#tool.aligned
-            ? (this.#tool.reference.position + this.#tool.reference.duration + this.#tool.deltaDuration) - region.position
+            ? (this.#tool.bounds[1] + this.#tool.deltaDuration) - region.position
             : region.duration + this.#tool.deltaDuration
         const complete = region.position + Math.max(Math.min(this.#tool.snapping.value, region.duration), duration)
-        const limiter = region.trackBoxAdapter.unwrap().regions.collection
-            .greaterEqual(region.complete, region => region.isSelected)
-        if (isDefined(limiter) && complete > limiter.position) {return limiter.position}
-        return complete
+        return region.trackBoxAdapter.map(trackAdapter => trackAdapter.regions.collection
+            .greaterEqual(region.complete, region => region.isSelected)).match({
+            none: () => complete,
+            some: region => complete > region.position ? region.position : complete
+        })
     }
     readLoopOffset(region: AnyLoopableRegionBoxAdapter): ppqn {return region.loopOffset}
     readLoopDuration(region: AnyLoopableRegionBoxAdapter): ppqn {return region.loopDuration}
@@ -44,7 +45,7 @@ type Construct = Readonly<{
     element: Element
     snapping: Snapping
     pointerPulse: ppqn
-    reference: AnyRegionBoxAdapter
+    bounds: [ppqn, ppqn]
 }>
 
 export class RegionDurationModifier implements RegionModifier {
@@ -56,19 +57,19 @@ export class RegionDurationModifier implements RegionModifier {
     readonly #element: Element
     readonly #snapping: Snapping
     readonly #pointerPulse: ppqn
-    readonly #reference: AnyRegionBoxAdapter
+    readonly #bounds: [ppqn, ppqn]
     readonly #adapters: ReadonlyArray<AnyLoopableRegionBoxAdapter>
     readonly #selectedModifyStrategy: SelectedModifyStrategy
 
     #aligned: boolean
     #deltaDuration: int
 
-    private constructor({element, snapping, pointerPulse, reference}: Construct,
+    private constructor({element, snapping, pointerPulse, bounds}: Construct,
                         adapter: ReadonlyArray<AnyLoopableRegionBoxAdapter>) {
         this.#element = element
         this.#snapping = snapping
         this.#pointerPulse = pointerPulse
-        this.#reference = reference
+        this.#bounds = bounds
         this.#adapters = adapter
         this.#selectedModifyStrategy = new SelectedModifyStrategy(this)
 
@@ -77,10 +78,10 @@ export class RegionDurationModifier implements RegionModifier {
     }
 
     get snapping(): Snapping {return this.#snapping}
-    get reference(): AnyRegionBoxAdapter {return this.#reference}
     get adapters(): ReadonlyArray<AnyLoopableRegionBoxAdapter> {return this.#adapters}
     get aligned(): boolean {return this.#aligned}
     get deltaDuration(): int {return this.#deltaDuration}
+    get bounds(): [ppqn, ppqn] {return this.#bounds}
 
     showOrigin(): boolean {return false}
     selectedModifyStrategy(): RegionModifyStrategy {return this.#selectedModifyStrategy}
@@ -88,8 +89,9 @@ export class RegionDurationModifier implements RegionModifier {
 
     update({clientX, ctrlKey}: Dragging.Event): void {
         const aligned = ctrlKey
+        const originalDuration = this.#bounds[1] - this.#bounds[0]
         const deltaDuration = this.#snapping.computeDelta(
-            this.#pointerPulse, clientX - this.#element.getBoundingClientRect().left, this.#reference.duration)
+            this.#pointerPulse, clientX - this.#element.getBoundingClientRect().left, originalDuration)
         let change = false
         if (this.#aligned !== aligned) {
             this.#aligned = aligned
@@ -104,8 +106,11 @@ export class RegionDurationModifier implements RegionModifier {
 
     approve(editing: Editing): void {
         const modifiedTracks: ReadonlyArray<TrackBoxAdapter> =
-            Arrays.removeDuplicates(this.#adapters.map(adapter => adapter.trackBoxAdapter.unwrap()))
-        const solver = RegionClipResolver.fromSelection(modifiedTracks, this.#adapters, this, 0)
+            Arrays.removeDuplicates(this.#adapters
+                .map(adapter => adapter.trackBoxAdapter.unwrapOrNull())
+                .filter(isDefined))
+        const solver = RegionClipResolver
+            .fromSelection(modifiedTracks, this.#adapters.filter(region => region.box.isAttached()), this, 0)
         const result = this.#adapters.map<{ region: AnyLoopableRegionBoxAdapter, duration: ppqn }>(region =>
             ({region, duration: this.#selectedModifyStrategy.readDuration(region)}))
         editing.modify(() => {
@@ -122,6 +127,7 @@ export class RegionDurationModifier implements RegionModifier {
     }
 
     #dispatchChange(): void {
-        this.#adapters.forEach(adapter => adapter.trackBoxAdapter.unwrap().regions.dispatchChange())
+        this.#adapters.forEach(adapter => adapter.trackBoxAdapter
+            .ifSome(trackAdapter => trackAdapter.regions.dispatchChange()))
     }
 }
