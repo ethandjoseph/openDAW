@@ -1,6 +1,6 @@
 import {RegionModifier} from "@/ui/timeline/tracks/audio-unit/regions/RegionModifier.ts"
 import {Editing} from "@opendaw/lib-box"
-import {Arrays, int, isDefined, mod, Option} from "@opendaw/lib-std"
+import {Arrays, int, isNotNull, mod, Option} from "@opendaw/lib-std"
 import {ppqn, RegionCollection} from "@opendaw/lib-dsp"
 import {
     AnyLoopableRegionBoxAdapter,
@@ -32,9 +32,13 @@ class SelectedModifyStrategy implements RegionModifyStrategy {
 
     computeClampedDelta(region: AnyLoopableRegionBoxAdapter): int {
         let position = (this.#tool.aligned ? this.#tool.reference.position : region.position) + this.#tool.deltaStart
-        const limiter = region.trackBoxAdapter.unwrap().regions.collection
-            .lowerEqual(region.position - 1, region => region.isSelected)
-        if (isDefined(limiter) && position < limiter.complete) {position = limiter.complete}
+        region.trackBoxAdapter.map(trackAdapter => trackAdapter.regions.collection
+            .lowerEqual(region.position - 1, region => region.isSelected))
+            .ifSome(region => {
+                if (position < region.complete) {
+                    position = region.complete
+                }
+            })
         const min = Math.min(region.duration, this.#tool.snapping.value)
         return Math.max(region.duration - Math.max(min, region.complete - position), -region.position)
     }
@@ -104,8 +108,9 @@ export class RegionStartModifier implements RegionModifier {
 
     approve(editing: Editing): void {
         const modifiedTracks: ReadonlyArray<TrackBoxAdapter> = Arrays.removeDuplicates(this.#adapters
-            .map(adapter => adapter.trackBoxAdapter.unwrap()))
-        const solver = RegionClipResolver.fromSelection(modifiedTracks, this.#adapters, this, 0)
+            .map(adapter => adapter.trackBoxAdapter.unwrapOrNull()).filter(isNotNull))
+        const solver = RegionClipResolver
+            .fromSelection(modifiedTracks, this.#adapters.filter(({box}) => box.isAttached()), this, 0)
         const result = this.#adapters.map<{ region: AnyLoopableRegionBoxAdapter, delta: ppqn }>(region =>
             ({region, delta: this.#selectedModifyStrategy.computeClampedDelta(region)}))
         editing.modify(() => {
@@ -126,6 +131,7 @@ export class RegionStartModifier implements RegionModifier {
     }
 
     #dispatchChange(): void {
-        this.#adapters.forEach(adapter => adapter.trackBoxAdapter.unwrap().regions.dispatchChange())
+        this.#adapters.forEach(adapter => adapter.trackBoxAdapter
+            .ifSome(trackAdapter => trackAdapter.regions.dispatchChange()))
     }
 }
