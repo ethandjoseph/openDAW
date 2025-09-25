@@ -23,7 +23,7 @@ type Construct = Readonly<{
     selection: Selection<ValueEventBoxAdapter>
     valueAxis: ValueAxis
     pointerValue: unitValue
-    reference: ValueEventBoxAdapter
+    collection: ValueEventCollectionBoxAdapter
 }>
 
 export class ValueSlopeModifier implements ValueModifier {
@@ -33,18 +33,18 @@ export class ValueSlopeModifier implements ValueModifier {
     readonly #selection: Selection<ValueEventBoxAdapter>
     readonly #valueAxis: ValueAxis
     readonly #pointerValue: unitValue
-    readonly #reference: ValueEventBoxAdapter
+    readonly #collection: ValueEventCollectionBoxAdapter
 
     readonly #notifier: Notifier<void>
 
     #deltaSlope: number
 
-    private constructor({element, selection, valueAxis, pointerValue, reference}: Construct) {
+    private constructor({element, selection, valueAxis, pointerValue, collection}: Construct) {
         this.#element = element
         this.#selection = selection
         this.#valueAxis = valueAxis
         this.#pointerValue = pointerValue
-        this.#reference = reference
+        this.#collection = collection
 
         this.#notifier = new Notifier<void>()
 
@@ -112,6 +112,5 @@ export class ValueSlopeModifier implements ValueModifier {
 
     #dispatchChange(): void {this.#notifier.notify()}
 
-    #unwrapCollection(): ValueEventCollectionBoxAdapter {return this.#reference.collection.unwrap()}
-    #unwrapEventCollection(): EventCollection<ValueEventBoxAdapter> {return this.#unwrapCollection().events}
+    #unwrapEventCollection(): EventCollection<ValueEventBoxAdapter> {return this.#collection.events}
 }

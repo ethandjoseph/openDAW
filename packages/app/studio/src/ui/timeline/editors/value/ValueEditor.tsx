@@ -209,7 +209,7 @@ export const ValueEditor = ({lifecycle, service, range, snapping, reader, contex
                     selection,
                     pointerValue: valueAxis.axisToValue(event.clientY - clientRect.top),
                     valueAxis,
-                    reference: target.event
+                    collection: reader.content
                 }))
             } else {
                 return Option.None
