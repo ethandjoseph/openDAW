@@ -131,7 +131,8 @@ export const ValueEditor = ({lifecycle, service, range, snapping, reader, contex
                                         pointerValue: valueAxis.axisToValue(event.clientY - clientRect.top),
                                         pointerPulse: range.xToUnit(event.clientX - clientRect.left),
                                         valueAxis,
-                                        reference: adapter
+                                        reference: adapter,
+                                        collection: reader.content
                                     }))
                                 }
                             })
@@ -199,7 +200,8 @@ export const ValueEditor = ({lifecycle, service, range, snapping, reader, contex
                     pointerValue: valueAxis.axisToValue(event.clientY - clientRect.top),
                     pointerPulse: range.xToUnit(event.clientX - clientRect.left),
                     valueAxis,
-                    reference: target.event
+                    reference: target.event,
+                    collection: reader.content
                 }))
             } else if (target.type === "curve") {
                 return modifyContext.startModifier(ValueSlopeModifier.create({

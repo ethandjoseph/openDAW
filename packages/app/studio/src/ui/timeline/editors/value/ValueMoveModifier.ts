@@ -37,6 +37,7 @@ type Construct = Readonly<{
     pointerPulse: ppqn
     pointerValue: unitValue
     reference: ValueEventBoxAdapter
+    collection: ValueEventCollectionBoxAdapter
 }>
 
 type SnapGuide = {
@@ -58,6 +59,7 @@ export class ValueMoveModifier implements ValueModifier {
     readonly #pointerPulse: ppqn
     readonly #pointerValue: unitValue
     readonly #reference: ValueEventBoxAdapter
+    readonly #collection: ValueEventCollectionBoxAdapter
 
     readonly #notifier: Notifier<void>
     readonly #masks: ReadonlyArray<[ppqn, ppqn]>
@@ -70,7 +72,8 @@ export class ValueMoveModifier implements ValueModifier {
     #snapValue: Option<unitValue>
 
     private constructor({
-                            element, parameter, selection, valueAxis, snapping, pointerPulse, pointerValue, reference
+                            element, parameter, selection, valueAxis, snapping,
+                            pointerPulse, pointerValue, reference, collection
                         }: Construct) {
         this.#element = element
         this.#parameter = parameter
@@ -80,6 +83,7 @@ export class ValueMoveModifier implements ValueModifier {
         this.#pointerPulse = pointerPulse
         this.#pointerValue = pointerValue
         this.#reference = reference
+        this.#collection = collection
 
         this.#notifier = new Notifier<void>()
         this.#masks = this.#buildMasks()
@@ -112,7 +116,7 @@ export class ValueMoveModifier implements ValueModifier {
     readValue(event: ValueEvent): unitValue {return clamp(event.value + this.#deltaValue, 0.0, 1.0)}
     readInterpolation(event: UIValueEvent): Interpolation {return event.interpolation}
     iterator(searchMin: ppqn, searchMax: ppqn): Generator<ValueEventDraft> {
-        return new ValueEventDraft.Solver(this.#unwrapEventCollection(), this,
+        return new ValueEventDraft.Solver(this.#eventCollection(), this,
             searchMin - Math.max(0, this.#deltaPosition), searchMax).iterate()
     }
     readContentDuration(owner: ValueEventOwnerReader): number {return owner.contentDuration}
@@ -170,7 +174,7 @@ export class ValueMoveModifier implements ValueModifier {
             return
         }
         // take 'em all
-        const collection = this.#unwrapEventCollection()
+        const collection = this.#eventCollection()
         const solver = new ValueEventDraft.Solver(collection, this, Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER)
         const stream: Array<ValueEventDraft> = []
         for (const event of solver.iterate()) {stream.push(event) }
@@ -201,12 +205,11 @@ export class ValueMoveModifier implements ValueModifier {
         }
         obsolete.forEach(event => Arrays.remove(stream, event))
 
-        const target = this.#unwrapCollection()
         editing.modify(() => {
             stream.forEach(event => {
                 const stock = pull()
                 const adapter: ValueEventBoxAdapter = stock === null
-                    ? target.createEvent(event)
+                    ? this.#collection.createEvent(event)
                     : stock.copyFrom(event)
                 if (event.isSelected && !adapter.isSelected) {
                     this.#selection.select(adapter)
@@ -240,7 +243,7 @@ export class ValueMoveModifier implements ValueModifier {
         let max: int = Number.MAX_SAFE_INTEGER
         let started: boolean = false
         let ended: boolean = false
-        for (const adapter of this.#unwrapEventCollection().asArray()) {
+        for (const adapter of this.#eventCollection().asArray()) {
             if (adapter.isSelected) {
                 if (started) {
                     max = adapter.position
@@ -266,10 +269,9 @@ export class ValueMoveModifier implements ValueModifier {
 
     #buildSnapValues(): ReadonlyArray<unitValue> {
         const result = new Set<unitValue>([this.#parameter.getUnitValue()])
-        this.#unwrapEventCollection().asArray().forEach(event => result.add(event.value))
+        this.#eventCollection().asArray().forEach(event => result.add(event.value))
         return Array.from(result).sort(NumberComparator)
     }
 
-    #unwrapCollection(): ValueEventCollectionBoxAdapter {return this.#reference.collection.unwrap()}
-    #unwrapEventCollection(): EventCollection<ValueEventBoxAdapter> {return this.#unwrapCollection().events}
+    #eventCollection(): EventCollection<ValueEventBoxAdapter> {return this.#collection.events}
 }
