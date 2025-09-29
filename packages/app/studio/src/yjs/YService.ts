@@ -10,6 +10,7 @@ import {WebsocketProvider} from "y-websocket"
 import {YSync} from "@/yjs/YSync"
 import {StudioService} from "@/service/StudioService"
 import {BinaryExchangeNetwork} from "@/yjs/BinaryExchangeNetwork"
+import {ConsoleCommands} from "@opendaw/lib-dom"
 
 // https://inspector.yjs.dev/
 
@@ -56,7 +57,30 @@ export namespace YService {
         console.debug("Room:", webrtcProvider.room)
         console.debug("BC connections:", webrtcProvider.room?.bcConns?.size || -1)
         console.debug("WC connections:", webrtcProvider.room?.webrtcConns?.size || -1)
-        new BinaryExchangeNetwork(webrtcProvider)
+        const exchangeNetwork = new BinaryExchangeNetwork(webrtcProvider)
+
+        const testData = new Uint8Array(0xFFFF)
+        testData[555] = 42
+        const payload = {fileName: "test.bin", type: "audio/sample"}
+        ConsoleCommands.exportMethod("webrtc.test", () => {
+            exchangeNetwork.sendBinary(
+                testData.buffer,
+                payload,
+                (progress) => {
+                    console.log(`Upload progress: ${Math.round(progress * 100)}%`)
+                }
+            )
+        })
+
+        exchangeNetwork.setTransferHandlers(
+            (transferId, progress) => {
+                console.log(`Download ${transferId}: ${Math.round(progress * 100)}%`)
+            },
+            (transferId, data, payload) => {
+                console.log(`Download complete: ${transferId}`, payload)
+                console.log(`Received ${data.byteLength} bytes`, testData[555])
+            }
+        )
 
         const sharedEnv = {...env}
 
