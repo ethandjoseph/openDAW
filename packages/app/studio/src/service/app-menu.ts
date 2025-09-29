@@ -98,7 +98,7 @@ export const initAppMenu = (service: StudioService) => {
                                             message: "Please wait while we connect to the room..."
                                         })
                                         const {status, value: project, error} = await Promises.tryCatch(
-                                            YService.getOrCreateRoom(service, service.profileService.getValue()
+                                            YService.getOrCreateRoom(service.profileService.getValue()
                                                 .map(profile => profile.project), service, roomName))
                                         if (status === "resolved") {
                                             service.fromProject(project, roomName)

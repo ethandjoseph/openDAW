@@ -4,13 +4,9 @@ import {Promises} from "@opendaw/lib-runtime"
 import {BoxIO} from "@opendaw/studio-boxes"
 import {ProjectDecoder} from "@opendaw/studio-adapters"
 import {Project, ProjectEnv} from "@opendaw/studio-core"
-import * as Y from "yjs"
-import {WebrtcProvider} from "y-webrtc"
-import {WebsocketProvider} from "y-websocket"
 import {YSync} from "@/yjs/YSync"
-import {StudioService} from "@/service/StudioService"
-import {BinaryExchangeNetwork} from "@/yjs/BinaryExchangeNetwork"
-import {ConsoleCommands} from "@opendaw/lib-dom"
+import * as Y from "yjs"
+import {WebsocketProvider} from "y-websocket"
 
 // https://inspector.yjs.dev/
 
@@ -21,8 +17,7 @@ export namespace YService {
     const isDev = true
     const serverUrl = isDev ? serverDevUrl : serverProdUrl
 
-    export const getOrCreateRoom = async (_service: StudioService,
-                                          optProject: Option<Project>,
+    export const getOrCreateRoom = async (optProject: Option<Project>,
                                           env: ProjectEnv,
                                           roomName: string): Promise<Project> => {
         if (roomName === "signaling") {return panic("Invalid room name: signaling")}
@@ -40,54 +35,10 @@ export namespace YService {
                 provider.on("sync", onSync)
             }), TimeSpan.seconds(10), "Timeout 'synced'")
         }
-        console.debug("Provider signaling servers:")
-        const webrtcProvider = new WebrtcProvider(roomName, doc, {
-            signaling: [`${serverUrl}/signaling`],
-            filterBcConns: false
-        })
-        webrtcProvider.on("peers", (event) => {
-            console.log("WebRTC peers changed:", {
-                added: event.added,
-                removed: event.removed,
-                webrtcPeers: event.webrtcPeers,
-                bcPeers: event.bcPeers
-            })
-        })
-        console.log("WebRTC provider created, signaling servers:", webrtcProvider.signalingUrls)
-        console.debug("Room:", webrtcProvider.room)
-        console.debug("BC connections:", webrtcProvider.room?.bcConns?.size || -1)
-        console.debug("WC connections:", webrtcProvider.room?.webrtcConns?.size || -1)
-        const exchangeNetwork = new BinaryExchangeNetwork(webrtcProvider)
-
-        const testData = new Uint8Array(0xFFFF)
-        testData[555] = 42
-        const payload = {fileName: "test.bin", type: "audio/sample"}
-        ConsoleCommands.exportMethod("webrtc.test", () => {
-            exchangeNetwork.sendBinary(
-                testData.buffer,
-                payload,
-                (progress) => {
-                    console.log(`Upload progress: ${Math.round(progress * 100)}%`)
-                }
-            )
-        })
-
-        exchangeNetwork.setTransferHandlers(
-            (transferId, progress) => {
-                console.log(`Download ${transferId}: ${Math.round(progress * 100)}%`)
-            },
-            (transferId, data, payload) => {
-                console.log(`Download complete: ${transferId}`, payload)
-                console.log(`Received ${data.byteLength} bytes`, testData[555])
-            }
-        )
-
-        const sharedEnv = {...env}
-
         const boxesMap = doc.getMap("boxes")
         if (boxesMap.size === 0) {
             const project = optProject.match({
-                none: () => Project.new(sharedEnv),
+                none: () => Project.new(env),
                 some: project => project.copy()
             })
             const sync = await YSync.populate({boxGraph: project.boxGraph, doc, conflict: () => project.invalid()})
@@ -108,7 +59,7 @@ export namespace YService {
             }
             const boxGraph = new BoxGraph<BoxIO.TypeMap>(Option.wrap(BoxIO.create))
             const sync = await YSync.join({boxGraph, doc, conflict: () => project.invalid()})
-            const project = Project.skeleton(sharedEnv, {
+            const project = Project.skeleton(env, {
                 boxGraph,
                 mandatoryBoxes: ProjectDecoder.findMandatoryBoxes(boxGraph)
             })

@@ -12,7 +12,7 @@ import {
 import * as Y from "yjs"
 import {asDefined, asInstanceOf, assert, isDefined, JSONValue, UUID} from "@opendaw/lib-std"
 
-export namespace Utils {
+export namespace YMapper {
     export const createBoxMap = (box: Box): Y.Map<unknown> => {
         const map = new Y.Map()
         map.set("name", box.name)

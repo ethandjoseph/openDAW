@@ -14,7 +14,7 @@ import {
     UUID
 } from "@opendaw/lib-std"
 import {ArrayField, BoxGraph, Field, ObjectField, PointerField, PrimitiveField, Update} from "@opendaw/lib-box"
-import {Utils} from "./Utils"
+import {YMapper} from "./YMapper"
 import * as Y from "yjs"
 
 type EventHandler = (events: Array<Y.YEvent<any>>, transaction: Y.Transaction) => void
@@ -37,7 +37,7 @@ export class YSync<T> implements Terminable {
         const sync = new YSync<T>({boxGraph: boxGraph, doc: doc})
         doc.transact(() => boxGraph.boxes().forEach(box => {
             const key = UUID.toString(box.address.uuid)
-            const map = Utils.createBoxMap(box)
+            const map = YMapper.createBoxMap(box)
             boxesMap.set(key, map)
         }), "populate")
         return sync
@@ -54,7 +54,7 @@ export class YSync<T> implements Terminable {
             const uuid = UUID.parse(key)
             const name = boxMap.get("name") as keyof T
             const fields = boxMap.get("fields") as Y.Map<unknown>
-            boxGraph.createBox(name, uuid, box => Utils.applyFromBoxMap(box, fields))
+            boxGraph.createBox(name, uuid, box => YMapper.applyFromBoxMap(box, fields))
         })
         sync.#boxGraph.endTransaction()
         sync.#boxGraph.verifyPointers()
@@ -100,7 +100,7 @@ export class YSync<T> implements Terminable {
                         const name = map.get("name") as keyof T
                         const fields = map.get("fields") as Y.Map<unknown>
                         const uuid = UUID.parse(key)
-                        this.#boxGraph.createBox(name, uuid, box => Utils.applyFromBoxMap(box, fields))
+                        this.#boxGraph.createBox(name, uuid, box => YMapper.applyFromBoxMap(box, fields))
                     } else if (change.action === "update") {
                         if (path.length === 0) {return}
                         assert(path.length >= 2, "Invalid path: must have at least 2 elements (uuid, 'fields').")
@@ -132,10 +132,10 @@ export class YSync<T> implements Terminable {
 
     #updateValue(path: ReadonlyArray<string | number>, key: string): void {
         const [uuidAsString, fieldsKey, ...fieldKeys] = path
-        const targetMap = Utils.findMap((this.#boxesMap
+        const targetMap = YMapper.findMap((this.#boxesMap
             .get(String(uuidAsString)) as Y.Map<unknown>)
             .get(String(fieldsKey)) as Y.Map<unknown>, fieldKeys)
-        const vertexOption = this.#boxGraph.findVertex(Utils.pathToAddress(path, key))
+        const vertexOption = this.#boxGraph.findVertex(YMapper.pathToAddress(path, key))
         const vertex = vertexOption.unwrap("Could not find field")
         assert(vertex.isField(), "Vertex must be either Primitive or Pointer")
         vertex.accept({
@@ -190,7 +190,7 @@ export class YSync<T> implements Terminable {
                             const uuid = update.uuid
                             const key = UUID.toString(uuid)
                             const box = this.#boxGraph.findBox(uuid).unwrap()
-                            this.#boxesMap.set(key, Utils.createBoxMap(box))
+                            this.#boxesMap.set(key, YMapper.createBoxMap(box))
                         } else if (update.type === "primitive") {
                             const key = UUID.toString(update.address.uuid)
                             const boxObject = asDefined(this.#boxesMap.get(key),
