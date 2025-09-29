@@ -14,7 +14,7 @@ export namespace YService {
     const serverDevUrl = "wss://localhost:1234"
     const serverProdUrl = "wss://live.opendaw.studio"
 
-    const isDev = true
+    const isDev = false
     const serverUrl = isDev ? serverDevUrl : serverProdUrl
 
     export const getOrCreateRoom = async (optProject: Option<Project>,
