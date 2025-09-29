@@ -1,0 +1,23 @@
+{
+  "type": "module",
+  "name": "yjs-server",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "NODE_ENV=development HOST=0.0.0.0 PORT=1234 node server.js",
+    "start": "NODE_ENV=production HOST=0.0.0.0 PORT=443 node server.js",
+    "yjs-server": "HOST=0.0.0.0 PORT=443 y-websocket"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@y/protocols": "^1.0.6-0",
+    "lib0": "^0.2.114",
+    "ws": "^8.18.3",
+    "y-protocols": "^1.0.6",
+    "y-websocket": "^1.4.5",
+    "yjs": "^13.6.27"
+  }
+}
