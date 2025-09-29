@@ -6,8 +6,7 @@ import {ProjectEnv} from "./ProjectEnv"
 import {ProjectPaths} from "./ProjectPaths"
 import {ProjectProfile} from "./ProjectProfile"
 import {Workers} from "../Workers"
-import {SampleStorage} from "../samples/SampleStorage"
-import {MainThreadSampleLoader} from "../samples/MainThreadSampleLoader"
+import {DefaultSampleLoader, SampleStorage} from "../samples"
 import type JSZip from "jszip"
 
 export namespace ProjectBundle {
@@ -25,7 +24,7 @@ export namespace ProjectBundle {
         let boxIndex = 0
         const blob = await Promise.all(boxes
             .map(async ({address: {uuid}}) => {
-                const handler: SampleLoader = project.sampleManager.getOrCreate(uuid) as MainThreadSampleLoader
+                const handler: SampleLoader = project.sampleManager.getOrCreate(uuid) as DefaultSampleLoader
                 const folder = asDefined(samples.folder(UUID.toString(uuid)), "Could not create folder for sample")
                 return pipeSampleLoaderInto(handler, folder).then(() => progress.setValue(++boxIndex / boxes.length * 0.75))
             })).then(() => zip.generateAsync({

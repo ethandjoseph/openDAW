@@ -4,6 +4,7 @@ import {
     Notifier,
     Observer,
     Option,
+    panic,
     Progress,
     Subscription,
     Terminable,
@@ -20,7 +21,7 @@ import {
     SampleLoaderState,
     SampleMetaData
 } from "@opendaw/studio-adapters"
-import {SampleStorage} from "./samples/SampleStorage"
+import {SampleStorage} from "./samples"
 import {RenderQuantum} from "./RenderQuantum"
 import {Workers} from "./Workers"
 import {PeaksWriter} from "./PeaksWriter"
@@ -97,10 +98,10 @@ export class RecordingWorklet extends AudioWorkletNode implements Terminable, Sa
 
     toString(): string {return `{RecordingWorklet}`}
 
-    async #finalize() {
+    async #finalize(): Promise<SampleStorage.New> {
         this.#isRecording = false
         this.#reader.stop()
-        if (this.#output.length === 0) {return}
+        if (this.#output.length === 0) {return panic("No recording data available")}
         const totalSamples: int = this.#limitSamples
         const sample_rate = this.context.sampleRate
         const numberOfChannels = this.channelCount
@@ -119,10 +120,17 @@ export class RecordingWorklet extends AudioWorkletNode implements Terminable, Sa
         this.#peaks = Option.wrap(SamplePeaks.from(new ByteArrayInput(peaks)))
         const bpm = BPMTools.detect(frames[0], sample_rate)
         const duration = totalSamples / sample_rate
-        const meta: SampleMetaData = {name: "Recording", bpm, sample_rate, duration}
-        await SampleStorage.saveSample(this.uuid, audioData, peaks as ArrayBuffer, meta)
+        const meta: SampleMetaData = {name: "Recording", bpm, sample_rate, duration, origin: "recording"}
+        const sample: SampleStorage.New = {
+            uuid: this.uuid,
+            audio: audioData,
+            peaks: peaks as ArrayBuffer,
+            meta
+        }
+        await SampleStorage.saveSample(sample)
         this.#setState({type: "loaded"})
         this.terminate()
+        return sample
     }
 
     #setState(value: SampleLoaderState): void {

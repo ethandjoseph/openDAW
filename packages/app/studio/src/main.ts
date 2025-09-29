@@ -22,7 +22,7 @@ import {ErrorHandler} from "@/errors/ErrorHandler.ts"
 import {
     AudioWorklets,
     CloudAuthManager,
-    MainThreadSampleManager,
+    DefaultSampleLoaderManager,
     OpenSampleAPI,
     SampleProvider,
     SampleStorage,
@@ -69,10 +69,10 @@ const loadBuildInfo = async () => fetch(`/build-info.json?v=${Date.now()}`)
         }
         const audioDevices = await AudioOutputDevice.create(context)
         const sampleAPI = OpenSampleAPI.get()
-        const sampleManager = new MainThreadSampleManager({
+        const sampleManager = new DefaultSampleLoaderManager({
             fetch: async (uuid: UUID.Bytes, progress: Procedure<unitValue>): Promise<[AudioData, SampleMetaData]> =>
                 sampleAPI.load(context, uuid, progress)
-        } satisfies SampleProvider, context)
+        } satisfies SampleProvider)
         const cloudAuthManager = CloudAuthManager.create()
         const service: StudioService =
             new StudioService(context, audioWorklets.value, audioDevices, sampleAPI, sampleManager, cloudAuthManager, buildInfo)

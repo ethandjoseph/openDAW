@@ -6,12 +6,12 @@ import {TimelineBoxAdapter} from "./timeline/TimelineBoxAdapter"
 import {ClipSequencing} from "./ClipSequencing"
 import {ParameterFieldAdapters} from "./ParameterFieldAdapters"
 import {BoxAdapters} from "./BoxAdapters"
-import {SampleManager} from "./sample/SampleManager"
+import {SampleLoaderManager} from "./sample/SampleLoaderManager"
 
 export interface BoxAdaptersContext extends Terminable {
     get boxGraph(): BoxGraph
     get boxAdapters(): BoxAdapters
-    get sampleManager(): SampleManager
+    get sampleManager(): SampleLoaderManager
     get rootBoxAdapter(): RootBoxAdapter
     get timelineBoxAdapter(): TimelineBoxAdapter
     get liveStreamReceiver(): LiveStreamReceiver

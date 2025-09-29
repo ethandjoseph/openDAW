@@ -52,7 +52,7 @@ export class OpenSampleAPI implements SampleAPI {
         const sample: Sample = await Promises.retry(() => network.limitFetch(url, headers)
             .then(x => x.json()))
             .then(x => {if ("error" in x) {return panic(x.error)} else {return x}})
-        return Object.freeze({...sample, cloud: "cloud:openDAW"})
+        return Object.freeze({...sample, origin: "openDAW"})
     }
 
     async load(context: AudioContext, uuid: UUID.Bytes, progress: Procedure<unitValue>): Promise<[AudioData, Sample]> {
@@ -85,7 +85,8 @@ export class OpenSampleAPI implements SampleAPI {
                     bpm,
                     name,
                     duration: audioBuffer.duration,
-                    sample_rate: audioBuffer.sampleRate
+                    sample_rate: audioBuffer.sampleRate,
+                    origin: "openDAW"
                 }])))
     }
 

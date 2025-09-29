@@ -37,7 +37,7 @@ import {
     ParameterFieldAdapters,
     ProjectDecoder,
     RootBoxAdapter,
-    SampleManager,
+    SampleLoaderManager,
     TimelineBoxAdapter,
     TrackBoxAdapter
 } from "@opendaw/studio-adapters"
@@ -64,7 +64,7 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
     readonly #timeInfo: TimeInfo
     readonly #engineToClient: EngineToClient
     readonly #boxAdapters: BoxAdapters
-    readonly #audioManager: SampleManager
+    readonly #audioManager: SampleLoaderManager
     readonly #audioUnits: SortedSet<UUID.Bytes, AudioUnit>
     readonly #rootBoxAdapter: RootBoxAdapter
     readonly #timelineBoxAdapter: TimelineBoxAdapter
@@ -356,7 +356,7 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
 
     get boxGraph(): BoxGraph<BoxIO.TypeMap> {return this.#boxGraph}
     get boxAdapters(): BoxAdapters {return this.#boxAdapters}
-    get sampleManager(): SampleManager {return this.#audioManager}
+    get sampleManager(): SampleLoaderManager {return this.#audioManager}
     get rootBoxAdapter(): RootBoxAdapter {return this.#rootBoxAdapter}
     get timelineBoxAdapter(): TimelineBoxAdapter {return this.#timelineBoxAdapter}
     get bpm(): number {return this.#timelineBoxAdapter.box.bpm.getValue()}

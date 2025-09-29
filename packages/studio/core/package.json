@@ -39,7 +39,8 @@
     "@opendaw/studio-boxes": "^0.0.28",
     "@opendaw/studio-enums": "^0.0.21",
     "dropbox": "^10.34.0",
-    "yjs": "^13.6.27"
+    "yjs": "^13.6.27",
+    "y-webrtc": "^10.3.0"
   },
   "devDependencies": {
     "@opendaw/eslint-config": "^0.0.19",

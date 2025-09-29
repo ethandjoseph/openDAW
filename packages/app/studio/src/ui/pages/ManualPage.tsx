@@ -7,15 +7,12 @@ import {BackButton} from "@/ui/pages/BackButton"
 import {Markdown} from "@/ui/Markdown"
 import {Manuals} from "@/ui/pages/Manuals"
 import {Html} from "@opendaw/lib-dom"
+import {PageUtils} from "@/ui/pages/PageUtils"
 
 const className = Html.adoptStyleSheet(css, "ManualPage")
 
 export const ManualPage: PageFactory<StudioService> = ({service, path}: PageContext<StudioService>) => {
-    const extractSecondSegment = (path: string) => {
-        const match = path.match(/^\/[^\/]+\/([^\/]+)\/?$/)
-        return match ? match[1] : null
-    }
-    const page: Nullable<string> = extractSecondSegment(path)
+    const page: Nullable<string> = PageUtils.extractSecondSegment(path)
     return (
         <div className={className}>
             <aside>

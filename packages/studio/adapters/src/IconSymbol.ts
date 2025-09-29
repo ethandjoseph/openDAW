@@ -1,6 +1,7 @@
 export enum IconSymbol {
     Rectangle,
     Checkbox,
+    Cursor,
     Panel,
     MainMenu,
     Dropdown,

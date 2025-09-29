@@ -86,6 +86,7 @@ export class Surface implements TerminableOwner {
     readonly #terminator: Terminator
     readonly #ground: DomElement
     readonly #flyout: DomElement
+    readonly #cursors: DomElement
     readonly #textTooltip: TextTooltip
     readonly #valueTooltip: ValueTooltip
     readonly #pointer: Point
@@ -100,6 +101,7 @@ export class Surface implements TerminableOwner {
 
         this.#ground = <div className="ground"/>
         this.#flyout = <div className="flyout"/>
+        this.#cursors = <div className="flyout"/>
         this.#textTooltip = new TextTooltip(this)
         this.#valueTooltip = new ValueTooltip(this)
         this.#pointer = Point.zero()
@@ -109,6 +111,7 @@ export class Surface implements TerminableOwner {
                 <IconLibrary/>
                 {this.#ground}
                 {this.#flyout}
+                {this.#cursors}
             </div>
         )
 
@@ -140,6 +143,7 @@ export class Surface implements TerminableOwner {
         }))
         return this.#flyout
     }
+    get cursors(): DomElement {return this.#cursors}
     get hasFlyout(): boolean {return this.#flyout.firstChild !== null}
     get owner(): Window {return this.#owner}
     get width(): number {return this.#owner.innerWidth}

@@ -8,7 +8,7 @@ import {SyncLogService} from "@/service/SyncLogService"
 import {IconSymbol} from "@opendaw/studio-adapters"
 import {CloudBackup, Colors, FilePickerAcceptTypes, ProjectSignals, Workers} from "@opendaw/studio-core"
 import {Promises} from "@opendaw/lib-runtime"
-import {YService} from "@/liveblocks/YService"
+import {YService} from "@/yjs/YService"
 
 export const initAppMenu = (service: StudioService) => {
     const isBeta = Browser.isLocalHost() || location.hash === "#beta"
@@ -97,7 +97,17 @@ export const initAppMenu = (service: StudioService) => {
                                             headline: "Connecting to Room...",
                                             message: "Please wait while we connect to the room..."
                                         })
-                                        await Promises.tryCatch(YService.getOrCreateRoom(service, roomName))
+                                        const {status, value: project, error} = await Promises.tryCatch(
+                                            YService.getOrCreateRoom(service, service.profileService.getValue()
+                                                .map(profile => profile.project), service, roomName))
+                                        if (status === "resolved") {
+                                            service.fromProject(project, roomName)
+                                        } else {
+                                            await RuntimeNotifier.info({
+                                                headline: "Failed Connecting Room",
+                                                message: String(error)
+                                            })
+                                        }
                                         dialog.terminate()
                                     })
                             )

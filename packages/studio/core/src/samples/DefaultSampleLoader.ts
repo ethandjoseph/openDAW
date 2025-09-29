@@ -13,11 +13,11 @@ import {Promises} from "@opendaw/lib-runtime"
 import {Peaks, SamplePeaks} from "@opendaw/lib-fusion"
 import {AudioData, SampleLoader, SampleLoaderState, SampleMetaData} from "@opendaw/studio-adapters"
 import {Workers} from "../Workers"
-import {MainThreadSampleManager} from "./MainThreadSampleManager"
+import {DefaultSampleLoaderManager} from "./DefaultSampleLoaderManager"
 import {SampleStorage} from "./SampleStorage"
 
-export class MainThreadSampleLoader implements SampleLoader {
-    readonly #manager: MainThreadSampleManager
+export class DefaultSampleLoader implements SampleLoader {
+    readonly #manager: DefaultSampleLoaderManager
 
     readonly #uuid: UUID.Bytes
     readonly #notifier: Notifier<SampleLoaderState>
@@ -28,7 +28,7 @@ export class MainThreadSampleLoader implements SampleLoader {
     #state: SampleLoaderState = {type: "progress", progress: 0.0}
     #version: int = 0
 
-    constructor(manager: MainThreadSampleManager, uuid: UUID.Bytes) {
+    constructor(manager: DefaultSampleLoaderManager, uuid: UUID.Bytes) {
         this.#manager = manager
         this.#uuid = uuid
 
@@ -109,7 +109,12 @@ export class MainThreadSampleLoader implements SampleLoader {
             audio.frames,
             audio.numberOfFrames,
             audio.numberOfChannels) as ArrayBuffer
-        const storeResult = await Promises.tryCatch(SampleStorage.saveSample(this.#uuid, audio, peaks, meta))
+        const storeResult = await Promises.tryCatch(SampleStorage.saveSample({
+            uuid: this.#uuid,
+            audio: audio,
+            peaks: peaks,
+            meta: meta
+        }))
         if (this.#version !== version) {return}
         if (storeResult.status === "resolved") {
             this.#data = Option.wrap(audio)

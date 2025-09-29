@@ -1,7 +1,7 @@
 import {int, Option, quantizeCeil, quantizeFloor, Terminable, Terminator, UUID} from "@opendaw/lib-std"
 import {dbToGain, ppqn, PPQN} from "@opendaw/lib-dsp"
 import {AudioFileBox, AudioRegionBox, TrackBox} from "@opendaw/studio-boxes"
-import {SampleManager, TrackType} from "@opendaw/studio-adapters"
+import {SampleLoaderManager, TrackType} from "@opendaw/studio-adapters"
 import {Project} from "../project/Project"
 import {RecordingWorklet} from "../RecordingWorklet"
 import {Capture} from "./Capture"
@@ -12,7 +12,7 @@ export namespace RecordAudio {
     type RecordAudioContext = {
         recordingWorklet: RecordingWorklet
         mediaStream: MediaStream
-        sampleManager: SampleManager
+        sampleManager: SampleLoaderManager
         audioContext: AudioContext
         project: Project
         capture: Capture

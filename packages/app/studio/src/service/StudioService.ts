@@ -51,10 +51,11 @@ import {
     CloudAuthManager,
     DawProject,
     DawProjectImport,
+    DefaultSampleLoaderManager,
     EngineFacade,
     EngineWorklet,
     FilePickerAcceptTypes,
-    MainThreadSampleManager,
+    P2PSampleProvider,
     Project,
     ProjectEnv,
     ProjectMeta,
@@ -86,6 +87,7 @@ export class StudioService implements ProjectEnv {
         screen: new DefaultObservableValue<Nullable<Workspace.ScreenKeys>>("default")
     } as const
     readonly transport = {
+        // TODO This does not respect the loop state of the timeline box.
         loop: new DefaultObservableValue<boolean>(false)
     } as const
     readonly timeline = {
@@ -116,7 +118,7 @@ export class StudioService implements ProjectEnv {
                 readonly audioWorklets: AudioWorklets,
                 readonly audioDevices: AudioOutputDevice,
                 readonly sampleAPI: SampleAPI,
-                readonly sampleManager: MainThreadSampleManager,
+                readonly sampleManager: DefaultSampleLoaderManager,
                 readonly cloudAuthManager: CloudAuthManager,
                 readonly buildInfo: BuildInfo) {
         this.samplePlayback = new SamplePlayback()
@@ -125,8 +127,9 @@ export class StudioService implements ProjectEnv {
         })
         const lifeTime = new Terminator()
         const observer = (optProfile: Option<ProjectProfile>) => {
-            const root = RouteLocation.get().path === "/"
-            if (root) {this.layout.screen.setValue(null)}
+            const path = RouteLocation.get().path
+            const isRoot = path === "/"
+            if (isRoot) {this.layout.screen.setValue(null)}
             lifeTime.terminate()
             if (optProfile.nonEmpty()) {
                 const profile = optProfile.unwrap()
@@ -183,7 +186,7 @@ export class StudioService implements ProjectEnv {
                     }
                 }
                 this.engine.setWorklet(project.startAudioWorklet(restart, {pauseOnLoopDisabled: false}))
-                if (root) {this.switchScreen("default")}
+                if (isRoot) {this.switchScreen("default")}
             } else {
                 this.engine.releaseWorklet()
                 range.maxUnits = PPQN.fromSignature(128, 1)
@@ -361,6 +364,8 @@ export class StudioService implements ProjectEnv {
         }
     }
 
+    sharedSamples: Option<P2PSampleProvider> = Option.None
+
     async importSample({uuid, name, arrayBuffer, progressHandler = Progress.Empty}: {
         uuid?: UUID.Bytes,
         name: string,
@@ -369,8 +374,9 @@ export class StudioService implements ProjectEnv {
     }): Promise<Sample> {
         console.debug(`Importing '${name}' (${arrayBuffer.byteLength >> 10}kb)`)
         return AudioImporter.run(this.audioContext, {uuid, name, arrayBuffer, progressHandler})
-            .then(sample => {
+            .then(({uuid, sample, peaks, audioData}) => {
                 this.#signals.notify({type: "import-sample", sample})
+                this.sharedSamples.ifSome(provider => provider.share(UUID.toString(uuid), audioData, peaks, sample))
                 return sample
             })
     }

@@ -14,7 +14,12 @@ export namespace AudioImporter {
     }
 
     export const run = async (context: AudioContext,
-                              {uuid, name, arrayBuffer, progressHandler}: Creation): Promise<Sample> => {
+                              {uuid, name, arrayBuffer, progressHandler}: Creation): Promise<{
+        uuid: UUID.Bytes,
+        sample: Sample,
+        peaks: ArrayBuffer
+        audioData: AudioData
+    }> => {
         console.time("UUID.sha256")
         uuid ??= await UUID.sha256(arrayBuffer) // Must run before decodeAudioData laster, because it will detach the ArrayBuffer
         console.timeEnd("UUID.sha256")
@@ -41,9 +46,15 @@ export namespace AudioImporter {
             bpm: estimateBpm(audioBuffer.duration),
             name: name.substring(0, name.lastIndexOf(".")),
             duration: audioBuffer.duration,
-            sample_rate: audioBuffer.sampleRate
+            sample_rate: audioBuffer.sampleRate,
+            origin: "import"
         }
-        await SampleStorage.saveSample(uuid, audioData, peaks, meta)
-        return {uuid: UUID.toString(uuid), ...meta}
+        await SampleStorage.saveSample({uuid, audio: audioData, peaks, meta})
+        return {
+            uuid,
+            sample: {uuid: UUID.toString(uuid), ...meta},
+            peaks,
+            audioData
+        }
     }
 }

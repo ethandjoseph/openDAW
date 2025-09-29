@@ -6,8 +6,8 @@ import {Promises} from "@opendaw/lib-runtime"
 import {AudioData, SampleMetaData} from "@opendaw/studio-adapters"
 import {
     AudioWorklets,
+    DefaultSampleLoaderManager,
     FilePickerAcceptTypes,
-    MainThreadSampleManager,
     OpenSampleAPI,
     Project,
     Workers
@@ -47,10 +47,10 @@ import {importSample} from "./helper"
         return
     }
     const sampleAPI = OpenSampleAPI.get()
-    const sampleManager = new MainThreadSampleManager({
+    const sampleManager = new DefaultSampleLoaderManager({
         fetch: (uuid: UUID.Bytes, progress: Progress.Handler): Promise<[AudioData, SampleMetaData]> =>
             sampleAPI.load(audioContext, uuid, progress)
-    }, audioContext)
+    })
 
     const env = {sampleManager, audioWorklets: audioWorkletResult.value, audioContext}
     const project = Project.new(env)

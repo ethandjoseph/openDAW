@@ -140,7 +140,12 @@ export class CloudBackupSamples {
                     audioData.frames,
                     audioData.numberOfFrames,
                     audioData.numberOfChannels) as ArrayBuffer
-                await SampleStorage.saveSample(UUID.parse(sample.uuid), audioData, peaks, sample)
+                await SampleStorage.saveSample({
+                    uuid: UUID.parse(sample.uuid),
+                    audio: audioData,
+                    peaks: peaks,
+                    meta: sample
+                })
                 return sample
             }))
         this.#log("Download samples complete.")

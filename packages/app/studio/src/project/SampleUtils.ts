@@ -2,7 +2,7 @@ import {Errors, panic, RuntimeNotifier, UUID} from "@opendaw/lib-std"
 import {BoxGraph} from "@opendaw/lib-box"
 import {Promises} from "@opendaw/lib-runtime"
 import {AudioFileBox} from "@opendaw/studio-boxes"
-import {Sample, SampleManager} from "@opendaw/studio-adapters"
+import {Sample, SampleLoaderManager} from "@opendaw/studio-adapters"
 import {SampleAPI, SampleImporter, SampleStorage} from "@opendaw/studio-core"
 import {SampleDialogs} from "@/ui/browse/SampleDialogs"
 
@@ -10,7 +10,7 @@ export namespace SampleUtils {
     export const verify = async (boxGraph: BoxGraph,
                                  importer: SampleImporter,
                                  sampleAPI: SampleAPI,
-                                 sampleManager: SampleManager) => {
+                                 sampleManager: SampleLoaderManager) => {
         const boxes = boxGraph.boxes().filter((box) => box instanceof AudioFileBox)
         if (boxes.length > 0) {
             // check for missing samples

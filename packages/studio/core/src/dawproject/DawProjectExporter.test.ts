@@ -3,7 +3,7 @@ import {fileURLToPath} from "url"
 import * as path from "node:path"
 import * as fs from "node:fs"
 import {Project} from "../project/Project"
-import {AudioData, SampleLoader, SampleLoaderState, SampleManager} from "@opendaw/studio-adapters"
+import {AudioData, SampleLoader, SampleLoaderState, SampleLoaderManager} from "@opendaw/studio-adapters"
 import {InaccessibleProperty, Observer, Option, panic, Subscription, Terminable, UUID} from "@opendaw/lib-std"
 import {Xml} from "@opendaw/lib-xml"
 import {FileReferenceSchema} from "@opendaw/lib-dawproject"
@@ -19,7 +19,7 @@ describe("DawProjectExport", () => {
         const project = Project.load({
             audioContext: InaccessibleProperty as any,
             audioWorklets: InaccessibleProperty as any,
-            sampleManager: new class implements SampleManager {
+            sampleManager: new class implements SampleLoaderManager {
                 record(_loader: SampleLoader & { uuid: UUID.Bytes }): void {
                     throw new Error("Method not implemented.")
                 }

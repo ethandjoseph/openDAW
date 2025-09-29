@@ -70,7 +70,7 @@ export namespace SampleDialogs {
     }
 
     export const showEditSampleDialog = async (sample: Sample): Promise<Sample> => {
-        if (isDefined(sample.cloud)) {
+        if (sample.origin === "openDAW") {
             return Promise.reject("Cannot change sample from the cloud")
         }
         const {resolve, reject, promise} = Promise.withResolvers<Sample>()

@@ -16,5 +16,5 @@ lerna-debug.log
 /packages/studio/boxes/src/**
 /packages/studio/adapters/src/index.ts
 /packages/app/studio/public/build-info.json
-/packages/app/localhost.pem
-/packages/app/localhost-key.pem
+/certs/localhost.pem
+/certs/localhost-key.pem

@@ -29,7 +29,7 @@ export const SampleUploadPage: PageFactory<StudioService> = ({service}: PageCont
                         console.debug("sampleRate", sample_rate)
                         console.debug("duration", duration)
                         console.debug("bpm", bpm)
-                        await service.sampleAPI.upload(wav, {name, bpm, sample_rate, duration})
+                        await service.sampleAPI.upload(wav, {name, bpm, sample_rate, duration, origin: "openDAW"})
                     } catch (error) {
                         if (error instanceof DOMException && error.name === "AbortError") {
                             console.debug("Caught an AbortError")

@@ -10,10 +10,14 @@ export namespace SampleStorage {
 
     export const Folder = "samples/v2"
 
-    export const saveSample = async (uuid: UUID.Bytes,
-                                     audio: AudioData,
-                                     peaks: ArrayBuffer,
-                                     meta: SampleMetaData): Promise<void> => {
+    export type New = {
+        uuid: UUID.Bytes,
+        audio: AudioData,
+        peaks: ArrayBuffer,
+        meta: SampleMetaData
+    }
+
+    export const saveSample = async ({uuid, audio, peaks, meta}: New): Promise<void> => {
         const path = `${Folder}/${UUID.toString(uuid)}`
         const data = new Uint8Array(WavFile.encodeFloats({
             channels: audio.frames.slice(),

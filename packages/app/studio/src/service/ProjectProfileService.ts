@@ -24,7 +24,7 @@ import {
     SampleAPI,
     SampleImporter
 } from "@opendaw/studio-core"
-import {SampleManager} from "@opendaw/studio-adapters"
+import {SampleLoaderManager} from "@opendaw/studio-adapters"
 import {SampleUtils} from "@/project/SampleUtils"
 
 export class ProjectProfileService implements MutableObservableValue<Option<ProjectProfile>> {
@@ -33,13 +33,13 @@ export class ProjectProfileService implements MutableObservableValue<Option<Proj
     readonly #env: ProjectEnv
     readonly #importer: SampleImporter
     readonly #sampleAPI: SampleAPI
-    readonly #sampleManager: SampleManager
+    readonly #sampleManager: SampleLoaderManager
 
     constructor({env, importer, sampleAPI, sampleManager}: {
         env: ProjectEnv,
         importer: SampleImporter,
         sampleAPI: SampleAPI,
-        sampleManager: SampleManager
+        sampleManager: SampleLoaderManager
     }) {
         this.#env = env
         this.#importer = importer

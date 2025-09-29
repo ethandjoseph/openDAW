@@ -37,8 +37,8 @@ export default defineConfig(({command}) => {
             port: 8080,
             host: "localhost",
             https: command === "serve" ? {
-                key: readFileSync("../localhost-key.pem"),
-                cert: readFileSync("../localhost.pem")
+                key: readFileSync("../../../certs/localhost-key.pem"),
+                cert: readFileSync("../../../certs/localhost.pem")
             } : undefined,
             headers: {
                 "Cross-Origin-Opener-Policy": "same-origin",
