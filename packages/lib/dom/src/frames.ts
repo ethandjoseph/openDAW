@@ -6,6 +6,7 @@ export namespace AnimationFrame {
     const queue = new Array<Exec>()
 
     let id: int = -1
+    let driver: WindowProxy = window
 
     export const add = (exec: Exec): Terminable => {
         recurring.add(exec)
@@ -14,9 +15,10 @@ export namespace AnimationFrame {
 
     export const once = (exec: Exec): void => {nonrecurring.add(exec)}
 
-    export const start = (): void => {
-        console.debug("AnimationFrame start")
+    export const start = (owner: WindowProxy = window): void => {
+        console.debug("AnimationFrame start", owner.name)
         const exe = (): void => {
+            if (driver !== owner) {return}
             if (recurring.size > 0 || nonrecurring.size > 0) {
                 recurring.forEach((exec: Exec) => queue.push(exec))
                 nonrecurring.forEach((exec: Exec) => queue.push(exec))
@@ -24,9 +26,10 @@ export namespace AnimationFrame {
                 queue.forEach((exec: Exec) => exec())
                 queue.length = 0
             }
-            id = requestAnimationFrame(exe)
+            id = owner.requestAnimationFrame(exe)
         }
-        id = requestAnimationFrame(exe)
+        id = owner.requestAnimationFrame(exe)
+        driver = owner
     }
 
     export const terminate = (): void => {

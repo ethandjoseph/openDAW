@@ -106,12 +106,10 @@ export const PanelPlaceholder =
         lifecycle.own(Events.subscribe(header, "dblclick", () => handler.toggleMinimize()))
         lifecycle.own(ContextMenu.subscribe(header, collector => collector.addItems(
             MenuItem.default({
-                label: Browser.isFirefox()
-                    ? "Popout into new browser window (Chrome Only)"
-                    : "Popout into new browser window",
+                label: "Popout into new browser window",
                 checked: handler.isPopout(),
                 hidden: !Browser.isWeb(),
-                selectable: popoutable && !Browser.isFirefox()
+                selectable: popoutable
             }).setTriggerProcedure(handler.togglePopout)
         )))
         return element
