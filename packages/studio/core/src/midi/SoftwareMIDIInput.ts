@@ -14,7 +14,7 @@ export class SoftwareMIDIInput implements MIDIInput, Terminable {
 
     onmidimessage: ((this: MIDIInput, ev: MIDIMessageEvent) => any) | null = null
     onstatechange: ((this: MIDIPort, ev: MIDIConnectionEvent) => any) | null = null // has no effect. always on.
-    channel: byte = 0 // 0...16
+    channel: byte = 0 // 0...15
 
     constructor() {this.#dispatcher = new EventTarget()}
 
