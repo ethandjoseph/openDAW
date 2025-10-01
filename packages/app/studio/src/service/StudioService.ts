@@ -1,4 +1,5 @@
 import {
+    asInstanceOf,
     assert,
     DefaultObservableValue,
     EmptyExec,
@@ -69,6 +70,8 @@ import {ProjectDialogs} from "@/project/ProjectDialogs"
 import {AudioImporter} from "@/audio/AudioImport"
 import {SoftwareMIDIPanel} from "@/ui/software-midi/SoftwareMIDIPanel"
 import {Surface} from "@/ui/surface/Surface"
+import {AudioUnitBox} from "@opendaw/studio-boxes"
+import {AudioUnitType} from "@opendaw/studio-enums"
 
 /**
  * I am just piling stuff after stuff in here to boot the environment.
@@ -319,13 +322,16 @@ export class StudioService implements ProjectEnv {
     async exportStems() {
         return this.profileService.getValue()
             .ifSome(async ({project, meta}) => {
-                const {
-                    status,
-                    error,
-                    value: config
-                } = await Promises.tryCatch(ProjectDialogs.showExportStemsDialog(project))
+                if (project.rootBox.audioUnits.pointerHub.incoming()
+                    .every(({box}) => asInstanceOf(box, AudioUnitBox).type.getValue() === AudioUnitType.Output)) {
+                    return RuntimeNotifier.info({
+                        headline: "Export Error",
+                        message: "No stems to export"
+                    })
+                }
+                const {status, error, value: config} =
+                    await Promises.tryCatch(ProjectDialogs.showExportStemsDialog(project))
                 if (status === "rejected") {
-                    console.log(error)
                     if (Errors.isAbort(error)) {return}
                     throw error
                 }

@@ -101,6 +101,7 @@ export namespace ProjectDialogs {
         const dialog: HTMLDialogElement = (
             <Dialog headline={"Export Stems"}
                     icon={IconSymbol.FileList}
+                    style={{maxWidth: "40em"}}
                     buttons={[
                         {
                             text: "Cancel",

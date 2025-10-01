@@ -1,10 +1,23 @@
 component
   display: flex
+  flex-direction: column
   position: absolute
   transform: translate(100px, 100px)
+  background-color: var(--panel-background-bright)
+  border-radius: 4px
+  padding: 1em
+  box-shadow: 0 4px 4px 0 rgba(black, 0.2)
+
+  > div.controls
+    display: flex
+    align-items: center
+    column-gap: 0.5em
+
+    > span
+      font-size: 0.75em
 
   > svg
-    rect
+    > rect
       will-change: fill
 
       &.black
@@ -12,3 +25,9 @@ component
 
       &.white
         fill: var(--color-gray)
+
+      &.active
+        fill: var(--color-blue)
+
+    > text
+      pointer-events: none
