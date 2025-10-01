@@ -88,11 +88,12 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
     #primaryOutput: Option<AudioUnit> = Option.None
 
     #context: Option<EngineContext> = Option.None
-    #panic: boolean = false
-    #running: boolean = true
+    #panic: boolean = false // will throw an error if set to true to test error handling
+    #running: boolean = true // to shut down the engine
     #metronomeEnabled: boolean = false
     #recordingStartTime: ppqn = 0.0
     #playbackTimestamp: ppqn = 0.0 // this is where we start playing again (after paused)
+    #playbackTimestampEnabled: boolean = true
     #countInBeatsTotal: int = 4
 
     constructor({processorOptions: {sab, project, exportConfiguration, options}}: {
@@ -146,14 +147,16 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
             createSyncTarget(this.#boxGraph, this.#messenger.channel("engine-sync")),
             Communicator.executor<EngineCommands>(this.#messenger.channel("engine-commands"), {
                 play: () => {
-                    this.#timeInfo.position = this.#playbackTimestamp
+                    if (this.#playbackTimestampEnabled) {
+                        this.#timeInfo.position = this.#playbackTimestamp
+                    }
                     this.#timeInfo.transporting = true
                 },
                 stop: (reset: boolean) => {
                     if (this.#timeInfo.isRecording || this.#timeInfo.isCountingIn) {
                         this.#timeInfo.isRecording = false
                         this.#timeInfo.isCountingIn = false
-                        this.#timeInfo.position = this.#playbackTimestamp
+                        this.#timeInfo.position = this.#playbackTimestampEnabled ? this.#playbackTimestamp : 0.0
                     }
                     const wasTransporting = this.#timeInfo.transporting
                     this.#timeInfo.transporting = false
@@ -192,7 +195,6 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
                 },
                 stopRecording: () => {
                     if (!this.#timeInfo.isRecording && !this.#timeInfo.isCountingIn) {return}
-                    console.debug("STOP RECORDING")
                     this.#timeInfo.isRecording = false
                     this.#timeInfo.isCountingIn = false
                     this.#timeInfo.metronomeEnabled = this.#metronomeEnabled
@@ -200,6 +202,10 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
                     this.#ignoredRegions.clear()
                 },
                 setMetronomeEnabled: (value: boolean) => this.#timeInfo.metronomeEnabled = this.#metronomeEnabled = value,
+                setPlaybackTimestampEnabled: (value: boolean) => {
+                    console.debug("setPlaybackTimestampEnabled", value)
+                    this.#playbackTimestampEnabled = value
+                },
                 queryLoadingComplete: (): Promise<boolean> =>
                     Promise.resolve(this.#boxGraph.boxes().every(box => box.accept<BoxVisitor<boolean>>({
                         visitAudioFileBox: (box: AudioFileBox) =>

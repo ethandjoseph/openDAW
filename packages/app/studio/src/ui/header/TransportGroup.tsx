@@ -10,6 +10,8 @@ import {Checkbox} from "@/ui/components/Checkbox"
 import {Surface} from "@/ui/surface/Surface"
 import {CountIn} from "@/ui/header/CountIn"
 import {Html} from "@opendaw/lib-dom"
+import {ContextMenu} from "@/ui/ContextMenu"
+import {MenuItem} from "@/ui/model/menu-item"
 
 const className = Html.adoptStyleSheet(css, "TransportGroup")
 
@@ -74,7 +76,15 @@ export const TransportGroup = ({lifecycle, service}: Construct) => {
                 countInLifecycle.terminate()
             }
         }),
-        service.profileService.catchupAndSubscribe(owner => element.classList.toggle("disabled", owner.getValue().isEmpty()))
+        service.profileService.catchupAndSubscribe(owner => element.classList.toggle("disabled", owner.getValue().isEmpty())),
+        ContextMenu.subscribe(playButton, collector => collector
+            .addItems(
+                MenuItem.default({
+                    label: "Resume from last playback starting position",
+                    checked: engine.playbackTimestampEnabled.getValue()
+                }).setTriggerProcedure(() => engine.playbackTimestampEnabled
+                    .setValue(!engine.playbackTimestampEnabled.getValue()))
+            ))
     )
     return element
 }

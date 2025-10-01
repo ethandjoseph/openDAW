@@ -1,5 +1,14 @@
 import {ppqn} from "@opendaw/lib-dsp"
-import {int, Nullable, ObservableValue, Observer, Subscription, Terminable, UUID} from "@opendaw/lib-std"
+import {
+    int,
+    MutableObservableValue,
+    Nullable,
+    ObservableValue,
+    Observer,
+    Subscription,
+    Terminable,
+    UUID
+} from "@opendaw/lib-std"
 import {ClipNotification, NoteSignal} from "@opendaw/studio-adapters"
 import {Project} from "./project/Project"
 
@@ -26,6 +35,7 @@ export interface Engine extends Terminable {
     get isCountingIn(): ObservableValue<boolean>
     get metronomeEnabled(): ObservableValue<boolean>
     get playbackTimestamp(): ObservableValue<ppqn>
+    get playbackTimestampEnabled(): MutableObservableValue<boolean>
     get countInBeatsTotal(): ObservableValue<int>
     get countInBeatsRemaining(): ObservableValue<number>
     get markerState(): ObservableValue<Nullable<[UUID.Bytes, int]>>

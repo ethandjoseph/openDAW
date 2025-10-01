@@ -1,5 +1,5 @@
 import {MenuItem} from "@/ui/model/menu-item"
-import {Client, Option, panic, Subscription} from "@opendaw/lib-std"
+import {Client, Option, Subscription} from "@opendaw/lib-std"
 import {Menu} from "@/ui/components/Menu.tsx"
 import {Surface} from "@/ui/surface/Surface.tsx"
 import {Events, Html} from "@opendaw/lib-dom"
@@ -67,10 +67,6 @@ export namespace ContextMenu {
     }
 
     export const subscribe = (target: EventTarget, collect: (collector: Collector) => void): Subscription =>
-        Events.subscribeAny(target, CONTEXT_MENU_EVENT_TYPE, event => {
-            CollectorImpl.collecting.match({
-                none: () => panic(`Got collect event ${event} without being in populating phase`),
-                some: (collector: CollectorImpl) => collect(collector)
-            })
-        }, {capture: false})
+        Events.subscribeAny(target, CONTEXT_MENU_EVENT_TYPE, () =>
+            CollectorImpl.collecting.ifSome((collector: CollectorImpl) => collect(collector)), {capture: false})
 }

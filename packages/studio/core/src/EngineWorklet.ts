@@ -43,6 +43,7 @@ export class EngineWorklet extends AudioWorkletNode implements Engine {
 
     readonly #project: Project
     readonly #playbackTimestamp: DefaultObservableValue<ppqn> = new DefaultObservableValue(0.0)
+    readonly #playbackTimestampEnabled: DefaultObservableValue<boolean> = new DefaultObservableValue(true)
     readonly #position: DefaultObservableValue<ppqn> = new DefaultObservableValue(0.0)
     readonly #isPlaying: DefaultObservableValue<boolean> = new DefaultObservableValue(false)
     readonly #isRecording: DefaultObservableValue<boolean> = new DefaultObservableValue(false)
@@ -100,7 +101,12 @@ export class EngineWorklet extends AudioWorkletNode implements Engine {
                     setPosition(position: number): void {dispatcher.dispatchAndForget(this.setPosition, position)}
                     startRecording(countIn: boolean) {dispatcher.dispatchAndForget(this.startRecording, countIn)}
                     stopRecording() {dispatcher.dispatchAndForget(this.stopRecording)}
-                    setMetronomeEnabled(enabled: boolean): void {dispatcher.dispatchAndForget(this.setMetronomeEnabled, enabled)}
+                    setMetronomeEnabled(enabled: boolean): void {
+                        dispatcher.dispatchAndForget(this.setMetronomeEnabled, enabled)
+                    }
+                    setPlaybackTimestampEnabled(enabled: boolean): void {
+                        dispatcher.dispatchAndForget(this.setPlaybackTimestampEnabled, enabled)
+                    }
                     queryLoadingComplete(): Promise<boolean> {
                         return dispatcher.dispatchAndReturn(this.queryLoadingComplete)
                     }
@@ -151,7 +157,9 @@ export class EngineWorklet extends AudioWorkletNode implements Engine {
             AnimationFrame.add(() => reader.tryRead()),
             project.liveStreamReceiver.connect(messenger.channel("engine-live-data")),
             new SyncSource<BoxIO.TypeMap>(project.boxGraph, messenger.channel("engine-sync"), false),
-            this.#metronomeEnabled.catchupAndSubscribe(owner => this.#commands.setMetronomeEnabled(owner.getValue()))
+            this.#metronomeEnabled.catchupAndSubscribe(owner => this.#commands.setMetronomeEnabled(owner.getValue())),
+            this.#playbackTimestampEnabled.catchupAndSubscribe(owner =>
+                this.#commands.setPlaybackTimestampEnabled(owner.getValue()))
         )
     }
 
@@ -169,6 +177,7 @@ export class EngineWorklet extends AudioWorkletNode implements Engine {
     get countInBeatsRemaining(): ObservableValue<number> {return this.#countInBeatsRemaining}
     get position(): ObservableValue<ppqn> {return this.#position}
     get playbackTimestamp(): MutableObservableValue<number> {return this.#playbackTimestamp}
+    get playbackTimestampEnabled(): MutableObservableValue<boolean> {return this.#playbackTimestampEnabled}
     get metronomeEnabled(): MutableObservableValue<boolean> {return this.#metronomeEnabled}
     get markerState(): ObservableValue<Nullable<[UUID.Bytes, int]>> {return this.#markerState}
     get project(): Project {return this.#project}
