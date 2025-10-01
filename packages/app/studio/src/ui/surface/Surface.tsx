@@ -25,10 +25,6 @@ import {AnimationFrame, CssUtils, Events, Html, Keyboard} from "@opendaw/lib-dom
 
 const className = Html.adoptStyleSheet(css, "Surface")
 
-type BroadcastMessage = {
-    type: "help"
-}
-
 export interface SurfaceConfigurator {
     config(surface: Surface): void
 }
@@ -88,7 +84,6 @@ export class Surface implements TerminableOwner {
     readonly #parent: Nullable<Surface>
 
     readonly #terminator: Terminator
-    readonly #broadcastChannel: BroadcastChannel
     readonly #ground: DomElement
     readonly #flyout: DomElement
     readonly #cursors: DomElement
@@ -104,7 +99,6 @@ export class Surface implements TerminableOwner {
         this.#terminator = parent?.spawn() ?? new Terminator()
         this.#terminator.own({terminate: () => owner.close()})
 
-        this.#broadcastChannel = new BroadcastChannel("active-window")
         this.#ground = <div className="ground"/>
         this.#flyout = <div className="flyout"/>
         this.#cursors = <div className="flyout"/>
@@ -265,13 +259,7 @@ export class Surface implements TerminableOwner {
             Events.subscribe(this.#owner, "beforeunload", () => {
                 if (this.#owner === self) {return} // We are leaving the main window. Nothing to do.
                 console.debug(`Before-unload surface: '${this.#owner.name}'`)
-                Surface.#surfacesByWindow.keys().some(owner => {
-                    if (!owner.document.hidden) {
-                        AnimationFrame.start(owner)
-                        return true
-                    }
-                    return false
-                })
+                this.#adoptAnimationFrame()
                 for (const [id, surface] of Surface.#surfaceById.entries()) {
                     if (surface === this) {
                         Surface.#surfaceById.delete(id)
@@ -304,24 +292,22 @@ export class Surface implements TerminableOwner {
             Events.subscribe(document.body, "touchmove", Events.PreventDefault, {capture: true}),
             Events.subscribeAny(this.#owner, "visibilitychange", () => {
                 if (document.hidden) {
-                    console.debug("HELP!", this.#owner.name)
-                    this.#broadcastChannel.postMessage({type: "help"})
+                    this.#adoptAnimationFrame()
                 } else {
-                    console.debug("Visible. I will takeover", this.#owner.name)
                     AnimationFrame.start(this.#owner)
                 }
-            }, {capture: true}),
-            Events.subscribe(this.#broadcastChannel, "message", (event: MessageEvent) => {
-                const data = event.data as BroadcastMessage
-                const type = data.type
-                if (type === "help") {
-                    if (!document.hidden) {
-                        console.debug("Got help request. I will takeover", this.#owner.name)
-                        AnimationFrame.start(this.#owner)
-                    }
-                }
-            })
+            }, {capture: true})
         )
+    }
+
+    #adoptAnimationFrame(): void {
+        Surface.#surfacesByWindow.keys().some(owner => {
+            if (!owner.document.hidden) {
+                AnimationFrame.start(owner)
+                return true
+            }
+            return false
+        })
     }
 }
 

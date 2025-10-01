@@ -30,6 +30,7 @@ export namespace AnimationFrame {
         }
         id = owner.requestAnimationFrame(exe)
         driver = owner
+        exe()
     }
 
     export const terminate = (): void => {
