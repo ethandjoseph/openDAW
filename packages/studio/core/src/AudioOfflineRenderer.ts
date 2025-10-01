@@ -13,8 +13,9 @@ export namespace AudioOfflineRenderer {
                                 meta: ProjectMeta,
                                 optExportConfiguration: Option<ExportStemsConfiguration>,
                                 sampleRate: int = 48_000): Promise<void> => {
-        const project = source.copy()
         const numStems = ExportStemsConfiguration.countStems(optExportConfiguration)
+        if (numStems === 0) {return panic("Nothing to export")}
+        const project = source.copy()
         const progress = new DefaultObservableValue(0.0)
         const dialog = RuntimeNotifier.progress({headline: "Rendering...", progress})
         project.boxGraph.beginTransaction()

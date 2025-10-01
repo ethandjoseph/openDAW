@@ -1,4 +1,4 @@
-import {Exec, int, Terminable} from "@opendaw/lib-std"
+import {Exec, int, Nullable, Terminable} from "@opendaw/lib-std"
 
 export namespace AnimationFrame {
     const nonrecurring = new Set<Exec>()
@@ -6,7 +6,7 @@ export namespace AnimationFrame {
     const queue = new Array<Exec>()
 
     let id: int = -1
-    let driver: WindowProxy = window
+    let driver: Nullable<WindowProxy> = null
 
     export const add = (exec: Exec): Terminable => {
         recurring.add(exec)
@@ -18,7 +18,10 @@ export namespace AnimationFrame {
     export const start = (owner: WindowProxy = window): void => {
         console.debug("AnimationFrame start", owner.name)
         const exe = (): void => {
-            if (driver !== owner) {return}
+            if (driver !== owner) {
+                driver = null
+                return
+            }
             if (recurring.size > 0 || nonrecurring.size > 0) {
                 recurring.forEach((exec: Exec) => queue.push(exec))
                 nonrecurring.forEach((exec: Exec) => queue.push(exec))
