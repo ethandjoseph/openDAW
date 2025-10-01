@@ -67,6 +67,8 @@ import {
 } from "@opendaw/studio-core"
 import {ProjectDialogs} from "@/project/ProjectDialogs"
 import {AudioImporter} from "@/audio/AudioImport"
+import {SoftwareMIDIPanel} from "@/ui/software-midi/SoftwareMIDIPanel"
+import {Surface} from "@/ui/surface/Surface"
 
 /**
  * I am just piling stuff after stuff in here to boot the environment.
@@ -187,6 +189,8 @@ export class StudioService implements ProjectEnv {
                 }
                 this.engine.setWorklet(project.startAudioWorklet(restart, {pauseOnLoopDisabled: false}))
                 if (isRoot) {this.switchScreen("default")}
+                // TODO REMOVE WHEN TESTED
+                Surface.get(window).cursors.appendChild(SoftwareMIDIPanel({lifecycle: new Terminator()}))
             } else {
                 this.engine.releaseWorklet()
                 range.maxUnits = PPQN.fromSignature(128, 1)

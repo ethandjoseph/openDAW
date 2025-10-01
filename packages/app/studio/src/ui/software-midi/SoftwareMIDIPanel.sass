@@ -1,0 +1,14 @@
+component
+  display: flex
+  position: absolute
+  transform: translate(100px, 100px)
+
+  > svg
+    rect
+      will-change: fill
+
+      &.black
+        fill: var(--color-black)
+
+      &.white
+        fill: var(--color-gray)
