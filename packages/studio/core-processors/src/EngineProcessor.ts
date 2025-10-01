@@ -202,10 +202,7 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
                     this.#ignoredRegions.clear()
                 },
                 setMetronomeEnabled: (value: boolean) => this.#timeInfo.metronomeEnabled = this.#metronomeEnabled = value,
-                setPlaybackTimestampEnabled: (value: boolean) => {
-                    console.debug("setPlaybackTimestampEnabled", value)
-                    this.#playbackTimestampEnabled = value
-                },
+                setPlaybackTimestampEnabled: (value: boolean) => this.#playbackTimestampEnabled = value,
                 queryLoadingComplete: (): Promise<boolean> =>
                     Promise.resolve(this.#boxGraph.boxes().every(box => box.accept<BoxVisitor<boolean>>({
                         visitAudioFileBox: (box: AudioFileBox) =>

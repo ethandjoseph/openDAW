@@ -1,7 +1,7 @@
 import {Subscription, Terminable} from "./terminable"
 import {Notifier} from "./notifier"
 import {Option} from "./option"
-import {Func, isDefined, Nullable, Maybe, Procedure, ValueOrProvider} from "./lang"
+import {Func, isDefined, Maybe, Nullable, Procedure, ValueOrProvider} from "./lang"
 import {Bijective} from "./bijective"
 import {Observer} from "./observers"
 
@@ -89,6 +89,7 @@ export class MutableObservableOption<T> implements ObservableOption<T> {
     equals(other: Option<T>): boolean {return this.#option.equals(other)}
     flatMap<U>(func: Func<T, Option<U>>): Option<U> {return this.#option.flatMap(func)}
     ifSome<R>(procedure: Procedure<T>): R | undefined {return this.#option.ifSome(procedure)}
+    ifAbsent<R>(exec: Func<T, R>): R | undefined {return this.#option.ifAbsent(exec)}
     isEmpty(): boolean {return this.#option.isEmpty()}
     map<U>(func: Func<T, Maybe<U>>): Option<U> {return this.#option.map(func)}
     mapOr<U>(func: Func<T, U>, or: ValueOrProvider<U>): U {return this.#option.mapOr(func, or)}

@@ -15,9 +15,12 @@ import {
 import {MidiData} from "@opendaw/lib-midi"
 import {Promises} from "@opendaw/lib-runtime"
 import {MIDIMessageSubscriber} from "./MIDIMessageSubscriber"
+import {SoftwareMIDIInput} from "./SoftwareMIDIInput"
 
 export class MidiDevices {
     static canRequestMidiAccess(): boolean {return "requestMIDIAccess" in navigator}
+
+    static readonly softwareMIDIInput: SoftwareMIDIInput = new SoftwareMIDIInput()
 
     static #memoizedRequest = Promises.memoizeAsync(() => navigator.requestMIDIAccess({sysex: false}))
 
@@ -51,11 +54,20 @@ export class MidiDevices {
         })
     }
 
-    static inputs(): Option<ReadonlyArray<MIDIInput>> {
+    static inputDevices(): Option<ReadonlyArray<MIDIInput>> {
+        return this.externalInputDevices()
+            .map((inputs) => Array.from(inputs.values()).concat(this.softwareMIDIInput))
+    }
+
+    static findInputDeviceById(id: string): Option<MIDIInput> {
+        return this.inputDevices().map(inputs => inputs.find(input => input.id === id))
+    }
+
+    static externalInputDevices(): Option<ReadonlyArray<MIDIInput>> {
         return this.get().map(({inputs}) => Array.from(inputs.values()))
     }
 
-    static outputs(): Option<ReadonlyArray<MIDIOutput>> {
+    static externalOutputDevices(): Option<ReadonlyArray<MIDIOutput>> {
         return this.get().map(({outputs}) => Array.from(outputs.values()))
     }
 

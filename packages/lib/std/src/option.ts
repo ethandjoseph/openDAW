@@ -4,8 +4,8 @@ import {
     Func,
     getOrProvide,
     isDefined,
-    Nullable,
     Maybe,
+    Nullable,
     panic,
     Procedure,
     Provider,
@@ -19,6 +19,7 @@ export interface Option<T> {
     unwrapOrUndefined(): T | undefined
     match<R>(matchable: Option.Matchable<T, R>): R
     ifSome<R>(procedure: Procedure<T>): R | undefined
+    ifAbsent<R>(exec: Func<T, R>): R | undefined
     contains(value: T): boolean
     isEmpty(): boolean
     nonEmpty(): boolean
@@ -55,6 +56,7 @@ export namespace Option {
         contains(value: T): boolean { return value === this.#value }
         match<R>(matchable: Matchable<T, R>): R {return matchable.some(this.#value)}
         ifSome<R extends undefined>(run: Func<T, R>): R {return run(this.#value)}
+        ifAbsent<R>(_func: Func<T, R>): R | undefined {return undefined}
         isEmpty(): boolean { return false }
         nonEmpty(): boolean { return true }
         map<U>(callback: (value: T) => Maybe<U>): Option<U> {return Option.wrap(callback(this.#value))}
@@ -74,6 +76,7 @@ export namespace Option {
         readonly contains = (_: unknown): boolean => false
         readonly match = <R>(matchable: Matchable<never, R>): R => matchable.none()
         readonly ifSome = (_: Procedure<never>): undefined => {}
+        readonly ifAbsent = <R>(exec: Func<never, R>): R | undefined => exec(undefined as never)
         readonly isEmpty = (): boolean => true
         readonly nonEmpty = (): boolean => false
         readonly map = <U>(_: (_: never) => Maybe<U>): Option<U> => None

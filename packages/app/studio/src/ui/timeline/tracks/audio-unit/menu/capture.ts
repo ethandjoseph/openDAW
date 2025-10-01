@@ -25,7 +25,7 @@ export namespace MenuCapture {
             const devices = AudioDevices.inputs
             if (devices.length === 0) {
                 parent.addMenuItem(
-                    MenuItem.default({label: "Click to access devices..."})
+                    MenuItem.default({label: "Click to access external devices..."})
                         .setTriggerProcedure(() => AudioDevices.requestPermission()))
             } else {
                 parent.addMenuItem(...devices
@@ -39,30 +39,49 @@ export namespace MenuCapture {
                     })))
             }
         } else if (isInstanceOf(capture, CaptureMidi)) {
+            const currentDeviceId = capture.deviceId
+            const channelField = capture.captureBox.channel
+            const createFilteredItem = (deviceId: Option<string>,
+                                        channel: Option<int>,
+                                        label: string,
+                                        checked: boolean) => MenuItem.default({label, checked})
+                .setTriggerProcedure(() => {
+                    editing.modify(() => {
+                        currentDeviceId.setValue(deviceId)
+                        channelField.setValue(channel.unwrapOrElse(-1))
+                    }, false)
+                    capture.armed.setValue(true)
+                })
+            const createMIDIInputMenuItem = (device: MIDIInput, index: int) => {
+                const optDeviceId = Option.wrap(device.id)
+                const sameDevice = currentDeviceId.getValue().equals(optDeviceId)
+                return MenuItem.default({
+                    label: device.name ?? "Unknown", checked: sameDevice, separatorBefore: index === 0
+                }).setRuntimeChildrenProcedure(parent => {
+                    parent.addMenuItem(
+                        createFilteredItem(optDeviceId, Option.None, "All channels",
+                            channelField.getValue() === -1 && sameDevice),
+                        ...Arrays.create(channel =>
+                            createFilteredItem(optDeviceId, Option.wrap(channel),
+                                `Channel ${channel + 1}`,
+                                channelField.getValue() === channel && sameDevice), 16)
+                    )
+                })
+            }
             parent.addMenuItem(MenuItem.header({label: "Devices", icon: IconSymbol.Midi}))
-            MidiDevices.inputs().match({
+            MidiDevices.inputDevices().match({
                 none: () => {
                     parent.addMenuItem(
-                        MenuItem.default({label: "Click to access devices..."})
-                            .setTriggerProcedure(() => MidiDevices.requestPermission()))
+                        MenuItem.default({label: "Click to access external devices..."})
+                            .setTriggerProcedure(() => MidiDevices.requestPermission()),
+                        createMIDIInputMenuItem(MidiDevices.softwareMIDIInput, 0))
                 },
                 some: inputs => {
                     if (inputs.length === 0) {
-                        parent.addMenuItem(MenuItem.default({label: "No devices found", selectable: false}))
+                        parent.addMenuItem(
+                            MenuItem.default({label: "No external devices found", selectable: false}),
+                            createMIDIInputMenuItem(MidiDevices.softwareMIDIInput, 0))
                     } else {
-                        const currentDeviceId = capture.deviceId
-                        const channelField = capture.captureBox.channel
-                        const createItem = (deviceId: Option<string>,
-                                            channel: Option<int>,
-                                            label: string,
-                                            checked: boolean) => MenuItem.default({label, checked})
-                            .setTriggerProcedure(() => {
-                                editing.modify(() => {
-                                    currentDeviceId.setValue(deviceId)
-                                    channelField.setValue(channel.unwrapOrElse(-1))
-                                }, false)
-                                capture.armed.setValue(true)
-                            })
                         parent.addMenuItem(
                             MenuItem.default({
                                 label: "All devices",
@@ -70,29 +89,14 @@ export namespace MenuCapture {
                             }).setRuntimeChildrenProcedure(parent => {
                                 const hasNoDevice = currentDeviceId.getValue().isEmpty()
                                 parent.addMenuItem(
-                                    createItem(Option.None, Option.None, "All channels", channelField.getValue() === -1 && hasNoDevice),
+                                    createFilteredItem(Option.None, Option.None, "All channels", channelField.getValue() === -1 && hasNoDevice),
                                     ...Arrays.create(channel =>
-                                        createItem(Option.None, Option.wrap(channel),
+                                        createFilteredItem(Option.None, Option.wrap(channel),
                                             `Channel ${channel + 1}`,
                                             channelField.getValue() === channel && hasNoDevice), 16)
                                 )
                             }),
-                            ...inputs.map((device, index) => {
-                                    const optDeviceId = Option.wrap(device.id)
-                                    const sameDevice = currentDeviceId.getValue().equals(optDeviceId)
-                                    return MenuItem.default({
-                                        label: device.name ?? "Unknown", checked: sameDevice, separatorBefore: index === 0
-                                    }).setRuntimeChildrenProcedure(parent => {
-                                        parent.addMenuItem(
-                                            createItem(optDeviceId, Option.None, "All channels", channelField.getValue() === -1 && sameDevice),
-                                            ...Arrays.create(channel =>
-                                                createItem(optDeviceId, Option.wrap(channel),
-                                                    `Channel ${channel + 1}`,
-                                                    channelField.getValue() === channel && sameDevice), 16)
-                                        )
-                                    })
-                                }
-                            )
+                            ...inputs.map(createMIDIInputMenuItem)
                         )
                     }
                 }

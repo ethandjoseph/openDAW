@@ -64,18 +64,18 @@ export class CaptureMidi extends Capture<CaptureMidiBox> {
     subscribeNotes(observer: Observer<NoteSignal>): Subscription {return this.#notifier.subscribe(observer)}
 
     get label(): string {
-        return MidiDevices.get().mapOr(midiAccess => this.deviceId.getValue().match({
+        return MidiDevices.get().mapOr(() => this.deviceId.getValue().match({
             none: () => this.armed.getValue() ? this.#filterChannel.match({
                 none: () => `Listening to all devices`,
                 some: channel => `Listening to all devices on channel '${channel}'`
             }) : "Arm to listen to MIDI device...",
             some: id => {
-                const device = midiAccess.inputs.get(id)
-                if (isUndefined(device)) {return `⚠️ Could not find device with id '${id}'`}
-                const deviceName = device.name ?? "Unknown device"
+                const device = MidiDevices.findInputDeviceById(id)
+                if (device.isEmpty()) {return `⚠️ Could not find device with id '${id}'`}
+                const deviceName = device.unwrapOrUndefined()?.name ?? "Unknown device"
                 return this.#filterChannel.match({
                     none: () => `Listening to ${deviceName}`,
-                    some: channel => `Listening to ${deviceName} on channel '${channel}'`
+                    some: channel => `Listening to ${deviceName} on channel #${channel + 1}`
                 })
             }
         }), "MIDI not available")
@@ -83,8 +83,8 @@ export class CaptureMidi extends Capture<CaptureMidiBox> {
 
     get deviceLabel(): Option<string> {
         return this.deviceId.getValue()
-            .flatMap(deviceId => MidiDevices.inputs()
-                .map(inputs => inputs.find(input => input.id === deviceId)?.name))
+            .flatMap(deviceId => MidiDevices.findInputDeviceById(deviceId)
+                .map(device => device.name))
     }
 
     async prepareRecording(): Promise<void> {
@@ -95,7 +95,7 @@ export class CaptureMidi extends Capture<CaptureMidiBox> {
                 return Errors.warn("MIDI not available")
             }
         }
-        const optInputs = MidiDevices.inputs()
+        const optInputs = MidiDevices.inputDevices()
         if (optInputs.isEmpty()) {
             return Errors.warn("MIDI not available")
         }
@@ -111,15 +111,15 @@ export class CaptureMidi extends Capture<CaptureMidiBox> {
     }
 
     startRecording(): Terminable {
-        const availableMidiDevices = MidiDevices.inputs()
-        assert(availableMidiDevices.nonEmpty(), "No MIDI input devices found")
+        const availableInputDevices = MidiDevices.inputDevices()
+        assert(availableInputDevices.nonEmpty(), "No MIDI input devices found")
         return RecordMidi.start({notifier: this.#notifier, project: this.manager.project, capture: this})
     }
 
     async #updateStream() {
         if (MidiDevices.get().isEmpty()) {await MidiDevices.requestPermission()}
-        const availableMidiDevices = MidiDevices.inputs()
-        const available = availableMidiDevices.unwrap()
+        const availableInputDevices = MidiDevices.inputDevices()
+        const available = availableInputDevices.unwrap()
         const capturing = this.deviceId.getValue().match({
             none: () => available,
             some: id => available.filter(device => id === device.id)
