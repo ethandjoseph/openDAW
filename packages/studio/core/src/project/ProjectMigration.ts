@@ -27,7 +27,6 @@ export class ProjectMigration {
             globalShuffle.setValue("Groove Shuffle")
             boxGraph.endTransaction()
         }
-        // TODO We can remove this when we delete all not-migrated, local(!) project files from my machine
         // We need to run on a copy, because we might add more boxes during the migration
         boxGraph.boxes().slice().forEach(box => box.accept<BoxVisitor>({
             visitZeitgeistDeviceBox: (box: ZeitgeistDeviceBox) => {
