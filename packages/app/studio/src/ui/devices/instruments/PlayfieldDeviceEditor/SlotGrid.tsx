@@ -19,7 +19,7 @@ type Construct = {
 
 export const SlotGrid = ({lifecycle, service, adapter, octave}: Construct) => {
     const {project} = service
-    const noteReceiver = lifecycle.own(new NoteStreamReceiver(project.liveStreamReceiver, adapter.notesAddress))
+    const noteReceiver = lifecycle.own(new NoteStreamReceiver(project.liveStreamReceiver, adapter.audioUnitBoxAdapter().address))
     const slotStates = Arrays.create(() => new DefaultObservableValue<SlotState>(SlotState.Idle), 128)
     const slotValues = Arrays.create(() => new DefaultObservableValue<Option<PlayfieldSampleBoxAdapter>>(Option.None), 12)
     const slotViews: ReadonlyArray<HTMLElement> = slotValues.map((sample, semitone) => (
