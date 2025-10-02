@@ -61,7 +61,10 @@ export class SampleSelector {
         const {uuid: uuidAsString, name} = sample
         const uuid = UUID.parse(uuidAsString)
         editing.modify(() => this.#strategy.replace(Option.wrap(boxGraph.findBox<AudioFileBox>(uuid)
-            .unwrapOrElse(() => AudioFileBox.create(boxGraph, uuid, box => box.fileName.setValue(name))))))
+            .unwrapOrElse(() => AudioFileBox.create(boxGraph, uuid, box => {
+                box.fileName.setValue(name)
+                box.endInSeconds.setValue(sample.duration)
+            })))))
     }
 
     replaceSample(replacement: Option<AudioFileBox>) {

@@ -33,6 +33,7 @@ export * from "./clouds/CloudHandler"
 export * from "./clouds/CloudBackup"
 
 export * from "./ui/TimelineRange"
+export * from "./utils/AutofitUtils"
 
 export * from "./AudioDevices"
 export * from "./AudioOfflineRenderer"

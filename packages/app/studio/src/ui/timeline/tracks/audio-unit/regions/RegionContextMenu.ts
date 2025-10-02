@@ -2,7 +2,7 @@ import {ElementCapturing} from "@/ui/canvas/capturing.ts"
 import {EmptyExec, Selection, Terminable} from "@opendaw/lib-std"
 import {ContextMenu} from "@/ui/ContextMenu.ts"
 import {MenuItem} from "@/ui/model/menu-item.ts"
-import {AnyRegionBoxAdapter} from "@opendaw/studio-adapters"
+import {AnyRegionBoxAdapter, AudioRegionBoxAdapter} from "@opendaw/studio-adapters"
 import {RegionCaptureTarget} from "@/ui/timeline/tracks/audio-unit/regions/RegionCapturing.ts"
 import {TimelineBox} from "@opendaw/studio-boxes"
 import {Surface} from "@/ui/surface/Surface.tsx"
@@ -15,7 +15,7 @@ import {BPMTools} from "@opendaw/lib-dsp"
 import {Browser} from "@opendaw/lib-dom"
 import {Dialogs} from "@/ui/components/dialogs.tsx"
 import {StudioService} from "@/service/StudioService"
-import {TimelineRange} from "@opendaw/studio-core"
+import {AutofitUtils, TimelineRange} from "@opendaw/studio-core"
 import {AudioPlayback} from "@opendaw/studio-enums"
 
 type Construct = {
@@ -108,15 +108,16 @@ export const installRegionContextMenu =
                         checked: region.type === "audio-region"
                             && region.box.playback.getValue() === AudioPlayback.Pitch
                     }).setTriggerProcedure(() => editing.modify(() => selection.selected()
-                        .filter(region => region.type === "audio-region")
+                        .filter((region): region is AudioRegionBoxAdapter => region.type === "audio-region"
+                            && region.box.playback.getValue() !== AudioPlayback.Pitch)
                         .forEach(region => region.box.playback.setValue(AudioPlayback.Pitch)))),
                     MenuItem.default({
                         label: "Autofit",
                         checked: region.type === "audio-region"
                             && region.box.playback.getValue() === AudioPlayback.AudioFit
-                    }).setTriggerProcedure(() => editing.modify(() => selection.selected()
-                        .filter(region => region.type === "audio-region")
-                        .forEach(region => region.box.playback.setValue(AudioPlayback.AudioFit))))
+                    }).setTriggerProcedure(() => AutofitUtils.regionsToAutofit(project, selection.selected()
+                        .filter((region): region is AudioRegionBoxAdapter => region.type === "audio-region"
+                            && region.box.playback.getValue() !== AudioPlayback.AudioFit)))
                 )),
                 MenuItem.default({
                     label: "Calc Bpm",

@@ -63,8 +63,9 @@ export namespace RecordAudio {
                     sampleManager.remove(uuid)
                     recordingWorklet.terminate()
                 } else {
-                    const {regionBox: {duration}} = recordingData.unwrap("No recording data available")
+                    const {regionBox: {duration}, fileBox} = recordingData.unwrap("No recording data available")
                     recordingWorklet.limit(PPQN.pulsesToSamples(duration.getValue(), bpm, sampleRate) | 0)
+                    fileBox.endInSeconds.setValue(recordingWorklet.numberOfFrames / sampleRate)
                 }
             }),
             engine.position.catchupAndSubscribe(owner => {

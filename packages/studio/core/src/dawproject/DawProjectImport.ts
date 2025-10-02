@@ -400,7 +400,10 @@ export namespace DawProjectImport {
                 assert(external !== true, "File cannot be external")
                 const {uuid, name} = resources.fromPath(path)
                 const audioFileBox: AudioFileBox = boxGraph.findBox<AudioFileBox>(uuid)
-                    .unwrapOrElse(() => AudioFileBox.create(boxGraph, uuid, box => box.fileName.setValue(name)))
+                    .unwrapOrElse(() => AudioFileBox.create(boxGraph, uuid, box => {
+                        box.fileName.setValue(name)
+                        box.endInSeconds.setValue(asDefined(audio.duration, "Duration not defined"))
+                    }))
                 audioIdSet.add(uuid, true)
                 AudioRegionBox.create(boxGraph, UUID.generate(), box => {
                     const position = asDefined(clip.time, "Time not defined")
