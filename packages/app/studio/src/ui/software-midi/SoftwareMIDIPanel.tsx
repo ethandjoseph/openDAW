@@ -43,7 +43,7 @@ export const SoftwareMIDIPanel = ({lifecycle, service}: Construct) => {
     const numKeys = 18
     const pianoLayout = new PianoRollLayout(0, numKeys - 1, {
         whiteKeys: {width: 23, height: 48},
-        blackKeys: {width: 20, height: 24}
+        blackKeys: {width: 19, height: 24}
     })
     const {softwareMIDIInput} = MidiDevices
     const octave = new DefaultObservableValue(5, {guard: (value: number): number => clamp(value, 0, 8)})
