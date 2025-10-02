@@ -4,9 +4,11 @@ import {CaptureAudioBox} from "@opendaw/studio-boxes"
 import {AudioDevices, Capture, CaptureAudio, CaptureMidi, MidiDevices} from "@opendaw/studio-core"
 import {AudioUnitBoxAdapter, IconSymbol, TrackBoxAdapter} from "@opendaw/studio-adapters"
 import {Editing} from "@opendaw/lib-box"
+import {StudioService} from "@/service/StudioService"
 
 export namespace MenuCapture {
-    export const createItem = (audioUnitBoxAdapter: AudioUnitBoxAdapter,
+    export const createItem = (service: StudioService,
+                               audioUnitBoxAdapter: AudioUnitBoxAdapter,
                                trackBoxAdapter: TrackBoxAdapter,
                                editing: Editing,
                                captureOption: Option<Capture>) => MenuItem.default({
@@ -44,15 +46,21 @@ export namespace MenuCapture {
             const createFilteredItem = (deviceId: Option<string>,
                                         channel: Option<int>,
                                         label: string,
-                                        checked: boolean) => MenuItem.default({label, checked})
+                                        checked: boolean,
+                                        openSoftwareKeyboard: boolean = false) => MenuItem.default({label, checked})
                 .setTriggerProcedure(() => {
                     editing.modify(() => {
                         currentDeviceId.setValue(deviceId)
                         channelField.setValue(channel.unwrapOrElse(-1))
                     }, false)
                     capture.armed.setValue(true)
+                    if (openSoftwareKeyboard) {
+                        if (!service.isSoftwareKeyboardVisible()) {
+                            service.toggleSoftwareKeyboard()
+                        }
+                    }
                 })
-            const createMIDIInputMenuItem = (device: MIDIInput, index: int) => {
+            const createMIDIInputMenuItem = (device: MIDIInput, index: int, openSoftwareKeyboard: boolean = false) => {
                 const optDeviceId = Option.wrap(device.id)
                 const sameDevice = currentDeviceId.getValue().equals(optDeviceId)
                 return MenuItem.default({
@@ -60,12 +68,11 @@ export namespace MenuCapture {
                 }).setRuntimeChildrenProcedure(parent => {
                     parent.addMenuItem(
                         createFilteredItem(optDeviceId, Option.None, "All channels",
-                            channelField.getValue() === -1 && sameDevice),
+                            channelField.getValue() === -1 && sameDevice, openSoftwareKeyboard),
                         ...Arrays.create(channel =>
                             createFilteredItem(optDeviceId, Option.wrap(channel),
                                 `Channel ${channel + 1}`,
-                                channelField.getValue() === channel && sameDevice), 16)
-                    )
+                                channelField.getValue() === channel && sameDevice, openSoftwareKeyboard), 16))
                 })
             }
             parent.addMenuItem(MenuItem.header({label: "Devices", icon: IconSymbol.Midi}))
@@ -74,13 +81,13 @@ export namespace MenuCapture {
                     parent.addMenuItem(
                         MenuItem.default({label: "Click to access external devices..."})
                             .setTriggerProcedure(() => MidiDevices.requestPermission()),
-                        createMIDIInputMenuItem(MidiDevices.softwareMIDIInput, 0))
+                        createMIDIInputMenuItem(MidiDevices.softwareMIDIInput, 0, true))
                 },
                 some: inputs => {
                     if (inputs.length === 0) {
                         parent.addMenuItem(
                             MenuItem.default({label: "No external devices found", selectable: false}),
-                            createMIDIInputMenuItem(MidiDevices.softwareMIDIInput, 0))
+                            createMIDIInputMenuItem(MidiDevices.softwareMIDIInput, 0, true))
                     } else {
                         parent.addMenuItem(
                             MenuItem.default({
@@ -96,7 +103,7 @@ export namespace MenuCapture {
                                             channelField.getValue() === channel && hasNoDevice), 16)
                                 )
                             }),
-                            ...inputs.map(createMIDIInputMenuItem)
+                            ...inputs.map((input, index) => createMIDIInputMenuItem(input, index, false))
                         )
                     }
                 }

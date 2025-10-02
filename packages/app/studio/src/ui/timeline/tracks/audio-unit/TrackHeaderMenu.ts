@@ -37,7 +37,7 @@ export const installTrackHeaderMenu = (service: StudioService,
                 box.target.refer(audioUnitBoxAdapter.box)
             })
         })),
-        MenuCapture.createItem(audioUnitBoxAdapter, trackBoxAdapter, editing, captureDevices.get(audioUnitBoxAdapter.uuid)),
+        MenuCapture.createItem(service, audioUnitBoxAdapter, trackBoxAdapter, editing, captureDevices.get(audioUnitBoxAdapter.uuid)),
         MenuItem.default({label: "Move", separatorBefore: true})
             .setRuntimeChildrenProcedure(parent => parent.addMenuItem(
                 MenuItem.default({label: "Track 1 Up", selectable: trackBoxAdapter.indexField.getValue() > 0})

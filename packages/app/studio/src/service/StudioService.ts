@@ -245,10 +245,6 @@ export class StudioService implements ProjectEnv {
                 this.profileService.setValue(optProfile)
             }
         }, EmptyExec)
-
-        setTimeout(() => {
-            this.toggleSoftwareKeyboard() // TODO REMOVE WHEN DONE
-        }, 500)
     }
 
     get sampleRate(): number {return this.audioContext.sampleRate}

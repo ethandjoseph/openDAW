@@ -37,8 +37,6 @@ type Construct = {
     service: StudioService
 }
 
-// TODO Resize panel is coming through
-
 export const SoftwareMIDIPanel = ({lifecycle, service}: Construct) => {
     const numKeys = 18
     const pianoLayout = new PianoRollLayout(0, numKeys - 1, {
