@@ -33,7 +33,7 @@ export const initAppMenu = (service: StudioService) => {
                         shortcut: [ModfierKeys.System.Cmd, ModfierKeys.System.Shift, "S"],
                         selectable: service.hasProfile
                     }).setTriggerProcedure(() => service.saveAs()),
-                    MenuItem.default({label: "Import"})
+                    MenuItem.default({label: "Import", separatorBefore: true})
                         .setRuntimeChildrenProcedure(parent => parent.addMenuItem(
                             MenuItem.default({label: "Audio Files..."})
                                 .setTriggerProcedure(() => service.browseForSamples(true)),
@@ -57,35 +57,42 @@ export const initAppMenu = (service: StudioService) => {
                                 label: "JSON...",
                                 selectable: service.hasProfile,
                                 hidden: !Browser.isLocalHost()
-                            })
-                                .setTriggerProcedure(async () => {
-                                    const arrayBuffer = new TextEncoder().encode(JSON.stringify(
-                                        service.project.boxGraph.toJSON(), null, 2)).buffer
-                                    await Files.save(arrayBuffer, {
-                                        types: [FilePickerAcceptTypes.JsonFileType],
-                                        suggestedName: "project.json"
-                                    })
+                            }).setTriggerProcedure(async () => {
+                                const arrayBuffer = new TextEncoder().encode(JSON.stringify(
+                                    service.project.boxGraph.toJSON(), null, 2)).buffer
+                                await Files.save(arrayBuffer, {
+                                    types: [FilePickerAcceptTypes.JsonFileType],
+                                    suggestedName: "project.json"
                                 })
+                            })
                         )),
-                    MenuItem.default({
-                        label: "Cloud Backup",
-                        separatorBefore: true
-                    }).setRuntimeChildrenProcedure(parent => {
-                        parent.addMenuItem(
-                            MenuItem.default({
-                                label: "Dropbox",
-                                icon: IconSymbol.Dropbox
-                            }).setTriggerProcedure(() =>
-                                CloudBackup.backup(service.cloudAuthManager, "Dropbox").catch(EmptyExec)),
-                            MenuItem.default({
-                                label: "GoogleDrive",
-                                icon: IconSymbol.GoogleDrive
-                            }).setTriggerProcedure(() =>
-                                CloudBackup.backup(service.cloudAuthManager, "GoogleDrive").catch(EmptyExec)),
-                            MenuItem.default({label: "Help", icon: IconSymbol.Help, separatorBefore: true})
-                                .setTriggerProcedure(() => RouteLocation.get().navigateTo("/manuals/cloud-backup"))
-                        )
-                    }),
+                    MenuItem.default({label: "Cloud Backup"})
+                        .setRuntimeChildrenProcedure(parent => {
+                            parent.addMenuItem(
+                                MenuItem.default({
+                                    label: "Dropbox",
+                                    icon: IconSymbol.Dropbox
+                                }).setTriggerProcedure(() =>
+                                    CloudBackup.backup(service.cloudAuthManager, "Dropbox").catch(EmptyExec)),
+                                MenuItem.default({
+                                    label: "GoogleDrive",
+                                    icon: IconSymbol.GoogleDrive
+                                }).setTriggerProcedure(() =>
+                                    CloudBackup.backup(service.cloudAuthManager, "GoogleDrive").catch(EmptyExec)),
+                                MenuItem.default({label: "Help", icon: IconSymbol.Help, separatorBefore: true})
+                                    .setTriggerProcedure(() => RouteLocation.get().navigateTo("/manuals/cloud-backup"))
+                            )
+                        }),
+                    MenuItem.default({label: "Window", separatorBefore: true})
+                        .setRuntimeChildrenProcedure(parent => {
+                            return parent.addMenuItem(
+                                MenuItem.default({
+                                    label: "Show MIDI-Keyboard",
+                                    shortcut: [ModfierKeys.System.Cmd, "K"],
+                                    checked: service.isSoftwareKeyboardVisible()
+                                }).setTriggerProcedure(() => service.toggleSoftwareKeyboard())
+                            )
+                        }),
                     MenuItem.default({label: "Beta Features", hidden: !isBeta, separatorBefore: true})
                         .setRuntimeChildrenProcedure(parent => {
                             parent.addMenuItem(
@@ -183,14 +190,7 @@ export const initAppMenu = (service: StudioService) => {
                                         }
                                     })
                             )
-                        }),
-                    MenuItem.default({label: "Legal", separatorBefore: true})
-                        .setRuntimeChildrenProcedure(parent => parent.addMenuItem(
-                            MenuItem.default({label: "Privacy Policy"})
-                                .setTriggerProcedure(() => RouteLocation.get().navigateTo("/privacy")),
-                            MenuItem.default({label: "Imprint"})
-                                .setTriggerProcedure(() => RouteLocation.get().navigateTo("/imprint"))
-                        ))
+                        })
                 )
             }
         )

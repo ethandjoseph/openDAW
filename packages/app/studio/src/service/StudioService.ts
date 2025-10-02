@@ -18,6 +18,7 @@ import {
     RuntimeNotifier,
     safeRead,
     Subscription,
+    Terminable,
     Terminator,
     UUID
 } from "@opendaw/lib-std"
@@ -68,10 +69,10 @@ import {
 } from "@opendaw/studio-core"
 import {ProjectDialogs} from "@/project/ProjectDialogs"
 import {AudioImporter} from "@/audio/AudioImport"
-import {SoftwareMIDIPanel} from "@/ui/software-midi/SoftwareMIDIPanel"
-import {Surface} from "@/ui/surface/Surface"
 import {AudioUnitBox} from "@opendaw/studio-boxes"
 import {AudioUnitType} from "@opendaw/studio-enums"
+import {Surface} from "@/ui/surface/Surface"
+import {SoftwareMIDIPanel} from "@/ui/software-midi/SoftwareMIDIPanel"
 
 /**
  * I am just piling stuff after stuff in here to boot the environment.
@@ -114,7 +115,7 @@ export class StudioService implements ProjectEnv {
     readonly _shortcuts = new Shortcuts(this) // TODO reference will be used later in a key-mapping configurator
     readonly recovery = new Recovery(this)
     readonly engine = new EngineFacade()
-
+    readonly #softwareKeyboardLifeCycle = new Terminator()
     readonly #signals = new Notifier<StudioSignal>()
 
     #factoryFooterLabel: Option<Provider<FooterLabel>> = Option.None
@@ -192,8 +193,6 @@ export class StudioService implements ProjectEnv {
                 }
                 this.engine.setWorklet(project.startAudioWorklet(restart, {pauseOnLoopDisabled: false}))
                 if (isRoot) {this.switchScreen("default")}
-                // TODO REMOVE WHEN TESTED
-                Surface.get(window).cursors.appendChild(SoftwareMIDIPanel({lifecycle: new Terminator()}))
             } else {
                 this.engine.releaseWorklet()
                 range.maxUnits = PPQN.fromSignature(128, 1)
@@ -246,6 +245,10 @@ export class StudioService implements ProjectEnv {
                 this.profileService.setValue(optProfile)
             }
         }, EmptyExec)
+
+        setTimeout(() => {
+            this.toggleSoftwareKeyboard() // TODO REMOVE WHEN DONE
+        }, 500)
     }
 
     get sampleRate(): number {return this.audioContext.sampleRate}
@@ -483,4 +486,19 @@ export class StudioService implements ProjectEnv {
         const result = boxGraph.verifyPointers()
         await Dialogs.info({message: `Project is okay. All ${result.count} pointers are fine.`})
     }
+
+    toggleSoftwareKeyboard(): void {
+        if (this.isSoftwareKeyboardVisible()) {
+            this.#softwareKeyboardLifeCycle.terminate()
+        } else {
+            const element = SoftwareMIDIPanel({
+                lifecycle: this.#softwareKeyboardLifeCycle,
+                close: () => this.toggleSoftwareKeyboard()
+            })
+            Surface.get(window).floating.appendChild(element)
+            this.#softwareKeyboardLifeCycle.own(Terminable.create(() => element.remove()))
+        }
+    }
+
+    isSoftwareKeyboardVisible(): boolean {return this.#softwareKeyboardLifeCycle.nonEmpty()}
 }

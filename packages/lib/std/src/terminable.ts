@@ -24,6 +24,9 @@ export const Terminable = Object.freeze({
 export class Terminator implements TerminableOwner, Terminable {
     readonly #terminables: Terminable[] = []
 
+    isEmpty(): boolean {return this.#terminables.length === 0}
+    nonEmpty(): boolean {return this.#terminables.length > 0}
+
     own<T extends Terminable>(terminable: T): T {
         this.#terminables.push(terminable)
         return terminable

@@ -23,6 +23,9 @@ export class Shortcuts {
             } else if (Keyboard.isControlKey(event) && code === "KeyO") {
                 event.preventDefault()
                 await service.browse()
+            } else if (Keyboard.isControlKey(event) && code === "KeyK") {
+                service.toggleSoftwareKeyboard()
+                event.preventDefault()
             } else if (code === "Space") {
                 event.preventDefault()
                 const engine = service.engine

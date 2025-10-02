@@ -1,7 +1,20 @@
 import css from "./SoftwareMIDIPanel.sass?inline"
-import {Events, Html} from "@opendaw/lib-dom"
-import {byte, clamp, DefaultObservableValue, Lifecycle, ParseResult, StringResult} from "@opendaw/lib-std"
-import {createElement, DomElement, Frag} from "@opendaw/lib-jsx"
+import {Dragging, Events, Html} from "@opendaw/lib-dom"
+import {
+    asDefined,
+    assert,
+    byte,
+    clamp,
+    DefaultObservableValue,
+    Exec,
+    isInstanceOf,
+    Lifecycle,
+    Option,
+    ParseResult,
+    StringResult,
+    Terminable
+} from "@opendaw/lib-std"
+import {createElement, DomElement} from "@opendaw/lib-jsx"
 import {PianoRollLayout} from "@/ui/PianoRollLayout"
 import {PianoKeyCodes} from "@/ui/software-midi/Mapping"
 import {Colors, MidiDevices} from "@opendaw/studio-core"
@@ -11,113 +24,168 @@ import {MenuItem} from "@/ui/model/menu-item"
 import {Icon} from "@/ui/components/Icon"
 import {IconSymbol} from "@opendaw/studio-adapters"
 import {MidiData} from "@opendaw/lib-midi"
+import {FlexSpacer} from "@/ui/components/FlexSpacer"
+import {PianoRoll} from "@/ui/software-midi/PianoRoll"
+import {Button} from "@/ui/components/Button"
 
 const className = Html.adoptStyleSheet(css, "SoftwareMIDIPanel")
 
 type Construct = {
     lifecycle: Lifecycle
+    close: Exec
 }
 
-// TODO pointer down and move
 // TODO Resize panel is coming through
-// TODO indicator that nobody is listening
-// TODO Target selector
-// TODO Draggable panel
-// TODO Allow setting own dimensions in PianoRollLayout
-// TODO panic -> release all notes?
+// TODO populate target selector
+// TODO only allow digits in number-input
 
-export const SoftwareMIDIPanel = ({lifecycle}: Construct) => {
-    const {WhiteKey, BlackKey} = PianoRollLayout
-    const pianoLayout = new PianoRollLayout(0, 12)
-    const octave = new DefaultObservableValue(4)
+export const SoftwareMIDIPanel = ({lifecycle, close}: Construct) => {
+    const numKeys = 18
+    const pianoLayout = new PianoRollLayout(0, numKeys - 1, {
+        whiteKeys: {width: 23, height: 48},
+        blackKeys: {width: 20, height: 24}
+    })
+
+    const {softwareMIDIInput} = MidiDevices
+    const octave = new DefaultObservableValue(5, {guard: (value: number): number => clamp(value, 0, 8)})
     const channel = new DefaultObservableValue(0)
-    const svg: SVGElement = (
-        <svg
-            viewBox={`0.5 0 ${pianoLayout.whiteKeys.length * WhiteKey.width - 1} ${(WhiteKey.height)}`}
-            width="200px">
-            {pianoLayout.whiteKeys.map(({key, x}) => (
-                <Frag>
-                    <rect classList="white" data-key={key} x={x + 0.5} y={0}
-                          width={WhiteKey.width - 1} height={WhiteKey.height}/>
-                    <text x={(x + WhiteKey.width / 2).toString()}
-                          y={(WhiteKey.height - 4).toString()}
-                          fill="black"
-                          font-size="10px"
-                          text-anchor="middle"
-                          dominant-baseline="alphabetic">
-                        {PianoKeyCodes[key].at(-1)}
-                    </text>
-                </Frag>
-            ))}
-            {pianoLayout.blackKeys.map(({key, x}) => (
-                <Frag>
-                    <rect classList="black" data-key={key} x={x} y={0}
-                          width={BlackKey.width} height={BlackKey.height}/>
-                    <text x={(x + BlackKey.width / 2).toString()}
-                          y={(BlackKey.height - 4).toString()}
-                          fill="white"
-                          font-size="10px"
-                          text-anchor="middle"
-                          dominant-baseline="alphabetic">
-                        {PianoKeyCodes[key].at(-1)}
-                    </text>
-                </Frag>
-            ))}
-        </svg>
-    )
-    const midiIndicator: DomElement = <Icon symbol={IconSymbol.DinSlot}/>
+    const svg: SVGElement = (<PianoRoll pianoLayout={pianoLayout}/>)
+    const midiIndicator: DomElement = <Icon symbol={IconSymbol.Connected}/>
     const element: HTMLElement = (
         <div className={className}>
-            <h3>Software MIDI</h3>
+            <header>
+                <span>MIDI Keyboard</span>
+                <Button lifecycle={lifecycle} onClick={close}
+                        appearance={{color: Colors.shadow, tooltip: "Close MIDI Keyboard"}}>
+                    <Icon symbol={IconSymbol.Close}/>
+                </Button>
+            </header>
             <div className="controls">
-                <span>Octave</span>
-                <NumberInput lifecycle={lifecycle} model={octave} mapper={{
-                    x: (y: byte): StringResult => ({unit: "", value: y.toString()}),
-                    y: (x: string): ParseResult<byte> => ({type: "explicit", value: clamp(parseInt(x), -2, 6)})
-                }}/>
-                <span>Channel</span>
-                <NumberInput lifecycle={lifecycle} model={channel} mapper={{
-                    x: (y: byte): StringResult => ({unit: "", value: (y + 1).toString()}),
-                    y: (x: string): ParseResult<byte> => ({type: "explicit", value: clamp(parseInt(x) - 1, 1, 14)})
-                }}/>
-                <MenuButton root={MenuItem.root().setRuntimeChildrenProcedure(parent => parent.addMenuItem(
-                    MenuItem.default({label: "Hello World"})
-                ))}>{midiIndicator}</MenuButton>
+                <div className="unit">
+                    <span>Octave</span>
+                    <NumberInput lifecycle={lifecycle} model={octave} mapper={{
+                        x: (y: byte): StringResult => ({unit: "", value: (y - 2).toString()}),
+                        y: (x: string): ParseResult<byte> => ({
+                            type: "explicit",
+                            value: clamp(parseInt(x) + 2, 0, 8)
+                        })
+                    }} className="octave"/>
+                </div>
+                <div className="unit">
+                    <span>Channel</span>
+                    <NumberInput lifecycle={lifecycle} model={channel} mapper={{
+                        x: (y: byte): StringResult => ({unit: "", value: (y + 1).toString()}),
+                        y: (x: string): ParseResult<byte> => ({
+                            type: "explicit",
+                            value: clamp(parseInt(x) - 1, 1, 14)
+                        })
+                    }} className="channel"/>
+                </div>
+                <FlexSpacer/>
+                <MenuButton root={MenuItem.root()
+                    .setRuntimeChildrenProcedure(parent => parent.addMenuItem(
+                        MenuItem.default({label: "Hello World"})
+                    ))}>{midiIndicator}</MenuButton>
             </div>
-            {svg}
+            <div className="piano">
+                {svg}
+            </div>
         </div>
     )
+    const activeKeys: Int8Array = new Int8Array(numKeys).fill(-1)
+    let lastPointerKey = -1
+    let lastPointerKeyPitch = -1
+    const stopPointerNote = () => {
+        if (lastPointerKeyPitch !== -1) {
+            softwareMIDIInput.sendNoteOff(lastPointerKeyPitch)
+            lastPointerKey = -1
+            lastPointerKeyPitch = -1
+        }
+    }
+    const pointerPlayListener = (event: PointerEvent) => {
+        if (event.buttons === 0) {return}
+        if (isInstanceOf(event.target, SVGRectElement)) {
+            const rect = event.target as SVGRectElement
+            const index = parseInt(asDefined(rect.dataset.key))
+            if (lastPointerKey === index) {return}
+            stopPointerNote()
+            const pitch = index + octave.getValue() * 12
+            softwareMIDIInput.sendNoteOn(pitch)
+            lastPointerKey = index
+            lastPointerKeyPitch = pitch
+        }
+    }
     lifecycle.ownAll(
-        Events.subscribe(MidiDevices.softwareMIDIInput, "midimessage", event => {
+        Events.subscribe(softwareMIDIInput, "midimessage", event => {
+            const update = () => {
+                for (let key = 0; key < numKeys; key++) {
+                    const note = key + octave.getValue() * 12
+                    svg.querySelector(`[data-key="${key}"]`)
+                        ?.classList.toggle("active", softwareMIDIInput.hasActiveNote(note))
+                }
+            }
             MidiData.accept(event.data, {
-                noteOn: (note: byte, _velocity: byte) => svg.querySelector(`[data-key="${note - 60}"]`)
-                    ?.classList.add("active"),
-                noteOff: (note: byte) => svg.querySelector(`[data-key="${note - 60}"]`)
-                    ?.classList.remove("active")
+                noteOn: (_note: byte, _velocity: byte) => update(),
+                noteOff: (_note: byte) => update()
             })
         }),
-        MidiDevices.softwareMIDIInput.countListeners
-            .catchupAndSubscribe(owner => midiIndicator.style.color = owner.getValue() > 1 ? Colors.green : Colors.red),
+        softwareMIDIInput.countListeners.catchupAndSubscribe(owner =>
+            midiIndicator.style.color = owner.getValue() > 1 ? Colors.green : Colors.red),
         Events.subscribe(window, "keydown", event => {
-            if (event.repeat) {return}
-            const index = PianoKeyCodes.indexOf(event.code)
-            if (index >= 0 && index <= 12) {
-                MidiDevices.softwareMIDIInput.sendNoteOnEvent(index + 60)
+            if (event.repeat || event.shiftKey || event.ctrlKey || event.altKey || event.metaKey
+                || Events.isTextInput(event.target)) {return}
+            if (event.code === "ArrowUp") {
+                octave.setValue(octave.getValue() + 1)
+                return
+            }
+            if (event.code === "ArrowDown") {
+                octave.setValue(octave.getValue() - 1)
+                return
+            }
+            const index = PianoKeyCodes.findIndex(([code]) => event.code === code)
+            if (index >= 0) {
+                const pitch = index + octave.getValue() * 12
+                softwareMIDIInput.sendNoteOn(pitch)
+                assert(activeKeys[index] === -1, "key still pressed")
+                activeKeys[index] = pitch
+                event.preventDefault()
                 event.stopImmediatePropagation()
             }
         }, {capture: true}),
         Events.subscribe(window, "keyup", event => {
-            const index = PianoKeyCodes.indexOf(event.code)
-            if (index >= 0 && index <= 12) {
-                MidiDevices.softwareMIDIInput.sendNoteOffEvent(index + 60)
+            if (event.shiftKey || event.ctrlKey || event.altKey || event.metaKey) {return}
+            const index = PianoKeyCodes.findIndex(([code]) => event.code === code)
+            if (index >= 0) {
+                if (activeKeys[index] === -1) {return}
+                softwareMIDIInput.sendNoteOff(activeKeys[index])
+                activeKeys[index] = -1
+                event.preventDefault()
                 event.stopImmediatePropagation()
             }
         }, {capture: true}),
-        Events.subscribe(element, "pointermove", event => {
-            console.debug("pointermove", event.target)
-            event.preventDefault()
-            event.stopImmediatePropagation()
-        }, {capture: true})
+        Events.subscribe(element, "pointerdown", event => {
+            pointerPlayListener(event)
+            // we do not use setPointerCapture here because we do want a simple way to detect a drag onto a key.
+            const subscription = Terminable.many(
+                Events.subscribe(window, "pointermove", pointerPlayListener, {capture: true}),
+                Events.subscribe(window, "pointerup", () => {
+                    subscription.terminate()
+                    stopPointerNote()
+                }, {capture: true})
+            )
+        }, {capture: true}),
+        Dragging.attach(element, ({clientX: startX, clientY: startY, target}: PointerEvent) => {
+            if (target !== element) {return Option.None}
+            const {top, left, width, height} = element.getBoundingClientRect()
+            return Option.wrap({
+                update: ({clientX, clientY}: Dragging.Event) => {
+                    const newX = clamp(left + (clientX - startX), 1, window.innerWidth - width - 1)
+                    const newY = clamp(top + (clientY - startY), 1, window.innerHeight - height - 1)
+                    element.style.transform = `translate(${newX}px, ${newY}px)`
+                }
+            })
+        }),
+        Terminable.create(() => softwareMIDIInput.releaseAllNotes())
     )
     return element
 }

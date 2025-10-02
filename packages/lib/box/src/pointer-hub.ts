@@ -1,6 +1,6 @@
 import {PointerField, PointerTypes} from "./pointer"
 import {Vertex} from "./vertex"
-import {Exec, int, Iterables, Listeners, Option, panic, SortedSet, Subscription} from "@opendaw/lib-std"
+import {Exec, int, Iterables, Listeners, Option, panic, SortedSet, Subscription, Unhandled} from "@opendaw/lib-std"
 import {Address} from "./address"
 
 export interface PointerListener {
@@ -121,19 +121,20 @@ export class PointerHub {
     }
 
     readonly #onEndTransaction: Exec = (): void => {
-        if (this.#vertex.isAttached()) {
-            const log: ChangeLog = this.#inTransaction.unwrap("Callback without ChangeLog")
-            log.forEach(({type, pointerField}) => {
-                if (type === "add") {
-                    this.#transactualListeners.proxy.onAdd(pointerField)
-                } else if (type === "remove") {
-                    this.#transactualListeners.proxy.onRemove(pointerField)
-                } else {
-                    panic(`Unknown type: ${type}`)
-                }
-            })
-            log.length = 0
-        }
+        // here was a condition checking if the vertex is still attached. If not, it did not notify the listeners.
+        // I think now, this is wrong. It is up to the consumer to decide how to deal with that.
+        // Anyway, this has been removed without remembering why I added it in the first place. Watch out ;)
+        const log: ChangeLog = this.#inTransaction.unwrap("Callback without ChangeLog")
+        log.forEach(({type, pointerField}) => {
+            if (type === "add") {
+                this.#transactualListeners.proxy.onAdd(pointerField)
+            } else if (type === "remove") {
+                this.#transactualListeners.proxy.onRemove(pointerField)
+            } else {
+                return Unhandled(type)
+            }
+        })
+        log.length = 0
         this.#inTransaction = Option.None
     }
 }

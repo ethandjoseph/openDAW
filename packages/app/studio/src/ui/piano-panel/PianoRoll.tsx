@@ -16,24 +16,24 @@ type Construct = {
 }
 
 export const PianoRoll = ({lifecycle, service, updateNotifier}: Construct) => {
-    const {WhiteKey, BlackKey} = PianoRollLayout
     const {project} = service
     const {engine, rootBoxAdapter: {pianoMode: {keyboard, transpose}}} = project
     const position = engine.position
     const getPianoLayout = () => PianoRollLayout.Defaults()[keyboard.getValue()]
     const createSVG = (): SVGSVGElement => {
         const pianoLayout = getPianoLayout()
+        const {sizes: {whiteKeys, blackKeys}} = pianoLayout
         return (
             <svg classList={className}
-                 viewBox={`0.5 0 ${pianoLayout.whiteKeys.length * WhiteKey.width - 1} ${(WhiteKey.height)}`}
+                 viewBox={`0.5 0 ${pianoLayout.whiteKeys.length * whiteKeys.width - 1} ${(whiteKeys.height)}`}
                  width="100%">
                 {pianoLayout.whiteKeys.map(({key, x}) => (
                     <rect classList="white" data-key={key} x={x + 0.5} y={0}
-                          width={WhiteKey.width - 1} height={WhiteKey.height}/>
+                          width={whiteKeys.width - 1} height={whiteKeys.height}/>
                 ))}
                 {pianoLayout.blackKeys.map(({key, x}) => (
                     <rect classList="black" data-key={key} x={x} y={0}
-                          width={BlackKey.width} height={BlackKey.height}/>
+                          width={blackKeys.width} height={blackKeys.height}/>
                 ))}
             </svg>
         )

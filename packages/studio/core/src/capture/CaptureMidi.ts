@@ -55,7 +55,8 @@ export class CaptureMidi extends Capture<CaptureMidiBox> {
                     this.#stopStream()
                 }
             }),
-            this.#notifier.subscribe((signal: NoteSignal) => manager.project.engine.noteSignal(signal))
+            this.#notifier.subscribe((signal: NoteSignal) => manager.project.engine.noteSignal(signal)),
+            Terminable.create(() => this.#stopStream())
         )
     }
 
