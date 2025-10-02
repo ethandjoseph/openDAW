@@ -1,5 +1,5 @@
 import {BoxSchema} from "@opendaw/lib-box-forge"
-import {Pointers} from "@opendaw/studio-enums"
+import {AudioPlayback, Pointers} from "@opendaw/studio-enums"
 import {ClipPlaybackFields} from "./clips"
 
 export const AudioRegionBox: BoxSchema<Pointers> = {
@@ -9,6 +9,7 @@ export const AudioRegionBox: BoxSchema<Pointers> = {
         fields: {
             1: {type: "pointer", name: "regions", pointerType: Pointers.RegionCollection, mandatory: true},
             2: {type: "pointer", name: "file", pointerType: Pointers.AudioFile, mandatory: true},
+            3: {type: "string", name: "playback", value: AudioPlayback.Pitch},
             10: {type: "int32", name: "position"},
             11: {type: "int32", name: "duration"},
             12: {type: "int32", name: "loop-offset"},

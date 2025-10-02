@@ -83,7 +83,7 @@ export const Header = ({lifecycle, service}: Construct) => {
                         <div title="Just a visual indicator to debug a smooth frame-rate"
                              style={{display: "flex", scale: "0.625"}}>
                             <svg width="24" height="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                                <g className="spinner_GuJz">
+                                <g classList="spinner_GuJz">
                                     <circle cx="3" cy="12" r="2"/>
                                     <circle cx="21" cy="12" r="2"/>
                                     <circle cx="12" cy="21" r="2"/>

@@ -16,6 +16,7 @@ import {Browser} from "@opendaw/lib-dom"
 import {Dialogs} from "@/ui/components/dialogs.tsx"
 import {StudioService} from "@/service/StudioService"
 import {TimelineRange} from "@opendaw/studio-core"
+import {AudioPlayback} from "@opendaw/studio-enums"
 
 type Construct = {
     element: Element
@@ -99,8 +100,27 @@ export const installRegionContextMenu =
                     }
                 }),
                 MenuItem.default({
-                    label: "Calc Bpm",
+                    label: "Playback",
                     hidden: region.type !== "audio-region"
+                }).setRuntimeChildrenProcedure(parent => parent.addMenuItem(
+                    MenuItem.default({
+                        label: "Pitch",
+                        checked: region.type === "audio-region"
+                            && region.box.playback.getValue() === AudioPlayback.Pitch
+                    }).setTriggerProcedure(() => editing.modify(() => selection.selected()
+                        .filter(region => region.type === "audio-region")
+                        .forEach(region => region.box.playback.setValue(AudioPlayback.Pitch)))),
+                    MenuItem.default({
+                        label: "Autofit",
+                        checked: region.type === "audio-region"
+                            && region.box.playback.getValue() === AudioPlayback.AudioFit
+                    }).setTriggerProcedure(() => editing.modify(() => selection.selected()
+                        .filter(region => region.type === "audio-region")
+                        .forEach(region => region.box.playback.setValue(AudioPlayback.AudioFit))))
+                )),
+                MenuItem.default({
+                    label: "Calc Bpm",
+                    hidden: region.type !== "audio-region" && !Browser.isLocalHost()
                 }).setTriggerProcedure(() => {
                     if (region.type === "audio-region") {
                         region.file.data.ifSome(data => {

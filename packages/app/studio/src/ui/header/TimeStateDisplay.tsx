@@ -22,6 +22,7 @@ import {Dragging, Html} from "@opendaw/lib-dom"
 import {FlexSpacer} from "@/ui/components/FlexSpacer.tsx"
 import {Propagation} from "@opendaw/lib-box"
 import {ProjectProfile} from "@opendaw/studio-core"
+import {BpmChangeUtil} from "@/project/BpmChangeUtil"
 
 const className = Html.adoptStyleSheet(css, "TimeStateDisplay")
 
@@ -107,9 +108,11 @@ export const TimeStateDisplay = ({lifecycle, service}: Construct) => {
             const pointer = event.clientY
             const oldValue = bpmField.getValue()
             return Option.wrap({
-                update: (event: Dragging.Event) => editing.modify(() =>
-                    bpmField.setValue(clamp(oldValue + (pointer - event.clientY) * 2.0, minBpm, maxBpm)), false),
-                cancel: () => editing.modify(() => bpmField.setValue(oldValue), false),
+                update: (event: Dragging.Event) => {
+                    const newValue = clamp(oldValue + (pointer - event.clientY) * 2.0, minBpm, maxBpm)
+                    BpmChangeUtil.respectAutofit(project, newValue, false)
+                },
+                cancel: () => BpmChangeUtil.respectAutofit(project, oldValue, false),
                 approve: () => editing.mark()
             })
         }
@@ -125,7 +128,7 @@ export const TimeStateDisplay = ({lifecycle, service}: Construct) => {
                     const bpm = parseFloat(value)
                     if (isNaN(bpm)) {return}
                     profileService.getValue().ifSome(({project}) =>
-                        project.editing.modify(() => project.timelineBox.bpm.setValue(clamp(bpm, minBpm, maxBpm))))
+                        BpmChangeUtil.respectAutofit(project, clamp(bpm, minBpm, maxBpm), true))
                 }, EmptyExec)
                 return resolvers
             }} provider={() => ({unit: "bpm", value: bpmDigit.value})}>
