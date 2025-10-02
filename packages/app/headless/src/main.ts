@@ -64,6 +64,6 @@ import WorkletsUrl from "@opendaw/studio-core/processors.js?url"
             async () => await context.resume().then(() =>
                 console.debug(`AudioContext resumed (${context.state})`)), {capture: true, once: true})
     }
-    AnimationFrame.start()
+    AnimationFrame.start(window)
     document.body.textContent = "Ready."
 })()

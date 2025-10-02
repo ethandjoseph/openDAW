@@ -60,7 +60,7 @@ import {importSample} from "./helper"
             async () => await audioContext.resume().then(() =>
                 console.debug(`AudioContext resumed (${audioContext.state})`)), {capture: true, once: true})
     }
-    AnimationFrame.start()
+    AnimationFrame.start(window)
     output.textContent = "Ready."
     const button = document.createElement("button")
     button.textContent = "Import sample"

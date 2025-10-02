@@ -97,7 +97,7 @@ const loadBuildInfo = async () => fetch(`/build-info.json?v=${Date.now()}`)
         document.querySelector("#preloader")?.remove()
         document.addEventListener("touchmove", (event: TouchEvent) => event.preventDefault(), {passive: false})
         replaceChildren(surface.ground, App(service))
-        AnimationFrame.start()
+        AnimationFrame.start(window)
         installCursors()
         RuntimeNotifier.install({
             info: (request) => Dialogs.info(request),

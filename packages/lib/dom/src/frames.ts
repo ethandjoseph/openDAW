@@ -15,7 +15,7 @@ export namespace AnimationFrame {
 
     export const once = (exec: Exec): void => {nonrecurring.add(exec)}
 
-    export const start = (owner: WindowProxy = window): void => {
+    export const start = (owner: WindowProxy): void => {
         console.debug("AnimationFrame start", owner.name)
         const exe = (): void => {
             if (driver !== owner) {
