@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.26](https://github.com/andremichelle/openDAW/compare/@opendaw/studio-core-workers@0.0.25...@opendaw/studio-core-workers@0.0.26) (2025-10-02)
+
+**Note:** Version bump only for package @opendaw/studio-core-workers
+
 ## [0.0.25](https://github.com/andremichelle/openDAW/compare/@opendaw/studio-core-workers@0.0.24...@opendaw/studio-core-workers@0.0.25) (2025-10-01)
 
 **Note:** Version bump only for package @opendaw/studio-core-workers

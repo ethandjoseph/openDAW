@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.30](https://github.com/andremichelle/openDAW/compare/@opendaw/lib-jsx@0.0.29...@opendaw/lib-jsx@0.0.30) (2025-10-02)
+
+**Note:** Version bump only for package @opendaw/lib-jsx
+
 ## [0.0.29](https://github.com/andremichelle/openDAW/compare/@opendaw/lib-jsx@0.0.28...@opendaw/lib-jsx@0.0.29) (2025-10-01)
 
 **Note:** Version bump only for package @opendaw/lib-jsx
