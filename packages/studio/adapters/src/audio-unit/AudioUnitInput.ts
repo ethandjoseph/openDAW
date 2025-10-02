@@ -47,6 +47,7 @@ export class AudioUnitInput implements ObservableValue<Option<AudioUnitInputAdap
         this.#terminator.own(pointerHub.catchupAndSubscribeTransactual({
             onAdd: ({box}) => {
                 assert(this.#observable.getValue().isEmpty(), "Already set")
+                // FIXME: Invalid 'instanceof' check: 'box' has type that is not related to 'AudioBusBox'? (Webstorm)
                 const input: AudioUnitInputAdapter = box instanceof AudioBusBox
                     ? boxAdapters.adapterFor(box, AudioBusBoxAdapter)
                     : boxAdapters.adapterFor(box, Devices.isInstrument)

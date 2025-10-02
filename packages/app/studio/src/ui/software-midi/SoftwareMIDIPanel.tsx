@@ -2,11 +2,11 @@ import css from "./SoftwareMIDIPanel.sass?inline"
 import {Dragging, Events, Html} from "@opendaw/lib-dom"
 import {
     asDefined,
+    asInstanceOf,
     assert,
     byte,
     clamp,
     DefaultObservableValue,
-    Exec,
     isInstanceOf,
     Lifecycle,
     Option,
@@ -22,76 +22,93 @@ import {NumberInput} from "@/ui/components/NumberInput"
 import {MenuButton} from "@/ui/components/MenuButton"
 import {MenuItem} from "@/ui/model/menu-item"
 import {Icon} from "@/ui/components/Icon"
-import {IconSymbol} from "@opendaw/studio-adapters"
+import {AudioUnitBoxAdapter, IconSymbol} from "@opendaw/studio-adapters"
 import {MidiData} from "@opendaw/lib-midi"
 import {FlexSpacer} from "@/ui/components/FlexSpacer"
 import {PianoRoll} from "@/ui/software-midi/PianoRoll"
 import {Button} from "@/ui/components/Button"
+import {StudioService} from "@/service/StudioService"
+import {AudioUnitBox, CaptureMidiBox} from "@opendaw/studio-boxes"
 
 const className = Html.adoptStyleSheet(css, "SoftwareMIDIPanel")
 
 type Construct = {
     lifecycle: Lifecycle
-    close: Exec
+    service: StudioService
 }
 
 // TODO Resize panel is coming through
-// TODO populate target selector
-// TODO only allow digits in number-input
 
-export const SoftwareMIDIPanel = ({lifecycle, close}: Construct) => {
+export const SoftwareMIDIPanel = ({lifecycle, service}: Construct) => {
     const numKeys = 18
     const pianoLayout = new PianoRollLayout(0, numKeys - 1, {
         whiteKeys: {width: 23, height: 48},
         blackKeys: {width: 20, height: 24}
     })
-
     const {softwareMIDIInput} = MidiDevices
     const octave = new DefaultObservableValue(5, {guard: (value: number): number => clamp(value, 0, 8)})
     const channel = new DefaultObservableValue(0)
     const svg: SVGElement = (<PianoRoll pianoLayout={pianoLayout}/>)
     const midiIndicator: DomElement = <Icon symbol={IconSymbol.Connected}/>
-    const element: HTMLElement = (
-        <div className={className}>
-            <header>
-                <span>MIDI Keyboard</span>
-                <Button lifecycle={lifecycle} onClick={close}
-                        appearance={{color: Colors.shadow, tooltip: "Close MIDI Keyboard"}}>
-                    <Icon symbol={IconSymbol.Close}/>
-                </Button>
-            </header>
-            <div className="controls">
-                <div className="unit">
-                    <span>Octave</span>
-                    <NumberInput lifecycle={lifecycle} model={octave} mapper={{
-                        x: (y: byte): StringResult => ({unit: "", value: (y - 2).toString()}),
-                        y: (x: string): ParseResult<byte> => ({
-                            type: "explicit",
-                            value: clamp(parseInt(x) + 2, 0, 8)
-                        })
-                    }} className="octave"/>
-                </div>
-                <div className="unit">
-                    <span>Channel</span>
-                    <NumberInput lifecycle={lifecycle} model={channel} mapper={{
-                        x: (y: byte): StringResult => ({unit: "", value: (y + 1).toString()}),
-                        y: (x: string): ParseResult<byte> => ({
-                            type: "explicit",
-                            value: clamp(parseInt(x) - 1, 1, 14)
-                        })
-                    }} className="channel"/>
-                </div>
-                <FlexSpacer/>
-                <MenuButton root={MenuItem.root()
-                    .setRuntimeChildrenProcedure(parent => parent.addMenuItem(
-                        MenuItem.default({label: "Hello World"})
-                    ))}>{midiIndicator}</MenuButton>
+    const element: HTMLElement = <div className={className}>
+        <header>
+            <span>MIDI Keyboard</span>
+            <Button lifecycle={lifecycle} onClick={() => service.toggleSoftwareKeyboard()}
+                    appearance={{color: Colors.shadow, tooltip: "Close MIDI Keyboard"}}>
+                <Icon symbol={IconSymbol.Close}/>
+            </Button>
+        </header>
+        <div className="controls">
+            <div className="unit">
+                <span>Octave</span>
+                <NumberInput lifecycle={lifecycle} model={octave} mapper={{
+                    x: (y: byte): StringResult => ({unit: "", value: (y - 2).toString()}),
+                    y: (x: string): ParseResult<byte> => ({
+                        type: "explicit",
+                        value: clamp(parseInt(x) + 2, 0, 8)
+                    })
+                }} className="octave"/>
             </div>
-            <div className="piano">
-                {svg}
+            <div className="unit">
+                <span>Channel</span>
+                <NumberInput lifecycle={lifecycle} model={channel} mapper={{
+                    x: (y: byte): StringResult => ({unit: "", value: (y + 1).toString()}),
+                    y: (x: string): ParseResult<byte> => ({
+                        type: "explicit",
+                        value: clamp(parseInt(x) - 1, 1, 14)
+                    })
+                }} className="channel"/>
             </div>
+            <FlexSpacer/>
+            <MenuButton root={MenuItem.root()
+                .setRuntimeChildrenProcedure(parent => parent.addMenuItem(
+                    ...service.profileService.getValue()
+                        .map(({project: {boxAdapters, captureDevices, rootBox: {audioUnits: {pointerHub}}}}) =>
+                            pointerHub.incoming()
+                                .map(({box}) => asInstanceOf(box, AudioUnitBox))
+                                .filter(box => box.capture.targetVertex
+                                    .mapOr(({box}) => isInstanceOf(box, CaptureMidiBox), false))
+                                .map(box => {
+                                    const {label, uuid} = boxAdapters.adapterFor(box, AudioUnitBoxAdapter)
+                                    return captureDevices.get(uuid).match({
+                                        none: () => MenuItem.default({label, selectable: false}),
+                                        some: (capture) => MenuItem.default({
+                                            label,
+                                            checked: capture.armed.getValue()
+                                        }).setTriggerProcedure(() => captureDevices.setArm(capture, true))
+                                    })
+                                }))
+                        .map(adapters => adapters.length === 0 ? undefined : adapters)
+                        .match({
+                            none: () => [MenuItem.default({label: "No MIDI instruments found"})],
+                            some: adapters => adapters
+                        })
+                ))}>{midiIndicator}</MenuButton>
         </div>
-    )
+        <div className="piano">
+            {svg}
+        </div>
+    </div>
     const activeKeys: Int8Array = new Int8Array(numKeys).fill(-1)
     let lastPointerKey = -1
     let lastPointerKeyPitch = -1

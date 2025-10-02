@@ -493,7 +493,7 @@ export class StudioService implements ProjectEnv {
         } else {
             const element = SoftwareMIDIPanel({
                 lifecycle: this.#softwareKeyboardLifeCycle,
-                close: () => this.toggleSoftwareKeyboard()
+                service: this
             })
             Surface.get(window).floating.appendChild(element)
             this.#softwareKeyboardLifeCycle.own(Terminable.create(() => element.remove()))
