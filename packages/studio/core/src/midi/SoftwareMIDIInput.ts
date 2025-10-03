@@ -63,7 +63,11 @@ export class SoftwareMIDIInput implements MIDIInput {
     }
 
     releaseAllNotes(): void {
-        this.#activeNotes.forEach((_, note) => this.#sendMIDIMessageData(MidiData.noteOff(this.#channel, note)))
+        this.#activeNotes.forEach((count, note) => {
+            for (let i = 0; i < count; i++) {
+                this.#sendMIDIMessageData(MidiData.noteOff(this.#channel, note))
+            }
+        })
         this.#activeNotes.fill(0)
     }
 

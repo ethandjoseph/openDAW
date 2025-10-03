@@ -3,7 +3,6 @@ import {Dragging, Events, Html} from "@opendaw/lib-dom"
 import {
     asDefined,
     asInstanceOf,
-    assert,
     byte,
     clamp,
     DefaultObservableValue,
@@ -159,10 +158,14 @@ export const SoftwareMIDIPanel = ({lifecycle, service}: Construct) => {
             }
             const index = PianoKeyCodes.findIndex(([code]) => event.code === code)
             if (index >= 0) {
-                const pitch = index + octave.getValue() * 12
-                softwareMIDIInput.sendNoteOn(pitch)
-                assert(activeKeys[index] === -1, "key still pressed")
-                activeKeys[index] = pitch
+                if (activeKeys[index] > -1) {
+                    softwareMIDIInput.sendNoteOff(activeKeys[index])
+                    activeKeys[index] = -1
+                } else {
+                    const pitch = index + octave.getValue() * 12
+                    softwareMIDIInput.sendNoteOn(pitch)
+                    activeKeys[index] = pitch
+                }
                 event.preventDefault()
                 event.stopImmediatePropagation()
             }
