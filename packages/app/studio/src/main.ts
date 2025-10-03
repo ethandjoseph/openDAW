@@ -39,11 +39,9 @@ const loadBuildInfo = async () => fetch(`/build-info.json?v=${Date.now()}`)
 
 ;(async () => {
         console.time("boot")
-        if (Browser.isLocalHost()) {
-            Object.entries(import.meta.env)
-                .forEach(([key, value]) => console.debug(`%c${key}%c: ${value}`,
-                    "color: hsl(200, 83%, 60%)", "color: inherit"))
-        }
+        Object.entries(import.meta.env)
+            .forEach(([key, value]) => console.debug(`%c${key}%c: ${value}`,
+                "color: hsl(200, 83%, 60%)", "color: inherit"))
         if (!window.crossOriginIsolated) {return panic("window must be crossOriginIsolated")}
         console.debug("booting...")
         await FontLoader.load()

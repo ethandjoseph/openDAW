@@ -291,7 +291,7 @@ export namespace Dialogs {
 
     export const cache = (): void => {
         const dialog: HTMLDialogElement = (
-            <Dialog headline="An error occurred :("
+            <Dialog headline="There Is A New Version Available"
                     icon={IconSymbol.Robot}
                     buttons={[{
                         text: "Reload",
@@ -300,8 +300,7 @@ export namespace Dialogs {
                     cancelable={false}
                     error>
                 <div style={{padding: "1em 0", maxWidth: "50vw"}}>
-                    <p>Caching Issue detected. A new version is in place. Please reload or clear your browsers
-                        cache.</p>
+                    <p>Please reload. If this message reappears clear your browsers cache.</p>
                     {document.scripts.length > 1 &&
                         <p style={{color: Colors.red, fontWeight: "bolder"}}>Browser extensions detected! Please disable
                             before reload!</p>}
