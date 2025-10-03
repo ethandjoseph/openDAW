@@ -4,6 +4,9 @@ import {defineConfig} from "vite"
 import crossOriginIsolation from "vite-plugin-cross-origin-isolation"
 import viteCompression from "vite-plugin-compression"
 import {BuildInfo} from "./src/BuildInfo"
+import {config as loadEnv} from "dotenv"
+
+loadEnv({path: resolve(__dirname, "../../../opendaw.env")})
 
 export default defineConfig(({command}) => {
     const uuid = generateUUID()

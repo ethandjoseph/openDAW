@@ -4,7 +4,7 @@ import {OpfsProtocol} from "./OpfsProtocol"
 import "../types"
 
 export namespace OpfsWorker {
-    const DEBUG = true
+    const DEBUG = false
 
     export const init = (messenger: Messenger) =>
         Communicator.executor(messenger.channel("opfs"), new class implements OpfsProtocol {

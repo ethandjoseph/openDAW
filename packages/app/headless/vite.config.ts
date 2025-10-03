@@ -2,6 +2,9 @@ import {defineConfig} from "vite"
 import crossOriginIsolation from "vite-plugin-cross-origin-isolation"
 import {readFileSync} from "fs"
 import {resolve} from "path"
+import {config as loadEnv} from "dotenv"
+
+loadEnv({path: resolve(__dirname, "../../../opendaw.env")})
 
 export default defineConfig(({command}) => ({
     resolve: {

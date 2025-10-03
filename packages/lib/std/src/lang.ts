@@ -99,8 +99,14 @@ export const hasField = (record: Record<string, unknown>, key: string, type: JsT
     const value = record[key]
     return type === "null" ? value === null : typeof value === type
 }
-export const safeRead = (object: unknown, key: string): Maybe<unknown> =>
-    isRecord(object) && key in object ? object[key] : undefined
+export const safeRead = (object: unknown, ...keys: string[]): Maybe<unknown> => {
+    let current: unknown = object
+    for (const key of keys) {
+        if (!isRecord(current) || !(key in current)) {return undefined}
+        current = current[key]
+    }
+    return current
+}
 export const Unhandled = <R>(empty: never): R => {throw new Error(`Unhandled ${empty}`)}
 export const panic = (issue?: string | Error | unknown): never => {
     throw typeof issue === "string" ? new Error(issue) : issue
