@@ -27,7 +27,6 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
     #lastRead: number = NaN
     #lastStepSize: number = 0.0
     #fadeLength: number = 128
-    #fading: boolean = false
 
     constructor(context: EngineContext, adapter: TapeDeviceBoxAdapter) {
         super(context)
@@ -47,7 +46,6 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
         this.eventInput.clear()
         this.#lastRead = NaN
         this.#lastStepSize = 0.0
-        this.#fading = false
     }
 
     get uuid(): UUID.Bytes {return this.#adapter.uuid}
@@ -117,25 +115,29 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
         const bpn = (bp1 - bp0) | 0
         const stepSize = (wp1 - wp0) / bpn
         assert(s0 <= bp0 && bp1 <= s1, `Out of bounds ${bp0}, ${bp1}`)
-        this.#fading = !Number.isFinite(this.#lastRead) || Math.abs(wp0 - (this.#lastRead + stepSize)) > 2.0
+        const fading = !Number.isFinite(this.#lastRead) || Math.abs(wp0 - (this.#lastRead + stepSize)) > 2.0
         for (let i = 0 | 0, j = bp0 | 0; i < bpn; i++, j++) {
             const readNew = wp0 + i * stepSize
             const readNewInt = readNew | 0
             let lNew = 0.0, rNew = 0.0
             if (readNewInt >= 0 && readNewInt < numberOfFrames - 1) {
-                const index = readNew - readNewInt
-                lNew = framesL[readNewInt] + index * (framesL[readNewInt + 1] - framesL[readNewInt])
-                rNew = framesR[readNewInt] + index * (framesR[readNewInt + 1] - framesR[readNewInt])
+                const alpha = readNew - readNewInt
+                const fL = framesL[readNewInt]
+                const fR = framesR[readNewInt]
+                lNew = fL + alpha * (framesL[readNewInt + 1] - fL)
+                rNew = fR + alpha * (framesR[readNewInt + 1] - fR)
             }
-            if (this.#fading && i < this.#fadeLength && Number.isFinite(this.#lastRead)) {
+            if (fading && i < this.#fadeLength && Number.isFinite(this.#lastRead)) {
                 const fadeIn = i / this.#fadeLength
                 const fadeOut = 1.0 - fadeIn
                 const readOld = this.#lastRead + i * this.#lastStepSize
                 const readOldInt = readOld | 0
                 if (readOldInt >= 0 && readOldInt < numberOfFrames - 1) {
-                    const aOldPos = readOld - readOldInt
-                    const lOld = framesL[readOldInt] + aOldPos * (framesL[readOldInt + 1] - framesL[readOldInt])
-                    const rOld = framesR[readOldInt] + aOldPos * (framesR[readOldInt + 1] - framesR[readOldInt])
+                    const alpha = readOld - readOldInt
+                    const fL = framesL[readOldInt]
+                    const fR = framesR[readOldInt]
+                    const lOld = fL + alpha * (framesL[readOldInt + 1] - fL)
+                    const rOld = fR + alpha * (framesR[readOldInt + 1] - fR)
                     outL[j] += fadeOut * lOld + fadeIn * lNew
                     outR[j] += fadeOut * rOld + fadeIn * rNew
                 } else {
