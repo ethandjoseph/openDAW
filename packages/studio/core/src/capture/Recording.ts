@@ -33,8 +33,7 @@ export class Recording {
         const {isRecording, isCountingIn} = engine
         const stop = (): void => {
             if (isRecording.getValue() || isCountingIn.getValue()) {return}
-            editing.mark()
-            terminator.terminate()
+            editing.modify(() => terminator.terminate()) // finalizes recording
             this.#isRecording = false
         }
         terminator.ownAll(
