@@ -1,3 +1,4 @@
+import {BoxGraph} from "@opendaw/lib-box"
 import {
     AudioBusBox,
     AudioUnitBox,
@@ -7,21 +8,16 @@ import {
     TimelineBox,
     UserInterfaceBox
 } from "@opendaw/studio-boxes"
-import {BoxGraph} from "@opendaw/lib-box"
 import {assert, ByteArrayInput, isInstanceOf, Option, UUID} from "@opendaw/lib-std"
-import {MandatoryBoxes} from "./ManadatoryBoxes"
 import {AudioUnitType} from "@opendaw/studio-enums"
+import {ProjectSkeleton} from "./ProjectSkeleton"
+import {ProjectMandatoryBoxes} from "./ProjectMandatoryBoxes"
 
 export namespace ProjectDecoder {
     export const MAGIC_HEADER_OPEN = 0x4F50454E
     export const FORMAT_VERSION = 2
 
-    export type Skeleton = {
-        boxGraph: BoxGraph<BoxIO.TypeMap>,
-        mandatoryBoxes: MandatoryBoxes
-    }
-
-    export const decode = (arrayBuffer: ArrayBufferLike): Skeleton => {
+    export const decode = (arrayBuffer: ArrayBufferLike): ProjectSkeleton => {
         const input = new ByteArrayInput(arrayBuffer)
         assert(input.readInt() === ProjectDecoder.MAGIC_HEADER_OPEN, "Corrupt header. Probably not an openDAW project file.")
         assert(input.readInt() === ProjectDecoder.FORMAT_VERSION, "Deprecated Format")
@@ -33,8 +29,8 @@ export namespace ProjectDecoder {
         return {boxGraph, mandatoryBoxes: readMandatoryBoxes(boxGraph, input)}
     }
 
-    export const findMandatoryBoxes = (boxGraph: BoxGraph): MandatoryBoxes => {
-        const boxes: Partial<MandatoryBoxes> = {}
+    export const findMandatoryBoxes = (boxGraph: BoxGraph): ProjectMandatoryBoxes => {
+        const boxes: Partial<ProjectMandatoryBoxes> = {}
         for (const box of boxGraph.boxes()) {
             box.accept<BoxVisitor>({
                 visitRootBox: (box: RootBox) => boxes.rootBox = box,
@@ -58,10 +54,10 @@ export namespace ProjectDecoder {
         assert(boxes.userInterfaceBox !== undefined, "UserInterfaceBox not found")
         assert(boxes.masterAudioUnit !== undefined, "MasterAudioUnit not found")
         assert(boxes.masterBusBox !== undefined, "MasterBusBox not found")
-        return boxes as MandatoryBoxes
+        return boxes as ProjectMandatoryBoxes
     }
 
-    const readMandatoryBoxes = (boxGraph: BoxGraph, input: ByteArrayInput): MandatoryBoxes => {
+    const readMandatoryBoxes = (boxGraph: BoxGraph, input: ByteArrayInput): ProjectMandatoryBoxes => {
         const rootBox = boxGraph.findBox(UUID.fromDataInput(input)).unwrap("RootBox not found") as RootBox
         const userInterfaceBox = boxGraph.findBox(UUID.fromDataInput(input)).unwrap("UserInterfaceBox not found") as UserInterfaceBox
         const masterBusBox = boxGraph.findBox(UUID.fromDataInput(input)).unwrap("AudioBusBox not found") as AudioBusBox

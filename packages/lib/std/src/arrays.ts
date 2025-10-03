@@ -134,12 +134,12 @@ export class Arrays {
             yield {value: array[i], isFirst: i === 0, isLast: i === maxIndex}
         }
     }
-    static* iterateAdjacent<T>(array: ArrayLike<T>): Generator<{ current: T, next: T }> {
+    static* iterateAdjacent<T>(array: ArrayLike<T>): Generator<[T, T]> {
         if (array.length <= 1) {return}
-        for (let i = 1, current = array[0]; i < array.length; i++) {
-            const next = array[i]
-            yield {current, next}
-            current = next
+        for (let i = 1, left = array[0]; i < array.length; i++) {
+            const right = array[i]
+            yield [left, right]
+            left = right
         }
     }
     static isSorted<ARRAY extends NumberArray>(array: ARRAY, sorting: Sorting = Sorting.Ascending): boolean {

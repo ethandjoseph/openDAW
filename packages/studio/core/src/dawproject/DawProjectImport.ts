@@ -64,7 +64,7 @@ import {
     UnknownMidiEffectDeviceBox,
     UserInterfaceBox
 } from "@opendaw/studio-boxes"
-import {CaptureBox, DeviceBoxUtils, IconSymbol, ProjectDecoder, TrackType} from "@opendaw/studio-adapters"
+import {CaptureBox, DeviceBoxUtils, IconSymbol, ProjectSkeleton, TrackType} from "@opendaw/studio-adapters"
 import {DawProject} from "./DawProject"
 import {InstrumentBox} from "../InstrumentBox"
 import {AudioUnitOrdering} from "../AudioUnitOrdering"
@@ -86,7 +86,7 @@ export namespace DawProjectImport {
 
     export type Result = {
         audioIds: ReadonlyArray<UUID.Bytes>,
-        skeleton: ProjectDecoder.Skeleton
+        skeleton: ProjectSkeleton
     }
 
     const toAudioUnitCapture = (boxGraph: BoxGraph, contentType: Maybe<string>): Option<CaptureBox> => {

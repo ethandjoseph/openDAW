@@ -1,4 +1,3 @@
-import {ProjectDecoder} from "@opendaw/studio-adapters"
 import {
     AudioUnitBox,
     BoxVisitor,
@@ -11,9 +10,10 @@ import {
 } from "@opendaw/studio-boxes"
 import {asDefined, asInstanceOf, UUID} from "@opendaw/lib-std"
 import {AudioUnitType} from "@opendaw/studio-enums"
+import {ProjectSkeleton} from "@opendaw/studio-adapters"
 
 export class ProjectMigration {
-    static migrate({boxGraph, mandatoryBoxes}: ProjectDecoder.Skeleton): void {
+    static migrate({boxGraph, mandatoryBoxes}: ProjectSkeleton): void {
         const {rootBox} = mandatoryBoxes
         if (rootBox.groove.targetAddress.isEmpty()) {
             console.debug("Migrate to global GrooveShuffleBox")

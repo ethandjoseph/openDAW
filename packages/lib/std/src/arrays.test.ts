@@ -239,13 +239,13 @@ describe("Arrays", () => {
         it("should yield exact array", () => {
             const data = [10, 20]
             const result = Array.from(Arrays.iterateAdjacent(data))
-            expect(result[0]).toStrictEqual({current: 10, next: 20})
+            expect(result[0]).toStrictEqual([10, 20])
         })
         it("should yield all elements pairwise", () => {
             const data = [10, 20, 30]
             const result = Array.from(Arrays.iterateAdjacent(data))
-            expect(result[0]).toStrictEqual({current: 10, next: 20})
-            expect(result[1]).toStrictEqual({current: 20, next: 30})
+            expect(result[0]).toStrictEqual([10, 20])
+            expect(result[1]).toStrictEqual([20, 30])
         })
     })
 

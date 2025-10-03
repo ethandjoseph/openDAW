@@ -158,6 +158,7 @@ export abstract class Box<P extends PointerTypes = PointerTypes, F extends Field
     }
 
     delete(): void {
+        if (!this.isAttached()) {return}
         const {boxes, pointers} = this.graph.dependenciesOf(this)
         if (Box.DEBUG_DELETION) {
             console.debug(`Delete ${this.toString()}`)

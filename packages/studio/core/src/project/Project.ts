@@ -27,10 +27,11 @@ import {
     BoxAdaptersContext,
     ClipSequencing,
     IconSymbol,
-    MandatoryBoxes,
     ParameterFieldAdapters,
     ProcessorOptions,
     ProjectDecoder,
+    ProjectMandatoryBoxes,
+    ProjectSkeleton,
     RootBoxAdapter,
     SampleLoaderManager,
     TimelineBoxAdapter,
@@ -49,6 +50,7 @@ import {EngineFacade} from "../EngineFacade"
 import {EngineWorklet} from "../EngineWorklet"
 import {Recording} from "../capture/Recording"
 import {MIDILearning} from "../midi/MIDILearning"
+import {ProjectValidation} from "./ProjectValidation"
 
 export type RestartWorklet = { unload: Procedure<unknown>, load: Procedure<EngineWorklet> }
 
@@ -94,13 +96,12 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
     }
 
     static load(env: ProjectEnv, arrayBuffer: ArrayBuffer): Project {
-        const skeleton = ProjectDecoder.decode(arrayBuffer)
-        ProjectMigration.migrate(skeleton)
-        return new Project(env, skeleton.boxGraph, skeleton.mandatoryBoxes)
+        return this.skeleton(env, ProjectDecoder.decode(arrayBuffer))
     }
 
-    static skeleton(env: ProjectEnv, skeleton: ProjectDecoder.Skeleton): Project {
+    static skeleton(env: ProjectEnv, skeleton: ProjectSkeleton): Project {
         ProjectMigration.migrate(skeleton)
+        ProjectValidation.validate(skeleton)
         return new Project(env, skeleton.boxGraph, skeleton.mandatoryBoxes)
     }
 
@@ -133,7 +134,7 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
         masterBusBox,
         masterAudioUnit,
         timelineBox
-    }: MandatoryBoxes) {
+    }: ProjectMandatoryBoxes) {
         this.#env = env
         this.boxGraph = boxGraph
         this.rootBox = rootBox
@@ -198,7 +199,7 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
     get isMainThread(): boolean {return true}
     get liveStreamBroadcaster(): LiveStreamBroadcaster {return panic("Only available in audio context")}
 
-    get skeleton(): ProjectDecoder.Skeleton {
+    get skeleton(): ProjectSkeleton {
         return {
             boxGraph: this.boxGraph,
             mandatoryBoxes: {
@@ -233,9 +234,10 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
     }
 
     invalid(): boolean {
+        // TODO Optimise. Flag changes somewhere.
         return this.boxGraph.boxes().some(box => box.accept<BoxVisitor<boolean>>({
             visitTrackBox: (box: TrackBox): boolean => {
-                for (const {current, next} of Arrays.iterateAdjacent(box.regions.pointerHub.incoming()
+                for (const [current, next] of Arrays.iterateAdjacent(box.regions.pointerHub.incoming()
                     .map(({box}) => UnionBoxTypes.asRegionBox(box))
                     .sort(({position: a}, {position: b}) => a.getValue() - b.getValue()))) {
                     if (current.position.getValue() + current.duration.getValue() > next.position.getValue()) {
