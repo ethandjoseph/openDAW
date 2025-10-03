@@ -17,6 +17,8 @@ export namespace YService {
     const isDev = false
     const serverUrl = isDev ? serverDevUrl : serverProdUrl
 
+    console.debug("import.meta.env.VITE_USE_VJS_IS_DEV", import.meta.env.VITE_USE_VJS_IS_DEV)
+
     export const getOrCreateRoom = async (optProject: Option<Project>,
                                           env: ProjectEnv,
                                           roomName: string): Promise<Project> => {
