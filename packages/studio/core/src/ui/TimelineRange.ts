@@ -46,6 +46,9 @@ export class TimelineRange implements Terminable {
         this.#range.minimum = this.normalize(this.#minimum)
     }
 
+    get unitCenter(): number {return this.toUnits(this.#range.center)}
+    set unitCenter(value: number) {this.#range.center = this.normalize(value)}
+
     get width(): number {return this.#range.width}
     set width(value: number) {this.#range.width = value}
 
@@ -53,17 +56,17 @@ export class TimelineRange implements Terminable {
     get minimum(): number {return this.#minimum}
     set minimum(value: number) {this.#minimum = value}
 
-    get unitMin(): number {return this.denormalize(this.#range.min)}
+    get unitMin(): number {return this.toUnits(this.#range.min)}
     set unitMin(value: number) {this.#range.min = this.normalize(value)}
-    get unitMax(): number {return this.denormalize(this.#range.max)}
+    get unitMax(): number {return this.toUnits(this.#range.max)}
     set unitMax(value: number) {this.#range.max = this.normalize(value)}
-    get unitsPerPixel(): number {return this.denormalize(this.#range.valuesPerPixel)}
+    get unitsPerPixel(): number {return this.toUnits(this.#range.valuesPerPixel)}
     get unitRange(): number {return this.unitMax - this.unitMin}
     get valueAxis(): ValueAxis {return this.#valueAxis}
     normalize(value: number): unitValue {return value / this.maxUnits}
-    denormalize(value: number): unitValue {return value * this.maxUnits}
+    toUnits(value: number): unitValue {return value * this.maxUnits}
     unitToX(unit: number): number {return this.valueToX(this.normalize(unit))}
-    xToUnit(x: number): number {return this.denormalize(this.xToValue(x))}
+    xToUnit(x: number): number {return this.toUnits(this.xToValue(x))}
     moveToUnit(value: number): void {this.#range.moveTo(this.normalize(value))}
     unitOverlaps(min: number, max: number): boolean {return this.#range.overlaps(this.normalize(min), this.normalize(max))}
     showUnitInterval(min: number, max: number): void {this.#range.set(this.normalize(min), this.normalize(max))}
