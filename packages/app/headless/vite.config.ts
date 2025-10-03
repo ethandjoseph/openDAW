@@ -9,6 +9,7 @@ export default defineConfig(({command}) => ({
             "@": resolve(__dirname, "./src")
         }
     },
+    envDir: resolve(__dirname, "../../.."),
     server: {
         port: 8080,
         host: "localhost",
