@@ -53,10 +53,7 @@ export class Surface implements TerminableOwner {
 
     static get(proxyOrElement?: WindowProxy | Element): Surface {
         const key = this.#findWindowProxy(proxyOrElement)
-        const surface = this.#surfacesByWindow.get(key)
-        if (isDefined(surface)) {return surface}
-        const numSurfaces = Array.from(this.#surfacesByWindow.values()).length
-        return panic(`No surface defined for ${proxyOrElement} resolved in ${key?.name}. surfaces: ${numSurfaces}`)
+        return asDefined(this.#surfacesByWindow.get(key) || this.#surfacesByWindow.get(window), "No surfaces defined")
     }
 
     static #findWindowProxy(element?: WindowProxy | Element): Window {
@@ -259,14 +256,15 @@ export class Surface implements TerminableOwner {
             Events.subscribe(this.#owner, "beforeunload", () => {
                 if (this.#owner === self) {return} // We are leaving the main window. Nothing to do.
                 console.debug(`Before-unload surface: '${this.#owner.name}'`)
-                this.#adoptAnimationFrame()
                 for (const [id, surface] of Surface.#surfaceById.entries()) {
                     if (surface === this) {
                         Surface.#surfaceById.delete(id)
                         break
                     }
                 }
+                Surface.#surfacesByWindow.delete(this.#owner)
                 this.#terminator.terminate()
+                this.#adoptAnimationFrame()
             }, {capture: true, once: true}),
             Events.subscribe(this.#owner, "keydown", (event: KeyboardEvent) => {
                 if (Keyboard.isControlKey(event) && event.code === "KeyA") {
@@ -284,13 +282,12 @@ export class Surface implements TerminableOwner {
                 if (event.ctrlKey) {event.preventDefault()}
             }, {passive: false}),
             Events.subscribe(this.#owner, "contextmenu", (event) => {
-                console.debug("contextmenu", event.target)
                 event.preventDefault()
                 event.stopPropagation()
                 AnimationFrame.once(() => CssUtils.setCursor("auto"))
             }, {capture: true}),
             Events.subscribe(document.body, "touchmove", Events.PreventDefault, {capture: true}),
-            Events.subscribeAny(this.#owner, "visibilitychange", () => {
+            Events.subscribeAny(document, "visibilitychange", () => {
                 if (document.hidden) {
                     this.#adoptAnimationFrame()
                 } else {
@@ -301,13 +298,11 @@ export class Surface implements TerminableOwner {
     }
 
     #adoptAnimationFrame(): void {
-        Array.from(Surface.#surfacesByWindow.keys()).some(owner => {
+        for (const owner of Surface.#surfacesByWindow.keys()) {
             if (!owner.document.hidden) {
                 AnimationFrame.start(owner)
-                return true
             }
-            return false
-        })
+        }
     }
 }
 
