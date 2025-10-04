@@ -45,7 +45,7 @@ export class Surface implements TerminableOwner {
     static readonly #keyListeners = new ArrayMultimap<KeyEventType, {
         priority: int,
         procedure: Procedure<WindowEventMap[KeyEventType]>
-    }>(undefined, (a, b) => a.priority - b.priority)
+    }>(undefined, ({priority: a}, {priority: b}) => b - a)
 
     static dispatchGlobalKey(type: KeyEventType, event: KeyboardEvent): void {
         if (Keyboard.isControlKey(event) && event.code === "KeyA") {

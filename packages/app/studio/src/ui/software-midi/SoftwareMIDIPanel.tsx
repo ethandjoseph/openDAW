@@ -183,7 +183,7 @@ export const SoftwareMIDIPanel = ({lifecycle, service}: Construct) => {
                 }
                 event.preventDefault()
             }
-        }),
+        }, Number.MAX_SAFE_INTEGER),
         Surface.subscribe("keyup", event => {
             if (event.shiftKey || event.ctrlKey || event.altKey || event.metaKey) {return}
             const index = PianoKeyCodes.findIndex(([code]) => event.code === code)
@@ -194,7 +194,7 @@ export const SoftwareMIDIPanel = ({lifecycle, service}: Construct) => {
                 event.preventDefault()
                 event.stopImmediatePropagation()
             }
-        }),
+        }, Number.MAX_SAFE_INTEGER),
         Events.subscribe(element, "pointerdown", event => {
             pointerPlayListener(event)
             // we do not use setPointerCapture here because we do want a simple way to detect a drag onto a key.
