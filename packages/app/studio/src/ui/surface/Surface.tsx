@@ -288,9 +288,7 @@ export class Surface implements TerminableOwner {
             }, {capture: true}),
             Events.subscribe(document.body, "touchmove", Events.PreventDefault, {capture: true}),
             Events.subscribeAny(document, "visibilitychange", () => {
-                if (document.hidden) {
-                    this.#adoptAnimationFrame()
-                } else {
+                if (!document.hidden) {
                     AnimationFrame.start(this.#owner)
                 }
             }, {capture: true})
