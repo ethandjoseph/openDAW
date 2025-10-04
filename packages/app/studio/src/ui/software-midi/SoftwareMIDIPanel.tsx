@@ -112,7 +112,10 @@ export const SoftwareMIDIPanel = ({lifecycle, service}: Construct) => {
                             none: () => [MenuItem.default({label: "No MIDI instruments found"})],
                             some: adapters => adapters
                         })
-                ))}>{midiIndicator}</MenuButton>
+                ))} appearance={{
+                tinyTriangle: true,
+                tooltip: "Click to connect to MIDI instruments."
+            }}>{midiIndicator}</MenuButton>
         </div>
         <div className="piano">
             {svg}
