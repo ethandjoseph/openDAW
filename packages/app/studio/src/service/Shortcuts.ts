@@ -8,7 +8,7 @@ import {Surface} from "@/ui/surface/Surface"
 
 export class Shortcuts {
     constructor(service: StudioService) {
-        Surface.subscribe("keydown", async (event: KeyboardEvent) => {
+        Surface.subscribeKeyboard("keydown", async (event: KeyboardEvent) => {
             if (Events.isTextInput(event.target)) {return}
             if (event.repeat) {
                 event.preventDefault()

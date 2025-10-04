@@ -65,7 +65,7 @@ export class Surface implements TerminableOwner {
         }
     }
 
-    static subscribe<K extends KeyEventType>(type: K, procedure: (ev: WindowEventMap[K]) => void, priority: int = 0): Subscription {
+    static subscribeKeyboard<K extends KeyEventType>(type: K, procedure: (ev: WindowEventMap[K]) => void, priority: int = 0): Subscription {
         const value = {priority, procedure}
         this.#keyListeners.add(type, value)
         return {terminate: () => this.#keyListeners.remove(type, value)}

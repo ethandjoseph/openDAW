@@ -160,7 +160,7 @@ export const SoftwareMIDIPanel = ({lifecycle, service}: Construct) => {
         }),
         softwareMIDIInput.countListeners.catchupAndSubscribe(owner =>
             midiIndicator.style.color = owner.getValue() > 1 ? Colors.green : Colors.red),
-        Surface.subscribe("keydown", event => {
+        Surface.subscribeKeyboard("keydown", event => {
             if (event.repeat || event.shiftKey || event.ctrlKey || event.altKey || event.metaKey
                 || Events.isTextInput(event.target)) {return}
             if (event.code === "ArrowUp") {
@@ -184,7 +184,7 @@ export const SoftwareMIDIPanel = ({lifecycle, service}: Construct) => {
                 event.preventDefault()
             }
         }, Number.MAX_SAFE_INTEGER),
-        Surface.subscribe("keyup", event => {
+        Surface.subscribeKeyboard("keyup", event => {
             if (event.shiftKey || event.ctrlKey || event.altKey || event.metaKey) {return}
             const index = PianoKeyCodes.findIndex(([code]) => event.code === code)
             if (index >= 0) {
@@ -192,7 +192,6 @@ export const SoftwareMIDIPanel = ({lifecycle, service}: Construct) => {
                 softwareMIDIInput.sendNoteOff(activeKeys[index])
                 activeKeys[index] = -1
                 event.preventDefault()
-                event.stopImmediatePropagation()
             }
         }, Number.MAX_SAFE_INTEGER),
         Events.subscribe(element, "pointerdown", event => {
