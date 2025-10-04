@@ -45,7 +45,8 @@ export const SoftwareMIDIPanel = ({lifecycle, service}: Construct) => {
     })
     const {softwareMIDIInput} = MidiDevices
     const octave = new DefaultObservableValue(5, {guard: (value: number): number => clamp(value, 0, 8)})
-    const channel = new DefaultObservableValue(0)
+    const channel = new DefaultObservableValue(0, {guard: (value: number): number => clamp(value, 0, 15)})
+    const velocity = new DefaultObservableValue(100, {guard: (value: number): number => clamp(value, 0, 100)})
     const svg: SVGElement = (<PianoRoll pianoLayout={pianoLayout}/>)
     const midiIndicator: DomElement = <Icon symbol={IconSymbol.Connected}/>
     const element: HTMLElement = <div className={className}>
@@ -60,22 +61,32 @@ export const SoftwareMIDIPanel = ({lifecycle, service}: Construct) => {
             <div className="unit">
                 <span>Octave</span>
                 <NumberInput lifecycle={lifecycle} model={octave} mapper={{
-                    x: (y: byte): StringResult => ({unit: "", value: (y - 2).toString()}),
+                    x: (y: byte): StringResult => ({unit: "", value: String(y - 2)}),
                     y: (x: string): ParseResult<byte> => ({
                         type: "explicit",
-                        value: clamp(parseInt(x) + 2, 0, 8)
+                        value: parseInt(x) + 2
                     })
                 }} className="octave"/>
             </div>
             <div className="unit">
                 <span>Channel</span>
                 <NumberInput lifecycle={lifecycle} model={channel} mapper={{
-                    x: (y: byte): StringResult => ({unit: "", value: (y + 1).toString()}),
+                    x: (y: byte): StringResult => ({unit: "", value: String(y + 1)}),
                     y: (x: string): ParseResult<byte> => ({
                         type: "explicit",
-                        value: clamp(parseInt(x) - 1, 1, 14)
+                        value: parseInt(x) - 1
                     })
                 }} className="channel"/>
+            </div>
+            <div className="unit">
+                <span>Velocity</span>
+                <NumberInput lifecycle={lifecycle} model={velocity} mapper={{
+                    x: (y: byte): StringResult => ({unit: "", value: String(y)}),
+                    y: (x: string): ParseResult<byte> => ({
+                        type: "explicit",
+                        value: parseInt(x)
+                    })
+                }} className="velocity"/>
             </div>
             <FlexSpacer/>
             <MenuButton root={MenuItem.root()
@@ -164,7 +175,7 @@ export const SoftwareMIDIPanel = ({lifecycle, service}: Construct) => {
                     activeKeys[index] = -1
                 } else {
                     const pitch = index + octave.getValue() * 12
-                    softwareMIDIInput.sendNoteOn(pitch)
+                    softwareMIDIInput.sendNoteOn(pitch, velocity.getValue() / 100.0)
                     activeKeys[index] = pitch
                 }
                 event.preventDefault()

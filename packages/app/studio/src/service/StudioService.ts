@@ -245,6 +245,8 @@ export class StudioService implements ProjectEnv {
                 this.profileService.setValue(optProfile)
             }
         }, EmptyExec)
+
+        requestAnimationFrame(() => this.toggleSoftwareKeyboard())
     }
 
     get sampleRate(): number {return this.audioContext.sampleRate}
