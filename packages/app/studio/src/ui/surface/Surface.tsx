@@ -301,7 +301,7 @@ export class Surface implements TerminableOwner {
     }
 
     #adoptAnimationFrame(): void {
-        Surface.#surfacesByWindow.keys().some(owner => {
+        Array.from(Surface.#surfacesByWindow.keys()).some(owner => {
             if (!owner.document.hidden) {
                 AnimationFrame.start(owner)
                 return true
