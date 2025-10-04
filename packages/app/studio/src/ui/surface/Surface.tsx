@@ -55,7 +55,6 @@ export class Surface implements TerminableOwner {
         } else if (event.code === "Escape") {
             if (document.activeElement instanceof HTMLElement) {
                 document.activeElement.blur()
-                event.preventDefault()
             }
         }
         for (const {procedure} of this.#keyListeners.get(type)) {

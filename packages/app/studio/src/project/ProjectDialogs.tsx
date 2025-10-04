@@ -48,7 +48,7 @@ export namespace ProjectDialogs {
                 </div>
             </Dialog>
         )
-        dialog.oncancel = () => reject("cancel")
+        dialog.oncancel = () => reject(Errors.AbortError)
         dialog.onkeydown = event => {
             if (event.code === "Enter") {
                 dialog.close()
