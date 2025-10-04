@@ -16,6 +16,7 @@ export class ErrorHandler {
     constructor(service: StudioService) {this.#service = service}
 
     processError(scope: string, event: Event): boolean {
+        const error = ErrorInfo.extract(event)
         if ("reason" in event) {
             const reason = event.reason
             if (Errors.isAbort(reason)) {
@@ -29,12 +30,16 @@ export class ErrorHandler {
                 Dialogs.info({headline: "Warning", message: reason.message}).then(EmptyExec)
                 return false
             }
+            if(error.message?.includes("script-src blocked eval")) {
+                event.preventDefault()
+                Dialogs.info({headline: "Warning", message: "One of your browser extensions caused an error. Please disable extensions for a more stable experience."}).then(EmptyExec)
+                return false
+            }
         }
         console.debug("processError", scope, event)
         if (this.#errorThrown) {return false}
         this.#errorThrown = true
         AnimationFrame.terminate()
-        const error = ErrorInfo.extract(event)
         console.debug("ErrorInfo", error.name, error.message)
         const body = JSON.stringify({
             date: new Date().toISOString(),
