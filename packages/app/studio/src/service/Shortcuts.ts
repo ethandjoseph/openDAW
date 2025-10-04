@@ -4,10 +4,11 @@ import {Events, Keyboard} from "@opendaw/lib-dom"
 import {DefaultWorkspace} from "@/ui/workspace/Default"
 import {Arrays, isNull} from "@opendaw/lib-std"
 import {Workspace} from "@/ui/workspace/Workspace"
+import {Surface} from "@/ui/surface/Surface"
 
 export class Shortcuts {
     constructor(service: StudioService) {
-        window.addEventListener("keydown", async (event: KeyboardEvent) => {
+        Surface.subscribe("keydown", async (event: KeyboardEvent) => {
             if (Events.isTextInput(event.target)) {return}
             if (event.repeat) {
                 event.preventDefault()
@@ -37,12 +38,16 @@ export class Shortcuts {
                 }
             } else if (code === "KeyE") {
                 service.panelLayout.getByType(PanelType.ContentEditor).toggleMinimize()
+                event.preventDefault()
             } else if (code === "KeyB") {
                 service.panelLayout.getByType(PanelType.BrowserPanel).toggleMinimize()
+                event.preventDefault()
             } else if (code === "KeyD") {
                 service.panelLayout.getByType(PanelType.DevicePanel).toggleMinimize()
+                event.preventDefault()
             } else if (code === "KeyM") {
                 service.panelLayout.getByType(PanelType.Mixer).toggleMinimize()
+                event.preventDefault()
             } else if (code === "Tab") {
                 event.preventDefault()
                 const keys = Object.entries(DefaultWorkspace)

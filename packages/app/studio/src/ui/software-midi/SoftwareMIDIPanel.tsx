@@ -28,6 +28,7 @@ import {PianoRoll} from "@/ui/software-midi/PianoRoll"
 import {Button} from "@/ui/components/Button"
 import {StudioService} from "@/service/StudioService"
 import {AudioUnitBox, CaptureMidiBox} from "@opendaw/studio-boxes"
+import {Surface} from "@/ui/surface/Surface"
 
 const className = Html.adoptStyleSheet(css, "SoftwareMIDIPanel")
 
@@ -145,7 +146,7 @@ export const SoftwareMIDIPanel = ({lifecycle, service}: Construct) => {
         }),
         softwareMIDIInput.countListeners.catchupAndSubscribe(owner =>
             midiIndicator.style.color = owner.getValue() > 1 ? Colors.green : Colors.red),
-        Events.subscribe(window, "keydown", event => {
+        Surface.subscribe("keydown", event => {
             if (event.repeat || event.shiftKey || event.ctrlKey || event.altKey || event.metaKey
                 || Events.isTextInput(event.target)) {return}
             if (event.code === "ArrowUp") {
@@ -167,10 +168,9 @@ export const SoftwareMIDIPanel = ({lifecycle, service}: Construct) => {
                     activeKeys[index] = pitch
                 }
                 event.preventDefault()
-                event.stopImmediatePropagation()
             }
-        }, {capture: true}),
-        Events.subscribe(window, "keyup", event => {
+        }),
+        Surface.subscribe("keyup", event => {
             if (event.shiftKey || event.ctrlKey || event.altKey || event.metaKey) {return}
             const index = PianoKeyCodes.findIndex(([code]) => event.code === code)
             if (index >= 0) {
@@ -180,7 +180,7 @@ export const SoftwareMIDIPanel = ({lifecycle, service}: Construct) => {
                 event.preventDefault()
                 event.stopImmediatePropagation()
             }
-        }, {capture: true}),
+        }),
         Events.subscribe(element, "pointerdown", event => {
             pointerPlayListener(event)
             // we do not use setPointerCapture here because we do want a simple way to detect a drag onto a key.

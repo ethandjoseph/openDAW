@@ -1,4 +1,4 @@
-import {Func, Option, Terminable, Terminator} from "@opendaw/lib-std"
+import {Func, isDefined, Option, safeRead, Terminable, Terminator} from "@opendaw/lib-std"
 import {Browser} from "./browser"
 import {AnimationFrame} from "./frames"
 import {Events, PointerCaptureTarget} from "./events"
@@ -79,6 +79,7 @@ export namespace Dragging {
                 process.finally?.call(process)
                 processCycle.terminate()
             }
+            const owner = safeRead(target, "ownerDocument", "defaultView") as WindowProxy ?? self
             processCycle.ownAll(
                 Events.subscribe(target, "pointerup", (event: PointerEvent) => {
                     if (event.pointerId === pointerId) {
@@ -94,25 +95,25 @@ export namespace Dragging {
                         cancel()
                     }
                 }, {capture: true}),
-                Events.subscribe(self, "beforeunload", (_event: BeforeUnloadEvent) => {
-                    // Workaround for Chrome (does not release or cancel pointer)
+                Events.subscribe(owner, "beforeunload", (_event: BeforeUnloadEvent) => {
+                    // Workaround for Chrome (does not release or cancel the pointer)
                     target.releasePointerCapture(pointerId)
                     cancel()
                 }, {capture: true}),
-                Events.subscribe(window, "keydown", (event: KeyboardEvent) => {
+                Events.subscribe(owner, "keydown", (event: KeyboardEvent) => {
                     moveEvent.altKey = event.altKey
                     moveEvent.shiftKey = event.shiftKey
                     moveEvent.ctrlKey = Keyboard.isControlKey(event)
                     if (event.key === "Escape") {cancel()} else {process.update(moveEvent)}
                 }),
-                Events.subscribe(window, "keyup", (event: KeyboardEvent) => {
+                Events.subscribe(owner, "keyup", (event: KeyboardEvent) => {
                     moveEvent.altKey = event.altKey
                     moveEvent.shiftKey = event.shiftKey
                     moveEvent.ctrlKey = Keyboard.isControlKey(event)
                     process.update(moveEvent)
                 })
             )
-            if (process.abortSignal) {
+            if (isDefined(process.abortSignal)) {
                 processCycle.own(Events.subscribe(process.abortSignal, "abort", () => {
                     target.releasePointerCapture(pointerId)
                     cancel()

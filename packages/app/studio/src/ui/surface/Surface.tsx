@@ -1,5 +1,6 @@
 import css from "./Surface.sass?inline"
 import {
+    ArrayMultimap,
     asDefined,
     assert,
     Client,
@@ -10,6 +11,7 @@ import {
     panic,
     Point,
     Procedure,
+    Subscription,
     Terminable,
     TerminableOwner,
     Terminator,
@@ -29,6 +31,8 @@ export interface SurfaceConfigurator {
     config(surface: Surface): void
 }
 
+export type KeyEventType = "keydown" | "keypress" | "keyup"
+
 export class Surface implements TerminableOwner {
     static main(configurator: SurfaceConfigurator, errorHandler: ErrorHandler): Surface {
         assert(!isDefined(this.#configurator), "Main must only be called once")
@@ -36,6 +40,36 @@ export class Surface implements TerminableOwner {
         const surface = this.create(window, "main", null)
         errorHandler.install(window, "main")
         return surface
+    }
+
+    static readonly #keyListeners = new ArrayMultimap<KeyEventType, {
+        priority: int,
+        procedure: Procedure<WindowEventMap[KeyEventType]>
+    }>(undefined, (a, b) => a.priority - b.priority)
+
+    static dispatchGlobalKey(type: KeyEventType, event: KeyboardEvent): void {
+        if (Keyboard.isControlKey(event) && event.code === "KeyA") {
+            if (!Events.isTextInput(event.target)) {
+                event.preventDefault()
+            }
+        } else if (event.code === "Escape") {
+            if (document.activeElement instanceof HTMLElement) {
+                document.activeElement.blur()
+                event.preventDefault()
+            }
+        }
+        for (const {procedure} of this.#keyListeners.get(type)) {
+            procedure(event)
+            if (event.defaultPrevented) {
+                return
+            }
+        }
+    }
+
+    static subscribe<K extends KeyEventType>(type: K, procedure: (ev: WindowEventMap[K]) => void, priority: int = 0): Subscription {
+        const value = {priority, procedure}
+        this.#keyListeners.add(type, value)
+        return {terminate: () => this.#keyListeners.remove(type, value)}
     }
 
     static readonly isAvailable = (): boolean => isDefined(this.#configurator)
@@ -266,16 +300,13 @@ export class Surface implements TerminableOwner {
                 this.#terminator.terminate()
                 this.#adoptAnimationFrame()
             }, {capture: true, once: true}),
-            Events.subscribe(this.#owner, "keydown", (event: KeyboardEvent) => {
-                if (Keyboard.isControlKey(event) && event.code === "KeyA") {
-                    if (!Events.isTextInput(event.target)) {event.preventDefault()}
-                } else if (event.code === "Escape") {
-                    if (document.activeElement instanceof HTMLElement) {
-                        document.activeElement.blur()
-                    }
-                }
-            }),
-            // Seems to reset the custom cursor faithfully when leaving and re-entering Axis (blur did not)
+            Events.subscribe(this.#owner, "keydown", (event: KeyboardEvent) =>
+                Surface.dispatchGlobalKey("keydown", event)),
+            Events.subscribe(this.#owner, "keypress", (event: KeyboardEvent) =>
+                Surface.dispatchGlobalKey("keypress", event)),
+            Events.subscribe(this.#owner, "keyup", (event: KeyboardEvent) =>
+                Surface.dispatchGlobalKey("keyup", event)),
+            // Seems to reset the custom cursor faithfully when leaving and re-entering the studio (blur did not)
             Events.subscribe(this.#owner, "focus", () => AnimationFrame.once(() => CssUtils.setCursor("auto"))),
             // Ctrl + scroll on Linux can affect web UI elements because it typically triggers zoom in most browsers.
             Events.subscribe(this.#owner, "wheel", (event) => {
