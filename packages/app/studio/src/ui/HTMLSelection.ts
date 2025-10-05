@@ -17,7 +17,7 @@ export class HTMLSelection implements Terminable {
                     target.classList.toggle("selected")
                 } else if (event.shiftKey) {
                     const nodes = Array.from<Element>(this.#container.children)
-                    if (nodes.length === 0) {return} // how could that happen?
+                    if (nodes.length === 0) {return}
                     let lastSelection = this.#lastSelection ?? nodes[0]
                     const i0 = nodes.indexOf(target)
                     const i1 = nodes.indexOf(lastSelection)
@@ -35,6 +35,10 @@ export class HTMLSelection implements Terminable {
 
     getSelected(): ReadonlyArray<Element> {return Array.from(this.#container.querySelectorAll(".selected"))}
 
+    clear(): void {
+        this.#lastSelection = null
+    }
+
     terminate(): void {this.#terminator.terminate()}
 
     #select(element: Element): void {
@@ -46,7 +50,6 @@ export class HTMLSelection implements Terminable {
         this.#container.querySelectorAll(".selected")
             .forEach((element: Element) => {element.classList.remove("selected")})
     }
-
     #find(target: Nullable<EventTarget>): Nullable<Element> {
         if (target === this.#container) {return null}
         while (target instanceof Element) {

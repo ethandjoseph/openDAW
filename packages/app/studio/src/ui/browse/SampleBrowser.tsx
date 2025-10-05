@@ -81,6 +81,7 @@ export const SampleBrowser = ({lifecycle, service}: Construct) => {
                         )} success={(result) => {
                             const update = () => {
                                 entriesLifeSpan.terminate()
+                                selection.clear()
                                 replaceChildren(entries, result
                                     .filter(({name}) => name.toLowerCase().includes(filter.getValue().toLowerCase()))
                                     .toSorted((a, b) => StringComparator(a.name.toLowerCase(), b.name.toLowerCase()))
