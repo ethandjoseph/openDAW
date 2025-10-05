@@ -33,7 +33,7 @@ export const PianoRoll = ({pianoLayout}: Construct): SVGElement => {
             ))}
             {pianoLayout.blackKeys.map(({key, x}) => (
                 <Frag>
-                    <rect classList="black" data-key={key} x={x} y={0} rx={1} ry={1}
+                    <rect classList="black" data-key={key} x={x} y={-2} rx={1} ry={1}
                           width={blackKeys.width} height={blackKeys.height}/>
                     <text x={(x + blackKeys.width / 2).toString()}
                           y={(blackKeys.height - 6).toString()}

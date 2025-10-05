@@ -38,7 +38,6 @@ component
       border-radius: 0.25em
       column-gap: 0.5em
       align-items: center
-      background-color: var(--panel-background-bright)
 
       > span
         font-size: 0.75em
@@ -47,9 +46,13 @@ component
         pointer-events: all
         max-width: 1em
 
-      > .channel, > .velocity
+      > .channel
         pointer-events: all
         max-width: 1.75em
+
+      > .velocity
+        pointer-events: all
+        max-width: 2em
 
   > div.piano
     display: flex
