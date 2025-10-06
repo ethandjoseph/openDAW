@@ -23,15 +23,15 @@ export namespace YService {
         const provider: WebsocketProvider = new WebsocketProvider(serverUrl, roomName, doc)
         console.debug("Provider URL:", provider.url)
         if (!provider.synced) {
-            await Promises.timeout(new Promise<void>(resolve => {
-                const onSync = (isSynced: boolean) => {
-                    if (isSynced) {
-                        provider.off("sync", onSync)
-                        resolve()
-                    }
+            const {resolve, promise} = Promise.withResolvers<void>()
+            const onSync = (isSynced: boolean) => {
+                if (isSynced) {
+                    provider.off("sync", onSync)
+                    resolve()
                 }
-                provider.on("sync", onSync)
-            }), TimeSpan.seconds(10), "Timeout 'synced'")
+            }
+            provider.on("sync", onSync)
+            await Promises.timeout(promise, TimeSpan.seconds(10), "Timeout 'synced'")
         }
         const boxesMap = doc.getMap("boxes")
         if (boxesMap.size === 0) {
