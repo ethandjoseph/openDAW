@@ -54,13 +54,13 @@ export class MidiDevices {
         })
     }
 
-    static inputDevices(): Option<ReadonlyArray<MIDIInput>> {
+    static inputDevices(): ReadonlyArray<MIDIInput> {
         return this.externalInputDevices()
-            .map((inputs) => Array.from(inputs.values()).concat(this.softwareMIDIInput))
+            .mapOr((inputs) => Array.from(inputs.values()).concat(this.softwareMIDIInput), [this.softwareMIDIInput])
     }
 
     static findInputDeviceById(id: string): Option<MIDIInput> {
-        return this.inputDevices().map(inputs => inputs.find(input => input.id === id))
+        return Option.wrap(this.inputDevices().find(input => input.id === id))
     }
 
     static externalInputDevices(): Option<ReadonlyArray<MIDIInput>> {

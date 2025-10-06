@@ -1,5 +1,4 @@
 import {
-    assert,
     byte,
     Errors,
     Func,
@@ -96,11 +95,7 @@ export class CaptureMidi extends Capture<CaptureMidiBox> {
                 return Errors.warn("MIDI not available")
             }
         }
-        const optInputs = MidiDevices.inputDevices()
-        if (optInputs.isEmpty()) {
-            return Errors.warn("MIDI not available")
-        }
-        const inputs = optInputs.unwrap()
+        const inputs = MidiDevices.inputDevices()
         if (inputs.length === 0) {return}
         const option = this.deviceId.getValue()
         if (option.nonEmpty()) {
@@ -112,23 +107,20 @@ export class CaptureMidi extends Capture<CaptureMidiBox> {
     }
 
     startRecording(): Terminable {
-        const availableInputDevices = MidiDevices.inputDevices()
-        assert(availableInputDevices.nonEmpty(), "No MIDI input devices found")
         return RecordMidi.start({notifier: this.#notifier, project: this.manager.project, capture: this})
     }
 
     async #updateStream() {
-        if (MidiDevices.get().isEmpty()) {await MidiDevices.requestPermission()}
-        const availableInputDevices = MidiDevices.inputDevices()
-        const available = availableInputDevices.unwrap()
-        const capturing = this.deviceId.getValue().match({
-            none: () => available,
-            some: id => available.filter(device => id === device.id)
+        if (MidiDevices.get().isEmpty() && MidiDevices.canRequestMidiAccess()) {await MidiDevices.requestPermission()}
+        const inputs = MidiDevices.inputDevices()
+        const explicit = this.deviceId.getValue().match({
+            none: () => inputs,
+            some: id => inputs.filter(device => id === device.id)
         })
         const activeNotes = new Int8Array(128)
         this.#stream.ifSome(terminable => terminable.terminate())
         this.#stream = Option.wrap(Terminable.many(
-            ...capturing.map(input => Events.subscribe(input, "midimessage", (event: MIDIMessageEvent) => {
+            ...explicit.map(input => Events.subscribe(input, "midimessage", (event: MIDIMessageEvent) => {
                 const data = event.data
                 if (isDefined(data) &&
                     this.#filterChannel.mapOr(channel => MidiData.readChannel(data) === channel, true)) {

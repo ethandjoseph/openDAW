@@ -76,7 +76,7 @@ export namespace MenuCapture {
                 })
             }
             parent.addMenuItem(MenuItem.header({label: "Devices", icon: IconSymbol.Midi}))
-            MidiDevices.inputDevices().match({
+            MidiDevices.externalInputDevices().match({
                 none: () => {
                     parent.addMenuItem(
                         MenuItem.default({label: "Click to access external devices..."})
