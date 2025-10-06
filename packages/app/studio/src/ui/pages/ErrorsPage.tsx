@@ -6,7 +6,7 @@ import {Entry, ErrorEntry} from "@/ui/pages/errors/ErrorEntry"
 import {Promises, Wait} from "@opendaw/lib-runtime"
 
 const className = Html.adoptStyleSheet(css, "ErrorsPage")
-const loadLimit = 75
+const loadLimit = 10
 
 export const ErrorsPage: PageFactory<StudioService> = ({lifecycle}: PageContext<StudioService>) => {
     let offset = 0
