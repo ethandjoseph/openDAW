@@ -121,7 +121,7 @@ export const installRegionContextMenu =
                 )),
                 MenuItem.default({
                     label: "Calc Bpm",
-                    hidden: region.type !== "audio-region" && !Browser.isLocalHost()
+                    hidden: region.type !== "audio-region" || !Browser.isLocalHost()
                 }).setTriggerProcedure(() => {
                     if (region.type === "audio-region") {
                         region.file.data.ifSome(data => {
