@@ -23,6 +23,6 @@ export const enum Cursor {
 
 export const installCursors = () => {
     CssUtils.registerCustomCursor(Cursor.Pencil, iconSymbolToCursor(IconSymbol.Pencil, 3, 16, "pointer"))
-    CssUtils.registerCustomCursor(Cursor.ExpandWidth, iconSymbolToCursor(IconSymbol.ExpandWidth, 10, 16, "col-resize"))
+    CssUtils.registerCustomCursor(Cursor.ExpandWidth, iconSymbolToCursor(IconSymbol.ExpandWidth, 10, 10, "col-resize"))
     CssUtils.registerCustomCursor(Cursor.Scissors, iconSymbolToCursor(IconSymbol.Scissors, 10, 10, "auto"))
 }

@@ -44,7 +44,7 @@ export namespace RegionCapturing {
                     if (x - x0 < PointerRadiusDistance * 2) {
                         return {type: "region", part: "start", region}
                     }
-                    const bottomEdge = y > track.position + size - PointerRadiusDistance
+                    const bottomEdge = y > track.position + size / 3 * 2
                     if (x1 - x < PointerRadiusDistance * 2) {
                         return bottomEdge
                             ? {type: "region", part: "content-resize", region}

@@ -87,8 +87,7 @@ export class RegionDurationModifier implements RegionModifier {
     selectedModifyStrategy(): RegionModifyStrategy {return this.#selectedModifyStrategy}
     unselectedModifyStrategy(): RegionModifyStrategy {return RegionModifyStrategy.Identity}
 
-    update({clientX, ctrlKey}: Dragging.Event): void {
-        const aligned = ctrlKey
+    update({clientX, ctrlKey: aligned}: Dragging.Event): void {
         const originalDuration = this.#bounds[1] - this.#bounds[0]
         const deltaDuration = this.#snapping.computeDelta(
             this.#pointerPulse, clientX - this.#element.getBoundingClientRect().left, originalDuration)
