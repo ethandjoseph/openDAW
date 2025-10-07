@@ -13,7 +13,6 @@ export const WorkspacePage: PageFactory<StudioService> = ({lifecycle, service}: 
     const main: HTMLElement = <main/>
     const screenLifeTime = lifecycle.own(new Terminator())
     lifecycle.own(service.layout.screen.catchupAndSubscribe(owner => {
-        console.debug(owner.getValue())
         screenLifeTime.terminate()
         WorkspaceBuilder.buildScreen(screenLifeTime, service.panelLayout, main, owner.getValue())
     }))

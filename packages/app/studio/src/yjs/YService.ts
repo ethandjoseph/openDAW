@@ -21,7 +21,8 @@ export namespace YService {
         if (roomName === "signaling") {return panic("Invalid room name: signaling")}
         const doc = new Y.Doc()
         const provider: WebsocketProvider = new WebsocketProvider(serverUrl, roomName, doc)
-        console.debug("Provider URL:", provider.url)
+        console.debug("clientID:", doc.clientID)
+        console.debug("Provider url:", provider.url)
         if (!provider.synced) {
             const {resolve, promise} = Promise.withResolvers<void>()
             const onSync = (isSynced: boolean) => {

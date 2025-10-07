@@ -35,7 +35,12 @@ export namespace ProjectDecoder {
             box.accept<BoxVisitor>({
                 visitRootBox: (box: RootBox) => boxes.rootBox = box,
                 visitTimelineBox: (box: TimelineBox) => boxes.timelineBox = box,
-                visitUserInterfaceBox: (box: UserInterfaceBox) => boxes.userInterfaceBox = box,
+                visitUserInterfaceBox: (box: UserInterfaceBox) => {
+                    const root = box.root.targetVertex.unwrapOrNull()?.box
+                    if (isInstanceOf(root, RootBox)) {
+                        boxes.userInterfaceBox = box
+                    }
+                },
                 visitAudioUnitBox: (box: AudioUnitBox) => {
                     if (box.type.getValue() === AudioUnitType.Output) {
                         boxes.masterAudioUnit = box

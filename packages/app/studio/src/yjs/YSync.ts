@@ -34,7 +34,7 @@ export class YSync<T> implements Terminable {
         console.debug("populate")
         const boxesMap = doc.getMap("boxes")
         assert(boxesMap.size === 0, "BoxesMap must be empty")
-        const sync = new YSync<T>({boxGraph: boxGraph, doc: doc})
+        const sync = new YSync<T>({boxGraph, doc})
         doc.transact(() => boxGraph.boxes().forEach(box => {
             const key = UUID.toString(box.address.uuid)
             const map = YMapper.createBoxMap(box)
@@ -46,8 +46,8 @@ export class YSync<T> implements Terminable {
     static async join<T>({boxGraph, doc}: Construct<T>): Promise<YSync<T>> {
         console.debug("join")
         assert(boxGraph.boxes().length === 0, "BoxGraph must be empty")
-        const sync = new YSync<T>({boxGraph: boxGraph, doc: doc})
-        sync.#boxGraph.beginTransaction()
+        const sync = new YSync<T>({boxGraph, doc})
+        boxGraph.beginTransaction()
         const boxesMap: Y.Map<unknown> = doc.getMap("boxes")
         boxesMap.forEach((value, key) => {
             const boxMap = value as Y.Map<any>
@@ -56,8 +56,8 @@ export class YSync<T> implements Terminable {
             const fields = boxMap.get("fields") as Y.Map<unknown>
             boxGraph.createBox(name, uuid, box => YMapper.applyFromBoxMap(box, fields))
         })
-        sync.#boxGraph.endTransaction()
-        sync.#boxGraph.verifyPointers()
+        boxGraph.endTransaction()
+        boxGraph.verifyPointers()
         return sync
     }
 
