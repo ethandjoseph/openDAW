@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.32](https://github.com/andremichelle/openDAW/compare/@opendaw/lib-box-forge@0.0.31...@opendaw/lib-box-forge@0.0.32) (2025-10-07)
+
+**Note:** Version bump only for package @opendaw/lib-box-forge
+
 ## [0.0.31](https://github.com/andremichelle/openDAW/compare/@opendaw/lib-box-forge@0.0.30...@opendaw/lib-box-forge@0.0.31) (2025-10-07)
 
 **Note:** Version bump only for package @opendaw/lib-box-forge
