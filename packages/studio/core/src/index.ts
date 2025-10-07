@@ -33,7 +33,12 @@ export * from "./clouds/CloudHandler"
 export * from "./clouds/CloudBackup"
 
 export * from "./ui/TimelineRange"
+
 export * from "./utils/AutofitUtils"
+
+export * from "./yjs/YService"
+export * from "./yjs/YSync"
+export * from "./yjs/YMapper"
 
 export * from "./AudioDevices"
 export * from "./AudioOfflineRenderer"

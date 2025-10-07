@@ -3,10 +3,11 @@ import {BoxGraph} from "@opendaw/lib-box"
 import {Promises} from "@opendaw/lib-runtime"
 import {BoxIO} from "@opendaw/studio-boxes"
 import {ProjectDecoder} from "@opendaw/studio-adapters"
-import {Project, ProjectEnv} from "@opendaw/studio-core"
-import {YSync} from "@/yjs/YSync"
+import {YSync} from "./YSync"
 import * as Y from "yjs"
 import {WebsocketProvider} from "y-websocket"
+import {ProjectEnv} from "../project/ProjectEnv"
+import {Project} from "../project/Project"
 
 // https://inspector.yjs.dev/
 
