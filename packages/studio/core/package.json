@@ -39,7 +39,7 @@
     "@opendaw/studio-boxes": "^0.0.31",
     "@opendaw/studio-enums": "^0.0.22",
     "dropbox": "^10.34.0",
-    "y-webrtc": "^10.3.0",
+    "y-websocket": "^1.4.5",
     "yjs": "^13.6.27"
   },
   "devDependencies": {
@@ -49,5 +49,5 @@
     "@opendaw/studio-forge-boxes": "^0.0.31",
     "@opendaw/typescript-config": "^0.0.20"
   },
-  "gitHead": "2fff74bbce57bd2c3c634b1cb735cccdaff2ab15"
+  "gitHead": "c1718ba63c1f99d28d6a5178c39e96c89b5bb364"
 }

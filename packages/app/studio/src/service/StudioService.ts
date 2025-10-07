@@ -57,7 +57,6 @@ import {
     EngineFacade,
     EngineWorklet,
     FilePickerAcceptTypes,
-    P2PSampleProvider,
     Project,
     ProjectEnv,
     ProjectMeta,
@@ -373,8 +372,6 @@ export class StudioService implements ProjectEnv {
         }
     }
 
-    sharedSamples: Option<P2PSampleProvider> = Option.None
-
     async importSample({uuid, name, arrayBuffer, progressHandler = Progress.Empty}: {
         uuid?: UUID.Bytes,
         name: string,
@@ -383,9 +380,8 @@ export class StudioService implements ProjectEnv {
     }): Promise<Sample> {
         console.debug(`Importing '${name}' (${arrayBuffer.byteLength >> 10}kb)`)
         return AudioImporter.run(this.audioContext, {uuid, name, arrayBuffer, progressHandler})
-            .then(({uuid, sample, peaks, audioData}) => {
+            .then(({sample}) => {
                 this.#signals.notify({type: "import-sample", sample})
-                this.sharedSamples.ifSome(provider => provider.share(UUID.toString(uuid), audioData, peaks, sample))
                 return sample
             })
     }

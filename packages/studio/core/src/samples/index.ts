@@ -1,7 +1,6 @@
 export * from "./DefaultSampleLoader"
 export * from "./DefaultSampleLoaderManager"
 export * from "./OpenSampleAPI"
-export * from "./P2PSampleProvider"
 export * from "./SampleAPI"
 export * from "./SampleImporter"
 export * from "./SampleProvider"
