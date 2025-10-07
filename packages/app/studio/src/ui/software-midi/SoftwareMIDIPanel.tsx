@@ -44,7 +44,7 @@ export const SoftwareMIDIPanel = ({lifecycle, service}: Construct) => {
         blackKeys: {width: 19, height: 24}
     })
     const {softwareMIDIInput} = MidiDevices
-    const octave = new DefaultObservableValue(5, {guard: (value: number): number => clamp(value, 0, 8)})
+    const octave = new DefaultObservableValue(5, {guard: (value: number): number => clamp(value, 0, 10)})
     const channel = new DefaultObservableValue(0, {guard: (value: number): number => clamp(value, 0, 15)})
     const velocity = new DefaultObservableValue(100, {guard: (value: number): number => clamp(value, 0, 100)})
     const svg: SVGElement = (<PianoRoll pianoLayout={pianoLayout}/>)
@@ -135,13 +135,15 @@ export const SoftwareMIDIPanel = ({lifecycle, service}: Construct) => {
         if (event.buttons === 0) {return}
         if (isInstanceOf(event.target, SVGRectElement)) {
             const rect = event.target as SVGRectElement
-            const index = parseInt(asDefined(rect.dataset.key))
-            if (lastPointerKey === index) {return}
+            const key = parseInt(asDefined(rect.dataset.key))
+            if (lastPointerKey === key) {return}
             stopPointerNote()
-            const pitch = index + octave.getValue() * 12
-            softwareMIDIInput.sendNoteOn(pitch)
-            lastPointerKey = index
-            lastPointerKeyPitch = pitch
+            const pitch = key + octave.getValue() * 12
+            if (pitch >= 0 && pitch < 128) {
+                softwareMIDIInput.sendNoteOn(pitch)
+                lastPointerKey = key
+                lastPointerKeyPitch = pitch
+            }
         }
     }
     lifecycle.ownAll(
@@ -178,8 +180,10 @@ export const SoftwareMIDIPanel = ({lifecycle, service}: Construct) => {
                     activeKeys[index] = -1
                 } else {
                     const pitch = index + octave.getValue() * 12
-                    softwareMIDIInput.sendNoteOn(pitch, velocity.getValue() / 100.0)
-                    activeKeys[index] = pitch
+                    if (pitch >= 0 && pitch < 128) {
+                        softwareMIDIInput.sendNoteOn(pitch, velocity.getValue() / 100.0)
+                        activeKeys[index] = pitch
+                    }
                 }
                 event.preventDefault()
             }
