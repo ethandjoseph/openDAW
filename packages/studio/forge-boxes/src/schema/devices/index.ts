@@ -13,6 +13,7 @@ import {StereoToolDeviceBox} from "./audio-effects/StereoToolDeviceBox"
 import {ZeitgeistDeviceBox} from "./midi-effects/ZeitGeistDeviceBox"
 import {UnknownAudioEffectDevice} from "./audio-effects/UnknownAudioEffectDevice"
 import {UnknownMidiEffectDevice} from "./midi-effects/UnknownMidiEffectDevice"
+import {SoundfontDeviceBox} from "./instruments/SoundfontDeviceBox"
 
 export const DeviceDefinitions = [
     UnknownAudioEffectDevice,
@@ -25,6 +26,7 @@ export const DeviceDefinitions = [
     RevampDeviceBox,
     ReverbDeviceBox,
     VaporisateurDeviceBox,
+    SoundfontDeviceBox,
     NanoDeviceBox,
     PlayfieldDeviceBox, PlayfieldSampleBox,
     TapeDeviceBox,

@@ -26,8 +26,6 @@
     "test": "vitest run --config vitest.config.ts"
   },
   "dependencies": {
-    "@liveblocks/client": "^3.7.1",
-    "@liveblocks/yjs": "^3.7.1",
     "@opendaw/lib-box": "^0.0.32",
     "@opendaw/lib-dawproject": "^0.0.18",
     "@opendaw/lib-dom": "^0.0.32",
@@ -49,5 +47,5 @@
     "@opendaw/studio-forge-boxes": "^0.0.32",
     "@opendaw/typescript-config": "^0.0.20"
   },
-  "gitHead": "c1718ba63c1f99d28d6a5178c39e96c89b5bb364"
+  "gitHead": "705da8c69733c18fbae25c63f87cba8a367b8b38"
 }

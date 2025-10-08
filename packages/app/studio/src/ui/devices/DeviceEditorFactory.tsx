@@ -11,6 +11,7 @@ import {
     PlayfieldSampleBox,
     RevampDeviceBox,
     ReverbDeviceBox,
+    SoundfontDeviceBox,
     StereoToolDeviceBox,
     TapeDeviceBox,
     UnknownAudioEffectDeviceBox,
@@ -31,6 +32,7 @@ import {
     PlayfieldSampleBoxAdapter,
     RevampDeviceBoxAdapter,
     ReverbDeviceBoxAdapter,
+    SoundfontDeviceBoxAdapter,
     StereoToolDeviceBoxAdapter,
     TapeDeviceBoxAdapter,
     UnknownAudioEffectDeviceBoxAdapter,
@@ -55,6 +57,7 @@ import {PlayfieldSampleEditor} from "./instruments/PlayfieldSampleEditor"
 import {ZeitgeistDeviceEditor} from "@/ui/devices/midi-effects/ZeitgeistDeviceEditor"
 import {UnknownEffectDeviceEditor} from "@/ui/devices/UnknownEffectDeviceEditor"
 import {StudioService} from "@/service/StudioService"
+import {SoundfontDeviceEditor} from "@/ui/devices/instruments/SoundfontDeviceEditor"
 
 export namespace DeviceEditorFactory {
     export const toMidiEffectDeviceEditor = (service: StudioService, lifecycle: Lifecycle, box: Box, deviceHost: DeviceHost) =>
@@ -102,6 +105,12 @@ export namespace DeviceEditorFactory {
                                           service={service}
                                           adapter={service.project.boxAdapters.adapterFor(box, VaporisateurDeviceBoxAdapter)}
                                           deviceHost={deviceHost}/>
+            ),
+            visitSoundfontDeviceBox: (box: SoundfontDeviceBox): JsxValue => (
+                <SoundfontDeviceEditor lifecycle={lifecycle}
+                                       service={service}
+                                       adapter={service.project.boxAdapters.adapterFor(box, SoundfontDeviceBoxAdapter)}
+                                       deviceHost={deviceHost}/>
             ),
             visitNanoDeviceBox: (box: NanoDeviceBox): JsxValue => (
                 <NanoDeviceEditor lifecycle={lifecycle}

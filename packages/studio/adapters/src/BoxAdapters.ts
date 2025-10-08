@@ -43,6 +43,7 @@ import {
     RevampDeviceBox,
     ReverbDeviceBox,
     RootBox,
+    SoundfontDeviceBox,
     StereoToolDeviceBox,
     TapeDeviceBox,
     TimelineBox,
@@ -100,6 +101,7 @@ import {ZeitgeistDeviceBoxAdapter} from "./devices/midi-effects/ZeitgeistDeviceB
 import {GrooveShuffleBoxAdapter} from "./grooves/GrooveShuffleBoxAdapter"
 import {UnknownAudioEffectDeviceBoxAdapter} from "./devices/audio-effects/UnknownAudioEffectDeviceBoxAdapter"
 import {UnknownMidiEffectDeviceBoxAdapter} from "./devices/midi-effects/UnknownMidiEffectDeviceBoxAdapter"
+import {SoundfontDeviceBoxAdapter} from "./devices/instruments/SoundfontDeviceBoxAdapter"
 
 export class BoxAdapters implements Terminable {
     readonly #context: BoxAdaptersContext
@@ -166,6 +168,7 @@ export class BoxAdapters implements Terminable {
             visitTapeDeviceBox: (box: TapeDeviceBox) => new TapeDeviceBoxAdapter(this.#context, box),
             visitNanoDeviceBox: (box: NanoDeviceBox) => new NanoDeviceBoxAdapter(this.#context, box),
             visitVaporisateurDeviceBox: (box: VaporisateurDeviceBox) => new VaporisateurDeviceBoxAdapter(this.#context, box),
+            visitSoundfontDeviceBox: (box: SoundfontDeviceBox) => new SoundfontDeviceBoxAdapter(this.#context, box),
             visitModularBox: (box: ModularBox) => new ModularAdapter(this.#context, box),
             visitModuleConnectionBox: (box: ModuleConnectionBox) => new ModuleConnectionAdapter(this.#context, box),
             visitModuleDelayBox: (box: ModuleDelayBox) => new ModuleDelayAdapter(this.#context, box),

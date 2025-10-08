@@ -3,6 +3,7 @@ import {ppqn} from "@opendaw/lib-dsp"
 import {AudioData} from "./audio/AudioData"
 import {ClipSequencingUpdates} from "./ClipNotifications"
 import {NoteSignal} from "./NoteSignal"
+import type {SoundFont2} from "soundfont2"
 
 export interface EngineCommands extends Terminable {
     play(): void
@@ -27,6 +28,7 @@ export interface EngineCommands extends Terminable {
 export interface EngineToClient {
     log(message: string): void
     fetchAudio(uuid: UUID.Bytes): Promise<AudioData>
+    fetchSoundfont(uuid: UUID.Bytes): Promise<SoundFont2>
     notifyClipSequenceChanges(changes: ClipSequencingUpdates): void
     switchMarkerState(state: Nullable<[UUID.Bytes, int]>): void
     ready(): void

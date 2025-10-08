@@ -3,6 +3,7 @@ import {
     NanoDeviceBox,
     PlayfieldDeviceBox,
     PlayfieldSampleBox,
+    SoundfontDeviceBox,
     TapeDeviceBox,
     VaporisateurDeviceBox
 } from "@opendaw/studio-boxes"
@@ -109,7 +110,20 @@ export namespace InstrumentFactories {
             })
     }
 
-    export const Named = {Vaporisateur, Playfield, Nano, Tape}
+    export const Soundfont: InstrumentFactory = {
+        defaultName: "Soundfont",
+        defaultIcon: IconSymbol.Unknown,
+        description: "Soundfont Player",
+        trackType: TrackType.Notes,
+        create: (boxGraph: BoxGraph, host: Field<Pointers.InstrumentHost | Pointers.AudioOutput>, name: string, icon: IconSymbol): SoundfontDeviceBox =>
+            SoundfontDeviceBox.create(boxGraph, UUID.generate(), box => {
+                box.label.setValue(name)
+                box.icon.setValue(IconSymbol.toName(icon))
+                box.host.refer(host)
+            })
+    }
+
+    export const Named = {Vaporisateur, Playfield, Nano, Tape, Soundfont}
     export type Keys = keyof typeof Named
 
     const useFile = (boxGraph: BoxGraph, fileUUID: UUID.Bytes, name: string, duration: number) =>

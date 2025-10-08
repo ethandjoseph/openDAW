@@ -54,6 +54,7 @@ import {AudioManagerWorklet} from "./AudioManagerWorklet"
 import {ClipSequencingAudioContext} from "./ClipSequencingAudioContext"
 import {Communicator, Messenger} from "@opendaw/lib-runtime"
 import {AudioUnitOptions} from "./AudioUnitOptions"
+import type {SoundFont2} from "soundfont2"
 
 const DEBUG = false
 
@@ -112,6 +113,7 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
             dispatcher => new class implements EngineToClient {
                 log(message: string): void {dispatcher.dispatchAndForget(this.log, message)}
                 fetchAudio(uuid: UUID.Bytes): Promise<AudioData> {return dispatcher.dispatchAndReturn(this.fetchAudio, uuid)}
+                fetchSoundfont(uuid: UUID.Bytes): Promise<SoundFont2> {return dispatcher.dispatchAndReturn(this.fetchSoundfont, uuid)}
                 notifyClipSequenceChanges(changes: ClipSequencingUpdates): void {dispatcher.dispatchAndForget(this.notifyClipSequenceChanges, changes)}
                 switchMarkerState(state: Nullable<[UUID.Bytes, int]>): void {dispatcher.dispatchAndForget(this.switchMarkerState, state)}
                 ready() {dispatcher.dispatchAndForget(this.ready)}

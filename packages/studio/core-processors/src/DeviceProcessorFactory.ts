@@ -9,6 +9,7 @@ import {
     PlayfieldDeviceBox,
     RevampDeviceBox,
     ReverbDeviceBox,
+    SoundfontDeviceBox,
     StereoToolDeviceBox,
     TapeDeviceBox,
     UnknownAudioEffectDeviceBox,
@@ -27,6 +28,7 @@ import {
     PlayfieldDeviceBoxAdapter,
     RevampDeviceBoxAdapter,
     ReverbDeviceBoxAdapter,
+    SoundfontDeviceBoxAdapter,
     StereoToolDeviceBoxAdapter,
     TapeDeviceBoxAdapter,
     UnknownAudioEffectDeviceBoxAdapter,
@@ -53,6 +55,7 @@ import {MidiEffectProcessor} from "./MidiEffectProcessor"
 import {InstrumentDeviceProcessor} from "./InstrumentDeviceProcessor"
 import {AudioEffectDeviceProcessor} from "./AudioEffectDeviceProcessor"
 import {UnknownMidiEffectDeviceProcessor} from "./devices/midi-effects/UnknownMidiEffectDeviceProcessor"
+import {SoundfontDeviceProcessor} from "./devices/instruments/SoundfontDeviceProcessor"
 
 export namespace InstrumentDeviceProcessorFactory {
     export const create = (context: EngineContext,
@@ -67,7 +70,9 @@ export namespace InstrumentDeviceProcessorFactory {
             visitTapeDeviceBox: (box: TapeDeviceBox) =>
                 new TapeDeviceProcessor(context, context.boxAdapters.adapterFor(box, TapeDeviceBoxAdapter)),
             visitPlayfieldDeviceBox: (box: PlayfieldDeviceBox) =>
-                new PlayfieldDeviceProcessor(context, context.boxAdapters.adapterFor(box, PlayfieldDeviceBoxAdapter))
+                new PlayfieldDeviceProcessor(context, context.boxAdapters.adapterFor(box, PlayfieldDeviceBoxAdapter)),
+            visitSoundfontDeviceBox: (box: SoundfontDeviceBox) =>
+                new SoundfontDeviceProcessor(context, context.boxAdapters.adapterFor(box, SoundfontDeviceBoxAdapter))
         })
 }
 

@@ -11,18 +11,7 @@
     "lint": "eslint \"src/**/*.ts\""
   },
   "dependencies": {
-    "@opendaw/lib-box": "^0.0.32",
-    "@opendaw/lib-dom": "^0.0.32",
-    "@opendaw/lib-dsp": "^0.0.32",
-    "@opendaw/lib-jsx": "^0.0.32",
-    "@opendaw/lib-runtime": "^0.0.32",
-    "@opendaw/lib-std": "^0.0.32",
-    "@opendaw/studio-adapters": "^0.0.33",
-    "@opendaw/studio-boxes": "^0.0.32",
-    "@opendaw/studio-core": "^0.0.41",
-    "@opendaw/studio-enums": "^0.0.23",
-    "@types/markdown-it": "^14.1.2",
-    "markdown-it": "^14.1.0"
+    "@opendaw/studio-sdk": "^0.0.41"
   },
   "devDependencies": {
     "@opendaw/eslint-config": "^0.0.19",
