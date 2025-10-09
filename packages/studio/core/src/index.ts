@@ -23,6 +23,7 @@ export * from "./project/ProjectSignals"
 export * from "./project/ProjectStorage"
 
 export * from "./samples/index"
+export * from "./soundfont/index"
 
 export * from "./sync-log/Commit"
 export * from "./sync-log/SyncLogReader"

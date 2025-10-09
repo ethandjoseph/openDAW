@@ -1,8 +1,8 @@
 import "./main.sass"
 import {App} from "@/ui/App.tsx"
-import {panic, Procedure, RuntimeNotification, RuntimeNotifier, unitValue, UUID} from "@opendaw/lib-std"
+import {int, panic, Procedure, RuntimeNotification, RuntimeNotifier, unitValue, UUID} from "@opendaw/lib-std"
 import {StudioService} from "@/service/StudioService"
-import {AudioData, SampleMetaData} from "@opendaw/studio-adapters"
+import {AudioData, SampleMetaData, Soundfont} from "@opendaw/studio-adapters"
 import {Dialogs} from "@/ui/components/dialogs.tsx"
 import {installCursors} from "@/ui/Cursors.ts"
 import {BuildInfo} from "./BuildInfo"
@@ -26,16 +26,47 @@ import {
     OpenSampleAPI,
     SampleProvider,
     SampleStorage,
+    SoundfontStorage,
     Workers
 } from "@opendaw/studio-core"
 
 import WorkersUrl from "@opendaw/studio-core/workers-main.js?worker&url"
 import WorkletsUrl from "@opendaw/studio-core/processors.js?url"
+import {SoundFont2} from "soundfont2"
 
 window.name = "main"
 
 const loadBuildInfo = async () => fetch(`/build-info.json?v=${Date.now()}`)
     .then(x => x.json().then(x => x as BuildInfo))
+
+const getSoundFont = async () => {
+        const soundFontUUIDAsString = "924b4624-aa55-448b-9991-b44c88157315"
+        const soundfontUUID = UUID.parse(soundFontUUIDAsString)
+        console.debug("Get soundfont", UUID.toString(soundfontUUID))
+        const {status, value} = await Promises.tryCatch(SoundfontStorage.get().load(soundfontUUID))
+        if (status === "rejected") {
+            console.debug("storing...")
+            await fetch("https://assets.opendaw.studio/soundfonts/924b4624-aa55-448b-9991-b44c88157315")
+                .then(x => x.arrayBuffer())
+                .then(x => {
+                    const sf = new SoundFont2(new Uint8Array(x))
+                    console.debug(sf.metaData.name)
+                    sf.presets.map(x => x.header.name).forEach((x: string, index: int) => console.debug(index, x))
+                    const meta: Soundfont = {
+                        uuid: soundFontUUIDAsString,
+                        name: sf.metaData.name,
+                        license: "CC0 1.0 Universal",
+                        url: "https://freepats.zenvoid.org/Piano/acoustic-grand-piano.html",
+                        origin: "openDAW"
+                    }
+
+                    return SoundfontStorage.get().save({uuid: soundfontUUID, file: x, meta})
+                })
+            console.debug("stored")
+        } else {
+            console.debug(value)
+        }
+    }
 
 ;(async () => {
         console.time("boot")
@@ -47,6 +78,7 @@ const loadBuildInfo = async () => fetch(`/build-info.json?v=${Date.now()}`)
         await FontLoader.load()
         await Workers.install(WorkersUrl)
         AudioWorklets.install(WorkletsUrl)
+        await getSoundFont()
         const testFeaturesResult = await Promises.tryCatch(testFeatures())
         if (testFeaturesResult.status === "rejected") {
             document.querySelector("#preloader")?.remove()

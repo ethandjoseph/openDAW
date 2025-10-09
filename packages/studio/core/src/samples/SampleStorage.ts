@@ -5,6 +5,15 @@ import {Workers} from "../Workers"
 import {WavFile} from "../WavFile"
 import {Storage} from "../Storage"
 
+export namespace SampleStorage {
+    export type NewSample = {
+        uuid: UUID.Bytes,
+        audio: AudioData,
+        peaks: ArrayBuffer,
+        meta: SampleMetaData
+    }
+}
+
 export class SampleStorage extends Storage<Sample, SampleMetaData, SampleStorage.NewSample, [AudioData, Peaks, SampleMetaData]> {
     static readonly Folder = "samples/v2"
 
@@ -13,7 +22,7 @@ export class SampleStorage extends Storage<Sample, SampleMetaData, SampleStorage
 
     static async clean() {Workers.Opfs.delete("samples/v1").catch(EmptyExec)}
 
-    constructor() {super(SampleStorage.Folder)}
+    private constructor() {super(SampleStorage.Folder)}
 
     async save({uuid, audio, peaks, meta}: SampleStorage.NewSample): Promise<void> {
         const path = `${this.folder}/${UUID.toString(uuid)}`
@@ -50,14 +59,5 @@ export class SampleStorage extends Storage<Sample, SampleMetaData, SampleStorage
             numberOfChannels: buffer.channels.length,
             frames: buffer.channels
         }, peaks, meta])
-    }
-}
-
-export namespace SampleStorage {
-    export type NewSample = {
-        uuid: UUID.Bytes,
-        audio: AudioData,
-        peaks: ArrayBuffer,
-        meta: SampleMetaData
     }
 }
