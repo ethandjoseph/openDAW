@@ -117,7 +117,7 @@ export namespace InstrumentFactories {
         description: "Soundfont Player",
         trackType: TrackType.Notes,
         create: (boxGraph: BoxGraph, host: Field<Pointers.InstrumentHost | Pointers.AudioOutput>, name: string, icon: IconSymbol): SoundfontDeviceBox => {
-            const soundFontUUIDAsString = "924b4624-aa55-448b-9991-b44c88157315"
+            const soundFontUUIDAsString = "d9f51577-2096-4671-9067-27ca2e12b329"
             const soundfontUUID = UUID.parse(soundFontUUIDAsString)
             const soundfontBox = SoundfontFileBox.create(boxGraph, soundfontUUID,
                 box => box.fileName.setValue("Upright Piano KW"))

@@ -28,7 +28,9 @@ export const SoundfontDeviceEditor = ({lifecycle, service, adapter, deviceHost}:
                       adapter={adapter}
                       populateMenu={parent => MenuItems.forAudioUnitInput(parent, service, deviceHost)}
                       populateControls={() => (
-                          <div className={className}/>
+                          <div className={className}>
+
+                          </div>
                       )}
                       populateMeter={() => (
                           <DevicePeakMeter lifecycle={lifecycle}

@@ -13,15 +13,7 @@ import {
 import {network, Promises} from "@opendaw/lib-runtime"
 import {AudioData, Sample, SampleMetaData} from "@opendaw/studio-adapters"
 import {SampleAPI} from "@opendaw/studio-core"
-
-const username = "openDAW"
-const password = "prototype"
-const base64Credentials = btoa(`${username}:${password}`)
-const headers: RequestInit = {
-    method: "GET",
-    headers: {"Authorization": `Basic ${base64Credentials}`},
-    credentials: "include"
-}
+import {base64Credentials, OpenDAWHeaders} from "../OpenDAWHeaders"
 
 // Standard openDAW samples (considered to be non-removable)
 export class OpenSampleAPI implements SampleAPI {
@@ -43,13 +35,13 @@ export class OpenSampleAPI implements SampleAPI {
     private constructor() {}
 
     async all(): Promise<ReadonlyArray<Sample>> {
-        return Promises.retry(() => fetch(`${OpenSampleAPI.ApiRoot}/list.php`, headers)
+        return Promises.retry(() => fetch(`${OpenSampleAPI.ApiRoot}/list.php`, OpenDAWHeaders)
             .then(x => x.json(), () => []))
     }
 
     async get(uuid: UUID.Bytes): Promise<Sample> {
         const url = `${OpenSampleAPI.ApiRoot}/get.php?uuid=${UUID.toString(uuid)}`
-        const sample: Sample = await Promises.retry(() => network.limitFetch(url, headers)
+        const sample: Sample = await Promises.retry(() => network.limitFetch(url, OpenDAWHeaders)
             .then(x => x.json()))
             .then(x => {if ("error" in x) {return panic(x.error)} else {return x}})
         return Object.freeze({...sample, origin: "openDAW"})
@@ -59,7 +51,7 @@ export class OpenSampleAPI implements SampleAPI {
         console.debug(`load ${UUID.toString(uuid)}`)
         return this.get(uuid)
             .then(({uuid, name, bpm}) => Promises.retry(() => network
-                .limitFetch(`${OpenSampleAPI.FileRoot}/${uuid}`, headers))
+                .limitFetch(`${OpenSampleAPI.FileRoot}/${uuid}`, OpenDAWHeaders))
                 .then(response => {
                     const total = parseInt(response.headers.get("Content-Length") ?? "0")
                     let loaded = 0
