@@ -18,4 +18,3 @@ lerna-debug.log
 /packages/app/studio/public/build-info.json
 /certs/localhost.pem
 /certs/localhost-key.pem
-/packages/app/studio/public/soundfonts/
