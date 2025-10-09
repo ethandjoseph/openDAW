@@ -142,7 +142,7 @@ export class EngineWorklet extends AudioWorkletNode implements Engine {
                 fetchSoundfont: (_uuid: UUID.Bytes): Promise<SoundFont2> =>
                     // fetch("soundfonts/FluidR3_GM.sf2")
                     // fetch("soundfonts/UprightPianoKW-small-bright-20190703.sf2")
-                    fetch("soundfonts/SpanishClassicalGuitar-20190618.sf2")
+                    fetch("soundfonts/PopocacaGM.sf2")
                         .then(x => x.arrayBuffer())
                         .then(x => new SoundFont2(new Uint8Array(x)))
                         .then(x => {

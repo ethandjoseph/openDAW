@@ -1,7 +1,7 @@
-import {int, isDefined, Option, Terminable, UUID} from "@opendaw/lib-std"
+import {byte, int, isDefined, isUndefined, Option, Optional, Terminable, UUID} from "@opendaw/lib-std"
 import {Event} from "@opendaw/lib-dsp"
 import {SoundfontDeviceBoxAdapter} from "@opendaw/studio-adapters"
-import type {Generator, PresetZone, SoundFont2, ZoneMap} from "soundfont2"
+import type {InstrumentZone, PresetZone, SoundFont2} from "soundfont2"
 import {AudioProcessor} from "../../AudioProcessor"
 import {InstrumentDeviceProcessor} from "../../InstrumentDeviceProcessor"
 import {NoteEventSource, NoteEventTarget, NoteLifecycleEvent} from "../../NoteEventSource"
@@ -12,7 +12,7 @@ import {EngineContext} from "../../EngineContext"
 import {DeviceProcessor} from "../../DeviceProcessor"
 import {Block, Processor} from "../../processing"
 import {SoundfontVoice} from "./Soundfont/SoundfontVoice"
-import {GeneratorType} from "./Soundfont/GeneratorType"
+import {GeneratorType, Range} from "./Soundfont/GeneratorType"
 
 export class SoundfontDeviceProcessor extends AudioProcessor implements InstrumentDeviceProcessor, NoteEventTarget {
     readonly #adapter: SoundfontDeviceBoxAdapter
@@ -66,11 +66,12 @@ export class SoundfontDeviceProcessor extends AudioProcessor implements Instrume
             if (isDefined(preset)) {
                 let voiceCount = 0
                 for (const presetZone of preset.zones) {
-                    if (this.#isZoneMatching(event.pitch, event.velocity, presetZone)) {
+                    const velocityByte = Math.round(event.velocity * 127)
+                    if (this.#isMatching(event.pitch, velocityByte, presetZone)) {
                         const instrumentZones = presetZone.instrument.zones
                         for (let i = 0; i < instrumentZones.length; i++) {
                             const instZone = instrumentZones[i]
-                            if (this.#isInstrumentZoneMatching(event.pitch, event.velocity, instZone)) {
+                            if (this.#isMatching(event.pitch, velocityByte, instZone)) {
                                 this.#voices.push(new SoundfontVoice(event, presetZone, instZone, soundfont))
                                 voiceCount++
                             }
@@ -84,27 +85,11 @@ export class SoundfontDeviceProcessor extends AudioProcessor implements Instrume
         }
     }
 
-    #isInstrumentZoneMatching(pitch: number, velocity: number, zone: { generators: ZoneMap<Generator> }): boolean {
-        const keyRange = zone.generators[GeneratorType.KeyRange]?.range
-        if (keyRange) {
-            if (pitch < keyRange.lo || pitch > keyRange.hi) {
-                return false
-            }
-        }
-        const velRange = zone.generators[GeneratorType.VelRange]?.range
-        if (velRange) {
-            if (velocity < velRange.lo || velocity > velRange.hi) {
-                return false
-            }
-        }
-        return true
-    }
-
     processAudio(_block: Block, fromIndex: int, toIndex: int): void {
         this.#audioOutput.clear(fromIndex, toIndex)
-        for (let i = this.#voices.length - 1; i >= 0; i--) {
-            if (this.#voices[i].processAdd(this.#audioOutput, fromIndex, toIndex)) {
-                this.#voices.splice(i, 1)
+        for (let index = this.#voices.length - 1; index >= 0; index--) {
+            if (this.#voices[index].processAdd(this.#audioOutput, fromIndex, toIndex)) {
+                this.#voices.splice(index, 1)
             }
         }
     }
@@ -116,15 +101,13 @@ export class SoundfontDeviceProcessor extends AudioProcessor implements Instrume
 
     toString(): string {return `{SoundfontDevice}`}
 
-    #isZoneMatching(pitch: number, velocity: number, zone: PresetZone): boolean {
-        const keyRange = zone.generators[GeneratorType.KeyRange]?.range
-        if (isDefined(keyRange) && (pitch < keyRange.lo || pitch > keyRange.hi)) {
-            return false
-        }
-        const velRange = zone.generators[GeneratorType.VelRange]?.range
-        if (isDefined(velRange) && (velocity < velRange.lo || velocity > velRange.hi)) {
-            return false
-        }
-        return true
+    #isMatching(pitch: byte, velocity: byte, zone: PresetZone | InstrumentZone): boolean {
+        return this.#isInRange(zone.generators[GeneratorType.VelRange]?.range, velocity)
+            && this.#isInRange(zone.generators[GeneratorType.KeyRange]?.range, pitch)
+
+    }
+
+    #isInRange(range: Optional<Range>, value: byte): boolean {
+        return isUndefined(range) || (value >= range.lo && value <= range.hi)
     }
 }
