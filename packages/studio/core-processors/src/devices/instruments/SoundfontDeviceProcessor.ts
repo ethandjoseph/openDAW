@@ -1,4 +1,4 @@
-import {byte, int, isDefined, isUndefined, Option, Optional, Terminable, UUID} from "@opendaw/lib-std"
+import {byte, int, isAbsent, isUndefined, Option, Optional, Terminable, UUID} from "@opendaw/lib-std"
 import {Event} from "@opendaw/lib-dsp"
 import {SoundfontDeviceBoxAdapter, SoundfontLoader} from "@opendaw/studio-adapters"
 import type {InstrumentZone, Preset, PresetZone} from "soundfont2"
@@ -32,6 +32,8 @@ export class SoundfontDeviceProcessor extends AudioProcessor implements Instrume
         this.#audioOutput = new AudioBuffer()
         this.#peakBroadcaster = this.own(new PeakBroadcaster(context.broadcaster, adapter.address))
 
+        // TODO force quick release voices, when changing preset
+
         this.ownAll(
             context.registerProcessor(this),
             adapter.box.file.catchupAndSubscribe((pointer) =>
@@ -64,18 +66,20 @@ export class SoundfontDeviceProcessor extends AudioProcessor implements Instrume
         const soundfont = optSoundfont.unwrap()
         if (NoteLifecycleEvent.isStart(event)) {
             const preset: Preset = soundfont.presets[this.#adapter.presetIndex] ?? soundfont.presets[0]
-            if (isDefined(preset)) {
-                let voiceCount = 0
-                for (const presetZone of preset.zones) {
-                    const velocityByte = Math.round(event.velocity * 127)
-                    if (this.#isMatching(event.pitch, velocityByte, presetZone)) {
-                        const instrumentZones = presetZone.instrument.zones
-                        for (let i = 0; i < instrumentZones.length; i++) {
-                            const instZone = instrumentZones[i]
-                            if (this.#isMatching(event.pitch, velocityByte, instZone)) {
-                                this.#voices.push(new SoundfontVoice(event, presetZone, instZone, soundfont))
-                                voiceCount++
-                            }
+            if (isAbsent(preset)) {
+                console.warn("No preset available")
+                return
+            }
+            let voiceCount = 0
+            for (const presetZone of preset.zones) {
+                const velocityByte = Math.round(event.velocity * 127)
+                if (this.#isMatching(event.pitch, velocityByte, presetZone)) {
+                    const instrumentZones = presetZone.instrument.zones
+                    for (let i = 0; i < instrumentZones.length; i++) {
+                        const instZone = instrumentZones[i]
+                        if (this.#isMatching(event.pitch, velocityByte, instZone)) {
+                            this.#voices.push(new SoundfontVoice(event, presetZone, instZone, soundfont))
+                            voiceCount++
                         }
                     }
                 }

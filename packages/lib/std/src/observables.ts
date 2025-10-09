@@ -67,13 +67,7 @@ export class MutableObservableOption<T> implements ObservableOption<T> {
         this.wrap(value)
     }
 
-    wrap(value: Maybe<T>): void {
-        const next = Option.wrap(value)
-        if (!this.#option.equals(next)) {
-            this.#option = next
-            this.#notifier.notify(this)
-        }
-    }
+    wrap(value: Maybe<T>): void {this.wrapOption(Option.wrap(value))}
 
     wrapOption(value: Option<T>): void {
         if (!this.#option.equals(value)) {
