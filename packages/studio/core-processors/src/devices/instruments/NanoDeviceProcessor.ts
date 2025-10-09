@@ -24,6 +24,7 @@ export class NanoDeviceProcessor extends AudioProcessor implements InstrumentDev
 
     gain: number = 1.0
     release: number = 1.0
+
     loader: Option<SampleLoader> = Option.None
 
     constructor(context: EngineContext, adapter: NanoDeviceBoxAdapter) {

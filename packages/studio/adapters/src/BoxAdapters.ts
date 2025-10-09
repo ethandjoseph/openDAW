@@ -44,6 +44,7 @@ import {
     ReverbDeviceBox,
     RootBox,
     SoundfontDeviceBox,
+    SoundfontFileBox,
     StereoToolDeviceBox,
     TapeDeviceBox,
     TimelineBox,
@@ -102,6 +103,7 @@ import {GrooveShuffleBoxAdapter} from "./grooves/GrooveShuffleBoxAdapter"
 import {UnknownAudioEffectDeviceBoxAdapter} from "./devices/audio-effects/UnknownAudioEffectDeviceBoxAdapter"
 import {UnknownMidiEffectDeviceBoxAdapter} from "./devices/midi-effects/UnknownMidiEffectDeviceBoxAdapter"
 import {SoundfontDeviceBoxAdapter} from "./devices/instruments/SoundfontDeviceBoxAdapter"
+import {SoundfontFileBoxAdapter} from "./soundfont/SoundfontFileBoxAdapter"
 
 export class BoxAdapters implements Terminable {
     readonly #context: BoxAdaptersContext
@@ -180,6 +182,7 @@ export class BoxAdapters implements Terminable {
             visitAudioUnitBox: (box: AudioUnitBox) => new AudioUnitBoxAdapter(this.#context, box),
             visitAudioBusBox: (box: AudioBusBox): BoxAdapter => new AudioBusBoxAdapter(this.#context, box),
             visitAuxSendBox: (box: AuxSendBox): BoxAdapter => new AuxSendBoxAdapter(this.#context, box),
+            visitSoundfontFileBox: (box: SoundfontFileBox) => new SoundfontFileBoxAdapter(this.#context, box),
             visitAudioFileBox: (box: AudioFileBox) => new AudioFileBoxAdapter(this.#context, box),
             visitAudioClipBox: (box: AudioClipBox) => new AudioClipBoxAdapter(this.#context, box),
             visitAudioRegionBox: (box: AudioRegionBox) => new AudioRegionBoxAdapter(this.#context, box),

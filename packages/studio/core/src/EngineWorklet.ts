@@ -149,7 +149,7 @@ export class EngineWorklet extends AudioWorkletNode implements Engine {
                                 reject(state.reason)
                                 subscription.terminate()
                             } else if (state.type === "loaded") {
-                                resolve(handler.data.unwrap())
+                                resolve(handler.soundfont.unwrap())
                                 subscription.terminate()
                             }
                         })

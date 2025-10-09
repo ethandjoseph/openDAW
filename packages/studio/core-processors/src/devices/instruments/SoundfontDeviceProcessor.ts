@@ -1,7 +1,7 @@
 import {byte, int, isDefined, isUndefined, Option, Optional, Terminable, UUID} from "@opendaw/lib-std"
 import {Event} from "@opendaw/lib-dsp"
-import {SoundfontDeviceBoxAdapter} from "@opendaw/studio-adapters"
-import type {InstrumentZone, PresetZone, SoundFont2} from "soundfont2"
+import {SoundfontDeviceBoxAdapter, SoundfontLoader} from "@opendaw/studio-adapters"
+import type {InstrumentZone, PresetZone} from "soundfont2"
 import {AudioProcessor} from "../../AudioProcessor"
 import {InstrumentDeviceProcessor} from "../../InstrumentDeviceProcessor"
 import {NoteEventSource, NoteEventTarget, NoteLifecycleEvent} from "../../NoteEventSource"
@@ -21,7 +21,7 @@ export class SoundfontDeviceProcessor extends AudioProcessor implements Instrume
     readonly #audioOutput: AudioBuffer
     readonly #peakBroadcaster: PeakBroadcaster
 
-    #soundFont: Option<SoundFont2> = Option.None
+    #loader: Option<SoundfontLoader> = Option.None
 
     constructor(context: EngineContext, adapter: SoundfontDeviceBoxAdapter) {
         super(context)
@@ -32,11 +32,12 @@ export class SoundfontDeviceProcessor extends AudioProcessor implements Instrume
         this.#audioOutput = new AudioBuffer()
         this.#peakBroadcaster = this.own(new PeakBroadcaster(context.broadcaster, adapter.address))
 
-        this.own(context.registerProcessor(this))
-
-        // TODO Introduce system to reuse soundfont and not reload it every time
-        context.engineToClient.fetchSoundfont(UUID.Lowest)
-            .then(soundfont => this.#soundFont = Option.wrap(soundfont))
+        this.ownAll(
+            context.registerProcessor(this),
+            adapter.box.file.catchupAndSubscribe((pointer) =>
+                this.#loader = pointer.targetVertex.map(({box}) =>
+                    context.soundfontManager.getOrCreate(box.address.uuid)))
+        )
     }
 
     introduceBlock(block: Block): void {this.#noteEventInstrument.introduceBlock(block)}
@@ -58,8 +59,9 @@ export class SoundfontDeviceProcessor extends AudioProcessor implements Instrume
     }
 
     handleEvent(event: Event): void {
-        if (this.#soundFont.isEmpty()) {return}
-        const soundfont = this.#soundFont.unwrap()
+        const optSoundfont = this.#loader.flatMap(loader => loader.soundfont)
+        if (optSoundfont.isEmpty()) {return}
+        const soundfont = optSoundfont.unwrap()
         if (NoteLifecycleEvent.isStart(event)) {
             const ranIndex = 0//Math.floor(randomIndex)
             const preset = soundfont.presets[ranIndex]

@@ -4,6 +4,7 @@ import {
     PlayfieldDeviceBox,
     PlayfieldSampleBox,
     SoundfontDeviceBox,
+    SoundfontFileBox,
     TapeDeviceBox,
     VaporisateurDeviceBox
 } from "@opendaw/studio-boxes"
@@ -115,12 +116,18 @@ export namespace InstrumentFactories {
         defaultIcon: IconSymbol.Unknown,
         description: "Soundfont Player",
         trackType: TrackType.Notes,
-        create: (boxGraph: BoxGraph, host: Field<Pointers.InstrumentHost | Pointers.AudioOutput>, name: string, icon: IconSymbol): SoundfontDeviceBox =>
-            SoundfontDeviceBox.create(boxGraph, UUID.generate(), box => {
+        create: (boxGraph: BoxGraph, host: Field<Pointers.InstrumentHost | Pointers.AudioOutput>, name: string, icon: IconSymbol): SoundfontDeviceBox => {
+            const soundFontUUIDAsString = "924b4624-aa55-448b-9991-b44c88157315"
+            const soundfontUUID = UUID.parse(soundFontUUIDAsString)
+            const soundfontBox = SoundfontFileBox.create(boxGraph, soundfontUUID,
+                box => box.fileName.setValue("Upright Piano KW"))
+            return SoundfontDeviceBox.create(boxGraph, UUID.generate(), box => {
                 box.label.setValue(name)
                 box.icon.setValue(IconSymbol.toName(icon))
                 box.host.refer(host)
+                box.file.refer(soundfontBox)
             })
+        }
     }
 
     export const Named = {Vaporisateur, Playfield, Nano, Tape, Soundfont}

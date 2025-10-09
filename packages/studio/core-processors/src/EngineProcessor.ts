@@ -38,6 +38,7 @@ import {
     ProjectDecoder,
     RootBoxAdapter,
     SampleLoaderManager,
+    SoundfontLoaderManager,
     TimelineBoxAdapter,
     TrackBoxAdapter
 } from "@opendaw/studio-adapters"
@@ -50,11 +51,12 @@ import {PeakBroadcaster} from "./PeakBroadcaster"
 import {Metronome} from "./Metronome"
 import {BlockRenderer} from "./BlockRenderer"
 import {Graph, ppqn, PPQN, TopologicalSort} from "@opendaw/lib-dsp"
-import {AudioManagerWorklet} from "./AudioManagerWorklet"
+import {SampleManagerWorklet} from "./SampleManagerWorklet"
 import {ClipSequencingAudioContext} from "./ClipSequencingAudioContext"
 import {Communicator, Messenger} from "@opendaw/lib-runtime"
 import {AudioUnitOptions} from "./AudioUnitOptions"
 import type {SoundFont2} from "soundfont2"
+import {SoundfontManagerWorklet} from "./SoundfontManagerWorklet"
 
 const DEBUG = false
 
@@ -65,7 +67,8 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
     readonly #timeInfo: TimeInfo
     readonly #engineToClient: EngineToClient
     readonly #boxAdapters: BoxAdapters
-    readonly #audioManager: SampleLoaderManager
+    readonly #soundManager: SampleLoaderManager
+    readonly #soundfontManager: SoundfontLoaderManager
     readonly #audioUnits: SortedSet<UUID.Bytes, AudioUnit>
     readonly #rootBoxAdapter: RootBoxAdapter
     readonly #timelineBoxAdapter: TimelineBoxAdapter
@@ -112,13 +115,22 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
             this.#messenger.channel("engine-to-client"),
             dispatcher => new class implements EngineToClient {
                 log(message: string): void {dispatcher.dispatchAndForget(this.log, message)}
-                fetchAudio(uuid: UUID.Bytes): Promise<AudioData> {return dispatcher.dispatchAndReturn(this.fetchAudio, uuid)}
-                fetchSoundfont(uuid: UUID.Bytes): Promise<SoundFont2> {return dispatcher.dispatchAndReturn(this.fetchSoundfont, uuid)}
-                notifyClipSequenceChanges(changes: ClipSequencingUpdates): void {dispatcher.dispatchAndForget(this.notifyClipSequenceChanges, changes)}
-                switchMarkerState(state: Nullable<[UUID.Bytes, int]>): void {dispatcher.dispatchAndForget(this.switchMarkerState, state)}
+                fetchAudio(uuid: UUID.Bytes): Promise<AudioData> {
+                    return dispatcher.dispatchAndReturn(this.fetchAudio, uuid)
+                }
+                fetchSoundfont(uuid: UUID.Bytes): Promise<SoundFont2> {
+                    return dispatcher.dispatchAndReturn(this.fetchSoundfont, uuid)
+                }
+                notifyClipSequenceChanges(changes: ClipSequencingUpdates): void {
+                    dispatcher.dispatchAndForget(this.notifyClipSequenceChanges, changes)
+                }
+                switchMarkerState(state: Nullable<[UUID.Bytes, int]>): void {
+                    dispatcher.dispatchAndForget(this.switchMarkerState, state)
+                }
                 ready() {dispatcher.dispatchAndForget(this.ready)}
             })
-        this.#audioManager = new AudioManagerWorklet(this.#engineToClient)
+        this.#soundManager = new SampleManagerWorklet(this.#engineToClient)
+        this.#soundfontManager = new SoundfontManagerWorklet(this.#engineToClient)
         this.#audioUnits = UUID.newSet(unit => unit.adapter.uuid)
         this.#parameterFieldAdapters = new ParameterFieldAdapters()
         this.#boxAdapters = this.#terminator.own(new BoxAdapters(this))
@@ -208,7 +220,7 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
                 queryLoadingComplete: (): Promise<boolean> =>
                     Promise.resolve(this.#boxGraph.boxes().every(box => box.accept<BoxVisitor<boolean>>({
                         visitAudioFileBox: (box: AudioFileBox) =>
-                            this.#audioManager.getOrCreate(box.address.uuid).data.nonEmpty() && box.pointerHub.nonEmpty()
+                            this.#soundManager.getOrCreate(box.address.uuid).data.nonEmpty() && box.pointerHub.nonEmpty()
                     }) ?? true)),
                 panic: () => this.#panic = true,
                 noteSignal: (signal: NoteSignal) => {
@@ -361,7 +373,8 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
 
     get boxGraph(): BoxGraph<BoxIO.TypeMap> {return this.#boxGraph}
     get boxAdapters(): BoxAdapters {return this.#boxAdapters}
-    get sampleManager(): SampleLoaderManager {return this.#audioManager}
+    get sampleManager(): SampleLoaderManager {return this.#soundManager}
+    get soundfontManager(): SoundfontLoaderManager {return this.#soundfontManager}
     get rootBoxAdapter(): RootBoxAdapter {return this.#rootBoxAdapter}
     get timelineBoxAdapter(): TimelineBoxAdapter {return this.#timelineBoxAdapter}
     get bpm(): number {return this.#timelineBoxAdapter.box.bpm.getValue()}

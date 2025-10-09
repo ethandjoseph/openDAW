@@ -1,10 +1,17 @@
 import "./style.css"
-import {assert, Progress, UUID} from "@opendaw/lib-std"
+import {assert, InaccessibleProperty, Progress, UUID} from "@opendaw/lib-std"
 import {PPQN} from "@opendaw/lib-dsp"
 import {AnimationFrame, Browser} from "@opendaw/lib-dom"
 import {Promises} from "@opendaw/lib-runtime"
 import {AudioData, SampleMetaData} from "@opendaw/studio-adapters"
-import {AudioWorklets, DefaultSampleLoaderManager, OpenSampleAPI, Project, Workers} from "@opendaw/studio-core"
+import {
+    AudioWorklets,
+    DefaultSampleLoaderManager,
+    OpenSampleAPI,
+    Project,
+    ProjectEnv,
+    Workers
+} from "@opendaw/studio-core"
 import {testFeatures} from "./features"
 import {createExampleProject} from "./ExampleProject"
 import WorkersUrl from "@opendaw/studio-core/workers-main.js?worker&url"
@@ -42,7 +49,12 @@ import WorkletsUrl from "@opendaw/studio-core/processors.js?url"
         })
 
         const loadProject = false
-        const env = {sampleManager, audioWorklets: audioWorkletResult.value, audioContext: context}
+        const env: ProjectEnv = {
+            sampleManager,
+            audioWorklets: audioWorkletResult.value,
+            audioContext: context,
+            soundfontManager: InaccessibleProperty("No SoundFontManager available")
+        }
         const project = loadProject
             ? Project.load(env, await fetch("subset.od").then(x => x.arrayBuffer()))
             : createExampleProject(env)

@@ -3,6 +3,7 @@
 ## Bugs
 
 * Allow dropping devices in the timeline header column
+* Removing Nano's sample kills the device
 
 ## TODO
 

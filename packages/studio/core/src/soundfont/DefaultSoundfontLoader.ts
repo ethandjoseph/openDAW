@@ -32,7 +32,7 @@ export class DefaultSoundfontLoader implements SoundfontLoader {
     }
 
     get uuid(): UUID.Bytes {return this.#uuid}
-    get data(): Option<SoundFont2> {return this.#data}
+    get soundfont(): Option<SoundFont2> {return this.#data}
     get meta(): Option<SoundfontMetaData> {return this.#meta}
     get state(): SoundfontLoaderState {return this.#state}
 

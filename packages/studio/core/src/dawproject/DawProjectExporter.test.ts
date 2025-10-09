@@ -3,7 +3,7 @@ import {fileURLToPath} from "url"
 import * as path from "node:path"
 import * as fs from "node:fs"
 import {Project} from "../project/Project"
-import {AudioData, SampleLoader, SampleLoaderState, SampleLoaderManager} from "@opendaw/studio-adapters"
+import {AudioData, SampleLoader, SampleLoaderManager, SampleLoaderState} from "@opendaw/studio-adapters"
 import {InaccessibleProperty, Observer, Option, panic, Subscription, Terminable, UUID} from "@opendaw/lib-std"
 import {Xml} from "@opendaw/lib-xml"
 import {FileReferenceSchema} from "@opendaw/lib-dawproject"
@@ -38,7 +38,8 @@ describe("DawProjectExport", () => {
                 }
                 remove(_uuid: UUID.Bytes): void {return panic("Method not implemented.")}
                 invalidate(_uuid: UUID.Bytes): void {return panic("Method not implemented.")}
-            }
+            },
+            soundfontManager: InaccessibleProperty as any
         }, arrayBuffer)
         const schema = DawProjectExporter.write(project, {
             write: (path: string, buffer: ArrayBufferLike): FileReferenceSchema => {

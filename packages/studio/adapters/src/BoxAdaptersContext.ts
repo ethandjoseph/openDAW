@@ -7,11 +7,13 @@ import {ClipSequencing} from "./ClipSequencing"
 import {ParameterFieldAdapters} from "./ParameterFieldAdapters"
 import {BoxAdapters} from "./BoxAdapters"
 import {SampleLoaderManager} from "./sample/SampleLoaderManager"
+import {SoundfontLoaderManager} from "./soundfont/SoundfontLoaderManager"
 
 export interface BoxAdaptersContext extends Terminable {
     get boxGraph(): BoxGraph
     get boxAdapters(): BoxAdapters
     get sampleManager(): SampleLoaderManager
+    get soundfontManager(): SoundfontLoaderManager
     get rootBoxAdapter(): RootBoxAdapter
     get timelineBoxAdapter(): TimelineBoxAdapter
     get liveStreamReceiver(): LiveStreamReceiver

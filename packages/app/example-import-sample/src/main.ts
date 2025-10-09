@@ -1,5 +1,5 @@
 import "./style.css"
-import {assert, Errors, Progress, UUID} from "@opendaw/lib-std"
+import {assert, Errors, InaccessibleProperty, Progress, UUID} from "@opendaw/lib-std"
 import {PPQN} from "@opendaw/lib-dsp"
 import {AnimationFrame, Browser, Files} from "@opendaw/lib-dom"
 import {Promises} from "@opendaw/lib-runtime"
@@ -10,6 +10,7 @@ import {
     FilePickerAcceptTypes,
     OpenSampleAPI,
     Project,
+    ProjectEnv,
     Workers
 } from "@opendaw/studio-core"
 import {testFeatures} from "./features"
@@ -52,7 +53,12 @@ import {importSample} from "./helper"
             sampleAPI.load(audioContext, uuid, progress)
     })
 
-    const env = {sampleManager, audioWorklets: audioWorkletResult.value, audioContext}
+    const env: ProjectEnv = {
+        sampleManager,
+        audioWorklets: audioWorkletResult.value,
+        audioContext,
+        soundfontManager: InaccessibleProperty("No SoundFontManager available")
+    }
     const project = Project.new(env)
     project.startAudioWorklet()
     if (audioContext.state === "suspended") {

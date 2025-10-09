@@ -21,7 +21,7 @@ class AudioLoaderWorklet implements SampleLoader {
     toString(): string {return `{AudioLoaderWorklet}`}
 }
 
-export class AudioManagerWorklet implements SampleLoaderManager {
+export class SampleManagerWorklet implements SampleLoaderManager {
     readonly #engineToClient: EngineToClient
     readonly #set: SortedSet<UUID.Bytes, SampleLoader>
 

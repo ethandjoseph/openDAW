@@ -89,11 +89,12 @@ const loadBuildInfo = async () => fetch(`/build-info.json?v=${Date.now()}`)
                     .then(res => res.arrayBuffer())
                     .then(file => {
                         const sf = new SoundFont2(new Uint8Array(file))
-                        console.debug(`Loaded Soundfont '${sf.metaData.name}'`)
+                        const name = sf.metaData.name
+                        console.debug(`Loaded Soundfont '${name}'`)
                         sf.presets.map(x => x.header.name).forEach((x: string, index: int) => console.debug(index, x))
                         return [file, {
                             uuid: uuidAsString,
-                            name: sf.metaData.name,
+                            name,
                             license: "CC0 1.0 Universal",
                             url: "https://freepats.zenvoid.org/Piano/acoustic-grand-piano.html",
                             origin: "openDAW"
