@@ -1,29 +1,20 @@
-import type {Generator, PresetZone, SoundFont2, ZoneMap} from "soundfont2"
+import type {Generator, InstrumentZone, PresetZone, SoundFont2, ZoneMap} from "soundfont2"
 import {midiToHz, NoteEvent, velocityToGain} from "@opendaw/lib-dsp"
-import {Id, int, Optional} from "@opendaw/lib-std"
+import {Id, int, isNotUndefined, Optional} from "@opendaw/lib-std"
 import {ADSREnvelope} from "./ADSREnvelope"
 import {AudioBuffer} from "../../../AudioBuffer"
 import {GeneratorType} from "./GeneratorType"
 
-function getNumericGenerator(generators: ZoneMap<Generator>, type: GeneratorType): Optional<number> {
-    // Try both enum key and numeric string key
-    let gen = generators[type]
-    if (!gen) {
-        gen = generators[type.toString() as unknown as keyof typeof generators]
-    }
-    return gen?.value
-}
+const getNumericGenerator = (generators: ZoneMap<Generator>, type: GeneratorType): Optional<number> =>
+    (generators[type] ?? generators[type.toString() as unknown as keyof typeof generators])?.value
 
-function getCombinedGenerator(presetGens: ZoneMap<Generator>, instGens: ZoneMap<Generator>, type: GeneratorType): Optional<number> {
-    // Instrument generators take precedence, then preset generators
-    const instValue = getNumericGenerator(instGens, type)
-    if (instValue !== undefined) return instValue
-    return getNumericGenerator(presetGens, type)
-}
+const getCombinedGenerator = (presetGens: ZoneMap<Generator>, instGens: ZoneMap<Generator>,
+                              type: GeneratorType): Optional<number> =>
+    getNumericGenerator(instGens, type) ?? getNumericGenerator(presetGens, type)
 
 export class SoundfontVoice {
     readonly event: Id<NoteEvent>
-    readonly sampleData: Float32Array
+    readonly sampleData: Int16Array
     readonly envelope: ADSREnvelope
     readonly rootKey: number
     readonly sampleRate: number
@@ -35,22 +26,15 @@ export class SoundfontVoice {
     playbackPosition: number = 0
     isReleasing: boolean = false
 
-    constructor(event: Id<NoteEvent>, zone: PresetZone, soundFont: SoundFont2) {
+    constructor(event: Id<NoteEvent>, presetZone: PresetZone, instrumentZone: InstrumentZone, soundFont: SoundFont2) {
         this.event = event
 
-        const presetGens = zone.generators
-        const instrumentZone = zone.instrument.zones[0]
+        const presetGens = presetZone.generators
         const instGens = instrumentZone?.generators
 
         const sampleId = getNumericGenerator(instGens, GeneratorType.SampleId) ?? 0
         const sample = instrumentZone?.sample ?? soundFont.samples[sampleId]
-        const int16Data = sample?.data
-        this.sampleData = new Float32Array(int16Data?.length ?? 1)
-        if (int16Data) {
-            for (let i = 0; i < int16Data.length; i++) {
-                this.sampleData[i] = int16Data[i] / 32768.0
-            }
-        }
+        this.sampleData = sample.data
         this.rootKey = getNumericGenerator(instGens, GeneratorType.OverridingRootKey) ?? sample?.header.originalPitch ?? 60
         this.sampleRate = sample?.header.sampleRate ?? sampleRate
         this.loopStart = sample?.header.startLoop ?? 0
@@ -67,11 +51,11 @@ export class SoundfontVoice {
         const decay = getCombinedGenerator(presetGens, instGens, GeneratorType.DecayVolEnv)
         const sustain = getCombinedGenerator(presetGens, instGens, GeneratorType.SustainVolEnv)
         const release = getCombinedGenerator(presetGens, instGens, GeneratorType.ReleaseVolEnv)
-        console.debug("ADSR", attack, decay, sustain, release)
+
         const attackTime = Math.pow(2, (attack ?? -12000) / 1200)
         const decayTime = Math.pow(2, (decay ?? -12000) / 1200)
         const sustainLevel = 1 - (sustain ?? 0) / 1000
-        const releaseTime = Math.pow(2, (release ?? -12000) / 1200)
+        const releaseTime = isNotUndefined(release) ? Math.pow(2, release / 1200) : 0.05
         this.envelope = new ADSREnvelope(attackTime, decayTime, sustainLevel, releaseTime)
     }
 
@@ -89,29 +73,29 @@ export class SoundfontVoice {
         const l = output.getChannel(0)
         const r = output.getChannel(1)
         for (let i = fromIndex; i < toIndex; i++) {
-            const envValue = this.envelope.process()
-            if (this.envelope.isComplete) {
-                return true
-            }
             const sampleIndex = Math.floor(this.playbackPosition)
-            if (sampleIndex >= this.sampleData.length) {
-                return true
-            }
+            const envValue = this.envelope.process()
             const sample = this.#getSample(sampleIndex)
-            const amp = sample * gain * envValue
+            const amp = (sample / 32768.0) * gain * envValue
             l[i] += amp * panLeft
             r[i] += amp * panRight
             this.playbackPosition += playbackRate
-            if (this.shouldLoop && this.playbackPosition >= this.loopEnd && this.loopEnd > this.loopStart && !this.isReleasing) {
-                this.playbackPosition = this.loopStart + (this.playbackPosition - this.loopEnd)
+            if (this.shouldLoop) {
+                if (this.playbackPosition >= this.loopEnd && this.loopEnd > this.loopStart) {
+                    this.playbackPosition = this.loopStart + (this.playbackPosition - this.loopEnd)
+                }
+            } else {
+                if (this.playbackPosition >= this.sampleData.length - 1) {
+                    return true
+                }
             }
         }
-        return false
+        return this.envelope.isComplete
     }
 
     #getSample(index: number): number {
         if (index >= this.sampleData.length - 1) return this.sampleData[this.sampleData.length - 1]
         const frac = this.playbackPosition - index
-        return this.sampleData[index] * (1 - frac) + this.sampleData[index + 1] * frac
+        return this.sampleData[index] * (1.0 - frac) + this.sampleData[index + 1] * frac
     }
 }

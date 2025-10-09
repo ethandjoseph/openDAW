@@ -140,46 +140,17 @@ export class EngineWorklet extends AudioWorkletNode implements Engine {
                     })
                 },
                 fetchSoundfont: (_uuid: UUID.Bytes): Promise<SoundFont2> =>
-                    fetch("soundfonts/FluidR3_GM.sf2")
+                    // fetch("soundfonts/FluidR3_GM.sf2")
+                    // fetch("soundfonts/UprightPianoKW-small-bright-20190703.sf2")
+                    fetch("soundfonts/SpanishClassicalGuitar-20190618.sf2")
                         .then(x => x.arrayBuffer())
+                        .then(x => new SoundFont2(new Uint8Array(x)))
                         .then(x => {
-                            const sf = new SoundFont2(new Uint8Array(x))
-
-                            console.log("=== ANALYZING FIRST 10 PRESETS ===")
-                            for (let i = 0; i < Math.min(10, sf.presets.length); i++) {
-                                const preset = sf.presets[i]
-                                console.log(`\nPreset ${i}: ${preset.header.name}`)
-                                console.log(`  Bank: ${preset.header.bank}, Preset: ${preset.header.preset}`)
-                                console.log(`  Zones: ${preset.zones.length}`)
-
-                                if (preset.zones.length > 0) {
-                                    const zone = preset.zones[0]
-                                    console.log(`  Zone 0 generators:`, zone.generators)
-                                    console.log(`  Generator keys:`, Object.keys(zone.generators))
-
-                                    const instrument = zone.instrument
-                                    console.log(`  Instrument: ${instrument.header.name}`)
-                                    console.log(`  Instrument zones: ${instrument.zones.length}`)
-
-                                    if (instrument.zones.length > 0) {
-                                        const instZone = instrument.zones[0]
-                                        console.log(`  Instrument zone 0 generators:`, instZone.generators)
-                                        console.log(`  Instrument generator keys:`, Object.keys(instZone.generators))
-
-                                        // Check for envelope generators specifically
-                                        const envCheck = {
-                                            "34": instZone.generators[34],
-                                            "36": instZone.generators[36],
-                                            "37": instZone.generators[37],
-                                            "38": instZone.generators[38]
-                                        }
-                                        console.log(`  Envelope values (numeric keys):`, envCheck)
-                                    }
-                                }
-                            }
-
-                            return sf
-                        }),
+                            console.debug("PRESETS")
+                            x.presets.map(x => x.header.name).forEach((x: string, index: int) => console.debug(index, x))
+                            return x
+                        })
+                ,
 
                 notifyClipSequenceChanges: (changes: ClipSequencingUpdates): void => {
                     changes.stopped.forEach(uuid => {

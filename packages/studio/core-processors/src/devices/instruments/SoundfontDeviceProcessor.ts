@@ -1,7 +1,7 @@
 import {int, isDefined, Option, Terminable, UUID} from "@opendaw/lib-std"
 import {Event} from "@opendaw/lib-dsp"
 import {SoundfontDeviceBoxAdapter} from "@opendaw/studio-adapters"
-import type {PresetZone, SoundFont2} from "soundfont2"
+import type {Generator, PresetZone, SoundFont2, ZoneMap} from "soundfont2"
 import {AudioProcessor} from "../../AudioProcessor"
 import {InstrumentDeviceProcessor} from "../../InstrumentDeviceProcessor"
 import {NoteEventSource, NoteEventTarget, NoteLifecycleEvent} from "../../NoteEventSource"
@@ -34,12 +34,9 @@ export class SoundfontDeviceProcessor extends AudioProcessor implements Instrume
 
         this.own(context.registerProcessor(this))
 
+        // TODO Introduce system to reuse soundfont and not reload it every time
         context.engineToClient.fetchSoundfont(UUID.Lowest)
-            .then(soundfont => {
-                console.debug("PRESETS")
-                console.debug(soundfont.presets.map(x => x.header.name).join(", "))
-                this.#soundFont = Option.wrap(soundfont)
-            })
+            .then(soundfont => this.#soundFont = Option.wrap(soundfont))
     }
 
     introduceBlock(block: Block): void {this.#noteEventInstrument.introduceBlock(block)}
@@ -64,22 +61,43 @@ export class SoundfontDeviceProcessor extends AudioProcessor implements Instrume
         if (this.#soundFont.isEmpty()) {return}
         const soundfont = this.#soundFont.unwrap()
         if (NoteLifecycleEvent.isStart(event)) {
-            const ranIndex = Math.floor(Math.random() * soundfont.presets.length)
+            const ranIndex = 0//Math.floor(randomIndex)
             const preset = soundfont.presets[ranIndex]
             if (isDefined(preset)) {
-                console.debug("PRESET", preset.header.name, ranIndex)
                 let voiceCount = 0
-                for (const zone of preset.zones) {
-                    if (this.#isZoneMatching(event.pitch, event.velocity, zone)) {
-                        this.#voices.push(new SoundfontVoice(event, zone, soundfont))
-                        voiceCount++
+                for (const presetZone of preset.zones) {
+                    if (this.#isZoneMatching(event.pitch, event.velocity, presetZone)) {
+                        const instrumentZones = presetZone.instrument.zones
+                        for (let i = 0; i < instrumentZones.length; i++) {
+                            const instZone = instrumentZones[i]
+                            if (this.#isInstrumentZoneMatching(event.pitch, event.velocity, instZone)) {
+                                this.#voices.push(new SoundfontVoice(event, presetZone, instZone, soundfont))
+                                voiceCount++
+                            }
+                        }
                     }
                 }
-                console.debug(`Started ${voiceCount} voices for note ${event.pitch}`)
+                console.debug(`Started ${voiceCount} voices for note ${event.pitch} in preset#${ranIndex}: ${preset.header.name}`)
             }
         } else if (NoteLifecycleEvent.isStop(event)) {
             this.#voices.forEach(voice => voice.event.id === event.id && voice.release())
         }
+    }
+
+    #isInstrumentZoneMatching(pitch: number, velocity: number, zone: { generators: ZoneMap<Generator> }): boolean {
+        const keyRange = zone.generators[GeneratorType.KeyRange]?.range
+        if (keyRange) {
+            if (pitch < keyRange.lo || pitch > keyRange.hi) {
+                return false
+            }
+        }
+        const velRange = zone.generators[GeneratorType.VelRange]?.range
+        if (velRange) {
+            if (velocity < velRange.lo || velocity > velRange.hi) {
+                return false
+            }
+        }
+        return true
     }
 
     processAudio(_block: Block, fromIndex: int, toIndex: int): void {
@@ -100,16 +118,12 @@ export class SoundfontDeviceProcessor extends AudioProcessor implements Instrume
 
     #isZoneMatching(pitch: number, velocity: number, zone: PresetZone): boolean {
         const keyRange = zone.generators[GeneratorType.KeyRange]?.range
-        if (keyRange) {
-            if (pitch < (keyRange.lo ?? 0) || pitch > (keyRange.hi ?? 127)) {
-                return false
-            }
+        if (isDefined(keyRange) && (pitch < keyRange.lo || pitch > keyRange.hi)) {
+            return false
         }
         const velRange = zone.generators[GeneratorType.VelRange]?.range
-        if (velRange) {
-            if (velocity < (velRange.lo ?? 0) || velocity > (velRange.hi ?? 127)) {
-                return false
-            }
+        if (isDefined(velRange) && (velocity < velRange.lo || velocity > velRange.hi)) {
+            return false
         }
         return true
     }
