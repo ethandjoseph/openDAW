@@ -2,8 +2,7 @@ import {Arrays, Errors, panic, Procedure, Progress, RuntimeNotifier, UUID} from 
 import {network, Promises} from "@opendaw/lib-runtime"
 import {SamplePeaks} from "@opendaw/lib-fusion"
 import {AudioData, Sample} from "@opendaw/studio-adapters"
-import {OpenSampleAPI} from "../samples/OpenSampleAPI"
-import {SampleStorage} from "../samples/SampleStorage"
+import {OpenSampleAPI, SampleStorage} from "../samples"
 import {CloudHandler} from "./CloudHandler"
 import {Workers} from "../Workers"
 import {WavFile} from "../WavFile"
@@ -23,7 +22,7 @@ export class CloudBackupSamples {
         log("Collecting all sample domains...")
         const [stock, local, cloud] = await Promise.all([
             OpenSampleAPI.get().all(),
-            SampleStorage.listSamples(),
+            SampleStorage.get().list(),
             cloudHandler.download(CloudBackupSamples.RemoteCatalogPath)
                 .then(json => JSON.parse(new TextDecoder().decode(json)))
                 .catch(reason => reason instanceof Errors.FileNotFound ? Arrays.empty() : panic(reason))
@@ -44,7 +43,7 @@ export class CloudBackupSamples {
     }
 
     async #start(progress: Progress.Handler) {
-        const trashed = await SampleStorage.loadTrashedIds()
+        const trashed = await SampleStorage.get().loadTrashedIds()
         const [uploadProgress, trashProgress, downloadProgress] = Progress.splitWithWeights(progress, [0.45, 0.10, 0.45])
         await this.#upload(uploadProgress)
         await this.#trash(trashed, trashProgress)
@@ -64,7 +63,7 @@ export class CloudBackupSamples {
             async () => {
                 progress((index + 1) / length)
                 this.#log(`Uploading sample '${sample.name}'`)
-                const arrayBuffer = await SampleStorage.loadSample(UUID.parse(sample.uuid))
+                const arrayBuffer = await SampleStorage.get().load(UUID.parse(sample.uuid))
                     .then(([{frames: channels, numberOfChannels, numberOfFrames: numFrames, sampleRate}]) =>
                         WavFile.encodeFloats({channels, numberOfChannels, numFrames, sampleRate}))
                 const path = CloudBackupSamples.pathFor(sample.uuid)
@@ -140,7 +139,7 @@ export class CloudBackupSamples {
                     audioData.frames,
                     audioData.numberOfFrames,
                     audioData.numberOfChannels) as ArrayBuffer
-                await SampleStorage.saveSample({
+                await SampleStorage.get().save({
                     uuid: UUID.parse(sample.uuid),
                     audio: audioData,
                     peaks: peaks,

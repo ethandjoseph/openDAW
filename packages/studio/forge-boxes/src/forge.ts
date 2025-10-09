@@ -28,6 +28,7 @@ import {TrackBox} from "./schema/timeline/track"
 import {MarkerBox} from "./schema/timeline/marker"
 import {GrooveShuffleBox} from "./schema/grooves"
 import {CaptureAudioBox, CaptureMidiBox} from "./schema/capture"
+import {SoundfontFileBox} from "./schema/soundfont"
 
 BoxForge.gen<Pointers>({
     path: "../boxes/src/",
@@ -43,7 +44,7 @@ BoxForge.gen<Pointers>({
         ValueEventBox, ValueEventCollectionBox, ValueEventCurveBox, ValueRegionBox, ValueClipBox,
         AudioRegionBox, AudioClipBox,
         MarkerBox,
-        AudioFileBox,
+        AudioFileBox, SoundfontFileBox,
         AudioUnitBox, CaptureAudioBox, CaptureMidiBox,
         AudioBusBox, AuxSendBox,
         StepAutomationBox,

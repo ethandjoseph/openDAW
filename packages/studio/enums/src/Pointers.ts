@@ -21,6 +21,7 @@ export enum Pointers {
     StepAutomation,
     Editing,
     AudioFile,
+    SoundfontFile,
     AudioUnit,
     MarkerTrack,
     MarkerEvents,

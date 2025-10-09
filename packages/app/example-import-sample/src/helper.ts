@@ -37,7 +37,7 @@ export const importSample = async ({api, boxGraph, timelineBox, rootBox}
     }
     // create the uuid to identify the sample in future (must be uploaded as well)
     const uuid = UUID.generate()
-    await SampleStorage.saveSample({uuid: uuid, audio: audioData, peaks: peaks, meta: meta})
+    await SampleStorage.get().save({uuid: uuid, audio: audioData, peaks: peaks, meta: meta})
     // create a FileBox with the SAME uuid that will be connected to regions or clips.
     const audioFileBox = AudioFileBox.create(boxGraph, uuid, box => {
         box.fileName.setValue(name)

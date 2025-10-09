@@ -63,7 +63,7 @@ export const SampleBrowser = ({lifecycle, service}: Construct) => {
                         <Await factory={async () => {
                             switch (location.getValue()) {
                                 case SampleLocation.Local:
-                                    return SampleStorage.listSamples()
+                                    return SampleStorage.get().list()
                                 case SampleLocation.Cloud:
                                     return service.sampleAPI.all()
                             }

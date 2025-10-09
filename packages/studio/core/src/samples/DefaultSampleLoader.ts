@@ -68,7 +68,7 @@ export class DefaultSampleLoader implements SampleLoader {
 
     #get(): void {
         let version = this.#version
-        SampleStorage.loadSample(this.#uuid).then(([data, peaks, meta]) => {
+        SampleStorage.get().load(this.#uuid).then(([data, peaks, meta]) => {
                 if (this.#version !== version) {
                     console.warn(`Ignore obsolete version: ${this.#version} / ${version}`)
                     return
@@ -109,7 +109,7 @@ export class DefaultSampleLoader implements SampleLoader {
             audio.frames,
             audio.numberOfFrames,
             audio.numberOfChannels) as ArrayBuffer
-        const storeResult = await Promises.tryCatch(SampleStorage.saveSample({
+        const storeResult = await Promises.tryCatch(SampleStorage.get().save({
             uuid: this.#uuid,
             audio: audio,
             peaks: peaks,

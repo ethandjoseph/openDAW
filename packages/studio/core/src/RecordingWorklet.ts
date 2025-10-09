@@ -98,7 +98,7 @@ export class RecordingWorklet extends AudioWorkletNode implements Terminable, Sa
 
     toString(): string {return `{RecordingWorklet}`}
 
-    async #finalize(): Promise<SampleStorage.New> {
+    async #finalize(): Promise<SampleStorage.NewSample> {
         this.#isRecording = false
         this.#reader.stop()
         if (this.#output.length === 0) {return panic("No recording data available")}
@@ -121,13 +121,13 @@ export class RecordingWorklet extends AudioWorkletNode implements Terminable, Sa
         const bpm = BPMTools.detect(frames[0], sample_rate)
         const duration = totalSamples / sample_rate
         const meta: SampleMetaData = {name: "Recording", bpm, sample_rate, duration, origin: "recording"}
-        const sample: SampleStorage.New = {
+        const sample: SampleStorage.NewSample = {
             uuid: this.uuid,
             audio: audioData,
             peaks: peaks as ArrayBuffer,
             meta
         }
-        await SampleStorage.saveSample(sample)
+        await SampleStorage.get().save(sample)
         this.#setState({type: "loaded"})
         this.terminate()
         return sample

@@ -50,7 +50,7 @@ export class SamplePlayback {
             this.#watchAudio(uuidAsString)
             this.#notify(uuidAsString, {type: "buffering"})
 
-            SampleStorage.loadSample(UUID.parse(uuidAsString))
+            SampleStorage.get().load(UUID.parse(uuidAsString))
                 .then(([audio]) => {
                     this.#audio.src = URL.createObjectURL(new Blob([WavFile.encodeFloats({
                         channels: audio.frames.slice(),
