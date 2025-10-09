@@ -1,0 +1,42 @@
+import "./style.css"
+import {assert, UUID} from "@opendaw/lib-std"
+import {Browser} from "@opendaw/lib-dom"
+import {AudioWorklets, Workers} from "@opendaw/studio-core"
+import WorkersUrl from "@opendaw/studio-core/workers-main.js?worker&url"
+import WorkletsUrl from "@opendaw/studio-core/processors.js?url"
+import {SoundFont2} from "soundfont2"
+import {Soundfont} from "@opendaw/studio-adapters"
+
+/**
+ * This is just to make soundfonts available for openDAW's cloud.
+ */
+(async () => {
+    assert(crossOriginIsolated, "window must be crossOriginIsolated")
+    console.debug("booting...")
+    console.debug("openDAW -> headless")
+    console.debug("Agent", Browser.userAgent)
+    console.debug("isLocalHost", Browser.isLocalHost())
+    document.body.textContent = "booting..."
+    await Workers.install(WorkersUrl)
+    AudioWorklets.install(WorkletsUrl)
+
+    await fetch("soundfonts/CTK-230_SoundFont.sf2")
+        .then(x => x.arrayBuffer())
+        .then(async x => {
+            const uuid = await UUID.sha256(x)
+            const uuidAsString = UUID.toString(uuid)
+            console.debug("UUID", uuidAsString)
+            const sf = new SoundFont2(new Uint8Array(x))
+            const result: Soundfont = {
+                uuid: uuidAsString,
+                name: sf.metaData.name,
+                license: "Creative Commons BY 4.0 International",
+                url: "https://musical-artifacts.com/artifacts/583",
+                origin: "openDAW"
+            }
+            sf.presets.map(preset => preset.header.name).forEach(name => console.debug(name))
+            console.dir(result, {depth: Number.MAX_SAFE_INTEGER})
+        })
+
+    document.body.textContent = "Ready."
+})()

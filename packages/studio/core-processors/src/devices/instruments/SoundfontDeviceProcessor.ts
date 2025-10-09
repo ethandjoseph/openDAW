@@ -1,7 +1,7 @@
 import {byte, int, isDefined, isUndefined, Option, Optional, Terminable, UUID} from "@opendaw/lib-std"
 import {Event} from "@opendaw/lib-dsp"
 import {SoundfontDeviceBoxAdapter, SoundfontLoader} from "@opendaw/studio-adapters"
-import type {InstrumentZone, PresetZone} from "soundfont2"
+import type {InstrumentZone, Preset, PresetZone} from "soundfont2"
 import {AudioProcessor} from "../../AudioProcessor"
 import {InstrumentDeviceProcessor} from "../../InstrumentDeviceProcessor"
 import {NoteEventSource, NoteEventTarget, NoteLifecycleEvent} from "../../NoteEventSource"
@@ -63,8 +63,7 @@ export class SoundfontDeviceProcessor extends AudioProcessor implements Instrume
         if (optSoundfont.isEmpty()) {return}
         const soundfont = optSoundfont.unwrap()
         if (NoteLifecycleEvent.isStart(event)) {
-            const ranIndex = 0//Math.floor(randomIndex)
-            const preset = soundfont.presets[ranIndex]
+            const preset: Preset = soundfont.presets[this.#adapter.presetIndex] ?? soundfont.presets[0]
             if (isDefined(preset)) {
                 let voiceCount = 0
                 for (const presetZone of preset.zones) {
@@ -80,7 +79,6 @@ export class SoundfontDeviceProcessor extends AudioProcessor implements Instrume
                         }
                     }
                 }
-                // console.debug(`Started ${voiceCount} voices for note ${event.pitch} in preset#${ranIndex}: ${preset.header.name}`)
             }
         } else if (NoteLifecycleEvent.isStop(event)) {
             this.#voices.forEach(voice => voice.event.id === event.id && voice.release())

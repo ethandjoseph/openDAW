@@ -41,9 +41,12 @@ export class SoundfontVoice {
         this.loopEnd = sample?.header.endLoop ?? this.sampleData.length
 
         // SampleModes: 0 = no loop, 1 = loop continuously, 3 = loop until note off
-        const sampleModes = getNumericGenerator(instGens, GeneratorType.SampleModes) ?? 0
+        const sampleModesRaw = getCombinedGenerator(presetGens, instGens, GeneratorType.SampleModes)
+        // If SampleModes is undefined but the sample has valid loop points, assume loop mode 1
+        // This handles poorly authored SoundFonts that rely on loop points without an explicit mode
+        const hasValidLoopPoints = this.loopStart < this.loopEnd && this.loopEnd <= this.sampleData.length
+        const sampleModes = sampleModesRaw ?? (hasValidLoopPoints ? 1 : 0)
         this.shouldLoop = sampleModes === 1 || sampleModes === 3
-
         this.pan = (getCombinedGenerator(presetGens, instGens, GeneratorType.Pan) ?? 0) / 1000
 
         const attack = getCombinedGenerator(presetGens, instGens, GeneratorType.AttackVolEnv)
@@ -51,10 +54,12 @@ export class SoundfontVoice {
         const sustain = getCombinedGenerator(presetGens, instGens, GeneratorType.SustainVolEnv)
         const release = getCombinedGenerator(presetGens, instGens, GeneratorType.ReleaseVolEnv)
 
+        // TODO Use isNotUndefined
         const attackTime = Math.pow(2, (attack ?? -12000) / 1200)
         const decayTime = Math.pow(2, (decay ?? -12000) / 1200)
-        const sustainLevel = 1 - (sustain ?? 0) / 1000
-        const releaseTime = isNotUndefined(release) ? Math.pow(2, release / 1200) : 0.05
+        const sustainLevel = 1.0 - (sustain ?? 0) / 1000
+        const releaseTime = isNotUndefined(release) ? Math.pow(2, release / 1200) : 0.005
+
         this.envelope = new ADSREnvelope(attackTime, decayTime, sustainLevel, releaseTime)
     }
 

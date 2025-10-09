@@ -53,7 +53,9 @@ export namespace MutableObservableValue {
         }
 }
 
-export interface ObservableOption<T> extends Option<T>, Observable<Option<T>>, Terminable {}
+export interface ObservableOption<T> extends Option<T>, Observable<Option<T>>, Terminable {
+    catchupAndSubscribe(observer: Observer<Option<T>>): Subscription
+}
 
 export class MutableObservableOption<T> implements ObservableOption<T> {
     readonly #notifier: Notifier<Option<T>>
@@ -69,6 +71,13 @@ export class MutableObservableOption<T> implements ObservableOption<T> {
         const next = Option.wrap(value)
         if (!this.#option.equals(next)) {
             this.#option = next
+            this.#notifier.notify(this)
+        }
+    }
+
+    wrapOption(value: Option<T>): void {
+        if (!this.#option.equals(value)) {
+            this.#option = value
             this.#notifier.notify(this)
         }
     }

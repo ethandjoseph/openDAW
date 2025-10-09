@@ -113,11 +113,15 @@ export namespace InstrumentFactories {
 
     export const Soundfont: InstrumentFactory = {
         defaultName: "Soundfont",
-        defaultIcon: IconSymbol.Unknown,
+        defaultIcon: IconSymbol.FileList,
         description: "Soundfont Player",
         trackType: TrackType.Notes,
-        create: (boxGraph: BoxGraph, host: Field<Pointers.InstrumentHost | Pointers.AudioOutput>, name: string, icon: IconSymbol): SoundfontDeviceBox => {
-            const soundFontUUIDAsString = "d9f51577-2096-4671-9067-27ca2e12b329"
+        create: (boxGraph: BoxGraph,
+                 host: Field<Pointers.InstrumentHost | Pointers.AudioOutput>,
+                 name: string,
+                 icon: IconSymbol): SoundfontDeviceBox => {
+            // const soundFontUUIDAsString = "d9f51577-2096-4671-9067-27ca2e12b329" // Upright Piano KW
+            const soundFontUUIDAsString = "bf50f600-620f-4735-adbb-2e5f52c17f08"
             const soundfontUUID = UUID.parse(soundFontUUIDAsString)
             const soundfontBox = SoundfontFileBox.create(boxGraph, soundfontUUID,
                 box => box.fileName.setValue("Upright Piano KW"))

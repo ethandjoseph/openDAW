@@ -10,11 +10,17 @@ export class OpenSoundfontAPI {
     static get(): OpenSoundfontAPI {return new OpenSoundfontAPI()}
 
     static API: ReadonlyArray<Soundfont> = [{
-        "uuid": "d9f51577-2096-4671-9067-27ca2e12b329",
-        "name": "Upright Piano KW",
-        "license": "CC0 1.0 Universal",
-        "url": "https://freepats.zenvoid.org/Piano/acoustic-grand-piano.html",
-        "origin": "openDAW"
+        uuid: "d9f51577-2096-4671-9067-27ca2e12b329",
+        name: "Upright Piano KW",
+        license: "CC0 1.0 Universal",
+        url: "https://freepats.zenvoid.org/Piano/acoustic-grand-piano.html",
+        origin: "openDAW"
+    }, {
+        uuid: "bf50f600-620f-4735-adbb-2e5f52c17f08",
+        name: "Casio CTK-230",
+        license: "Creative Commons BY 4.0 International",
+        url: "https://musical-artifacts.com/artifacts/583",
+        origin: "openDAW"
     }]
 
     private constructor() {}
