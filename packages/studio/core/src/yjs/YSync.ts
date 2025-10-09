@@ -184,7 +184,7 @@ export class YSync<T> implements Terminable {
                     }
                     this.#doc.transact(() => this.#updates.forEach(update => {
                         /**
-                         * TRANSFER CHANGES FROM OPENDAW TO LIVEBLOCKS
+                         * TRANSFER CHANGES FROM OPENDAW TO YJS
                          */
                         if (update.type === "new") {
                             const uuid = update.uuid
