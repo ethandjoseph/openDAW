@@ -1,6 +1,6 @@
 import "./main.sass"
 import {App} from "@/ui/App.tsx"
-import {assert, int, panic, Progress, RuntimeNotification, RuntimeNotifier, UUID} from "@opendaw/lib-std"
+import {panic, Progress, RuntimeNotification, RuntimeNotifier, UUID} from "@opendaw/lib-std"
 import {StudioService} from "@/service/StudioService"
 import {AudioData, SampleMetaData, SoundfontMetaData} from "@opendaw/studio-adapters"
 import {Dialogs} from "@/ui/components/dialogs.tsx"
@@ -25,6 +25,7 @@ import {
     DefaultSampleLoaderManager,
     DefaultSoundfontLoaderManager,
     OpenSampleAPI,
+    OpenSoundfontAPI,
     SampleProvider,
     SampleStorage,
     Workers
@@ -32,7 +33,6 @@ import {
 
 import WorkersUrl from "@opendaw/studio-core/workers-main.js?worker&url"
 import WorkletsUrl from "@opendaw/studio-core/processors.js?url"
-import {SoundFont2} from "soundfont2"
 
 window.name = "main"
 
@@ -79,28 +79,8 @@ const loadBuildInfo = async () => fetch(`/build-info.json?v=${Date.now()}`)
                 sampleAPI.load(context, uuid, progress)
         } satisfies SampleProvider)
         const soundfontManager = new DefaultSoundfontLoaderManager({
-            fetch: async (uuid: UUID.Bytes, _progress: Progress.Handler): Promise<[ArrayBuffer, SoundfontMetaData]> => {
-                // TODO Load from API
-                const soundFontUUIDAsString = "924b4624-aa55-448b-9991-b44c88157315"
-                const soundfontUUID = UUID.parse(soundFontUUIDAsString)
-                assert(UUID.equals(soundfontUUID, uuid), "Unknown soundfont.")
-                const uuidAsString = UUID.toString(uuid)
-                return fetch(`https://assets.opendaw.studio/soundfonts/${uuidAsString}`)
-                    .then(res => res.arrayBuffer())
-                    .then(file => {
-                        const sf = new SoundFont2(new Uint8Array(file))
-                        const name = sf.metaData.name
-                        console.debug(`Loaded Soundfont '${name}'`)
-                        sf.presets.map(x => x.header.name).forEach((x: string, index: int) => console.debug(index, x))
-                        return [file, {
-                            uuid: uuidAsString,
-                            name,
-                            license: "CC0 1.0 Universal",
-                            url: "https://freepats.zenvoid.org/Piano/acoustic-grand-piano.html",
-                            origin: "openDAW"
-                        }]
-                    })
-            }
+            fetch: async (uuid: UUID.Bytes, progress: Progress.Handler): Promise<[ArrayBuffer, SoundfontMetaData]> =>
+                OpenSoundfontAPI.get().load(uuid, progress)
         })
         const cloudAuthManager = CloudAuthManager.create()
         const service: StudioService =

@@ -46,7 +46,6 @@ export class SoundfontVoice {
 
         this.pan = (getCombinedGenerator(presetGens, instGens, GeneratorType.Pan) ?? 0) / 1000
 
-        // Get envelope values from both preset and instrument zones
         const attack = getCombinedGenerator(presetGens, instGens, GeneratorType.AttackVolEnv)
         const decay = getCombinedGenerator(presetGens, instGens, GeneratorType.DecayVolEnv)
         const sustain = getCombinedGenerator(presetGens, instGens, GeneratorType.SustainVolEnv)

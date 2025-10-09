@@ -80,7 +80,7 @@ export class SoundfontDeviceProcessor extends AudioProcessor implements Instrume
                         }
                     }
                 }
-                console.debug(`Started ${voiceCount} voices for note ${event.pitch} in preset#${ranIndex}: ${preset.header.name}`)
+                // console.debug(`Started ${voiceCount} voices for note ${event.pitch} in preset#${ranIndex}: ${preset.header.name}`)
             }
         } else if (NoteLifecycleEvent.isStop(event)) {
             this.#voices.forEach(voice => voice.event.id === event.id && voice.release())
