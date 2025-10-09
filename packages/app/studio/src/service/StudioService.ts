@@ -54,6 +54,7 @@ import {
     DawProject,
     DawProjectImport,
     DefaultSampleLoaderManager,
+    DefaultSoundfontLoaderManager,
     EngineFacade,
     EngineWorklet,
     FilePickerAcceptTypes,
@@ -124,6 +125,7 @@ export class StudioService implements ProjectEnv {
                 readonly audioDevices: AudioOutputDevice,
                 readonly sampleAPI: SampleAPI,
                 readonly sampleManager: DefaultSampleLoaderManager,
+                readonly soundfontManager: DefaultSoundfontLoaderManager,
                 readonly cloudAuthManager: CloudAuthManager,
                 readonly buildInfo: BuildInfo) {
         this.samplePlayback = new SamplePlayback()

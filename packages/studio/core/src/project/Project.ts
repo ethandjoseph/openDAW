@@ -34,6 +34,7 @@ import {
     ProjectSkeleton,
     RootBoxAdapter,
     SampleLoaderManager,
+    SoundfontLoaderManager,
     TimelineBoxAdapter,
     UnionBoxTypes,
     UserEditingManager,
@@ -194,6 +195,7 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
     get rootBoxAdapter(): RootBoxAdapter {return this.boxAdapters.adapterFor(this.rootBox, RootBoxAdapter)}
     get timelineBoxAdapter(): TimelineBoxAdapter {return this.boxAdapters.adapterFor(this.timelineBox, TimelineBoxAdapter)}
     get sampleManager(): SampleLoaderManager {return this.#env.sampleManager}
+    get soundfontManager(): SoundfontLoaderManager {return this.#env.soundfontManager}
     get clipSequencing(): ClipSequencing {return panic("Only available in audio context")}
     get isAudioContext(): boolean {return false}
     get isMainThread(): boolean {return true}

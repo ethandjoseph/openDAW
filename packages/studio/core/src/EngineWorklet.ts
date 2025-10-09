@@ -130,28 +130,31 @@ export class EngineWorklet extends AudioWorkletNode implements Engine {
                 fetchAudio: (uuid: UUID.Bytes): Promise<AudioData> => {
                     return new Promise((resolve, reject) => {
                         const handler = project.sampleManager.getOrCreate(uuid)
-                        handler.subscribe(state => {
+                        const subscription = handler.subscribe(state => {
                             if (state.type === "error") {
                                 reject(state.reason)
+                                subscription.terminate()
                             } else if (state.type === "loaded") {
                                 resolve(handler.data.unwrap())
+                                subscription.terminate()
                             }
                         })
                     })
                 },
-                fetchSoundfont: (_uuid: UUID.Bytes): Promise<SoundFont2> =>
-                    // fetch("soundfonts/FluidR3_GM.sf2")
-                    // fetch("soundfonts/UprightPianoKW-small-bright-20190703.sf2")
-                    fetch("soundfonts/PopocacaGM.sf2")
-                        .then(x => x.arrayBuffer())
-                        .then(x => new SoundFont2(new Uint8Array(x)))
-                        .then(x => {
-                            console.debug("PRESETS")
-                            x.presets.map(x => x.header.name).forEach((x: string, index: int) => console.debug(index, x))
-                            return x
+                fetchSoundfont: (uuid: UUID.Bytes): Promise<SoundFont2> => {
+                    return new Promise((resolve, reject) => {
+                        const handler = project.soundfontManager.getOrCreate(uuid)
+                        const subscription = handler.subscribe(state => {
+                            if (state.type === "error") {
+                                reject(state.reason)
+                                subscription.terminate()
+                            } else if (state.type === "loaded") {
+                                resolve(handler.data.unwrap())
+                                subscription.terminate()
+                            }
                         })
-                ,
-
+                    })
+                },
                 notifyClipSequenceChanges: (changes: ClipSequencingUpdates): void => {
                     changes.stopped.forEach(uuid => {
                         for (let i = 0; i < this.#playingClips.length; i++) {
