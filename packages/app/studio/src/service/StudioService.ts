@@ -123,126 +123,19 @@ export class StudioService implements ProjectEnv {
                 readonly cloudAuthManager: CloudAuthManager,
                 readonly buildInfo: BuildInfo) {
         this.#sampleService = new SampleService(audioContext,
-                sample => this.#signals.notify({type: "import-sample", sample}))
+            sample => this.#signals.notify({type: "import-sample", sample}))
         this.samplePlayback = new SamplePlayback()
         this.#dawProjectService = new DawProjectService(this.#sampleService)
         this.#projectProfileService = new ProjectProfileService({
             env: this, importer: this.#sampleService, sampleAPI: this.sampleAPI, sampleManager: this.sampleManager
         })
-        const lifeTime = new Terminator()
-        const observer = (optProfile: Option<ProjectProfile>) => {
-            const path = RouteLocation.get().path
-            const isRoot = path === "/"
-            if (isRoot) {this.layout.screen.setValue(null)}
-            lifeTime.terminate()
-            if (optProfile.nonEmpty()) {
-                const profile = optProfile.unwrap()
-                const {project, meta} = profile
-                console.debug(`switch to %c${meta.name}%c`, "color: hsl(25, 69%, 63%)", "color: inherit")
-                const {timelineBox, editing, userEditingManager} = project
-                const loopState = this.transport.loop
-                const loopEnabled = timelineBox.loopArea.enabled
-                loopState.setValue(loopEnabled.getValue())
-                lifeTime.ownAll(
-                    project,
-                    loopState.subscribe(value => editing.modify(() => loopEnabled.setValue(value.getValue()))),
-                    userEditingManager.timeline.catchupAndSubscribe(option => option
-                        .ifSome(() => this.panelLayout.showIfAvailable(PanelType.ContentEditor))),
-                    timelineBox.durationInPulses.catchupAndSubscribe(owner => range.maxUnits = owner.getValue() + PPQN.Bar)
-                )
-                range.showUnitInterval(0, PPQN.fromSignature(16, 1))
 
-                // -------------------------------
-                // Show views if content available
-                // -------------------------------
-                //
-                // Markers
-                if (timelineBox.markerTrack.markers.pointerHub.nonEmpty()) {
-                    this.timeline.primaryVisible.setValue(true)
-                }
-                // Clips
-                const maxClipIndex: int = project.rootBoxAdapter.audioUnits.adapters()
-                    .reduce((max, unit) => Math.max(max, unit.tracks.values()
-                        .reduce((max, track) => Math.max(max, track.clips.collection.getMinFreeIndex()), 0)), 0)
-                if (maxClipIndex > 0) {
-                    this.timeline.clips.count.setValue(maxClipIndex + 1)
-                    this.timeline.clips.visible.setValue(true)
-                } else {
-                    this.timeline.clips.count.setValue(3)
-                    this.timeline.clips.visible.setValue(false)
-                }
-                let screen: Nullable<Workspace.ScreenKeys> = null
-                const restart: RestartWorklet = {
-                    unload: async (event: unknown) => {
-                        screen = this.layout.screen.getValue()
-                        // we need to restart the screen to subscribe to new broadcaster instances
-                        this.switchScreen(null)
-                        this.engine.releaseWorklet()
-                        await Dialogs.info({
-                            headline: "Audio-Engine Error",
-                            message: String(safeRead(event, "message") ?? event),
-                            okText: "Restart"
-                        })
-                    },
-                    load: (engine: EngineWorklet) => {
-                        this.engine.setWorklet(engine)
-                        this.switchScreen(screen)
-                    }
-                }
-                this.engine.setWorklet(project.startAudioWorklet(restart, {pauseOnLoopDisabled: false}))
-                if (isRoot) {this.switchScreen("default")}
-            } else {
-                this.engine.releaseWorklet()
-                range.maxUnits = PPQN.fromSignature(128, 1)
-                range.showUnitInterval(0, PPQN.fromSignature(16, 1))
-                this.layout.screen.setValue("dashboard")
-            }
-        }
-        this.#projectProfileService.catchupAndSubscribe(owner => observer(owner.getValue()))
-
-        ConsoleCommands.exportAccessor("box.graph.boxes",
-            () => this.runIfProject(({boxGraph}) => boxGraph.debugBoxes()))
-        ConsoleCommands.exportMethod("box.graph.lookup",
-            (address: string) => this.runIfProject(({boxGraph}) => boxGraph.findVertex(Address.decode(address)).match({
-                none: () => "not found",
-                some: vertex => vertex.toString()
-            })).match({none: () => "no project", some: value => value}))
-        ConsoleCommands.exportAccessor("box.graph.dependencies",
-            () => this.runIfProject(project => project.boxGraph.debugDependencies()))
-
-        if (!Browser.isLocalHost()) {
-            window.addEventListener("beforeunload", (event: Event) => {
-                if (!navigator.onLine) {event.preventDefault()}
-                if (this.hasProfile && (this.profile.hasChanges() || !this.project.editing.isEmpty())) {
-                    event.preventDefault()
-                }
-            })
-        }
-
-        this.spotlightDataSupplier.registerAction("Create Synth", EmptyExec)
-        this.spotlightDataSupplier.registerAction("Create Drumcomputer", EmptyExec)
-        this.spotlightDataSupplier.registerAction("Create ModularSystem", EmptyExec)
-
-        const configLocalStorageBoolean = (value: DefaultObservableValue<boolean>,
-                                           item: string,
-                                           set: Procedure<boolean>,
-                                           defaultValue: boolean = false) => {
-            value.setValue((localStorage.getItem(item) ?? String(defaultValue)) === String(true))
-            value.catchupAndSubscribe(owner => {
-                const bool = owner.getValue()
-                set(bool)
-                try {localStorage.setItem(item, String(bool))} catch (_reason: any) {}
-            })
-        }
-
-        configLocalStorageBoolean(this.layout.helpVisible, "help-visible",
-            visible => document.body.classList.toggle("help-hidden", !visible), true)
-
-        this.recovery.restoreProfile().then(optProfile => {
-            if (optProfile.nonEmpty()) {
-                this.#projectProfileService.setValue(optProfile)
-            }
-        }, EmptyExec)
+        this.#listenProject()
+        this.#installConsoleCommands()
+        this.#populateSpotlightData()
+        this.#configLocalStorage()
+        this.#configBeforeUnload()
+        this.#checkRecovery()
     }
 
     get sampleRate(): number {return this.audioContext.sampleRate}
@@ -250,6 +143,18 @@ export class StudioService implements ProjectEnv {
     get projectProfileService(): ProjectProfileService {return this.#projectProfileService}
 
     panicEngine(): void {this.runIfProject(({engine}) => engine.panic())}
+
+    async newProject() {
+        if (this.hasProfile && !this.project.editing.isEmpty()) {
+            const approved = await RuntimeNotifier.approve({
+                headline: "Closing Project?",
+                message: "You will lose all progress!"
+            })
+            if (!approved) {return}
+        }
+        this.#projectProfileService.setValue(Option.wrap(
+            new ProjectProfile(UUID.generate(), Project.new(this), ProjectMeta.init("Untitled"), Option.None)))
+    }
 
     async closeProject() {
         RouteLocation.get().navigateTo("/")
@@ -268,19 +173,7 @@ export class StudioService implements ProjectEnv {
         }
     }
 
-    async cleanSlate() {
-        if (this.hasProfile && !this.project.editing.isEmpty()) {
-            const approved = await RuntimeNotifier.approve({
-                headline: "Closing Project?",
-                message: "You will lose all progress!"
-            })
-            if (!approved) {return}
-        }
-        this.#projectProfileService.setValue(Option.wrap(
-            new ProjectProfile(UUID.generate(), Project.new(this), ProjectMeta.init("Untitled"), Option.None)))
-    }
-
-    async browse(): Promise<void> {
+    async browseLocalProjects(): Promise<void> {
         const {status, value} = await Promises.tryCatch(ProjectDialogs.showBrowseDialog(this))
         if (status === "resolved") {
             const [uuid, meta] = value
@@ -289,8 +182,8 @@ export class StudioService implements ProjectEnv {
     }
 
     async loadTemplate(name: string): Promise<unknown> {return this.#projectProfileService.loadTemplate(name)}
-    async exportZip() {return this.#projectProfileService.exportBundle()}
-    async importZip() {return this.#projectProfileService.importBundle()}
+    async exportBundle() {return this.#projectProfileService.exportBundle()}
+    async importBundle() {return this.#projectProfileService.importBundle()}
     async deleteProject(uuid: UUID.Bytes, meta: ProjectMeta): Promise<void> {
         if (this.#projectProfileService.getValue().ifSome(profile => UUID.equals(profile.uuid, uuid)) === true) {
             await this.closeProject()
@@ -381,7 +274,7 @@ export class StudioService implements ProjectEnv {
         assert(masterBusBox.isAttached(), "[verify] masterBusBox is not attached")
         assert(timelineBox.isAttached(), "[verify] timelineBox is not attached")
         const result = boxGraph.verifyPointers()
-        await Dialogs.info({message: `Project is okay. All ${result.count} pointers are fine.`})
+        await RuntimeNotifier.info({message: `Project is okay. All ${result.count} pointers are fine.`})
     }
 
     toggleSoftwareKeyboard(): void {
@@ -398,4 +291,131 @@ export class StudioService implements ProjectEnv {
     }
 
     isSoftwareKeyboardVisible(): boolean {return this.#softwareKeyboardLifeCycle.nonEmpty()}
+
+    #listenProject(): void {
+        const lifeTime = new Terminator()
+        const observer = (optProfile: Option<ProjectProfile>) => {
+            const path = RouteLocation.get().path
+            const isRoot = path === "/"
+            if (isRoot) {this.layout.screen.setValue(null)}
+            lifeTime.terminate()
+            if (optProfile.nonEmpty()) {
+                const profile = optProfile.unwrap()
+                const {project, meta} = profile
+                console.debug(`switch to %c${meta.name}%c`, "color: hsl(25, 69%, 63%)", "color: inherit")
+                const {timelineBox, editing, userEditingManager} = project
+                const loopState = this.transport.loop
+                const loopEnabled = timelineBox.loopArea.enabled
+                loopState.setValue(loopEnabled.getValue())
+                lifeTime.ownAll(
+                    project,
+                    loopState.subscribe(value => editing.modify(() => loopEnabled.setValue(value.getValue()))),
+                    userEditingManager.timeline.catchupAndSubscribe(option => option
+                        .ifSome(() => this.panelLayout.showIfAvailable(PanelType.ContentEditor))),
+                    timelineBox.durationInPulses.catchupAndSubscribe(owner => range.maxUnits = owner.getValue() + PPQN.Bar)
+                )
+                range.showUnitInterval(0, PPQN.fromSignature(16, 1))
+
+                // -------------------------------
+                // Show views if content available
+                // -------------------------------
+                //
+                // Markers
+                if (timelineBox.markerTrack.markers.pointerHub.nonEmpty()) {
+                    this.timeline.primaryVisible.setValue(true)
+                }
+                // Clips
+                const maxClipIndex: int = project.rootBoxAdapter.audioUnits.adapters()
+                    .reduce((max, unit) => Math.max(max, unit.tracks.values()
+                        .reduce((max, track) => Math.max(max, track.clips.collection.getMinFreeIndex()), 0)), 0)
+                if (maxClipIndex > 0) {
+                    this.timeline.clips.count.setValue(maxClipIndex + 1)
+                    this.timeline.clips.visible.setValue(true)
+                } else {
+                    this.timeline.clips.count.setValue(3)
+                    this.timeline.clips.visible.setValue(false)
+                }
+                let screen: Nullable<Workspace.ScreenKeys> = null
+                const restart: RestartWorklet = {
+                    unload: async (event: unknown) => {
+                        screen = this.layout.screen.getValue()
+                        // we need to restart the screen to subscribe to new broadcaster instances
+                        this.switchScreen(null)
+                        this.engine.releaseWorklet()
+                        await Dialogs.info({
+                            headline: "Audio-Engine Error",
+                            message: String(safeRead(event, "message") ?? event),
+                            okText: "Restart"
+                        })
+                    },
+                    load: (engine: EngineWorklet) => {
+                        this.engine.setWorklet(engine)
+                        this.switchScreen(screen)
+                    }
+                }
+                this.engine.setWorklet(project.startAudioWorklet(restart, {pauseOnLoopDisabled: false}))
+                if (isRoot) {this.switchScreen("default")}
+            } else {
+                this.engine.releaseWorklet()
+                range.maxUnits = PPQN.fromSignature(128, 1)
+                range.showUnitInterval(0, PPQN.fromSignature(16, 1))
+                this.layout.screen.setValue("dashboard")
+            }
+        }
+        this.#projectProfileService.catchupAndSubscribe(owner => observer(owner.getValue()))
+    }
+
+    #installConsoleCommands(): void {
+        ConsoleCommands.exportAccessor("box.graph.boxes",
+            () => this.runIfProject(({boxGraph}) => boxGraph.debugBoxes()))
+        ConsoleCommands.exportMethod("box.graph.lookup",
+            (address: string) => this.runIfProject(({boxGraph}) => boxGraph.findVertex(Address.decode(address)).match({
+                none: () => "not found",
+                some: vertex => vertex.toString()
+            })).match({none: () => "no project", some: value => value}))
+        ConsoleCommands.exportAccessor("box.graph.dependencies",
+            () => this.runIfProject(project => project.boxGraph.debugDependencies()))
+    }
+
+    #populateSpotlightData(): void {
+        this.spotlightDataSupplier.registerAction("Create Synth", EmptyExec)
+        this.spotlightDataSupplier.registerAction("Create Drumcomputer", EmptyExec)
+        this.spotlightDataSupplier.registerAction("Create ModularSystem", EmptyExec)
+    }
+
+    #configLocalStorage(): void {
+        const configLocalStorageBoolean = (value: DefaultObservableValue<boolean>,
+                                           item: string,
+                                           set: Procedure<boolean>,
+                                           defaultValue: boolean = false) => {
+            value.setValue((localStorage.getItem(item) ?? String(defaultValue)) === String(true))
+            value.catchupAndSubscribe(owner => {
+                const bool = owner.getValue()
+                set(bool)
+                try {localStorage.setItem(item, String(bool))} catch (_reason: any) {}
+            })
+        }
+
+        configLocalStorageBoolean(this.layout.helpVisible, "help-visible",
+            visible => document.body.classList.toggle("help-hidden", !visible), true)
+    }
+
+    #configBeforeUnload(): void {
+        if (!Browser.isLocalHost()) {
+            window.addEventListener("beforeunload", (event: Event) => {
+                if (!navigator.onLine) {event.preventDefault()}
+                if (this.hasProfile && (this.profile.hasChanges() || !this.project.editing.isEmpty())) {
+                    event.preventDefault()
+                }
+            })
+        }
+    }
+
+    #checkRecovery(): void {
+        this.recovery.restoreProfile().then(optProfile => {
+            if (optProfile.nonEmpty()) {
+                this.#projectProfileService.setValue(optProfile)
+            }
+        }, EmptyExec)
+    }
 }

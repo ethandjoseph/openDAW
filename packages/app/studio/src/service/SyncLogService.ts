@@ -15,7 +15,7 @@ export namespace SyncLogService {
             ...FilePickerAcceptTypes.ProjectSyncLog
         }))
         if (status === "rejected") {return}
-        service.cleanSlate()
+        service.newProject()
         const label: FooterLabel = asDefined(service.factoryFooterLabel().unwrap()())
         label.setTitle("SyncLog")
         let count = 0 | 0

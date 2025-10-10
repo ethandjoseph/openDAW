@@ -23,7 +23,7 @@ export class Shortcuts {
                 await service.projectProfileService.save()
             } else if (Keyboard.isControlKey(event) && code === "KeyO") {
                 event.preventDefault()
-                await service.browse()
+                await service.browseLocalProjects()
             } else if (Keyboard.isControlKey(event) && code === "KeyK") {
                 service.toggleSoftwareKeyboard()
                 event.preventDefault()

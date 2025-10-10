@@ -19,9 +19,9 @@ export const populateStudioMenu = (service: StudioService) => {
                     MenuItem.default({label: "Dashboard"})
                         .setTriggerProcedure(() => service.closeProject()),
                     MenuItem.default({label: "New", separatorBefore: true})
-                        .setTriggerProcedure(() => service.cleanSlate()),
+                        .setTriggerProcedure(() => service.newProject()),
                     MenuItem.default({label: "Open...", shortcut: [ModfierKeys.System.Cmd, "O"]})
-                        .setTriggerProcedure(() => service.browse()),
+                        .setTriggerProcedure(() => service.browseLocalProjects()),
                     MenuItem.default({
                         label: "Save",
                         shortcut: [ModfierKeys.System.Cmd, "S"],
@@ -37,7 +37,7 @@ export const populateStudioMenu = (service: StudioService) => {
                             MenuItem.default({label: "Audio Files..."})
                                 .setTriggerProcedure(() => service.sampleService.browseForSamples(true)),
                             MenuItem.default({label: "Project Bundle..."})
-                                .setTriggerProcedure(() => service.importZip()),
+                                .setTriggerProcedure(() => service.importBundle()),
                             MenuItem.default({
                                 label: "DAWproject..."
                             }).setTriggerProcedure(() => service.importDawproject().then(EmptyExec, EmptyExec))
@@ -49,7 +49,7 @@ export const populateStudioMenu = (service: StudioService) => {
                             MenuItem.default({label: "Stems...", selectable: service.hasProfile})
                                 .setTriggerProcedure(() => service.exportStems()),
                             MenuItem.default({label: "Project Bundle...", selectable: service.hasProfile})
-                                .setTriggerProcedure(() => service.exportZip()),
+                                .setTriggerProcedure(() => service.exportBundle()),
                             MenuItem.default({label: "DAWproject...", selectable: service.hasProfile})
                                 .setTriggerProcedure(async () => service.exportDawproject()),
                             MenuItem.default({

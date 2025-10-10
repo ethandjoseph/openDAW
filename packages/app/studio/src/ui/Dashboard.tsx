@@ -31,7 +31,7 @@ export const Dashboard = ({lifecycle, service}: Construct) => {
                         <h3>Templates</h3>
                         <div className="starters">
                             {[
-                                {name: "New", click: () => service.cleanSlate()},
+                                {name: "New", click: () => service.newProject()},
                                 {name: "Sunset", click: () => service.loadTemplate("Sunset")},
                                 {name: "Breeze", click: () => service.loadTemplate("Breeze")},
                                 {name: "Shafted", click: () => service.loadTemplate("Shafted")},
