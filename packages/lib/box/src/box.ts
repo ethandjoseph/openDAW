@@ -30,6 +30,9 @@ import {Serializer} from "./serializer"
 import {BoxGraph} from "./graph"
 import {Update} from "./updates"
 import {Propagation} from "./dispatchers"
+import {ArrayField} from "./array"
+import {ObjectField} from "./object"
+import {PrimitiveField} from "./primitive"
 
 export type BoxConstruct<T extends PointerTypes> = {
     uuid: UUID.Bytes
@@ -171,6 +174,21 @@ export abstract class Box<P extends PointerTypes = PointerTypes, F extends Field
     }
 
     unstage(): void {this.graph.unstageBox(this)}
+
+    isValid(): boolean {
+        if (this.#pointerRules.mandatory && this.pointerHub.incoming().length === 0) {
+            return false
+        }
+        const walkRecursive = (fields: ReadonlyArray<Field>): boolean =>
+            fields.every(field => field.accept<boolean>({
+                visitPointerField: (field: PointerField) => !field.mandatory || field.nonEmpty(),
+                visitArrayField: (field: ArrayField) => walkRecursive(field.fields()),
+                visitObjectField: (field: ObjectField<any>) => walkRecursive(field.fields()),
+                visitPrimitiveField: (_field: PrimitiveField) => true,
+                visitField: (_field: Field): boolean => true
+            }) ?? true)
+        return walkRecursive(this.fields())
+    }
 
     toString(): string {return `${this.constructor.name} ${this.address.toString()}`}
 }
