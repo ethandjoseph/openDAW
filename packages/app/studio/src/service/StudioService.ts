@@ -6,14 +6,11 @@ import {
     Errors,
     Func,
     int,
-    isDefined,
     Notifier,
     Nullable,
     Observer,
     Option,
-    panic,
     Procedure,
-    Progress,
     Provider,
     RuntimeNotifier,
     safeRead,
@@ -22,7 +19,7 @@ import {
     Terminator,
     UUID
 } from "@opendaw/lib-std"
-import {initAppMenu} from "@/service/app-menu"
+import {populateStudioMenu} from "@/service/StudioMenu"
 import {Snapping} from "@/ui/timeline/Snapping.ts"
 import {PanelContents} from "@/ui/workspace/PanelContents.tsx"
 import {createPanelFactory} from "@/ui/workspace/PanelFactory.tsx"
@@ -35,29 +32,24 @@ import {SamplePlayback} from "@/service/SamplePlayback"
 import {Shortcuts} from "@/service/Shortcuts"
 import {ProjectProfileService} from "./ProjectProfileService"
 import {StudioSignal} from "./StudioSignal"
-import {SampleDialogs} from "@/ui/browse/SampleDialogs"
 import {AudioOutputDevice} from "@/audio/AudioOutputDevice"
 import {FooterLabel} from "@/service/FooterLabel"
 import {RouteLocation} from "@opendaw/lib-jsx"
 import {PPQN} from "@opendaw/lib-dsp"
-import {Browser, ConsoleCommands, Files} from "@opendaw/lib-dom"
+import {Browser, ConsoleCommands} from "@opendaw/lib-dom"
 import {Promises} from "@opendaw/lib-runtime"
-import {ExportStemsConfiguration, Sample} from "@opendaw/studio-adapters"
-import {Xml} from "@opendaw/lib-xml"
+import {ExportStemsConfiguration} from "@opendaw/studio-adapters"
 import {Address} from "@opendaw/lib-box"
-import {MetaDataSchema} from "@opendaw/lib-dawproject"
 import {Recovery} from "@/Recovery.ts"
 import {
     AudioOfflineRenderer,
     AudioWorklets,
     CloudAuthManager,
-    DawProject,
-    DawProjectImport,
+    DawProjectService,
     DefaultSampleLoaderManager,
     DefaultSoundfontLoaderManager,
     EngineFacade,
     EngineWorklet,
-    FilePickerAcceptTypes,
     Project,
     ProjectEnv,
     ProjectMeta,
@@ -65,10 +57,10 @@ import {
     ProjectStorage,
     RestartWorklet,
     SampleAPI,
+    SampleService,
     TimelineRange
 } from "@opendaw/studio-core"
 import {ProjectDialogs} from "@/project/ProjectDialogs"
-import {AudioImporter} from "@/audio/AudioImport"
 import {AudioUnitBox} from "@opendaw/studio-boxes"
 import {AudioUnitType} from "@opendaw/studio-enums"
 import {Surface} from "@/ui/surface/Surface"
@@ -106,8 +98,8 @@ export class StudioService implements ProjectEnv {
         followPlaybackCursor: new DefaultObservableValue(true),
         primaryVisible: new DefaultObservableValue(true)
     } as const
-    readonly menu = initAppMenu(this)
-    readonly profileService: ProjectProfileService
+    readonly menu = populateStudioMenu(this)
+    readonly #projectProfileService: ProjectProfileService
     readonly panelLayout = new PanelContents(createPanelFactory(this))
     readonly spotlightDataSupplier = new SpotlightDataSupplier()
     readonly samplePlayback: SamplePlayback
@@ -117,6 +109,8 @@ export class StudioService implements ProjectEnv {
     readonly engine = new EngineFacade()
     readonly #softwareKeyboardLifeCycle = new Terminator()
     readonly #signals = new Notifier<StudioSignal>()
+    readonly #sampleService: SampleService
+    readonly #dawProjectService: DawProjectService
 
     #factoryFooterLabel: Option<Provider<FooterLabel>> = Option.None
 
@@ -128,9 +122,12 @@ export class StudioService implements ProjectEnv {
                 readonly soundfontManager: DefaultSoundfontLoaderManager,
                 readonly cloudAuthManager: CloudAuthManager,
                 readonly buildInfo: BuildInfo) {
+        this.#sampleService = new SampleService(audioContext,
+                sample => this.#signals.notify({type: "import-sample", sample}))
         this.samplePlayback = new SamplePlayback()
-        this.profileService = new ProjectProfileService({
-            env: this, importer: this, sampleAPI: this.sampleAPI, sampleManager: this.sampleManager
+        this.#dawProjectService = new DawProjectService(this.#sampleService)
+        this.#projectProfileService = new ProjectProfileService({
+            env: this, importer: this.#sampleService, sampleAPI: this.sampleAPI, sampleManager: this.sampleManager
         })
         const lifeTime = new Terminator()
         const observer = (optProfile: Option<ProjectProfile>) => {
@@ -201,7 +198,7 @@ export class StudioService implements ProjectEnv {
                 this.layout.screen.setValue("dashboard")
             }
         }
-        this.profileService.catchupAndSubscribe(owner => observer(owner.getValue()))
+        this.#projectProfileService.catchupAndSubscribe(owner => observer(owner.getValue()))
 
         ConsoleCommands.exportAccessor("box.graph.boxes",
             () => this.runIfProject(({boxGraph}) => boxGraph.debugBoxes()))
@@ -243,12 +240,14 @@ export class StudioService implements ProjectEnv {
 
         this.recovery.restoreProfile().then(optProfile => {
             if (optProfile.nonEmpty()) {
-                this.profileService.setValue(optProfile)
+                this.#projectProfileService.setValue(optProfile)
             }
         }, EmptyExec)
     }
 
     get sampleRate(): number {return this.audioContext.sampleRate}
+    get sampleService(): SampleService {return this.#sampleService}
+    get projectProfileService(): ProjectProfileService {return this.#projectProfileService}
 
     panicEngine(): void {this.runIfProject(({engine}) => engine.panic())}
 
@@ -259,13 +258,13 @@ export class StudioService implements ProjectEnv {
             return
         }
         if (this.project.editing.isEmpty()) {
-            this.profileService.setValue(Option.None)
+            this.#projectProfileService.setValue(Option.None)
         } else {
             const approved = await RuntimeNotifier.approve({
                 headline: "Closing Project?",
                 message: "You will lose all progress!"
             })
-            if (approved) {this.profileService.setValue(Option.None)}
+            if (approved) {this.#projectProfileService.setValue(Option.None)}
         }
     }
 
@@ -277,31 +276,23 @@ export class StudioService implements ProjectEnv {
             })
             if (!approved) {return}
         }
-        this.profileService.setValue(Option.wrap(
+        this.#projectProfileService.setValue(Option.wrap(
             new ProjectProfile(UUID.generate(), Project.new(this), ProjectMeta.init("Untitled"), Option.None)))
-    }
-
-    async save(): Promise<void> {
-        return this.profileService.save()
-    }
-
-    async saveAs(): Promise<void> {
-        return this.profileService.saveAs()
     }
 
     async browse(): Promise<void> {
         const {status, value} = await Promises.tryCatch(ProjectDialogs.showBrowseDialog(this))
         if (status === "resolved") {
             const [uuid, meta] = value
-            await this.profileService.loadExisting(uuid, meta)
+            await this.#projectProfileService.loadFromLocalStorage(uuid, meta)
         }
     }
 
-    async loadTemplate(name: string): Promise<unknown> {return this.profileService.loadTemplate(name)}
-    async exportZip() {return this.profileService.exportBundle()}
-    async importZip() {return this.profileService.importBundle()}
+    async loadTemplate(name: string): Promise<unknown> {return this.#projectProfileService.loadTemplate(name)}
+    async exportZip() {return this.#projectProfileService.exportBundle()}
+    async importZip() {return this.#projectProfileService.importBundle()}
     async deleteProject(uuid: UUID.Bytes, meta: ProjectMeta): Promise<void> {
-        if (this.profileService.getValue().ifSome(profile => UUID.equals(profile.uuid, uuid)) === true) {
+        if (this.#projectProfileService.getValue().ifSome(profile => UUID.equals(profile.uuid, uuid)) === true) {
             await this.closeProject()
         }
         const {status} = await Promises.tryCatch(ProjectStorage.deleteProject(uuid))
@@ -311,7 +302,7 @@ export class StudioService implements ProjectEnv {
     }
 
     async exportMixdown() {
-        return this.profileService.getValue()
+        return this.#projectProfileService.getValue()
             .ifSome(async ({project, meta}) => {
                 await this.audioContext.suspend()
                 await AudioOfflineRenderer.start(project, meta, Option.None)
@@ -320,7 +311,7 @@ export class StudioService implements ProjectEnv {
     }
 
     async exportStems() {
-        return this.profileService.getValue()
+        return this.#projectProfileService.getValue()
             .ifSome(async ({project, meta}) => {
                 if (project.rootBox.audioUnits.pointerHub.incoming()
                     .every(({box}) => asInstanceOf(box, AudioUnitBox).type.getValue() === AudioUnitType.Output)) {
@@ -342,111 +333,23 @@ export class StudioService implements ProjectEnv {
             })
     }
 
-    async browseForSamples(multiple: boolean = true) {
-        const {error, status, value: files} = await SampleDialogs.nativeFileBrowser(multiple)
-        if (status === "rejected") {
-            if (Errors.isAbort(error)) {return} else {return panic(String(error)) }
-        }
-        const progress = new DefaultObservableValue(0.0)
-        const dialog = RuntimeNotifier.progress({
-            headline: `Importing ${files.length === 1 ? "Sample" : "Samples"}...`, progress
-        })
-        const progressHandler = Progress.split(value => progress.setValue(value), files.length)
-        const rejected: Array<string> = []
-        for (const [index, file] of files.entries()) {
-            const arrayBuffer = await file.arrayBuffer()
-            const {
-                status,
-                error
-            } = await Promises.tryCatch(this.importSample({
-                name: file.name,
-                arrayBuffer: arrayBuffer,
-                progressHandler: progressHandler[index]
-            }))
-            if (status === "rejected") {rejected.push(String(error))}
-        }
-        dialog.terminate()
-        if (rejected.length > 0) {
-            await Dialogs.info({
-                headline: "Sample Import Issues",
-                message: `${rejected.join(", ")} could not be imported.`
-            })
-        }
-    }
-
-    async importSample({uuid, name, arrayBuffer, progressHandler = Progress.Empty}: {
-        uuid?: UUID.Bytes,
-        name: string,
-        arrayBuffer: ArrayBuffer,
-        progressHandler?: Progress.Handler
-    }): Promise<Sample> {
-        console.debug(`Importing '${name}' (${arrayBuffer.byteLength >> 10}kb)`)
-        return AudioImporter.run(this.audioContext, {uuid, name, arrayBuffer, progressHandler})
-            .then(({sample}) => {
-                this.#signals.notify({type: "import-sample", sample})
-                return sample
-            })
-    }
-
-    async saveFile() {return await this.profileService.saveFile()}
-    async loadFile() {return this.profileService.loadFile()}
-
     async importDawproject() {
-        const {status, value, error} =
-            await Promises.tryCatch(Files.open({types: [FilePickerAcceptTypes.DawprojectFileType]}))
-        if (status === "rejected") {
-            if (Errors.isAbort(error)) {return}
-            return panic(String(error))
-        }
-        const file = value.at(0)
-        if (!isDefined(file)) {return}
-        const arrayBuffer = await file.arrayBuffer()
-        const {project: projectSchema, resources} = await DawProject.decode(arrayBuffer)
-        const importResult = await Promises.tryCatch(DawProjectImport.read(projectSchema, resources))
-        if (importResult.status === "rejected") {
-            return Dialogs.info({headline: "Import Error", message: String(importResult.error)})
-        }
-        const {skeleton, audioIds} = importResult.value
-        await Promise.all(audioIds
-            .map(uuid => resources.fromUUID(uuid))
-            .map(resource => this.importSample({
-                uuid: resource.uuid,
-                name: resource.name,
-                arrayBuffer: resource.buffer
-            })))
-        this.profileService.fromProject(Project.skeleton(this, skeleton), "Dawproject")
+        (await this.#dawProjectService.importDawproject())
+            .ifSome(skeleton => this.#projectProfileService
+                .setProject(Project.skeleton(this, skeleton), "Dawproject"))
     }
 
-    async exportDawproject() {
-        if (!this.hasProfile) {return}
-        const {project, meta} = this.profile
-        const {status, error, value: zip} = await Promises.tryCatch(DawProject.encode(project, Xml.element({
-            title: meta.name,
-            year: new Date().getFullYear().toString(),
-            website: "https://opendaw.studio"
-        }, MetaDataSchema)))
-        if (status === "rejected") {
-            return Dialogs.info({headline: "Export Error", message: String(error)})
-        } else {
-            const {status, error} = await Promises.tryCatch(Files.save(zip,
-                {types: [FilePickerAcceptTypes.DawprojectFileType]}))
-            if (status === "rejected" && !Errors.isAbort(error)) {
-                return error
-            } else {
-                return
-            }
-        }
+    async exportDawproject(): Promise<void> {
+        return this.#projectProfileService.getValue().ifSome(profile => this.#dawProjectService.exportDawproject(profile))
     }
-
-    fromProject(project: Project, name: string): void {this.profileService.fromProject(project, name)}
 
     runIfProject<R>(procedure: Func<Project, R>): Option<R> {
-        return this.profileService.getValue().map(({project}) => procedure(project))
+        return this.#projectProfileService.getValue().map(({project}) => procedure(project))
     }
 
     get project(): Project {return this.profile.project}
-    get profile(): ProjectProfile {return this.profileService.getValue().unwrap("No profile available")}
-    get hasProfile(): boolean {return this.profileService.getValue().nonEmpty()}
+    get profile(): ProjectProfile {return this.#projectProfileService.getValue().unwrap("No profile available")}
+    get hasProfile(): boolean {return this.#projectProfileService.getValue().nonEmpty()}
 
     subscribeSignal<T extends StudioSignal["type"]>(
         observer: Observer<Extract<StudioSignal, { type: T }>>, type: T): Subscription {

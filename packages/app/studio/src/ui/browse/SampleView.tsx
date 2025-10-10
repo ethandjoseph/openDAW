@@ -4,7 +4,7 @@ import {Exec, Lifecycle, Objects, UUID} from "@opendaw/lib-std"
 import {SamplePlayback} from "@/service/SamplePlayback"
 import {Icon} from "../components/Icon"
 import {IconSymbol, Sample} from "@opendaw/studio-adapters"
-import {SampleLocation} from "@/ui/browse/SampleLocation"
+import {AssetLocation} from "@/ui/browse/AssetLocation"
 import {Button} from "../components/Button"
 import {SampleDialogs} from "@/ui/browse/SampleDialogs"
 import {ContextMenu} from "@/ui/ContextMenu"
@@ -22,7 +22,7 @@ type Construct = {
     sampleService: SampleService
     sample: Sample
     playback: SamplePlayback
-    location: SampleLocation
+    location: AssetLocation
     refresh: Exec
 }
 
@@ -67,7 +67,7 @@ export const SampleView = ({lifecycle, sampleService, sample, playback, location
              ondragstart={() => playback.eject()}
              draggable>
             {metaElement}
-            {location === SampleLocation.Local && (
+            {location === AssetLocation.Local && (
                 <div className="edit">
                     {editButton}
                     {deleteButton}
@@ -80,7 +80,7 @@ export const SampleView = ({lifecycle, sampleService, sample, playback, location
         ContextMenu.subscribe(element, collector => collector.addItems(
             MenuItem.default({label: "Create Audio Track(s)"})
                 .setTriggerProcedure(() => sampleService.requestTapes()),
-            MenuItem.default({label: "Delete Sample(s)", selectable: location === SampleLocation.Local})
+            MenuItem.default({label: "Delete Sample(s)", selectable: location === AssetLocation.Local})
                 .setTriggerProcedure(async () => {
                     await sampleService.deleteSelected()
                     refresh()

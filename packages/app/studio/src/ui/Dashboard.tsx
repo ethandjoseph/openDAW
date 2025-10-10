@@ -63,7 +63,7 @@ export const Dashboard = ({lifecycle, service}: Construct) => {
                                         lifecycle={lifecycle}
                                         select={async ([uuid, meta]) => {
                                             const handler = Dialogs.processMonolog("Loading...")
-                                            await service.profileService.loadExisting(uuid, meta)
+                                            await service.projectProfileService.loadFromLocalStorage(uuid, meta)
                                             handler.close()
                                         }}/>
                     </div>

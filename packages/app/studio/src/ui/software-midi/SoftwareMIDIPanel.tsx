@@ -91,7 +91,7 @@ export const SoftwareMIDIPanel = ({lifecycle, service}: Construct) => {
             <FlexSpacer/>
             <MenuButton root={MenuItem.root()
                 .setRuntimeChildrenProcedure(parent => parent.addMenuItem(
-                    ...service.profileService.getValue()
+                    ...service.projectProfileService.getValue()
                         .map(({project: {boxAdapters, captureDevices, rootBox: {audioUnits: {pointerHub}}}}) =>
                             pointerHub.incoming()
                                 .map(({box}) => asInstanceOf(box, AudioUnitBox))

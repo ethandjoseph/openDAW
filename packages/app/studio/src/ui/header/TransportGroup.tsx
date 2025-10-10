@@ -76,7 +76,7 @@ export const TransportGroup = ({lifecycle, service}: Construct) => {
                 countInLifecycle.terminate()
             }
         }),
-        service.profileService.catchupAndSubscribe(owner => element.classList.toggle("disabled", owner.getValue().isEmpty())),
+        service.projectProfileService.catchupAndSubscribe(owner => element.classList.toggle("disabled", owner.getValue().isEmpty())),
         ContextMenu.subscribe(playButton, collector => collector
             .addItems(
                 MenuItem.default({

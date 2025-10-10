@@ -48,7 +48,7 @@ export namespace SyncLogService {
             return
         }
         const {project, lastCommit, numCommits} = await SyncLogReader.unwrap(service, arrayBufferResult.value)
-        service.fromProject(project, "SyncLog")
+        service.projectProfileService.setProject(project, "SyncLog")
         const label: FooterLabel = asDefined(service.factoryFooterLabel().unwrap()())
         label.setTitle("SyncLog")
         let count = numCommits

@@ -13,7 +13,7 @@ const className = Html.adoptStyleSheet(css, "GraphPage")
 export const GraphPage: PageFactory<StudioService> = ({lifecycle, service}: PageContext<StudioService>) => {
     const element: DomElement = (
         <div className={className}>
-            {service.profileService.getValue().match({
+            {service.projectProfileService.getValue().match({
                 none: () => (
                     <Frag>
                         <h1>Graph</h1>

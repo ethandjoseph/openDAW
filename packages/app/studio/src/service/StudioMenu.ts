@@ -9,7 +9,7 @@ import {MenuItem} from "@/ui/model/menu-item"
 import {Dialogs} from "@/ui/components/dialogs.tsx"
 import {SyncLogService} from "@/service/SyncLogService"
 
-export const initAppMenu = (service: StudioService) => {
+export const populateStudioMenu = (service: StudioService) => {
     const isBeta = Browser.isLocalHost() || location.hash === "#beta"
     console.debug("isBeta", isBeta)
     return MenuItem.root()
@@ -26,16 +26,16 @@ export const initAppMenu = (service: StudioService) => {
                         label: "Save",
                         shortcut: [ModfierKeys.System.Cmd, "S"],
                         selectable: service.hasProfile
-                    }).setTriggerProcedure(() => service.save()),
+                    }).setTriggerProcedure(() => service.projectProfileService.save()),
                     MenuItem.default({
                         label: "Save As...",
                         shortcut: [ModfierKeys.System.Cmd, ModfierKeys.System.Shift, "S"],
                         selectable: service.hasProfile
-                    }).setTriggerProcedure(() => service.saveAs()),
+                    }).setTriggerProcedure(() => service.projectProfileService.saveAs()),
                     MenuItem.default({label: "Import", separatorBefore: true})
                         .setRuntimeChildrenProcedure(parent => parent.addMenuItem(
                             MenuItem.default({label: "Audio Files..."})
-                                .setTriggerProcedure(() => service.browseForSamples(true)),
+                                .setTriggerProcedure(() => service.sampleService.browseForSamples(true)),
                             MenuItem.default({label: "Project Bundle..."})
                                 .setTriggerProcedure(() => service.importZip()),
                             MenuItem.default({
@@ -104,10 +104,10 @@ export const initAppMenu = (service: StudioService) => {
                                             message: "Please wait while we connect to the room..."
                                         })
                                         const {status, value: project, error} = await Promises.tryCatch(
-                                            YService.getOrCreateRoom(service.profileService.getValue()
+                                            YService.getOrCreateRoom(service.projectProfileService.getValue()
                                                 .map(profile => profile.project), service, roomName))
                                         if (status === "resolved") {
-                                            service.fromProject(project, roomName)
+                                            service.projectProfileService.setProject(project, roomName)
                                         } else {
                                             await RuntimeNotifier.info({
                                                 headline: "Failed Connecting Room",
@@ -140,11 +140,11 @@ export const initAppMenu = (service: StudioService) => {
                                 MenuItem.default({
                                     label: "Load file...",
                                     separatorBefore: true
-                                }).setTriggerProcedure(() => service.loadFile()),
+                                }).setTriggerProcedure(() => service.projectProfileService.loadFile()),
                                 MenuItem.default({
                                     label: "Save file...",
                                     selectable: service.hasProfile
-                                }).setTriggerProcedure(() => service.saveFile()),
+                                }).setTriggerProcedure(() => service.projectProfileService.saveFile()),
                                 MenuItem.header({label: "Pages", icon: IconSymbol.Box}),
                                 MenuItem.default({label: "・ Icons"})
                                     .setTriggerProcedure(() => RouteLocation.get().navigateTo("/icons")),

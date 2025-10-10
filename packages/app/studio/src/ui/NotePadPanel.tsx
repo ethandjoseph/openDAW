@@ -1,7 +1,7 @@
 import css from "./NotePadPanel.sass?inline"
 import template from "./NotePadTemplate.md?raw"
 import {createElement} from "@opendaw/lib-jsx"
-import {DefaultObservableValue, Lifecycle} from "@opendaw/lib-std"
+import {DefaultObservableValue, EmptyExec, Lifecycle} from "@opendaw/lib-std"
 import {StudioService} from "@/service/StudioService"
 import {Icon} from "@/ui/components/Icon"
 import {IconSymbol} from "@opendaw/studio-adapters"
@@ -66,7 +66,7 @@ export const NotePadPanel = ({lifecycle, service}: Construct) => {
             if (editMode.getValue() && Keyboard.isControlKey(event) && event.code === "KeyS") {
                 event.preventDefault()
                 saveNotepad()
-                service.save()
+                service.projectProfileService.save().then(EmptyExec, EmptyExec)
             }
         }),
         Events.subscribe(notepad, "blur", () => editMode.setValue(false)),

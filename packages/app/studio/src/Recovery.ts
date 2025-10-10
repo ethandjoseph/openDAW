@@ -33,7 +33,7 @@ export class Recovery {
     }
 
     createBackupCommand(): Option<Provider<Promise<void>>> {
-        return this.#service.profileService.getValue().map((profile: ProjectProfile) => async () => {
+        return this.#service.projectProfileService.getValue().map((profile: ProjectProfile) => async () => {
             console.debug("backup project")
             const {project, meta, uuid} = profile
             return Promises.tryCatch(Promise.all([

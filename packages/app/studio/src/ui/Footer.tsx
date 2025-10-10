@@ -24,7 +24,7 @@ export const Footer = ({lifecycle, service}: Construct) => {
         <div className="name"
              title="Project"
              ondblclick={(event) => {
-                 const optProfile = service.profileService.getValue()
+                 const optProfile = service.projectProfileService.getValue()
                  if (optProfile.isEmpty()) {return}
                  const profile = optProfile.unwrap()
                  const name = profile.meta.name
@@ -35,7 +35,7 @@ export const Footer = ({lifecycle, service}: Construct) => {
              }}/>
     )
     const profileLifecycle = lifecycle.own(new Terminator())
-    lifecycle.own(service.profileService.catchupAndSubscribe(owner => {
+    lifecycle.own(service.projectProfileService.catchupAndSubscribe(owner => {
         profileLifecycle.terminate()
         const optProfile = owner.getValue()
         if (optProfile.nonEmpty()) {

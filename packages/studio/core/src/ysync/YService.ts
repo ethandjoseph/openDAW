@@ -6,8 +6,7 @@ import {ProjectDecoder} from "@opendaw/studio-adapters"
 import {YSync} from "./YSync"
 import * as Y from "yjs"
 import {WebsocketProvider} from "y-websocket"
-import {ProjectEnv} from "../project/ProjectEnv"
-import {Project} from "../project/Project"
+import {Project, ProjectEnv} from "../project"
 
 // https://inspector.yjs.dev/
 

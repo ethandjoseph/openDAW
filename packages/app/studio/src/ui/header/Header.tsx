@@ -28,7 +28,7 @@ type Construct = {
 export const Header = ({lifecycle, service}: Construct) => {
     const peaksInDb = new Float32Array(2)
     const runtime = lifecycle.own(new Terminator())
-    lifecycle.own(service.profileService.catchupAndSubscribe((owner) => {
+    lifecycle.own(service.projectProfileService.catchupAndSubscribe((owner) => {
         runtime.terminate()
         owner.getValue().match<unknown>({
             none: () => peaksInDb.fill(Number.NEGATIVE_INFINITY),

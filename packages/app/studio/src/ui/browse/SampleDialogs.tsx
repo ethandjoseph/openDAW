@@ -9,9 +9,6 @@ import {Files} from "@opendaw/lib-dom"
 import {FilePickerAcceptTypes, SampleImporter} from "@opendaw/studio-core"
 
 export namespace SampleDialogs {
-    export const nativeFileBrowser = async (multiple: boolean = true) =>
-        Promises.tryCatch(Files.open({...FilePickerAcceptTypes.WavFiles, multiple}))
-
     export const missingSampleDialog = async (importer: SampleImporter, uuid: UUID.Bytes, name: string): Promise<Sample> => {
         const {resolve, reject, promise} = Promise.withResolvers<Sample>()
         const dialog: HTMLDialogElement = (
@@ -29,7 +26,11 @@ export namespace SampleDialogs {
                         text: "Browse",
                         primary: true,
                         onClick: async handler => {
-                            const {error, status, value: files} = await SampleDialogs.nativeFileBrowser(false)
+                            const {error, status, value: files} =
+                                await Promises.tryCatch(Files.open({
+                                    ...FilePickerAcceptTypes.WavFiles,
+                                    multiple: false
+                                }))
                             if (status === "rejected") {
                                 if (!Errors.isAbort(error)) {
                                     throw error

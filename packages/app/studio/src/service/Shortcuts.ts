@@ -17,10 +17,10 @@ export class Shortcuts {
             const code = event.code
             if (Keyboard.isControlKey(event) && event.shiftKey && code === "KeyS") {
                 event.preventDefault()
-                await service.saveAs()
+                await service.projectProfileService.saveAs()
             } else if (Keyboard.isControlKey(event) && code === "KeyS") {
                 event.preventDefault()
-                await service.save()
+                await service.projectProfileService.save()
             } else if (Keyboard.isControlKey(event) && code === "KeyO") {
                 event.preventDefault()
                 await service.browse()

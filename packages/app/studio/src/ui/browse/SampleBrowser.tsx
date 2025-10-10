@@ -12,7 +12,7 @@ import {SearchInput} from "@/ui/components/SearchInput"
 import {SampleView} from "@/ui/browse/SampleView"
 import {RadioGroup} from "../components/RadioGroup"
 import {Icon} from "../components/Icon"
-import {SampleLocation} from "@/ui/browse/SampleLocation"
+import {AssetLocation} from "@/ui/browse/AssetLocation"
 import {HTMLSelection} from "@/ui/HTMLSelection"
 import {SampleService} from "@/ui/browse/SampleService"
 
@@ -23,7 +23,7 @@ type Construct = {
     service: StudioService
 }
 
-const location = new DefaultObservableValue(SampleLocation.Cloud)
+const location = new DefaultObservableValue(AssetLocation.Cloud)
 
 export const SampleBrowser = ({lifecycle, service}: Construct) => {
     lifecycle.own({terminate: () => service.samplePlayback.eject()})
@@ -43,12 +43,12 @@ export const SampleBrowser = ({lifecycle, service}: Construct) => {
             <div className="filter">
                 <RadioGroup lifecycle={lifecycle} model={location} elements={[
                     {
-                        value: SampleLocation.Cloud,
+                        value: AssetLocation.Cloud,
                         element: <Icon symbol={IconSymbol.CloudFolder}/>,
                         tooltip: "Online samples"
                     },
                     {
-                        value: SampleLocation.Local,
+                        value: AssetLocation.Local,
                         element: <Icon symbol={IconSymbol.UserFolder}/>,
                         tooltip: "Locally stored samples"
                     }
@@ -62,9 +62,9 @@ export const SampleBrowser = ({lifecycle, service}: Construct) => {
                     return (
                         <Await factory={async () => {
                             switch (location.getValue()) {
-                                case SampleLocation.Local:
+                                case AssetLocation.Local:
                                     return SampleStorage.get().list()
-                                case SampleLocation.Cloud:
+                                case AssetLocation.Cloud:
                                     return service.sampleAPI.all()
                             }
                         }} loading={() => {
@@ -98,7 +98,7 @@ export const SampleBrowser = ({lifecycle, service}: Construct) => {
                             lifecycle.own(filter.catchupAndSubscribe(update))
                             lifecycle.own(service.subscribeSignal(() => {
                                 Runtime.debounce(() => {
-                                    location.setValue(SampleLocation.Local)
+                                    location.setValue(AssetLocation.Local)
                                     reload.get().update()
                                 }, 500)
                             }, "import-sample"))
@@ -127,7 +127,7 @@ export const SampleBrowser = ({lifecycle, service}: Construct) => {
             () => linearVolume.setValue(clamp(slider.valueAsNumber, 0.0, 1.0))),
         linearVolume.catchupAndSubscribe(owner => slider.valueAsNumber = owner.getValue()),
         Events.subscribe(element, "keydown", async event => {
-            if (Keyboard.GlobalShortcut.isDelete(event) && location.getValue() === SampleLocation.Local) {
+            if (Keyboard.GlobalShortcut.isDelete(event) && location.getValue() === AssetLocation.Local) {
                 await sampleService.deleteSelected()
                 reload.get().update()
             }

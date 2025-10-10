@@ -88,7 +88,7 @@ export const DevicePanel = ({lifecycle, service}: Construct) => {
         Html.empty(audioEffectsContainer)
         Html.empty(channelStripContainer)
         chainLifecycle.terminate()
-        const profile = service.profileService.getValue()
+        const profile = service.projectProfileService.getValue()
         if (profile.isEmpty()) {return}
         const {project} = profile.unwrap()
         const optEditing = project.userInterfaceBox.editingDeviceChain.targetVertex
@@ -184,7 +184,7 @@ export const DevicePanel = ({lifecycle, service}: Construct) => {
     }
 
     const chainLifeTime = lifecycle.own(new Terminator())
-    lifecycle.own(service.profileService.catchupAndSubscribe((owner: ObservableValue<Option<ProjectProfile>>) => {
+    lifecycle.own(service.projectProfileService.catchupAndSubscribe((owner: ObservableValue<Option<ProjectProfile>>) => {
         chainLifeTime.terminate()
         owner.getValue().ifSome(({project: {userInterfaceBox}}) =>
             userInterfaceBox?.editingDeviceChain.catchupAndSubscribe((pointer) => {

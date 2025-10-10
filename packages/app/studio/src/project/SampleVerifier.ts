@@ -6,7 +6,7 @@ import {Sample, SampleLoaderManager} from "@opendaw/studio-adapters"
 import {SampleAPI, SampleImporter, SampleStorage} from "@opendaw/studio-core"
 import {SampleDialogs} from "@/ui/browse/SampleDialogs"
 
-export namespace SampleUtils {
+export namespace SampleVerifier {
     export const verify = async (boxGraph: BoxGraph,
                                  importer: SampleImporter,
                                  sampleAPI: SampleAPI,
