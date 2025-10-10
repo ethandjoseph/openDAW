@@ -1,5 +1,5 @@
 import css from "./SoundfontDeviceEditor.sass?inline"
-import {int, Lifecycle, UUID} from "@opendaw/lib-std"
+import {int, Lifecycle, Option, Terminator, UUID} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {DeviceEditor} from "@/ui/devices/DeviceEditor.tsx"
 import {MenuItems} from "@/ui/devices/menu-items.ts"
@@ -30,56 +30,44 @@ export const SoundfontDeviceEditor = ({lifecycle, service, adapter, deviceHost}:
     const {project} = service
     const {boxGraph, editing, liveStreamReceiver} = project
     const labelSoundfontName: HTMLElement = <span/>
-    const labelPresetName: HTMLElement = <span/>
-    const soundFontMenu = MenuItem.root()
+    const labelPresetName: HTMLElement = <span data-index="1"/>
+
+    let library: Option<ReadonlyArray<Soundfont>> = Option.None
 
     ;(async () => {
-        const {status, value: list, error} = await Promises.tryCatch(
-            Promises.guardedRetry(() => OpenSoundfontAPI.get().all(), (_error, count) => count < 10))
-        if (status === "rejected") {
-            soundFontMenu.addMenuItem(MenuItem.default({label: String(error)}))
-        } else {
-            soundFontMenu.addMenuItem(...list.map((soundfont: Soundfont) => MenuItem.default({
-                label: soundfont.name,
-                checked: adapter.box.file.targetAddress.match({
-                    none: () => false,
-                    some: ({uuid}) => UUID.toString(uuid) === soundfont.uuid
-                })
-            }).setTriggerProcedure(() => {
-                const uuid = UUID.parse(soundfont.uuid)
-                editing.modify(() => {
-                    const targetVertex = adapter.box.file.targetVertex.unwrapOrNull()
-                    const fileBox = boxGraph.findBox<SoundfontFileBox>(uuid)
-                        .unwrapOrElse(() => SoundfontFileBox.create(boxGraph, uuid, box =>
-                            box.fileName.setValue(soundfont.name)))
-                    adapter.box.file.refer(fileBox)
-                    if (targetVertex?.box.isValid() === false) {
-                        targetVertex.box.delete()
-                    }
-                })
-            })))
+        const {status, value} = await Promises.tryCatch(
+            Promises.guardedRetry(() => OpenSoundfontAPI.get().all(), (_error, count) => count < 3))
+        if (status === "resolved") {
+            library = Option.wrap(value)
         }
     })()
+    const loaderLifecycle = lifecycle.own(new Terminator())
     lifecycle.ownAll(
         adapter.loader.catchupAndSubscribe(optLoader => {
-            console.debug("optLoader", optLoader)
-            labelSoundfontName.textContent = "Loading..."
+            loaderLifecycle.terminate()
             optLoader.ifSome(loader => {
-                // TODO How to terminate
-                loader.subscribe(state => {
-                    console.debug("state", state)
+                if (loader.soundfont.isEmpty()) {
+                    labelSoundfontName.textContent = "Loading..."
+                }
+                loaderLifecycle.own(loader.subscribe(state => {
                     if (state.type === "progress") {
                         labelSoundfontName.textContent = `Loading... ${Math.round(state.progress * 100)}%`
                     }
-                })
+                }))
             })
         }),
-        adapter.soundfont.catchupAndSubscribe(optSoundfont =>
-            labelSoundfontName.textContent = optSoundfont
-                .mapOr(soundfont => soundfont.metaData.name, "No Soundfont")),
-        adapter.preset.catchupAndSubscribe(optPreset =>
-            labelPresetName.textContent = optPreset
-                .mapOr(preset => preset.header.name, "No Preset"))
+        adapter.soundfont.catchupAndSubscribe(optSoundfont => labelSoundfontName.textContent = optSoundfont
+            .mapOr(soundfont => soundfont.metaData.name, "No Soundfont")),
+        adapter.preset.catchupAndSubscribe(optPreset => optPreset.match({
+            none: () => {
+                labelPresetName.textContent = "No Preset"
+                labelPresetName.dataset["index"] = ""
+            },
+            some: preset => {
+                labelPresetName.textContent = preset.header.name
+                labelPresetName.dataset["index"] = `#${adapter.presetIndex + 1}`
+            }
+        }))
     )
     return (
         <DeviceEditor lifecycle={lifecycle}
@@ -88,13 +76,40 @@ export const SoundfontDeviceEditor = ({lifecycle, service, adapter, deviceHost}:
                       populateMenu={parent => MenuItems.forAudioUnitInput(parent, service, deviceHost)}
                       populateControls={() => (
                           <div className={className}>
-                              <FlexSpacer pixels={4}/>
+                              <FlexSpacer pixels={2}/>
                               <header>
                                   <Icon symbol={IconSymbol.Book}/>
                                   <h1>Soundfont</h1>
                               </header>
                               <div className="label">
-                                  <MenuButton root={soundFontMenu}>
+                                  <MenuButton
+                                      root={MenuItem.root().setRuntimeChildrenProcedure(parent => parent.addMenuItem(
+                                          ...library.match({
+                                              none: () => [MenuItem.default({
+                                                  label: "Could not load library",
+                                                  selectable: false
+                                              })],
+                                              some: list => list.map((soundfont: Soundfont) => MenuItem.default({
+                                                  label: soundfont.name,
+                                                  checked: adapter.box.file.targetAddress.match({
+                                                      none: () => false,
+                                                      some: ({uuid}) => UUID.toString(uuid) === soundfont.uuid
+                                                  })
+                                              }).setTriggerProcedure(() => {
+                                                  const uuid = UUID.parse(soundfont.uuid)
+                                                  editing.modify(() => {
+                                                      const targetVertex = adapter.box.file.targetVertex.unwrapOrNull()
+                                                      const fileBox = boxGraph.findBox<SoundfontFileBox>(uuid)
+                                                          .unwrapOrElse(() => SoundfontFileBox.create(boxGraph, uuid, box =>
+                                                              box.fileName.setValue(soundfont.name)))
+                                                      adapter.box.file.refer(fileBox)
+                                                      if (targetVertex?.box.isValid() === false) {
+                                                          targetVertex.box.delete()
+                                                      }
+                                                  })
+                                              }))
+                                          })
+                                      ))}>
                                       {labelSoundfontName}
                                   </MenuButton>
                               </div>
@@ -108,7 +123,8 @@ export const SoundfontDeviceEditor = ({lifecycle, service, adapter, deviceHost}:
                                       root={MenuItem.root().setRuntimeChildrenProcedure(parent => parent.addMenuItem(
                                           ...adapter.soundfont.mapOr(sf => sf.presets
                                                   .map((preset: Preset, index: int) => MenuItem.default({
-                                                      label: `#${index + 1} ${preset.header.name}`
+                                                      label: `#${index + 1} ${preset.header.name}`,
+                                                      checked: adapter.presetIndex === index
                                                   }).setTriggerProcedure(() =>
                                                       editing.modify(() => adapter.box.presetIndex.setValue(index)))),
                                               [MenuItem.default({label: "No soundfonts available"})])
