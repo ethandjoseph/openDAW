@@ -77,10 +77,10 @@ export class SoundfontService {
         if (this.#local.isEmpty()) {
             return panic("Local soundfont storage has not been read.")
         }
-        if (arrayBuffer.byteLength > 1 << 20) {
+        if (arrayBuffer.byteLength > (1 << 24)) {
             await RuntimeNotifier.approve({
                 headline: "Soundfont Import",
-                message: `The soundfont you are trying to import is ${(arrayBuffer.byteLength >> 10) >> 10}mb. This may cause memory issues. Do you want to continue?`,
+                message: `The soundfont you are trying to import is ${(arrayBuffer.byteLength >> 20)}mb. This may cause memory issues. Do you want to continue?`,
                 approveText: "Import",
                 cancelText: "Cancel"
             })

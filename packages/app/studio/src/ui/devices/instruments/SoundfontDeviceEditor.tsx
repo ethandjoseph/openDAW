@@ -104,17 +104,23 @@ export const SoundfontDeviceEditor = ({lifecycle, service, adapter, deviceHost}:
                                   <MenuButton
                                       root={MenuItem.root().setRuntimeChildrenProcedure(parent => {
                                           parent.addMenuItem(
-                                              MenuItem.default({label: "Import Soundfont..."})
+                                              MenuItem.default({
+                                                  label: "Local", selectable: service.soundfontService
+                                                      .local.mapOr(list => list.length > 0, false)
+                                              }).setRuntimeChildrenProcedure(parent => parent
+                                                  .addMenuItem(...populateMenu(service.soundfontService.local))),
+                                              MenuItem.default({
+                                                  label: "Cloud", selectable: service.soundfontService
+                                                      .remote.mapOr(list => list.length > 0, false)
+                                              }).setRuntimeChildrenProcedure(parent => parent
+                                                  .addMenuItem(...populateMenu(service.soundfontService.remote))),
+                                              MenuItem.default({label: "Import Soundfont...", separatorBefore: true})
                                                   .setTriggerProcedure(async () => {
                                                       const soundfonts = await service.soundfontService.browseForSoundfont()
                                                       if (soundfonts.length > 0) {
                                                           applySoundfont(soundfonts[0])
                                                       }
-                                                  }),
-                                              MenuItem.header({label: "Cloud", icon: IconSymbol.CloudFolder}),
-                                              ...populateMenu(service.soundfontService.remote),
-                                              MenuItem.header({label: "Local", icon: IconSymbol.UserFolder}),
-                                              ...populateMenu(service.soundfontService.local)
+                                                  })
                                           )
                                       })}>
                                       {labelSoundfontName}
