@@ -5,6 +5,12 @@ export namespace FilePickerAcceptTypes {
             accept: {"audio/wav": [".wav"]}
         }]
     }
+    export const SoundfontFiles: FilePickerOptions = {
+        types: [{
+            description: "soundfont-file",
+            accept: {"audio/x-soundfont": [".sf2"]}
+        }]
+    }
     export const ProjectSyncLog: FilePickerOptions = {
         types: [{
             description: "openDAW sync-log-file",

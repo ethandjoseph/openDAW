@@ -58,6 +58,7 @@ import {
     RestartWorklet,
     SampleAPI,
     SampleService,
+    SoundfontService,
     TimelineRange
 } from "@opendaw/studio-core"
 import {ProjectDialogs} from "@/project/ProjectDialogs"
@@ -109,7 +110,9 @@ export class StudioService implements ProjectEnv {
     readonly engine = new EngineFacade()
     readonly #softwareKeyboardLifeCycle = new Terminator()
     readonly #signals = new Notifier<StudioSignal>()
+
     readonly #sampleService: SampleService
+    readonly #soundfontService: SoundfontService
     readonly #dawProjectService: DawProjectService
 
     #factoryFooterLabel: Option<Provider<FooterLabel>> = Option.None
@@ -124,10 +127,12 @@ export class StudioService implements ProjectEnv {
                 readonly buildInfo: BuildInfo) {
         this.#sampleService = new SampleService(audioContext,
             sample => this.#signals.notify({type: "import-sample", sample}))
+        this.#soundfontService = new SoundfontService(
+            soundfont => this.#signals.notify({type: "import-soundfont", soundfont}))
         this.samplePlayback = new SamplePlayback()
         this.#dawProjectService = new DawProjectService(this.#sampleService)
         this.#projectProfileService = new ProjectProfileService({
-            env: this, importer: this.#sampleService, sampleAPI: this.sampleAPI, sampleManager: this.sampleManager
+            env: this, sampleService: this.#sampleService, sampleAPI: this.sampleAPI, sampleManager: this.sampleManager
         })
 
         this.#listenProject()
@@ -140,6 +145,7 @@ export class StudioService implements ProjectEnv {
 
     get sampleRate(): number {return this.audioContext.sampleRate}
     get sampleService(): SampleService {return this.#sampleService}
+    get soundfontService(): SoundfontService {return this.#soundfontService}
     get projectProfileService(): ProjectProfileService {return this.#projectProfileService}
 
     panicEngine(): void {this.runIfProject(({engine}) => engine.panic())}

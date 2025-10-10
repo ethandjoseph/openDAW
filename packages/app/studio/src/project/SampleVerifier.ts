@@ -3,12 +3,12 @@ import {BoxGraph} from "@opendaw/lib-box"
 import {Promises} from "@opendaw/lib-runtime"
 import {AudioFileBox} from "@opendaw/studio-boxes"
 import {Sample, SampleLoaderManager} from "@opendaw/studio-adapters"
-import {SampleAPI, SampleImporter, SampleStorage} from "@opendaw/studio-core"
+import {SampleAPI, SampleService, SampleStorage} from "@opendaw/studio-core"
 import {SampleDialogs} from "@/ui/browse/SampleDialogs"
 
 export namespace SampleVerifier {
     export const verify = async (boxGraph: BoxGraph,
-                                 importer: SampleImporter,
+                                 sampleService: SampleService,
                                  sampleAPI: SampleAPI,
                                  sampleManager: SampleLoaderManager) => {
         const boxes = boxGraph.boxes().filter((box) => box instanceof AudioFileBox)
@@ -26,11 +26,9 @@ export namespace SampleVerifier {
                 if (online.hasKey(uuid)) {continue}
                 const optSample = offline.opt(uuid)
                 if (optSample.isEmpty()) {
-                    const {
-                        status,
-                        error,
-                        value: sample
-                    } = await Promises.tryCatch(SampleDialogs.missingSampleDialog(importer, uuid, box.fileName.getValue()))
+                    const {status, error, value: sample} =
+                        await Promises.tryCatch(SampleDialogs
+                            .missingSampleDialog(sampleService, uuid, box.fileName.getValue()))
                     if (status === "rejected") {
                         if (Errors.isAbort(error)) {continue} else {return panic(String(error))}
                     }

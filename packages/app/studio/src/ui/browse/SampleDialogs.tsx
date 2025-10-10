@@ -6,10 +6,12 @@ import {Dialogs} from "@/ui/components/dialogs"
 import {Errors, isDefined, UUID} from "@opendaw/lib-std"
 import {Promises} from "@opendaw/lib-runtime"
 import {Files} from "@opendaw/lib-dom"
-import {FilePickerAcceptTypes, SampleImporter} from "@opendaw/studio-core"
+import {FilePickerAcceptTypes, SampleService} from "@opendaw/studio-core"
 
 export namespace SampleDialogs {
-    export const missingSampleDialog = async (importer: SampleImporter, uuid: UUID.Bytes, name: string): Promise<Sample> => {
+    export const missingSampleDialog = async (sampleService: SampleService,
+                                              uuid: UUID.Bytes,
+                                              name: string): Promise<Sample> => {
         const {resolve, reject, promise} = Promise.withResolvers<Sample>()
         const dialog: HTMLDialogElement = (
             <Dialog headline="Missing Sample"
@@ -43,7 +45,7 @@ export namespace SampleDialogs {
                                     status,
                                     value: sample
                                 } = await Promises.tryCatch(
-                                    importer.importSample({
+                                    sampleService.importSample({
                                         uuid,
                                         name: file.name,
                                         arrayBuffer: await file.arrayBuffer()

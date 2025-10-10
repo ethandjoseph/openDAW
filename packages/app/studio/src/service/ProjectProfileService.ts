@@ -22,7 +22,7 @@ import {
     ProjectProfile,
     ProjectStorage,
     SampleAPI,
-    SampleImporter
+    SampleService
 } from "@opendaw/studio-core"
 import {SampleLoaderManager} from "@opendaw/studio-adapters"
 import {SampleVerifier} from "@/project/SampleVerifier"
@@ -31,18 +31,18 @@ export class ProjectProfileService implements MutableObservableValue<Option<Proj
     readonly #profile: DefaultObservableValue<Option<ProjectProfile>>
 
     readonly #env: ProjectEnv
-    readonly #importer: SampleImporter
+    readonly #sampleService: SampleService
     readonly #sampleAPI: SampleAPI
     readonly #sampleManager: SampleLoaderManager
 
-    constructor({env, importer, sampleAPI, sampleManager}: {
+    constructor({env, sampleService, sampleAPI, sampleManager}: {
         env: ProjectEnv,
-        importer: SampleImporter,
+        sampleService: SampleService,
         sampleAPI: SampleAPI,
         sampleManager: SampleLoaderManager
     }) {
         this.#env = env
-        this.#importer = importer
+        this.#sampleService = sampleService
         this.#sampleAPI = sampleAPI
         this.#sampleManager = sampleManager
         this.#profile = new DefaultObservableValue<Option<ProjectProfile>>(Option.None)
@@ -77,7 +77,7 @@ export class ProjectProfileService implements MutableObservableValue<Option<Proj
 
     async loadFromLocalStorage(uuid: UUID.Bytes, meta: ProjectMeta) {
         const project: Project = await ProjectStorage.loadProject(uuid).then(buffer => Project.load(this.#env, buffer))
-        await SampleVerifier.verify(project.boxGraph, this.#importer, this.#sampleAPI, this.#sampleManager)
+        await SampleVerifier.verify(project.boxGraph, this.#sampleService, this.#sampleAPI, this.#sampleManager)
         const cover = await ProjectStorage.loadCover(uuid)
         this.#setProfile(uuid, project, meta, cover, true)
     }

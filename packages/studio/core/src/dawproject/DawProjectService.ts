@@ -1,14 +1,14 @@
-import {SampleService} from "../samples"
+import {Errors, isDefined, Option, panic, RuntimeNotifier} from "@opendaw/lib-std"
 import {Promises} from "@opendaw/lib-runtime"
 import {Files} from "@opendaw/lib-dom"
-import {FilePickerAcceptTypes} from "../FilePickerAcceptTypes"
-import {Errors, isDefined, Option, panic, RuntimeNotifier} from "@opendaw/lib-std"
-import {DawProject} from "./DawProject"
-import {DawProjectImport} from "./DawProjectImport"
 import {Xml} from "@opendaw/lib-xml"
 import {MetaDataSchema} from "@opendaw/lib-dawproject"
-import {ProjectProfile} from "../project/ProjectProfile"
 import {ProjectSkeleton} from "@opendaw/studio-adapters"
+import {DawProject} from "./DawProject"
+import {FilePickerAcceptTypes} from "../FilePickerAcceptTypes"
+import {DawProjectImport} from "./DawProjectImport"
+import {ProjectProfile} from "../project"
+import {SampleService} from "../samples"
 
 export class DawProjectService {
     constructor(readonly sampleService: SampleService) {}
