@@ -11,9 +11,8 @@ import {MenuItem} from "@/ui/model/menu-item"
 import type {Preset} from "soundfont2"
 import {MenuButton} from "@/ui/components/MenuButton"
 import {Icon} from "@/ui/components/Icon"
-import {InstrumentFactories, OpenSoundfontAPI} from "@opendaw/studio-core"
+import {InstrumentFactories} from "@opendaw/studio-core"
 import {FlexSpacer} from "@/ui/components/FlexSpacer"
-import {Promises} from "@opendaw/lib-runtime"
 import {SoundfontFileBox} from "@opendaw/studio-boxes"
 
 const className = Html.adoptStyleSheet(css, "editor")
@@ -32,15 +31,6 @@ export const SoundfontDeviceEditor = ({lifecycle, service, adapter, deviceHost}:
     const labelSoundfontName: HTMLElement = <span/>
     const labelPresetName: HTMLElement = <span data-index="1"/>
 
-    let library: Option<ReadonlyArray<Soundfont>> = Option.None
-
-    ;(async () => {
-        const {status, value} = await Promises.tryCatch(
-            Promises.guardedRetry(() => OpenSoundfontAPI.get().all(), (_error, count) => count < 3))
-        if (status === "resolved") {
-            library = Option.wrap(value)
-        }
-    })()
     const loaderLifecycle = lifecycle.own(new Terminator())
     lifecycle.ownAll(
         adapter.loader.catchupAndSubscribe(optLoader => {
@@ -69,6 +59,37 @@ export const SoundfontDeviceEditor = ({lifecycle, service, adapter, deviceHost}:
             }
         }))
     )
+    const applySoundfont = (soundfont: Soundfont): void => {
+        const uuid = UUID.parse(soundfont.uuid)
+        editing.modify(() => {
+            const targetVertex = adapter.box.file.targetVertex.unwrapOrNull()
+            const fileBox = boxGraph.findBox<SoundfontFileBox>(uuid).unwrapOrElse(() =>
+                SoundfontFileBox.create(boxGraph, uuid, box => box.fileName.setValue(soundfont.name)))
+            adapter.box.file.refer(fileBox)
+            adapter.box.presetIndex.setValue(0)
+            if (targetVertex?.box.isValid() === false) {
+                targetVertex.box.delete()
+            }
+        })
+    }
+    const populateMenu = (scope: Option<ReadonlyArray<Soundfont>>): ReadonlyArray<MenuItem> => {
+        return scope.match({
+            none: () => [MenuItem.default({
+                label: "Could not load library",
+                selectable: false,
+                separatorBefore: true
+            })],
+            some: list => list.map((soundfont: Soundfont, index: int) =>
+                MenuItem.default({
+                    label: soundfont.name,
+                    checked: adapter.box.file.targetAddress.match({
+                        none: () => false,
+                        some: ({uuid}) => UUID.toString(uuid) === soundfont.uuid
+                    }),
+                    separatorBefore: index === 0
+                }).setTriggerProcedure(() => applySoundfont(soundfont)))
+        })
+    }
     return (
         <DeviceEditor lifecycle={lifecycle}
                       project={project}
@@ -85,33 +106,15 @@ export const SoundfontDeviceEditor = ({lifecycle, service, adapter, deviceHost}:
                                   <MenuButton
                                       root={MenuItem.root().setRuntimeChildrenProcedure(parent => {
                                           parent.addMenuItem(
-                                              ...library.match({
-                                                  none: () => [MenuItem.default({
-                                                      label: "Could not load library",
-                                                      selectable: false,
-                                                      separatorBefore: true
-                                                  })],
-                                                  some: list => list.map((soundfont: Soundfont, index: int) => MenuItem.default({
-                                                      label: soundfont.name,
-                                                      checked: adapter.box.file.targetAddress.match({
-                                                          none: () => false,
-                                                          some: ({uuid}) => UUID.toString(uuid) === soundfont.uuid
-                                                      }),
-                                                      separatorBefore: index === 0
-                                                  }).setTriggerProcedure(() => {
-                                                      const uuid = UUID.parse(soundfont.uuid)
-                                                      editing.modify(() => {
-                                                          const targetVertex = adapter.box.file.targetVertex.unwrapOrNull()
-                                                          const fileBox = boxGraph.findBox<SoundfontFileBox>(uuid)
-                                                              .unwrapOrElse(() => SoundfontFileBox.create(boxGraph, uuid, box =>
-                                                                  box.fileName.setValue(soundfont.name)))
-                                                          adapter.box.file.refer(fileBox)
-                                                          if (targetVertex?.box.isValid() === false) {
-                                                              targetVertex.box.delete()
-                                                          }
-                                                      })
-                                                  }))
-                                              })
+                                              MenuItem.default({label: "Import Soundfont..."})
+                                                  .setTriggerProcedure(async () => {
+                                                      const soundfonts = await service.soundfontService.browseForSoundfont()
+                                                      if (soundfonts.length > 0) {
+                                                          applySoundfont(soundfonts[0])
+                                                      }
+                                                  }),
+                                              ...populateMenu(service.soundfontService.remote),
+                                              ...populateMenu(service.soundfontService.local)
                                           )
                                       })}>
                                       {labelSoundfontName}
