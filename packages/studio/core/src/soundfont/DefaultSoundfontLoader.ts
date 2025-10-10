@@ -44,8 +44,8 @@ export class DefaultSoundfontLoader implements SoundfontLoader {
     }
 
     #get(): void {
-        SoundfontStorage.get().load(this.#uuid).then(([data, meta]) => {
-                this.#soundfont = Option.wrap(data)
+        SoundfontStorage.get().load(this.#uuid).then(([file, meta]) => {
+                this.#soundfont = Option.wrap(new SoundFont2(new Uint8Array(file)))
                 this.#meta = Option.wrap(meta)
                 this.#setState({type: "loaded"})
             },

@@ -77,6 +77,14 @@ export class SoundfontService {
         if (this.#local.isEmpty()) {
             return panic("Local soundfont storage has not been read.")
         }
+        if (arrayBuffer.byteLength > 1 << 20) {
+            await RuntimeNotifier.approve({
+                headline: "Soundfont Import",
+                message: `The soundfont you are trying to import is ${(arrayBuffer.byteLength >> 10) >> 10}mb. This may cause memory issues. Do you want to continue?`,
+                approveText: "Import",
+                cancelText: "Cancel"
+            })
+        }
         console.debug(`importSoundfont (${arrayBuffer.byteLength >> 10}kb)`)
         console.time("UUID.sha256")
         uuid ??= await UUID.sha256(arrayBuffer)

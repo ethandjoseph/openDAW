@@ -8,14 +8,15 @@ import {
     TimeSpan,
     unitValue
 } from "@opendaw/lib-std"
+import {Browser} from "@opendaw/lib-dom"
+import {Promises} from "@opendaw/lib-runtime"
+import {CloudService} from "./CloudService"
 import {CloudHandler} from "./CloudHandler"
+import {CloudAuthManager} from "./CloudAuthManager"
 import {CloudBackupSamples} from "./CloudBackupSamples"
 import {CloudBackupProjects} from "./CloudBackupProjects"
-import {CloudAuthManager} from "./CloudAuthManager"
-import {CloudService} from "./CloudService"
-import {ProjectSignals} from "../project/ProjectSignals"
-import {Promises} from "@opendaw/lib-runtime"
-import {Browser} from "@opendaw/lib-dom"
+import {CloudBackupSoundfonts} from "./CloudBackupSoundfont"
+import {ProjectSignals} from "../project"
 
 export namespace CloudBackup {
     export const backup = async (cloudAuthManager: CloudAuthManager, service: CloudService) => {
@@ -55,7 +56,8 @@ export namespace CloudBackup {
         const progressValue = new DefaultObservableValue<unitValue>(0.0)
         const notification = RuntimeNotifier.progress({headline: `Backup with ${service}`, progress: progressValue})
         const log = (text: string) => notification.message = text
-        const [progressSamples, progressProjects] = Progress.split(progress => progressValue.setValue(progress), 2)
+        const [progressSamples, progressProjects, progressSoundfonts] =
+            Progress.split(progress => progressValue.setValue(progress), 3)
         const lockPath = "lock.json"
         type Lock = { id: string, created: string }
         let canReleaseLock = false
@@ -91,6 +93,7 @@ export namespace CloudBackup {
             await cloudHandler.upload(lockPath, new TextEncoder().encode(JSON.stringify(json)).buffer)
             await CloudBackupSamples.start(cloudHandler, progressSamples, log)
             await CloudBackupProjects.start(cloudHandler, progressProjects, log)
+            await CloudBackupSoundfonts.start(cloudHandler, progressSoundfonts, log)
         } finally {
             if (canReleaseLock) {
                 await cloudHandler.delete(lockPath)

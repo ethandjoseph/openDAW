@@ -2,7 +2,6 @@ import {EmptyExec, Lazy, UUID} from "@opendaw/lib-std"
 import {Soundfont, SoundfontMetaData} from "@opendaw/studio-adapters"
 import {Workers} from "../Workers"
 import {Storage} from "../Storage"
-import {SoundFont2} from "soundfont2"
 
 export namespace SoundfontStorage {
     export type NewSoundfont = {
@@ -12,7 +11,8 @@ export namespace SoundfontStorage {
     }
 }
 
-export class SoundfontStorage extends Storage<Soundfont, SoundfontMetaData, SoundfontStorage.NewSoundfont, [SoundFont2, SoundfontMetaData]> {
+export class SoundfontStorage extends Storage<Soundfont, SoundfontMetaData, SoundfontStorage.NewSoundfont,
+    [ArrayBuffer, SoundfontMetaData]> {
     static readonly Folder = "soundfont"
 
     @Lazy
@@ -29,11 +29,11 @@ export class SoundfontStorage extends Storage<Soundfont, SoundfontMetaData, Soun
         ]).then(EmptyExec)
     }
 
-    async load(uuid: UUID.Bytes): Promise<[SoundFont2, SoundfontMetaData]> {
+    async load(uuid: UUID.Bytes): Promise<[ArrayBuffer, SoundfontMetaData]> {
         const path = `${this.folder}/${UUID.toString(uuid)}`
         return Promise.all([
             Workers.Opfs.read(`${path}/soundfont.sf2`)
-                .then(bytes => new SoundFont2(new Uint8Array(bytes))),
+                .then(bytes => bytes.buffer as ArrayBuffer),
             Workers.Opfs.read(`${path}/meta.json`)
                 .then(bytes => JSON.parse(new TextDecoder().decode(bytes)))
         ])

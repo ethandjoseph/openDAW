@@ -76,17 +76,15 @@ export const SoundfontDeviceEditor = ({lifecycle, service, adapter, deviceHost}:
         return scope.match({
             none: () => [MenuItem.default({
                 label: "Could not load library",
-                selectable: false,
-                separatorBefore: true
+                selectable: false
             })],
-            some: list => list.map((soundfont: Soundfont, index: int) =>
+            some: list => list.map((soundfont: Soundfont) =>
                 MenuItem.default({
                     label: soundfont.name,
                     checked: adapter.box.file.targetAddress.match({
                         none: () => false,
                         some: ({uuid}) => UUID.toString(uuid) === soundfont.uuid
-                    }),
-                    separatorBefore: index === 0
+                    })
                 }).setTriggerProcedure(() => applySoundfont(soundfont)))
         })
     }
@@ -113,7 +111,9 @@ export const SoundfontDeviceEditor = ({lifecycle, service, adapter, deviceHost}:
                                                           applySoundfont(soundfonts[0])
                                                       }
                                                   }),
+                                              MenuItem.header({label: "Cloud", icon: IconSymbol.CloudFolder}),
                                               ...populateMenu(service.soundfontService.remote),
+                                              MenuItem.header({label: "Local", icon: IconSymbol.UserFolder}),
                                               ...populateMenu(service.soundfontService.local)
                                           )
                                       })}>
