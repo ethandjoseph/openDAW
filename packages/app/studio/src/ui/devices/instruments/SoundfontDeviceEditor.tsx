@@ -83,33 +83,37 @@ export const SoundfontDeviceEditor = ({lifecycle, service, adapter, deviceHost}:
                               </header>
                               <div className="label">
                                   <MenuButton
-                                      root={MenuItem.root().setRuntimeChildrenProcedure(parent => parent.addMenuItem(
-                                          ...library.match({
-                                              none: () => [MenuItem.default({
-                                                  label: "Could not load library",
-                                                  selectable: false
-                                              })],
-                                              some: list => list.map((soundfont: Soundfont) => MenuItem.default({
-                                                  label: soundfont.name,
-                                                  checked: adapter.box.file.targetAddress.match({
-                                                      none: () => false,
-                                                      some: ({uuid}) => UUID.toString(uuid) === soundfont.uuid
-                                                  })
-                                              }).setTriggerProcedure(() => {
-                                                  const uuid = UUID.parse(soundfont.uuid)
-                                                  editing.modify(() => {
-                                                      const targetVertex = adapter.box.file.targetVertex.unwrapOrNull()
-                                                      const fileBox = boxGraph.findBox<SoundfontFileBox>(uuid)
-                                                          .unwrapOrElse(() => SoundfontFileBox.create(boxGraph, uuid, box =>
-                                                              box.fileName.setValue(soundfont.name)))
-                                                      adapter.box.file.refer(fileBox)
-                                                      if (targetVertex?.box.isValid() === false) {
-                                                          targetVertex.box.delete()
-                                                      }
-                                                  })
-                                              }))
-                                          })
-                                      ))}>
+                                      root={MenuItem.root().setRuntimeChildrenProcedure(parent => {
+                                          parent.addMenuItem(
+                                              ...library.match({
+                                                  none: () => [MenuItem.default({
+                                                      label: "Could not load library",
+                                                      selectable: false,
+                                                      separatorBefore: true
+                                                  })],
+                                                  some: list => list.map((soundfont: Soundfont, index: int) => MenuItem.default({
+                                                      label: soundfont.name,
+                                                      checked: adapter.box.file.targetAddress.match({
+                                                          none: () => false,
+                                                          some: ({uuid}) => UUID.toString(uuid) === soundfont.uuid
+                                                      }),
+                                                      separatorBefore: index === 0
+                                                  }).setTriggerProcedure(() => {
+                                                      const uuid = UUID.parse(soundfont.uuid)
+                                                      editing.modify(() => {
+                                                          const targetVertex = adapter.box.file.targetVertex.unwrapOrNull()
+                                                          const fileBox = boxGraph.findBox<SoundfontFileBox>(uuid)
+                                                              .unwrapOrElse(() => SoundfontFileBox.create(boxGraph, uuid, box =>
+                                                                  box.fileName.setValue(soundfont.name)))
+                                                          adapter.box.file.refer(fileBox)
+                                                          if (targetVertex?.box.isValid() === false) {
+                                                              targetVertex.box.delete()
+                                                          }
+                                                      })
+                                                  }))
+                                              })
+                                          )
+                                      })}>
                                       {labelSoundfontName}
                                   </MenuButton>
                               </div>
