@@ -26,14 +26,11 @@ type Construct = {
 const location = new DefaultObservableValue(AssetLocation.Cloud)
 
 export const SampleBrowser = ({lifecycle, service}: Construct) => {
-    lifecycle.own({terminate: () => service.samplePlayback.eject()})
     const entries: HTMLElement = <div className="scrollable"/>
     const selection = lifecycle.own(new HTMLSelection(entries))
     const sampleService = new SampleService(service, selection)
     const entriesLifeSpan = lifecycle.own(new Terminator())
     const reload = Inject.ref<HotspotUpdater>()
-    lifecycle.own(location.subscribe(() => reload.get().update()))
-    lifecycle.own(RuntimeSignal.subscribe(signal => signal === ProjectSignals.StorageUpdated && reload.get().update()))
     const filter = new DefaultObservableValue("")
     const searchInput = <SearchInput lifecycle={lifecycle} model={filter}/>
     const slider: HTMLInputElement = <input type="range" min="0.0" max="1.0" step="0.001"/>
@@ -67,13 +64,11 @@ export const SampleBrowser = ({lifecycle, service}: Construct) => {
                                 case AssetLocation.Cloud:
                                     return service.sampleAPI.all()
                             }
-                        }} loading={() => {
-                            return (
-                                <div className="loading">
-                                    <ThreeDots/>
-                                </div>
-                            )
-                        }} failure={({reason, retry}) => (
+                        }} loading={() => (
+                            <div className="loading">
+                                <ThreeDots/>
+                            </div>
+                        )} failure={({reason, retry}) => (
                             <div className="error">
                                 <span>{reason.message}</span>
                                 <Button lifecycle={lifecycle} onClick={retry} appearance={{framed: true}}>RETRY</Button>
@@ -123,6 +118,9 @@ export const SampleBrowser = ({lifecycle, service}: Construct) => {
         </div>
     )
     lifecycle.ownAll(
+        location.subscribe(() => reload.get().update()),
+        RuntimeSignal.subscribe(signal => signal === ProjectSignals.StorageUpdated && reload.get().update()),
+        {terminate: () => service.samplePlayback.eject()},
         Events.subscribe(slider, "input",
             () => linearVolume.setValue(clamp(slider.valueAsNumber, 0.0, 1.0))),
         linearVolume.catchupAndSubscribe(owner => slider.valueAsNumber = owner.getValue()),
