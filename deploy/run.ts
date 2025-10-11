@@ -73,6 +73,23 @@ async function uploadDirectoryExcluding(localDir: string, remoteDir: string, exc
     }
 }
 
+async function deleteDirectoryExcept(localDir: string, remoteDir: string, preserveFiles: string[]) {
+    const items = await sftp.list(remoteDir)
+    for (const item of items) {
+        const remotePath = path.posix.join(remoteDir, item.name)
+        if (preserveFiles.includes(item.name)) {
+            console.log(`preserving ${remotePath}`)
+            continue
+        }
+        if (item.type === "d") {
+            await deleteDirectory(remotePath)
+            await sftp.rmdir(remotePath, true)
+        } else {
+            await sftp.delete(remotePath)
+        }
+    }
+}
+
 // --------------------- main -------------------------------------------------
 (async () => {
     console.log(`⏩ upload…`)
@@ -88,12 +105,15 @@ async function uploadDirectoryExcluding(localDir: string, remoteDir: string, exc
         console.warn("⚠️  update.html not found, skipping maintenance mode")
     }
     
-    // Step 2: Upload all new files except index.html
+    // Step 2: Clean up old files except index.html (which is now the maintenance page)
+    console.log("🧹 Cleaning up old files...")
+    await deleteDirectoryExcept("/", "/", ["index.html"])
+    
+    // Step 3: Upload all new files except index.html
     console.log("📦 Uploading new files (excluding index.html)...")
-    await deleteDirectory("/")
     await uploadDirectoryExcluding("./packages/app/studio/dist", "/", ["index.html"])
     
-    // Step 3: Replace update.html with new index.html to complete deployment
+    // Step 4: Replace update.html with new index.html to complete deployment
     console.log("🎯 Activating new version...")
     const newIndexPath = "./packages/app/studio/dist/index.html"
     if (fs.existsSync(newIndexPath)) {
