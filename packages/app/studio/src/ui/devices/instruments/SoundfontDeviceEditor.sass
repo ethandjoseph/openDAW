@@ -20,6 +20,11 @@ component
     > h1
       font-size: 12px
 
+      &:after
+        margin-left: 0.5em
+        content: attr(data-count)
+        opacity: 0.33
+
   > div.label
     padding: 0.5em
     border-radius: 0.25em

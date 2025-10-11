@@ -1,5 +1,5 @@
-import {Option, Progress, safeExecute, tryCatch, UUID} from "@opendaw/lib-std"
-import {AudioFileBox} from "@opendaw/studio-boxes"
+import {Class, Option, Progress, safeExecute, tryCatch, UUID} from "@opendaw/lib-std"
+import {AudioFileBox, SoundfontFileBox} from "@opendaw/studio-boxes"
 import {ProjectDecoder} from "@opendaw/studio-adapters"
 import {Promises} from "@opendaw/lib-runtime"
 import {ProjectMeta} from "./ProjectMeta"
@@ -49,7 +49,7 @@ export namespace ProjectStorage {
             .then(array => Option.wrap(array.buffer as ArrayBuffer), () => Option.None)
     }
 
-    export const listUsedSamples = async (): Promise<Set<string>> => {
+    export const listUsedAssets = async (type: Class<AudioFileBox | SoundfontFileBox>): Promise<Set<string>> => {
         const uuids: Array<string> = []
         const files = await Workers.Opfs.list(ProjectPaths.Folder)
         for (const {name} of files.filter(file => file.kind === "directory")) {
@@ -57,7 +57,7 @@ export namespace ProjectStorage {
             tryCatch(() => {
                 const {boxGraph} = ProjectDecoder.decode(result.buffer)
                 uuids.push(...boxGraph.boxes()
-                    .filter(box => box instanceof AudioFileBox)
+                    .filter(box => box instanceof type)
                     .map((box) => UUID.toString(box.address.uuid)))
             })
         }

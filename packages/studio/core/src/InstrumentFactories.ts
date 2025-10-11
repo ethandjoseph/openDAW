@@ -1,5 +1,6 @@
 import {
     AudioFileBox,
+    BoxIO,
     NanoDeviceBox,
     PlayfieldDeviceBox,
     PlayfieldSampleBox,
@@ -22,7 +23,11 @@ export namespace InstrumentFactories {
         defaultIcon: IconSymbol.Tape,
         description: "Plays audio regions & clips",
         trackType: TrackType.Audio,
-        create: (boxGraph: BoxGraph, host: Field<Pointers.InstrumentHost | Pointers.AudioOutput>, name: string, icon: IconSymbol): TapeDeviceBox =>
+        create: (boxGraph: BoxGraph,
+                 host: Field<Pointers.InstrumentHost | Pointers.AudioOutput>,
+                 name: string,
+                 icon: IconSymbol,
+                 _attachment?: never): TapeDeviceBox =>
             TapeDeviceBox.create(boxGraph, UUID.generate(), box => {
                 box.label.setValue(name)
                 box.icon.setValue(IconSymbol.toName(icon))
@@ -39,7 +44,11 @@ export namespace InstrumentFactories {
         defaultIcon: IconSymbol.NanoWave,
         description: "Simple sampler",
         trackType: TrackType.Notes,
-        create: (boxGraph: BoxGraph, host: Field<Pointers.InstrumentHost | Pointers.AudioOutput>, name: string, icon: IconSymbol): NanoDeviceBox => {
+        create: (boxGraph: BoxGraph,
+                 host: Field<Pointers.InstrumentHost | Pointers.AudioOutput>,
+                 name: string,
+                 icon: IconSymbol,
+                 _attachment?: never): NanoDeviceBox => {
             const fileUUID = UUID.parse("c1678daa-4a47-4cba-b88f-4f4e384663c3")
             const fileDuration = 5.340
             const audioFileBox: AudioFileBox = boxGraph.findBox<AudioFileBox>(fileUUID)
@@ -61,7 +70,11 @@ export namespace InstrumentFactories {
         defaultIcon: IconSymbol.Playfield,
         description: "Drum computer",
         trackType: TrackType.Notes,
-        create: (boxGraph: BoxGraph, host: Field<Pointers.InstrumentHost | Pointers.AudioOutput>, name: string, icon: IconSymbol): PlayfieldDeviceBox => {
+        create: (boxGraph: BoxGraph,
+                 host: Field<Pointers.InstrumentHost | Pointers.AudioOutput>,
+                 name: string,
+                 icon: IconSymbol,
+                 _attachment?: never): PlayfieldDeviceBox => {
             const deviceBox = PlayfieldDeviceBox.create(boxGraph, UUID.generate(), box => {
                 box.label.setValue(name)
                 box.icon.setValue(IconSymbol.toName(icon))
@@ -97,7 +110,11 @@ export namespace InstrumentFactories {
         defaultIcon: IconSymbol.Piano,
         description: "Classic subtractive synthesizer",
         trackType: TrackType.Notes,
-        create: (boxGraph: BoxGraph, host: Field<Pointers.InstrumentHost | Pointers.AudioOutput>, name: string, icon: IconSymbol): VaporisateurDeviceBox =>
+        create: (boxGraph: BoxGraph<BoxIO.TypeMap>,
+                 host: Field<Pointers.InstrumentHost | Pointers.AudioOutput>,
+                 name: string,
+                 icon: IconSymbol,
+                 _attachment?: never): VaporisateurDeviceBox =>
             VaporisateurDeviceBox.create(boxGraph, UUID.generate(), box => {
                 box.label.setValue(name)
                 box.icon.setValue(IconSymbol.toName(icon))
@@ -111,18 +128,20 @@ export namespace InstrumentFactories {
             })
     }
 
-    export const Soundfont: InstrumentFactory = {
+    export const Soundfont: InstrumentFactory<{ uuid: UUID.String, name: string }> = {
         defaultName: "Soundfont",
         defaultIcon: IconSymbol.Book,
         description: "Soundfont Player",
         trackType: TrackType.Notes,
-        create: (boxGraph: BoxGraph,
+        create: (boxGraph: BoxGraph<BoxIO.TypeMap>,
                  host: Field<Pointers.InstrumentHost | Pointers.AudioOutput>,
                  name: string,
-                 icon: IconSymbol): SoundfontDeviceBox => {
-            const soundFontUUIDAsString = "d9f51577-2096-4671-9067-27ca2e12b329"
+                 icon: IconSymbol,
+                 attachment?: { uuid: UUID.String, name: string }): SoundfontDeviceBox => {
+            attachment ??= {uuid: "d9f51577-2096-4671-9067-27ca2e12b329", name: "Upright Piano KW"}
+            const soundFontUUIDAsString = attachment.uuid
             const soundfontUUID = UUID.parse(soundFontUUIDAsString)
-            const soundfontBox = useSoundfontFile(boxGraph, soundfontUUID, "Upright Piano KW")
+            const soundfontBox = useSoundfontFile(boxGraph, soundfontUUID, attachment.name)
             return SoundfontDeviceBox.create(boxGraph, UUID.generate(), box => {
                 box.label.setValue(name)
                 box.icon.setValue(IconSymbol.toName(icon))

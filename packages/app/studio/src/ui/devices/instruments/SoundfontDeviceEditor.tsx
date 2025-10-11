@@ -30,7 +30,6 @@ export const SoundfontDeviceEditor = ({lifecycle, service, adapter, deviceHost}:
     const {boxGraph, editing, liveStreamReceiver} = project
     const labelSoundfontName: HTMLElement = <span/>
     const labelPresetName: HTMLElement = <span data-index="1"/>
-
     const loaderLifecycle = lifecycle.own(new Terminator())
     lifecycle.ownAll(
         adapter.loader.catchupAndSubscribe(optLoader => {
@@ -105,15 +104,19 @@ export const SoundfontDeviceEditor = ({lifecycle, service, adapter, deviceHost}:
                                       root={MenuItem.root().setRuntimeChildrenProcedure(parent => {
                                           parent.addMenuItem(
                                               MenuItem.default({
-                                                  label: "Local", selectable: service.soundfontService
-                                                      .local.mapOr(list => list.length > 0, false)
-                                              }).setRuntimeChildrenProcedure(parent => parent
-                                                  .addMenuItem(...populateMenu(service.soundfontService.local))),
-                                              MenuItem.default({
-                                                  label: "Cloud", selectable: service.soundfontService
+                                                  label: "Cloud",
+                                                  icon: IconSymbol.CloudFolder,
+                                                  selectable: service.soundfontService
                                                       .remote.mapOr(list => list.length > 0, false)
                                               }).setRuntimeChildrenProcedure(parent => parent
                                                   .addMenuItem(...populateMenu(service.soundfontService.remote))),
+                                              MenuItem.default({
+                                                  label: "Local",
+                                                  icon: IconSymbol.UserFolder,
+                                                  selectable: service.soundfontService
+                                                      .local.mapOr(list => list.length > 0, false)
+                                              }).setRuntimeChildrenProcedure(parent => parent
+                                                  .addMenuItem(...populateMenu(service.soundfontService.local))),
                                               MenuItem.default({label: "Import Soundfont...", separatorBefore: true})
                                                   .setTriggerProcedure(async () => {
                                                       const soundfonts = await service.soundfontService.browseForSoundfont()
@@ -129,7 +132,13 @@ export const SoundfontDeviceEditor = ({lifecycle, service, adapter, deviceHost}:
                               <FlexSpacer pixels={4}/>
                               <header>
                                   <Icon symbol={IconSymbol.Piano}/>
-                                  <h1>Preset</h1>
+                                  <h1 onLoad={element => {
+                                      lifecycle.own(adapter.soundfont.catchupAndSubscribe(optSoundfont =>
+                                          element.dataset["count"] = optSoundfont.match({
+                                              none: () => "",
+                                              some: soundfont => `(${soundfont.presets.length})`
+                                          })))
+                                  }}>Preset</h1>
                               </header>
                               <div className="label">
                                   <MenuButton

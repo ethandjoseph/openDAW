@@ -7,7 +7,7 @@ import {HTMLSelection} from "@/ui/HTMLSelection"
 import {StudioService} from "@/service/StudioService"
 import {Dialogs} from "../components/dialogs"
 
-export class SampleService {
+export class SampleSelection {
     readonly #service: StudioService
     readonly #selection: HTMLSelection
 
@@ -16,16 +16,15 @@ export class SampleService {
         this.#selection = selection
     }
 
-    requestTapes(): void {
+    requestDevice(): void {
         if (!this.#service.hasProfile) {return}
         const project = this.#service.project
-        const {editing, boxGraph, rootBoxAdapter} = project
+        const {editing, boxGraph} = project
         editing.modify(() => {
-            const samples = this.#samples()
-            const startIndex = rootBoxAdapter.audioUnits.adapters().length
-            samples.forEach(({uuid: uuidAsString, name, bpm, duration: durationInSeconds}, index) => {
+            const samples = this.#selected()
+            samples.forEach(({uuid: uuidAsString, name, bpm, duration: durationInSeconds}) => {
                 const uuid = UUID.parse(uuidAsString)
-                const {trackBox} = project.api.createInstrument(InstrumentFactories.Tape, {index: startIndex + index})
+                const {trackBox} = project.api.createInstrument(InstrumentFactories.Tape)
                 const audioFileBox = boxGraph.findBox<AudioFileBox>(uuid)
                     .unwrapOrElse(() => AudioFileBox.create(boxGraph, uuid, box => {
                         box.fileName.setValue(name)
@@ -46,11 +45,11 @@ export class SampleService {
         })
     }
 
-    async deleteSelected() {return this.deleteSamples(...this.#samples())}
+    async deleteSelected() {return this.deleteSamples(...this.#selected())}
 
     async deleteSamples(...samples: ReadonlyArray<Sample>) {
         const dialog = RuntimeNotifier.progress({headline: "Checking Sample Usages"})
-        const used = await ProjectStorage.listUsedSamples()
+        const used = await ProjectStorage.listUsedAssets(AudioFileBox)
         const online = new Set<string>((await this.#service.sampleAPI.all()).map(({uuid}) => uuid))
         dialog.terminate()
         const approved = await Dialogs.approve({
@@ -70,7 +69,7 @@ export class SampleService {
         }
     }
 
-    #samples(): ReadonlyArray<Sample> {
+    #selected(): ReadonlyArray<Sample> {
         const selected = this.#selection.getSelected()
         return selected.map(element => JSON.parse(asDefined(element.getAttribute("data-selection"))) as Sample)
     }

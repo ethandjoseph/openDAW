@@ -100,8 +100,9 @@ export class ProjectApi {
         return this.#project.rootBoxAdapter.audioUnits.catchupAndSubscribe(listener)
     }
 
-    createInstrument({create, defaultIcon, defaultName, trackType}: InstrumentFactory,
-                     {name, icon, index}: InstrumentOptions = {}): InstrumentProduct {
+    createInstrument<T>({create, defaultIcon, defaultName, trackType}: InstrumentFactory<T>,
+                        options: InstrumentOptions<T> = {}): InstrumentProduct {
+        const {name, icon, index} = options
         const {boxGraph, rootBox, userEditingManager} = this.#project
         assert(rootBox.isAttached(), "rootBox not attached")
         const existingNames = rootBox.audioUnits.pointerHub.incoming().map(({box}) => {
@@ -111,7 +112,7 @@ export class ProjectApi {
         const audioUnitBox = this.#createAudioUnit(AudioUnitType.Instrument, this.#trackTypeToCapture(boxGraph, trackType), index)
         const uniqueName = Strings.getUniqueName(existingNames, name ?? defaultName)
         const iconSymbol = icon ?? defaultIcon
-        const instrumentBox = create(boxGraph, audioUnitBox.input, uniqueName, iconSymbol)
+        const instrumentBox = create(boxGraph, audioUnitBox.input, uniqueName, iconSymbol, options.attachment)
         const trackBox = TrackBox.create(boxGraph, UUID.generate(), box => {
             box.index.setValue(0)
             box.type.setValue(trackType)

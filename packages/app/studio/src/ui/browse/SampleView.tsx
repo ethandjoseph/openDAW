@@ -9,7 +9,7 @@ import {Button} from "../components/Button"
 import {SampleDialogs} from "@/ui/browse/SampleDialogs"
 import {ContextMenu} from "@/ui/ContextMenu"
 import {MenuItem} from "@/ui/model/menu-item"
-import {SampleService} from "@/ui/browse/SampleService"
+import {SampleSelection} from "@/ui/browse/SampleSelection"
 import {Html} from "@opendaw/lib-dom"
 import {Promises} from "@opendaw/lib-runtime"
 import {DragAndDrop} from "@/ui/DragAndDrop"
@@ -19,14 +19,14 @@ const className = Html.adoptStyleSheet(css, "Sample")
 
 type Construct = {
     lifecycle: Lifecycle
-    sampleService: SampleService
+    sampleSelection: SampleSelection
     sample: Sample
     playback: SamplePlayback
     location: AssetLocation
     refresh: Exec
 }
 
-export const SampleView = ({lifecycle, sampleService, sample, playback, location, refresh}: Construct) => {
+export const SampleView = ({lifecycle, sampleSelection, sample, playback, location, refresh}: Construct) => {
     const {name, duration, bpm} = sample
     const labelName: HTMLElement = <span>{name}</span>
     const labelBpm: HTMLElement = <span className="right">{bpm.toFixed(1)}</span>
@@ -48,7 +48,7 @@ export const SampleView = ({lifecycle, sampleService, sample, playback, location
         <Button lifecycle={lifecycle} appearance={{activeColor: "white"}}
                 onClick={async (event) => {
                     event.stopPropagation()
-                    await sampleService.deleteSamples(sample)
+                    await sampleSelection.deleteSamples(sample)
                     refresh()
                 }}>
             <Icon symbol={IconSymbol.Close}/>
@@ -79,10 +79,10 @@ export const SampleView = ({lifecycle, sampleService, sample, playback, location
         DragAndDrop.installSource(element, () => ({type: "sample", sample})),
         ContextMenu.subscribe(element, collector => collector.addItems(
             MenuItem.default({label: "Create Audio Track(s)"})
-                .setTriggerProcedure(() => sampleService.requestTapes()),
+                .setTriggerProcedure(() => sampleSelection.requestDevice()),
             MenuItem.default({label: "Delete Sample(s)", selectable: location === AssetLocation.Local})
                 .setTriggerProcedure(async () => {
-                    await sampleService.deleteSelected()
+                    await sampleSelection.deleteSelected()
                     refresh()
                 }))
         ),

@@ -105,4 +105,8 @@ export class SoundfontService {
         }
         return soundfont
     }
+
+    async deleteSoundfont(uuid: UUID.Bytes): Promise<void> {
+        return SoundfontStorage.get().deleteItem(uuid)
+    }
 }

@@ -32,8 +32,6 @@ export class SoundfontDeviceProcessor extends AudioProcessor implements Instrume
         this.#audioOutput = new AudioBuffer()
         this.#peakBroadcaster = this.own(new PeakBroadcaster(context.broadcaster, adapter.address))
 
-        // TODO force quick release voices, when changing preset
-
         this.ownAll(
             context.registerProcessor(this),
             adapter.box.file.catchupAndSubscribe((pointer) =>

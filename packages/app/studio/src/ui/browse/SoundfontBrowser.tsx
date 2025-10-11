@@ -1,22 +1,22 @@
-import css from "./SampleBrowser.sass?inline"
-import {clamp, DefaultObservableValue, Lifecycle, RuntimeSignal, StringComparator, Terminator} from "@opendaw/lib-std"
+import css from "./SoundfontBrowser.sass?inline"
+import {Arrays, DefaultObservableValue, Lifecycle, RuntimeSignal, StringComparator, Terminator} from "@opendaw/lib-std"
 import {Await, createElement, Frag, Hotspot, HotspotUpdater, Inject, replaceChildren} from "@opendaw/lib-jsx"
 import {Events, Html, Keyboard} from "@opendaw/lib-dom"
 import {Runtime} from "@opendaw/lib-runtime"
 import {IconSymbol} from "@opendaw/studio-adapters"
-import {ProjectSignals, SampleStorage} from "@opendaw/studio-core"
+import {OpenSoundfontAPI, ProjectSignals, SoundfontStorage} from "@opendaw/studio-core"
 import {StudioService} from "@/service/StudioService.ts"
 import {ThreeDots} from "@/ui/spinner/ThreeDots.tsx"
 import {Button} from "@/ui/components/Button.tsx"
 import {SearchInput} from "@/ui/components/SearchInput"
-import {SampleView} from "@/ui/browse/SampleView"
+import {SoundfontView} from "@/ui/browse/SoundfontView"
 import {RadioGroup} from "../components/RadioGroup"
 import {Icon} from "../components/Icon"
 import {AssetLocation} from "@/ui/browse/AssetLocation"
 import {HTMLSelection} from "@/ui/HTMLSelection"
-import {SampleSelection} from "@/ui/browse/SampleSelection"
+import {SoundfontSelection} from "@/ui/browse/SoundfontSelection"
 
-const className = Html.adoptStyleSheet(css, "Samples")
+const className = Html.adoptStyleSheet(css, "SoundfontBrowser")
 
 type Construct = {
     lifecycle: Lifecycle
@@ -25,16 +25,14 @@ type Construct = {
 
 const location = new DefaultObservableValue(AssetLocation.Cloud)
 
-export const SampleBrowser = ({lifecycle, service}: Construct) => {
+export const SoundfontBrowser = ({lifecycle, service}: Construct) => {
     const entries: HTMLElement = <div className="scrollable"/>
     const selection = lifecycle.own(new HTMLSelection(entries))
-    const sampleSelection = new SampleSelection(service, selection)
+    const soundfontSelection = new SoundfontSelection(service, selection)
     const entriesLifeSpan = lifecycle.own(new Terminator())
     const reload = Inject.ref<HotspotUpdater>()
     const filter = new DefaultObservableValue("")
     const searchInput = <SearchInput lifecycle={lifecycle} model={filter}/>
-    const slider: HTMLInputElement = <input type="range" min="0.0" max="1.0" step="0.001"/>
-    const linearVolume = service.samplePlayback.linearVolume
     const element: Element = (
         <div className={className} tabIndex={-1}>
             <div className="filter">
@@ -42,27 +40,28 @@ export const SampleBrowser = ({lifecycle, service}: Construct) => {
                     {
                         value: AssetLocation.Cloud,
                         element: <Icon symbol={IconSymbol.CloudFolder}/>,
-                        tooltip: "Online samples"
+                        tooltip: "Online soundfonts"
                     },
                     {
                         value: AssetLocation.Local,
                         element: <Icon symbol={IconSymbol.UserFolder}/>,
-                        tooltip: "Locally stored samples"
+                        tooltip: "Locally stored soundfonts"
                     }
                 ]} appearance={{framed: true, landscape: true}}/>
                 {searchInput}
             </div>
             <div className="content">
                 <Hotspot ref={reload} render={() => {
-                    service.samplePlayback.eject()
                     entriesLifeSpan.terminate()
                     return (
                         <Await factory={async () => {
                             switch (location.getValue()) {
                                 case AssetLocation.Local:
-                                    return SampleStorage.get().list()
+                                    const openDAW = await OpenSoundfontAPI.get().all()
+                                    const user = await SoundfontStorage.get().list()
+                                    return Arrays.subtract(user, openDAW, ({uuid: a}, {uuid: b}) => a == b)
                                 case AssetLocation.Cloud:
-                                    return service.sampleAPI.all()
+                                    return OpenSoundfontAPI.get().all()
                             }
                         }} loading={() => (
                             <div className="loading">
@@ -80,13 +79,12 @@ export const SampleBrowser = ({lifecycle, service}: Construct) => {
                                 replaceChildren(entries, result
                                     .filter(({name}) => name.toLowerCase().includes(filter.getValue().toLowerCase()))
                                     .toSorted((a, b) => StringComparator(a.name.toLowerCase(), b.name.toLowerCase()))
-                                    .map(sample => (
-                                        <SampleView lifecycle={entriesLifeSpan}
-                                                    sampleSelection={sampleSelection}
-                                                    playback={service.samplePlayback}
-                                                    sample={sample}
-                                                    location={location.getValue()}
-                                                    refresh={() => reload.get().update()}
+                                    .map(soundfont => (
+                                        <SoundfontView lifecycle={entriesLifeSpan}
+                                                       soundfontSelection={soundfontSelection}
+                                                       soundfont={soundfont}
+                                                       location={location.getValue()}
+                                                       refresh={() => reload.get().update()}
                                         />
                                     )))
                             }
@@ -96,13 +94,11 @@ export const SampleBrowser = ({lifecycle, service}: Construct) => {
                                     location.setValue(AssetLocation.Local)
                                     reload.get().update()
                                 }, 500)
-                            }, "import-sample"))
+                            }, "import-soundfont"))
                             return (
                                 <Frag>
                                     <header>
                                         <span>Name</span>
-                                        <span className="right">bpm</span>
-                                        <span className="right">sec</span>
                                     </header>
                                     {entries}
                                 </Frag>
@@ -112,21 +108,14 @@ export const SampleBrowser = ({lifecycle, service}: Construct) => {
                 }}>
                 </Hotspot>
             </div>
-            <div className="footer">
-                <label>Volume</label> {slider}
-            </div>
         </div>
     )
     lifecycle.ownAll(
         location.subscribe(() => reload.get().update()),
         RuntimeSignal.subscribe(signal => signal === ProjectSignals.StorageUpdated && reload.get().update()),
-        {terminate: () => service.samplePlayback.eject()},
-        Events.subscribe(slider, "input",
-            () => linearVolume.setValue(clamp(slider.valueAsNumber, 0.0, 1.0))),
-        linearVolume.catchupAndSubscribe(owner => slider.valueAsNumber = owner.getValue()),
         Events.subscribe(element, "keydown", async event => {
             if (Keyboard.GlobalShortcut.isDelete(event) && location.getValue() === AssetLocation.Local) {
-                await sampleSelection.deleteSelected()
+                // TODO await soundfontService.deleteSoundfont()
                 reload.get().update()
             }
         })
