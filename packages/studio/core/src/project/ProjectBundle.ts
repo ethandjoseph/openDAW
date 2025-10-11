@@ -1,13 +1,14 @@
 import {asDefined, Exec, isDefined, MutableObservableValue, Option, panic, unitValue, UUID} from "@opendaw/lib-std"
-import {AudioFileBox} from "@opendaw/studio-boxes"
-import {SampleLoader} from "@opendaw/studio-adapters"
+import {AudioFileBox, SoundfontFileBox} from "@opendaw/studio-boxes"
+import {SampleLoader, SoundfontLoader} from "@opendaw/studio-adapters"
 import {Project} from "./Project"
 import {ProjectEnv} from "./ProjectEnv"
 import {ProjectPaths} from "./ProjectPaths"
 import {ProjectProfile} from "./ProjectProfile"
 import {Workers} from "../Workers"
-import {DefaultSampleLoader, SampleStorage} from "../samples"
+import {SampleStorage} from "../samples"
 import type JSZip from "jszip"
+import {SoundfontStorage} from "../soundfont"
 
 export namespace ProjectBundle {
     export const encode = async ({uuid, project, meta, cover}: ProjectProfile,
@@ -20,14 +21,27 @@ export namespace ProjectBundle {
         zip.file(ProjectPaths.ProjectMetaFile, JSON.stringify(meta, null, 2))
         cover.ifSome(buffer => zip.file(ProjectPaths.ProjectCoverFile, buffer, {binary: true}))
         const samples = asDefined(zip.folder("samples"), "Could not create folder samples")
-        const boxes = project.boxGraph.boxes().filter(box => box instanceof AudioFileBox)
-        let boxIndex = 0
-        const blob = await Promise.all(boxes
-            .map(async ({address: {uuid}}) => {
-                const handler: SampleLoader = project.sampleManager.getOrCreate(uuid) as DefaultSampleLoader
-                const folder = asDefined(samples.folder(UUID.toString(uuid)), "Could not create folder for sample")
-                return pipeSampleLoaderInto(handler, folder).then(() => progress.setValue(++boxIndex / boxes.length * 0.75))
-            })).then(() => zip.generateAsync({
+        const soundfonts = asDefined(zip.folder("soundfonts"), "Could not create folder soundfonts")
+        const audioFileBoxes = project.boxGraph.boxes().filter(box => box instanceof AudioFileBox)
+        const soundfontFileBoxes = project.boxGraph.boxes().filter(box => box instanceof SoundfontFileBox)
+        const blob = await Promise.all([
+            ...audioFileBoxes
+                .map(async ({address: {uuid}}, index) => {
+                    const loader: SampleLoader = project.sampleManager.getOrCreate(uuid)
+                    const folder = asDefined(samples.folder(UUID.toString(uuid)),
+                        "Could not create folder for sample")
+                    return pipeSampleLoaderInto(loader, folder)
+                        .then(() => progress.setValue(index / audioFileBoxes.length * 0.75))
+                }),
+            ...soundfontFileBoxes
+                .map(async ({address: {uuid}}, index) => {
+                    const loader: SoundfontLoader = project.soundfontManager.getOrCreate(uuid)
+                    const folder = asDefined(soundfonts.folder(UUID.toString(uuid)),
+                        "Could not create folder for soundfont")
+                    return pipeSoundfontLoaderInto(loader, folder)
+                        .then(() => progress.setValue(index / soundfontFileBoxes.length * 0.75))
+                })
+        ]).then(() => zip.generateAsync({
             type: "blob",
             compression: "DEFLATE",
             compressionOptions: {level: 6}
@@ -50,14 +64,25 @@ export namespace ProjectBundle {
             return panic("Project is already open")
         }
         console.debug("loading samples...")
-        const samples = asDefined(zip.folder("samples"), "Could not find samples")
         const promises: Array<Promise<void>> = []
-        samples.forEach((path, file) => {
-            if (file.dir) {return}
-            promises.push(file.async("arraybuffer")
-                .then(arrayBuffer => Workers.Opfs
-                    .write(`${SampleStorage.Folder}/${path}`, new Uint8Array(arrayBuffer))))
-        })
+        const samples = zip.folder("samples")
+        if (isDefined(samples)) {
+            samples.forEach((path, file) => {
+                if (file.dir) {return}
+                promises.push(file.async("arraybuffer")
+                    .then(arrayBuffer => Workers.Opfs
+                        .write(`${SampleStorage.Folder}/${path}`, new Uint8Array(arrayBuffer))))
+            })
+        }
+        const soundfonts = zip.folder("soundfonts")
+        if (isDefined(soundfonts)) {
+            soundfonts.forEach((path, file) => {
+                if (file.dir) {return}
+                promises.push(file.async("arraybuffer")
+                    .then(arrayBuffer => Workers.Opfs
+                        .write(`${SoundfontStorage.Folder}/${path}`, new Uint8Array(arrayBuffer))))
+            })
+        }
         await Promise.all(promises)
         const project = Project.load(env, await asDefined(zip.file(ProjectPaths.ProjectFile)).async("arraybuffer"))
         const meta = JSON.parse(await asDefined(zip.file(ProjectPaths.ProjectMetaFile)).async("text"))
@@ -71,6 +96,29 @@ export namespace ProjectBundle {
             const path = `${SampleStorage.Folder}/${UUID.toString(loader.uuid)}`
             zip.file("audio.wav", await Workers.Opfs.read(`${path}/audio.wav`), {binary: true})
             zip.file("peaks.bin", await Workers.Opfs.read(`${path}/peaks.bin`), {binary: true})
+            zip.file("meta.json", await Workers.Opfs.read(`${path}/meta.json`))
+        }
+        if (loader.state.type === "loaded") {
+            return exec()
+        } else {
+            return new Promise<void>((resolve, reject) => {
+                const subscription = loader.subscribe(state => {
+                    if (state.type === "loaded") {
+                        resolve()
+                        subscription.terminate()
+                    } else if (state.type === "error") {
+                        reject(state.reason)
+                        subscription.terminate()
+                    }
+                })
+            }).then(() => exec())
+        }
+    }
+
+    const pipeSoundfontLoaderInto = async (loader: SoundfontLoader, zip: JSZip): Promise<void> => {
+        const exec: Exec = async () => {
+            const path = `${SoundfontStorage.Folder}/${UUID.toString(loader.uuid)}`
+            zip.file("soundfont.sf2", await Workers.Opfs.read(`${path}/soundfont.sf2`), {binary: true})
             zip.file("meta.json", await Workers.Opfs.read(`${path}/meta.json`))
         }
         if (loader.state.type === "loaded") {
