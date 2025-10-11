@@ -1,6 +1,6 @@
 import css from "./DevicesBrowser.sass?inline"
-import {Arrays, isInstanceOf, Lifecycle, Objects, panic} from "@opendaw/lib-std"
-import {Browser, Html} from "@opendaw/lib-dom"
+import {isInstanceOf, Lifecycle, Objects, panic} from "@opendaw/lib-std"
+import {Html} from "@opendaw/lib-dom"
 import {createElement} from "@opendaw/lib-jsx"
 import {StudioService} from "@/service/StudioService.ts"
 import {DragAndDrop} from "@/ui/DragAndDrop"
@@ -57,38 +57,32 @@ export const DevicesBrowser = ({lifecycle, service}: Construct) => {
     )
 }
 
-const createInstrumentList = (lifecycle: Lifecycle, project: Project) => {
-    const instrumentEntries = Object.entries(InstrumentFactories.Named)
-    if (!Browser.isLocalHost()) {
-        Arrays.removeIf(instrumentEntries, ([key]) => key === "Soundfont")
-    }
-    return (
-        <ul>{
-            instrumentEntries.map(([key, factory]) => {
-                const element = (
-                    <li onclick={() => project.editing.modify(() => project.api.createInstrument(factory))}>
-                        <div className="icon">
-                            <Icon symbol={factory.defaultIcon}/>
-                        </div>
-                        {factory.defaultName}
-                    </li>
-                )
-                lifecycle.ownAll(
-                    DragAndDrop.installSource(element, () => ({
-                        type: "instrument",
-                        device: key as InstrumentFactories.Keys,
-                        copy: true
-                    } satisfies DragDevice)),
-                    TextTooltip.simple(element, () => {
-                        const {bottom, left} = element.getBoundingClientRect()
-                        return {clientX: left, clientY: bottom + 12, text: factory.description}
-                    })
-                )
-                return element
-            })
-        }</ul>
-    )
-}
+const createInstrumentList = (lifecycle: Lifecycle, project: Project) => (
+    <ul>{
+        Object.entries(InstrumentFactories.Named).map(([key, factory]) => {
+            const element = (
+                <li onclick={() => project.editing.modify(() => project.api.createInstrument(factory))}>
+                    <div className="icon">
+                        <Icon symbol={factory.defaultIcon}/>
+                    </div>
+                    {factory.defaultName}
+                </li>
+            )
+            lifecycle.ownAll(
+                DragAndDrop.installSource(element, () => ({
+                    type: "instrument",
+                    device: key as InstrumentFactories.Keys,
+                    copy: true
+                } satisfies DragDevice)),
+                TextTooltip.simple(element, () => {
+                    const {bottom, left} = element.getBoundingClientRect()
+                    return {clientX: left, clientY: bottom + 12, text: factory.description}
+                })
+            )
+            return element
+        })
+    }</ul>
+)
 
 const createEffectList = <
     R extends Record<string, EffectFactory>,
