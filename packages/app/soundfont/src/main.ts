@@ -20,7 +20,7 @@ import {Soundfont} from "@opendaw/studio-adapters"
     await Workers.install(WorkersUrl)
     AudioWorklets.install(WorkletsUrl)
 
-    await fetch("soundfonts/CTK-230_SoundFont.sf2")
+    await fetch("soundfonts/SpanishClassicalGuitar-20190618.sf2")
         .then(x => x.arrayBuffer())
         .then(async x => {
             const uuid = await UUID.sha256(x)
@@ -30,8 +30,8 @@ import {Soundfont} from "@opendaw/studio-adapters"
             const result: Soundfont = {
                 uuid: uuidAsString,
                 name: sf.metaData.name,
-                license: "Creative Commons BY 4.0 International",
-                url: "https://musical-artifacts.com/artifacts/583",
+                license: "CC0 1.0 Universal",
+                url: "https://freepats.zenvoid.org/Guitar/acoustic-guitar.html",
                 origin: "openDAW"
             }
             sf.presets.map(preset => preset.header.name).forEach(name => console.debug(name))

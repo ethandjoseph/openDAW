@@ -1,35 +1,31 @@
-import {asDefined, Lazy, Procedure, unitValue, UUID} from "@opendaw/lib-std"
+import {asDefined, Lazy, Procedure, RuntimeNotifier, unitValue, UUID} from "@opendaw/lib-std"
 import {Soundfont, SoundfontMetaData} from "@opendaw/studio-adapters"
 import {OpenDAWHeaders} from "../OpenDAWHeaders"
+import {Promises} from "@opendaw/lib-runtime"
 
 export class OpenSoundfontAPI {
-    static readonly ApiRoot = "https://api.opendaw.studio/soundfont" // TODO Not yet available
+    static readonly ApiRoot = "https://api.opendaw.studio/soundfonts"
     static readonly FileRoot = "https://assets.opendaw.studio/soundfonts"
 
     @Lazy
     static get(): OpenSoundfontAPI {return new OpenSoundfontAPI()}
 
-    static API: ReadonlyArray<Soundfont> = [{
-        uuid: "d9f51577-2096-4671-9067-27ca2e12b329",
-        name: "Upright Piano KW",
-        license: "CC0 1.0 Universal",
-        url: "https://freepats.zenvoid.org/Piano/acoustic-grand-piano.html",
-        origin: "openDAW"
-    }, {
-        uuid: "bf50f600-620f-4735-adbb-2e5f52c17f08",
-        name: "Casio CTK-230",
-        license: "Creative Commons BY 4.0 International",
-        url: "https://musical-artifacts.com/artifacts/583",
-        origin: "openDAW"
-    }]
+    readonly #memoized: () => Promise<ReadonlyArray<Soundfont>> = Promises.memoizeAsync(() => Promises.retry(() =>
+        fetch(`${OpenSoundfontAPI.ApiRoot}/list.json`, OpenDAWHeaders)
+            .then(x => x.json())
+            .catch(reason => RuntimeNotifier.info({
+                headline: "OpenSoundfont API",
+                message: `Could not connect to OpenSoundfont API\nReason: '${reason}'`
+            }).then(() => []))))
 
     private constructor() {}
 
-    async all(): Promise<ReadonlyArray<Soundfont>> {return OpenSoundfontAPI.API}
+    async all(): Promise<ReadonlyArray<Soundfont>> {return this.#memoized()}
 
     async get(uuid: UUID.Bytes): Promise<Soundfont> {
         const uuidAsString = UUID.toString(uuid)
-        return asDefined(OpenSoundfontAPI.API.find(({uuid}) => uuid === uuidAsString), "Could not find Soundfont")
+        return this.all().then(list => asDefined(list
+            .find(({uuid}) => uuid === uuidAsString), "Could not find Soundfont"))
     }
 
     async load(uuid: UUID.Bytes, progress: Procedure<unitValue>): Promise<[ArrayBuffer, SoundfontMetaData]> {
@@ -58,6 +54,4 @@ export class OpenSoundfontAPI {
                 .then(buffer => [buffer, soundfont])
         })
     }
-
-    allowsUpload(): boolean {return false}
 }

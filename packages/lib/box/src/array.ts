@@ -44,10 +44,7 @@ export class ArrayField<FIELD extends Field = Field>
 
     fields(): ReadonlyArray<FIELD> {return this.#fields}
     record(): Readonly<Record<string, Field>> {
-        return this.#fields.reduce((record, field) => {
-            record[String(field.fieldKey)] = field
-            return record
-        }, {} as Record<string, Field>)
+        return Arrays.toRecord(this.#fields, field => String(field.fieldKey))
     }
 
     getField(key: keyof Record<int, FIELD>): Record<int, FIELD>[keyof Record<int, FIELD>] {

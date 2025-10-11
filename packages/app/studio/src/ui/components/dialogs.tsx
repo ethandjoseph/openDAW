@@ -73,8 +73,13 @@ export namespace Dialogs {
         }, {once: true})
         return promise
     }
+
+    // Never rejects
     export const info = async ({headline, message, okText, buttons, origin, abortSignal}: Info): Promise<void> =>
-        show({headline, content: (<p>{message}</p>), okText, buttons, origin, abortSignal}).catch(EmptyExec)
+        show({
+            headline, content: (<p style={{whiteSpace: "pre-line"}}>{message}</p>),
+            okText, buttons, origin, abortSignal
+        }).catch(EmptyExec)
 
     export type ApproveCreation = {
         headline?: string
