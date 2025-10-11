@@ -64,8 +64,8 @@ export const SoundfontDeviceEditor = ({lifecycle, service, adapter, deviceHost}:
             const targetVertex = adapter.box.file.targetVertex.unwrapOrNull()
             const fileBox = boxGraph.findBox<SoundfontFileBox>(uuid).unwrapOrElse(() =>
                 SoundfontFileBox.create(boxGraph, uuid, box => box.fileName.setValue(soundfont.name)))
-            adapter.box.file.refer(fileBox)
             adapter.box.presetIndex.setValue(0)
+            adapter.box.file.refer(fileBox)
             if (targetVertex?.box.isValid() === false) {
                 targetVertex.box.delete()
             }

@@ -102,7 +102,10 @@ export class SoundfontDeviceBoxAdapter implements InstrumentDeviceBoxAdapter {
                     }
                 })
             },
-            some: soundfont => this.#soundfont.wrap(soundfont)
+            some: soundfont => {
+                this.#soundfont.wrap(soundfont)
+                this.#preset.wrap(soundfont.presets[this.presetIndex] ?? soundfont.presets[0])
+            }
         })
     })
 }
