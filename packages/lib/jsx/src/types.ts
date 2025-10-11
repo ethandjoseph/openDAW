@@ -25,12 +25,14 @@ type ExtractProperties<T extends Element> = Partial<{
                                     string) | Inject.Attribute
 }> & {
     ref?: Inject.Ref<T>
-    onLoad?: Procedure<T>
+    onInit?: Procedure<T> // runs immediately after the element is created
+    onConnect?: Procedure<T> // runs immediately after the element is connected to the DOM (caution, it waits forever!)
 } & Record<string, unknown>
 
 declare global {
     namespace JSX {
         // @ts-ignore
+        // noinspection JSUnusedGlobalSymbols
         type IntrinsicElements =
             & { [K in keyof Omit<SVGElementTagNameMap, "a">]: ExtractProperties<Omit<SVGElementTagNameMap, "a">[K]> }
             & { [K in keyof Omit<HTMLElementTagNameMap, "a">]: ExtractProperties<Omit<HTMLElementTagNameMap, "a">[K]> }

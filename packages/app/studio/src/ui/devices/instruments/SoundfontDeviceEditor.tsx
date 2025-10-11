@@ -132,13 +132,12 @@ export const SoundfontDeviceEditor = ({lifecycle, service, adapter, deviceHost}:
                               <FlexSpacer pixels={4}/>
                               <header>
                                   <Icon symbol={IconSymbol.Piano}/>
-                                  <h1 onLoad={element => {
-                                      lifecycle.own(adapter.soundfont.catchupAndSubscribe(optSoundfont =>
+                                  <h1 onInit={element => lifecycle.own(adapter.soundfont
+                                      .catchupAndSubscribe(optSoundfont =>
                                           element.dataset["count"] = optSoundfont.match({
                                               none: () => "",
                                               some: soundfont => `(${soundfont.presets.length})`
-                                          })))
-                                  }}>Preset</h1>
+                                          })))}>Preset</h1>
                               </header>
                               <div className="label">
                                   <MenuButton

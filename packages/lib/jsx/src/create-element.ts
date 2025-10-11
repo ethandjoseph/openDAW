@@ -1,4 +1,4 @@
-import {canWrite, isDefined, panic, safeWrite} from "@opendaw/lib-std"
+import {canWrite, isDefined, panic, Procedure, safeWrite} from "@opendaw/lib-std"
 import {Html} from "@opendaw/lib-dom"
 import {SupportedSvgTags} from "./supported-svg-tags"
 import {Inject} from "./inject"
@@ -109,9 +109,22 @@ const transferAttributes = (element: DomElement, attributes: Readonly<Record<str
             } else {
                 return panic("value of 'ref' must be of type '_Ref'")
             }
-        } else if (key === "onLoad") {
+        } else if (key === "onInit") {
             if (value instanceof Function && value.length === 1) {
                 value(element)
+            } else {
+                return panic("value of 'onLoad' must be a Function with a single argument")
+            }
+        } else if (key === "onConnect") {
+            if (value instanceof Function && value.length === 1) {
+                const check = () => {
+                    if (element.isConnected) {
+                        (value as Procedure<DomElement>)(element)
+                    } else {
+                        requestAnimationFrame(check)
+                    }
+                }
+                requestAnimationFrame(check)
             } else {
                 return panic("value of 'onLoad' must be a Function with a single argument")
             }

@@ -54,7 +54,7 @@ export const SoundfontView = ({
         ContextMenu.subscribe(element, collector => collector.addItems(
             MenuItem.default({label: "Create Soundfont Device"})
                 .setTriggerProcedure(() => soundfontSelection.requestDevice()),
-            MenuItem.default({label: "Delete Sample(s)", selectable: location === AssetLocation.Local})
+            MenuItem.default({label: "Delete Soundfont(s)", selectable: location === AssetLocation.Local})
                 .setTriggerProcedure(async () => {
                     await soundfontSelection.deleteSelected()
                     refresh()
