@@ -142,13 +142,14 @@ evolves.
 
 ### Prepare, Clone, Installation, and Run
 
-openDAW tries to avoid external libraries and frameworks. Following is a list of the external libraries we currently use
-in the web studio:
+openDAW tries to avoid external libraries and frameworks. The following is a list of the external libraries we currently
+use in the web studio:
 
 * [jszip](https://www.npmjs.com/package/jszip) (for openDAW project bundle file)
 * [markdown-it](https://www.npmjs.com/package/markdown-it) + [markdown-it-table](https://www.npmjs.com/package/markdown-it-table) (
   for help pages)
 * [d3-force](https://d3js.org/d3-force) (for graph debugging)
+* [soundfont2](https://github.com/Mrtenz/soundfont2) (for soundfont loading)
 
 Before starting, ensure you have the following installed on your system:
 
@@ -221,15 +222,16 @@ participate, visit our [Contribute](https://opendaw.org/contribute) page.
 
 openDAW is available **under two alternative license terms**:
 
-| Option                      | When to choose it                                                                                                  | Obligations                                                                                                                                                                                             |
-|-----------------------------|----------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **A. AGPL v3 (or later)**   | You are happy for the entire work that includes openDAW to be released under AGPL-compatible open-source terms.      | – Must distribute complete corresponding source code under AGPL.<br>– Must keep copyright & licence notices.<br>– Applies both to distribution **and** to public use via network/SaaS (§13).<br>– May run openDAW privately in any software, open or closed (§0). |
-| **B. Commercial Licence**   | You wish to incorporate openDAW into **closed-source** or otherwise licence-incompatible software or SaaS offerings. | – Pay the agreed fee.<br>– No copyleft requirement for your own source code.<br>– Other terms as per the signed agreement.                                                                                |
+| Option                    | When to choose it                                                                                                    | Obligations                                                                                                                                                                                                                                                       |
+|---------------------------|----------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **A. AGPL v3 (or later)** | You are happy for the entire work that includes openDAW to be released under AGPL-compatible open-source terms.      | – Must distribute complete corresponding source code under AGPL.<br>– Must keep copyright & licence notices.<br>– Applies both to distribution **and** to public use via network/SaaS (§13).<br>– May run openDAW privately in any software, open or closed (§0). |
+| **B. Commercial Licence** | You wish to incorporate openDAW into **closed-source** or otherwise licence-incompatible software or SaaS offerings. | – Pay the agreed fee.<br>– No copyleft requirement for your own source code.<br>– Other terms as per the signed agreement.                                                                                                                                        |
 
 > **How to obtain the Commercial License**  
 > Email `andre.michelle@opendaw.org` with your company name, product description, and expected distribution volume.
 
-If you redistribute or run modified versions of openDAW for public use **without** a commercial license, the AGPL v3 terms apply automatically.
+If you redistribute or run modified versions of openDAW for public use **without** a commercial license, the AGPL v3
+terms apply automatically.
 
 ## License
 
