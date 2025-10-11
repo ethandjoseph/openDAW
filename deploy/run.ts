@@ -55,12 +55,54 @@ async function uploadDirectory(localDir: string, remoteDir: string) {
     }
 }
 
+async function uploadDirectoryExcluding(localDir: string, remoteDir: string, excludeFiles: string[]) {
+    for (const file of fs.readdirSync(localDir)) {
+        if (excludeFiles.includes(file)) {
+            console.log(`skipping ${file}`)
+            continue
+        }
+        const localPath = path.join(localDir, file)
+        const remotePath = path.posix.join(remoteDir, file)
+        if (fs.lstatSync(localPath).isDirectory()) {
+            await sftp.mkdir(remotePath, true).catch(() => {/* exists */})
+            await uploadDirectoryExcluding(localPath, remotePath, excludeFiles)
+        } else {
+            console.log(`upload ${remotePath}`)
+            await sftp.put(localPath, remotePath)
+        }
+    }
+}
+
 // --------------------- main -------------------------------------------------
 (async () => {
     console.log(`⏩ upload…`)
     await sftp.connect(config)
+    
+    // Step 1: Replace index.html with update.html to show maintenance page
+    console.log("🔄 Switching to maintenance mode...")
+    const updateHtmlPath = "./packages/app/studio/public/update.html"
+    if (fs.existsSync(updateHtmlPath)) {
+        await sftp.put(updateHtmlPath, "/index.html")
+        console.log("✅ Maintenance page is now active")
+    } else {
+        console.warn("⚠️  update.html not found, skipping maintenance mode")
+    }
+    
+    // Step 2: Upload all new files except index.html
+    console.log("📦 Uploading new files (excluding index.html)...")
     await deleteDirectory("/")
-    await uploadDirectory("./packages/app/studio/dist", "/")
+    await uploadDirectoryExcluding("./packages/app/studio/dist", "/", ["index.html"])
+    
+    // Step 3: Replace update.html with new index.html to complete deployment
+    console.log("🎯 Activating new version...")
+    const newIndexPath = "./packages/app/studio/dist/index.html"
+    if (fs.existsSync(newIndexPath)) {
+        await sftp.put(newIndexPath, "/index.html")
+        console.log("✅ New version is now live!")
+    } else {
+        console.error("❌ New index.html not found!")
+    }
+    
     await sftp.end()
     const webhookUrl = process.env.DISCORD_WEBHOOK
     if (webhookUrl) {
