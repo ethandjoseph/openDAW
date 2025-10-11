@@ -44,7 +44,7 @@ export class OpenSoundfontAPI {
                             } else {
                                 chunks.push(value)
                                 loaded += value.length
-                                progress(loaded / total)
+                                progress(Math.min(1.0, loaded / total))
                                 reader.read().then(nextChunk, reject)
                             }
                         }
