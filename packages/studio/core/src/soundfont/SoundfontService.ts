@@ -5,6 +5,7 @@ import {SoundfontStorage} from "./SoundfontStorage"
 import {FilePickerAcceptTypes} from "../FilePickerAcceptTypes"
 import {OpenSoundfontAPI} from "./OpenSoundfontAPI"
 import {AssetService} from "../AssetService"
+import {Wait} from "@opendaw/lib-runtime"
 
 export class SoundfontService extends AssetService<Soundfont> {
     protected readonly namePlural: string = "Soundfonts"
@@ -44,11 +45,15 @@ export class SoundfontService extends AssetService<Soundfont> {
                 cancelText: "Cancel"
             })
         }
+        const updater = RuntimeNotifier.progress({headline: `Import ${this.nameSingular}`})
+        await Wait.frame()
         console.debug(`importSoundfont (${arrayBuffer.byteLength >> 10}kb)`)
         console.time("UUID.sha256")
         uuid ??= await UUID.sha256(arrayBuffer)
         console.timeEnd("UUID.sha256")
+        console.time("SoundFont2")
         const soundFont2 = new SoundFont2(new Uint8Array(arrayBuffer))
+        console.timeEnd("SoundFont2")
         const meta: SoundfontMetaData = {
             name: soundFont2.metaData.name,
             url: "unknown",
@@ -62,6 +67,7 @@ export class SoundfontService extends AssetService<Soundfont> {
             list.push(soundfont)
         }
         this.onUpdate(soundfont)
+        updater.terminate()
         return soundfont
     }
 }
