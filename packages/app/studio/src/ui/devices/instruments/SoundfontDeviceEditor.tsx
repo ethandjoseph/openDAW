@@ -119,7 +119,7 @@ export const SoundfontDeviceEditor = ({lifecycle, service, adapter, deviceHost}:
                                                   .addMenuItem(...populateMenu(service.soundfontService.local))),
                                               MenuItem.default({label: "Import Soundfont...", separatorBefore: true})
                                                   .setTriggerProcedure(async () => {
-                                                      const soundfonts = await service.soundfontService.browseForSoundfont()
+                                                      const soundfonts = await service.soundfontService.browse(false)
                                                       if (soundfonts.length > 0) {
                                                           applySoundfont(soundfonts[0])
                                                       }

@@ -100,7 +100,6 @@ export class StudioService implements ProjectEnv {
         primaryVisible: new DefaultObservableValue(true)
     } as const
     readonly menu = populateStudioMenu(this)
-    readonly #projectProfileService: ProjectProfileService
     readonly panelLayout = new PanelContents(createPanelFactory(this))
     readonly spotlightDataSupplier = new SpotlightDataSupplier()
     readonly samplePlayback: SamplePlayback
@@ -108,9 +107,10 @@ export class StudioService implements ProjectEnv {
     readonly _shortcuts = new Shortcuts(this) // TODO reference will be used later in a key-mapping configurator
     readonly recovery = new Recovery(this)
     readonly engine = new EngineFacade()
+
     readonly #softwareKeyboardLifeCycle = new Terminator()
     readonly #signals = new Notifier<StudioSignal>()
-
+    readonly #projectProfileService: ProjectProfileService
     readonly #sampleService: SampleService
     readonly #soundfontService: SoundfontService
     readonly #dawProjectService: DawProjectService

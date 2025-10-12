@@ -32,7 +32,7 @@ export class DawProjectService {
         const {skeleton, audioIds} = importResult.value
         await Promise.all(audioIds
             .map(uuid => resources.fromUUID(uuid))
-            .map(resource => this.sampleService.importSample({
+            .map(resource => this.sampleService.importFile({
                 uuid: resource.uuid,
                 name: resource.name,
                 arrayBuffer: resource.buffer

@@ -92,7 +92,7 @@ export class SampleSelector {
         const {status, value: sample} = await Promises.tryCatch(
             Files.open(FilePickerAcceptTypes.WavFiles)
                 .then(([file]) => file.arrayBuffer()
-                    .then(arrayBuffer => this.#service.sampleService.importSample({name: file.name, arrayBuffer}))))
+                    .then(arrayBuffer => this.#service.sampleService.importFile({name: file.name, arrayBuffer}))))
         if (status === "resolved") {
             this.newSample(sample)
         }
@@ -117,7 +117,7 @@ export class SampleSelector {
                     sample = data.sample
                 } else if (data.type === "file") {
                     if (!isDefined(data.file)) {return}
-                    const {status, value, error} = await Promises.tryCatch(this.#service.sampleService.importSample({
+                    const {status, value, error} = await Promises.tryCatch(this.#service.sampleService.importFile({
                         name: data.file.name,
                         arrayBuffer: await data.file.arrayBuffer()
                     }))

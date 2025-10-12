@@ -57,7 +57,7 @@ export abstract class TimelineDragAndDrop<T extends (ClipCaptureTarget | RegionC
             const file = data.file
             if (!isDefined(file)) {return}
             const {status, value, error} = await Promises.tryCatch(file.arrayBuffer()
-                .then(arrayBuffer => this.#service.sampleService.importSample({name: file.name, arrayBuffer})))
+                .then(arrayBuffer => this.#service.sampleService.importFile({name: file.name, arrayBuffer})))
             if (status === "rejected") {
                 console.warn(error)
                 return

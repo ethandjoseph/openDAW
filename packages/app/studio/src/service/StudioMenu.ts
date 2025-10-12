@@ -35,7 +35,9 @@ export const populateStudioMenu = (service: StudioService) => {
                     MenuItem.default({label: "Import", separatorBefore: true})
                         .setRuntimeChildrenProcedure(parent => parent.addMenuItem(
                             MenuItem.default({label: "Audio Files..."})
-                                .setTriggerProcedure(() => service.sampleService.browseForSamples(true)),
+                                .setTriggerProcedure(() => service.sampleService.browse(true)),
+                            MenuItem.default({label: "Soundfont Files..."})
+                                .setTriggerProcedure(() => service.soundfontService.browse(true)),
                             MenuItem.default({label: "Project Bundle..."})
                                 .setTriggerProcedure(() => service.importBundle()),
                             MenuItem.default({

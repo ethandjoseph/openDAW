@@ -45,7 +45,7 @@ export namespace SampleDialogs {
                                     status,
                                     value: sample
                                 } = await Promises.tryCatch(
-                                    sampleService.importSample({
+                                    sampleService.importFile({
                                         uuid,
                                         name: file.name,
                                         arrayBuffer: await file.arrayBuffer()
