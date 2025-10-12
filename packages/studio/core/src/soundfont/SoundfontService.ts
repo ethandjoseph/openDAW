@@ -1,4 +1,4 @@
-import {Arrays, Option, panic, Procedure, RuntimeNotifier, UUID} from "@opendaw/lib-std"
+import {Arrays, Option, panic, Procedure, RuntimeNotifier, tryCatch, UUID} from "@opendaw/lib-std"
 import {Soundfont, SoundfontMetaData} from "@opendaw/studio-adapters"
 import {SoundFont2} from "soundfont2"
 import {SoundfontStorage} from "./SoundfontStorage"
@@ -52,8 +52,12 @@ export class SoundfontService extends AssetService<Soundfont> {
         uuid ??= await UUID.sha256(arrayBuffer)
         console.timeEnd("UUID.sha256")
         console.time("SoundFont2")
-        const soundFont2 = new SoundFont2(new Uint8Array(arrayBuffer))
+        const {status, value: soundFont2, error} = tryCatch(() => new SoundFont2(new Uint8Array(arrayBuffer)))
         console.timeEnd("SoundFont2")
+        if (status === "failure") {
+            updater.terminate()
+            return panic(error)
+        }
         const meta: SoundfontMetaData = {
             name: soundFont2.metaData.name,
             url: "unknown",
