@@ -1,5 +1,14 @@
 import css from "./TimeCodeInput.sass?inline"
-import {checkIndex, int, isDefined, isInstanceOf, Lifecycle, MutableObservableValue} from "@opendaw/lib-std"
+import {
+    checkIndex,
+    int,
+    isDefined,
+    isInstanceOf,
+    Lifecycle,
+    MutableObservableValue,
+    safeRead,
+    tryCatch
+} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {ppqn, PPQN} from "@opendaw/lib-dsp"
 import {Events, Html} from "@opendaw/lib-dom"
@@ -64,10 +73,11 @@ export const TimeCodeInput = ({lifecycle, model, className, negativeWarning, sig
         Events.subscribe(element, "paste", (event: ClipboardEvent) => {
             const data = event.clipboardData?.getData("application/json")
             if (isDefined(data)) {
-                const json = JSON.parse(data)
-                if (json.app === "openDAW" && json.content === "timecode") {
+                const {status, value: json} = tryCatch(() => JSON.parse(data))
+                if (status === "failure") {return}
+                if (safeRead(json, "app") === "openDAW" && safeRead(json, "content") === "timecode") {
                     event.preventDefault()
-                    model.setValue(json.value)
+                    model.setValue(json.value ?? 0)
                 }
             }
         }),
@@ -94,8 +104,8 @@ export const TimeCodeInput = ({lifecycle, model, className, negativeWarning, sig
                     const unit = parseInt(target.textContent ?? "") | 0
                     const prevValue = model.getValue()
                     const {bars, beats, semiquavers, ticks} = PPQN.toParts(prevValue, upper, lower)
-                    const nextValue: int = 0
-                        + units[0].amount * (index === 0 ? prevValue >= 0 ? unit - unitOffset : unit : bars)
+                    const nextValue: int =
+                        units[0].amount * (index === 0 ? prevValue >= 0 ? unit - unitOffset : unit : bars)
                         + units[1].amount * (index === 1 ? unit - unitOffset : beats)
                         + units[2].amount * (index === 2 ? unit - unitOffset : semiquavers)
                         + units[3].amount * (index === 3 ? unit : ticks)

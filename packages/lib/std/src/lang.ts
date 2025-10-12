@@ -131,12 +131,24 @@ export const requireProperty = <T extends {}>(object: T, key: keyof T): void => 
     console.debug(`%c${feature}%c available`, "color: hsl(200, 83%, 60%)", "color: inherit")
     if (!(key in object)) {throw feature}
 }
-export const tryCatch = <T>(statement: Provider<T>)
-    : { status: "success", error: null, value: T } | { status: "failure", error: unknown, value: null } => {
+
+export class SuccessResult<T> {
+    readonly status = "success"
+    constructor(readonly value: T) {}
+    error = InaccessibleProperty("Cannot access error when succeeded")
+}
+
+export class FailureResult {
+    readonly status = "failure"
+    constructor(readonly error: unknown) {}
+    value = InaccessibleProperty("Cannot access value when failed")
+}
+
+export const tryCatch = <T>(statement: Provider<T>): SuccessResult<T> | FailureResult => {
     try {
-        return {error: null, value: statement(), status: "success"}
+        return new SuccessResult(statement())
     } catch (error) {
-        return {error, value: null, status: "failure"}
+        return new FailureResult(error)
     }
 }
 export const isValidIdentifier = (identifier: string): boolean => /^[A-Za-z_$][A-Za-z0-9_]*$/.test(identifier)
