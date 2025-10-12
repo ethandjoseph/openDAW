@@ -130,6 +130,10 @@ export class RegionStartModifier implements RegionModifier {
         this.#dispatchChange()
     }
 
+    toString(): string {
+        return `RegionStartModifier{aligned: ${this.#aligned}, deltaStart: ${this.#deltaStart}}`
+    }
+
     #dispatchChange(): void {
         this.#adapters.forEach(adapter => adapter.trackBoxAdapter
             .ifSome(trackAdapter => trackAdapter.regions.dispatchChange()))

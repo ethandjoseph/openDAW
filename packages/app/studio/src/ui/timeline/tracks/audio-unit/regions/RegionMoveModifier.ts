@@ -5,12 +5,10 @@ import {Snapping} from "@/ui/timeline/Snapping.ts"
 import {Editing} from "@opendaw/lib-box"
 import {TracksManager} from "@/ui/timeline/tracks/audio-unit/TracksManager.ts"
 import {RegionClipResolver} from "@/ui/timeline/tracks/audio-unit/regions/RegionClipResolver.ts"
-import {
-    RegionModifyStrategies,
-    RegionModifyStrategy
-} from "@/ui/timeline/tracks/audio-unit/regions/RegionModifyStrategies.ts"
+import {RegionModifyStrategy} from "@/ui/timeline/tracks/audio-unit/regions/RegionModifyStrategies.ts"
 import {Dialogs} from "@/ui/components/dialogs.tsx"
 import {Dragging} from "@opendaw/lib-dom"
+import {RegionModifier} from "@/ui/timeline/tracks/audio-unit/regions/RegionModifier"
 
 class SelectedModifyStrategy implements RegionModifyStrategy {
     readonly #tool: RegionMoveModifier
@@ -52,7 +50,7 @@ type Construct = Readonly<{
     reference: AnyRegionBoxAdapter
 }>
 
-export class RegionMoveModifier implements RegionModifyStrategies {
+export class RegionMoveModifier implements RegionModifier {
     static create(trackManager: TracksManager, selection: Selection<AnyRegionBoxAdapter>, construct: Construct): Option<RegionMoveModifier> {
         return selection.isEmpty()
             ? Option.None
@@ -183,6 +181,10 @@ export class RegionMoveModifier implements RegionModifyStrategies {
     }
 
     cancel(): void {this.#dispatchChange()}
+
+    toString(): string {
+        return `RegionMoveModifier{deltaIndex: ${this.#deltaIndex}, deltaPosition: ${this.#deltaPosition}, copy: ${this.#copy}, mirroredCopy: ${this.#mirroredCopy}}`
+    }
 
     #dispatchChange(): void {
         this.#dispatchSameTrackChange()

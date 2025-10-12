@@ -125,6 +125,10 @@ export class RegionDurationModifier implements RegionModifier {
         this.#dispatchChange()
     }
 
+    toString(): string {
+        return `RegionDurationModifier{aligned: ${this.#aligned}, deltaDuration: ${this.#deltaDuration}}`
+    }
+
     #dispatchChange(): void {
         this.#adapters.forEach(adapter => adapter.trackBoxAdapter
             .ifSome(trackAdapter => trackAdapter.regions.dispatchChange()))

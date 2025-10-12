@@ -71,7 +71,7 @@ export class TracksManager implements Terminable {
     }
 
     startRegionModifier(option: Option<RegionModifier>): Option<Dragging.Process> {
-        const name = option.unwrapOrNull()?.constructor.name
+        const name = option.unwrapOrNull()?.toString() ?? "unknown"
         console.debug(`start(${name})`)
         return option.map(modifier => {
             assert(this.#currentRegionModifier.isEmpty(), "RegionModifier already in use.")

@@ -118,6 +118,10 @@ export class RegionLoopDurationModifier implements RegionModifier {
         this.#dispatchChange()
     }
 
+    toString(): string {
+        return `RegionLoopDurationModifier{deltaLoopDuration: ${this.#deltaLoopDuration}}`
+    }
+
     #dispatchChange(): void {
         this.#adapters.forEach(adapter => adapter.trackBoxAdapter.unwrap().regions.dispatchChange())
     }
