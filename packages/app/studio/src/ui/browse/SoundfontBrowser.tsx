@@ -23,7 +23,7 @@ type Construct = {
     service: StudioService
 }
 
-const location = new DefaultObservableValue(AssetLocation.Cloud)
+const location = new DefaultObservableValue(AssetLocation.OpenDAW)
 
 export const SoundfontBrowser = ({lifecycle, service}: Construct) => {
     const entries: HTMLElement = <div className="scrollable"/>
@@ -38,7 +38,7 @@ export const SoundfontBrowser = ({lifecycle, service}: Construct) => {
             <div className="filter">
                 <RadioGroup lifecycle={lifecycle} model={location} elements={[
                     {
-                        value: AssetLocation.Cloud,
+                        value: AssetLocation.OpenDAW,
                         element: <Icon symbol={IconSymbol.CloudFolder}/>,
                         tooltip: "Online soundfonts"
                     },
@@ -60,7 +60,7 @@ export const SoundfontBrowser = ({lifecycle, service}: Construct) => {
                                     const openDAW = await OpenSoundfontAPI.get().all()
                                     const user = await SoundfontStorage.get().list()
                                     return Arrays.subtract(user, openDAW, ({uuid: a}, {uuid: b}) => a == b)
-                                case AssetLocation.Cloud:
+                                case AssetLocation.OpenDAW:
                                     return OpenSoundfontAPI.get().all()
                             }
                         }} loading={() => (

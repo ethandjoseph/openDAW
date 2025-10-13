@@ -1,1 +1,1 @@
-export const enum AssetLocation {Cloud, Local}
+export const enum AssetLocation {OpenDAW, Local}

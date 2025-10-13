@@ -46,22 +46,6 @@ export const TransportGroup = ({lifecycle, service}: Construct) => {
                     }
                 }}><Icon symbol={IconSymbol.Play}/></Button>
     )
-    const element: HTMLElement = (
-        <div className={className}>
-            {recordButton}
-            {playButton}
-            <Button lifecycle={lifecycle}
-                    onClick={() => {engine.stop(true)}}
-                    appearance={{activeColor: Colors.bright, tooltip: "Stop"}}>
-                <Icon symbol={IconSymbol.Stop}/>
-            </Button>
-            <Checkbox lifecycle={lifecycle}
-                      model={transport.loop}
-                      appearance={{activeColor: Colors.gray, tooltip: "Loop"}}>
-                <Icon symbol={IconSymbol.Loop}/>
-            </Checkbox>
-        </div>
-    )
     const countInLifecycle = lifecycle.own(new Terminator())
     const recordingObserver = () => recordButton.classList.toggle("active",
         engine.isCountingIn.getValue() || engine.isRecording.getValue())
@@ -76,7 +60,6 @@ export const TransportGroup = ({lifecycle, service}: Construct) => {
                 countInLifecycle.terminate()
             }
         }),
-        service.projectProfileService.catchupAndSubscribe(owner => element.classList.toggle("disabled", owner.getValue().isEmpty())),
         ContextMenu.subscribe(playButton, collector => collector
             .addItems(
                 MenuItem.default({
@@ -86,5 +69,23 @@ export const TransportGroup = ({lifecycle, service}: Construct) => {
                     .setValue(!engine.playbackTimestampEnabled.getValue()))
             ))
     )
-    return element
+    return (
+        <div className={className}
+             onInit={element => service.projectProfileService
+                 .catchupAndSubscribe(owner => element.classList
+                     .toggle("disabled", owner.getValue().isEmpty()))}>
+            {recordButton}
+            {playButton}
+            <Button lifecycle={lifecycle}
+                    onClick={() => {engine.stop(true)}}
+                    appearance={{activeColor: Colors.bright, tooltip: "Stop"}}>
+                <Icon symbol={IconSymbol.Stop}/>
+            </Button>
+            <Checkbox lifecycle={lifecycle}
+                      model={transport.loop}
+                      appearance={{activeColor: Colors.gray, tooltip: "Loop"}}>
+                <Icon symbol={IconSymbol.Loop}/>
+            </Checkbox>
+        </div>
+    )
 }

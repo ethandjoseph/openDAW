@@ -26,7 +26,6 @@ import {
     DefaultSoundfontLoaderManager,
     OpenSampleAPI,
     OpenSoundfontAPI,
-    SampleProvider,
     SampleStorage,
     Workers
 } from "@opendaw/studio-core"
@@ -77,15 +76,14 @@ const loadBuildInfo = async () => fetch(`/build-info.json?v=${Date.now()}`)
         const sampleManager = new DefaultSampleLoaderManager({
             fetch: async (uuid: UUID.Bytes, progress: Progress.Handler): Promise<[AudioData, SampleMetaData]> =>
                 sampleAPI.load(context, uuid, progress)
-        } satisfies SampleProvider)
+        })
         const soundfontManager = new DefaultSoundfontLoaderManager({
             fetch: async (uuid: UUID.Bytes, progress: Progress.Handler): Promise<[ArrayBuffer, SoundfontMetaData]> =>
                 OpenSoundfontAPI.get().load(uuid, progress)
         })
         const cloudAuthManager = CloudAuthManager.create()
-        const service: StudioService =
-            new StudioService(context, audioWorklets.value, audioDevices, sampleAPI,
-                sampleManager, soundfontManager, cloudAuthManager, buildInfo)
+        const service: StudioService = new StudioService(
+            context, audioWorklets.value, audioDevices, sampleManager, soundfontManager, cloudAuthManager, buildInfo)
         const errorHandler = new ErrorHandler(service)
         const surface = Surface.main({
             config: (surface: Surface) => {

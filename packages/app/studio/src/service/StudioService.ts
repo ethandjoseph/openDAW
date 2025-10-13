@@ -56,7 +56,6 @@ import {
     ProjectProfile,
     ProjectStorage,
     RestartWorklet,
-    SampleAPI,
     SampleService,
     SoundfontService,
     TimelineRange
@@ -120,7 +119,6 @@ export class StudioService implements ProjectEnv {
     constructor(readonly audioContext: AudioContext,
                 readonly audioWorklets: AudioWorklets,
                 readonly audioDevices: AudioOutputDevice,
-                readonly sampleAPI: SampleAPI,
                 readonly sampleManager: DefaultSampleLoaderManager,
                 readonly soundfontManager: DefaultSoundfontLoaderManager,
                 readonly cloudAuthManager: CloudAuthManager,
@@ -132,7 +130,7 @@ export class StudioService implements ProjectEnv {
         this.samplePlayback = new SamplePlayback()
         this.#dawProjectService = new DawProjectService(this.#sampleService)
         this.#projectProfileService = new ProjectProfileService({
-            env: this, sampleService: this.#sampleService, sampleAPI: this.sampleAPI, sampleManager: this.sampleManager
+            env: this, sampleService: this.#sampleService, sampleManager: this.sampleManager
         })
 
         this.#listenProject()

@@ -3,19 +3,18 @@ import {BoxGraph} from "@opendaw/lib-box"
 import {Promises} from "@opendaw/lib-runtime"
 import {AudioFileBox} from "@opendaw/studio-boxes"
 import {Sample, SampleLoaderManager} from "@opendaw/studio-adapters"
-import {SampleAPI, SampleService, SampleStorage} from "@opendaw/studio-core"
+import {OpenSampleAPI, SampleService, SampleStorage} from "@opendaw/studio-core"
 import {SampleDialogs} from "@/ui/browse/SampleDialogs"
 
 export namespace SampleVerifier {
     export const verify = async (boxGraph: BoxGraph,
                                  sampleService: SampleService,
-                                 sampleAPI: SampleAPI,
                                  sampleManager: SampleLoaderManager) => {
         const boxes = boxGraph.boxes().filter((box) => box instanceof AudioFileBox)
         if (boxes.length > 0) {
             // check for missing samples
             const online = UUID.newSet<{ uuid: UUID.Bytes, sample: Sample }>(x => x.uuid)
-            online.addMany((await sampleAPI.all()).map(sample => ({uuid: UUID.parse(sample.uuid), sample})))
+            online.addMany((await OpenSampleAPI.get().all()).map(sample => ({uuid: UUID.parse(sample.uuid), sample})))
             const offline = UUID.newSet<{ uuid: UUID.Bytes, sample: Sample }>(x => x.uuid)
             offline.addMany((await SampleStorage.get().list()).map(sample => ({
                 uuid: UUID.parse(sample.uuid),

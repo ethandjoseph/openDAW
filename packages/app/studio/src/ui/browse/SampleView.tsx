@@ -28,78 +28,60 @@ type Construct = {
 
 export const SampleView = ({lifecycle, sampleSelection, sample, playback, location, refresh}: Construct) => {
     const {name, duration, bpm} = sample
-    const labelName: HTMLElement = <span>{name}</span>
-    const labelBpm: HTMLElement = <span className="right">{bpm.toFixed(1)}</span>
-    const editButton: Element = (
-        <Button lifecycle={lifecycle} appearance={{activeColor: "white"}}
-                onClick={async (event) => {
-                    event.stopPropagation()
-                    const {status, value: meta} = await Promises.tryCatch(SampleDialogs.showEditSampleDialog(sample))
-                    if (status === "resolved") {
-                        await SampleStorage.get()
-                            .updateSampleMeta(UUID.parse(meta.uuid), Objects.exclude(meta, "uuid"))
-                        refresh()
-                    }
-                }}>
-            <Icon symbol={IconSymbol.Pencil}/>
-        </Button>
-    )
-    const deleteButton: Element = (
-        <Button lifecycle={lifecycle} appearance={{activeColor: "white"}}
-                onClick={async (event) => {
-                    event.stopPropagation()
-                    await sampleSelection.deleteSamples(sample)
-                    refresh()
-                }}>
-            <Icon symbol={IconSymbol.Close}/>
-        </Button>
-    )
-    const metaElement: HTMLElement = (
-        <div className="meta" ondblclick={() => playback.toggle(sample.uuid)}>
-            {labelName}
-            {labelBpm}
-            <span className="right">{duration.toFixed(1)}</span>
-        </div>
-    )
-    const element: HTMLElement = (
+    return (
         <div className={className}
+             onInit={element => lifecycle.ownAll(
+                 DragAndDrop.installSource(element, () => ({type: "sample", sample})),
+                 ContextMenu.subscribe(element, collector => collector.addItems(
+                     MenuItem.default({label: "Create Audio Track(s)"})
+                         .setTriggerProcedure(() => sampleSelection.requestDevice()),
+                     MenuItem.default({label: "Delete Sample(s)", selectable: location === AssetLocation.Local})
+                         .setTriggerProcedure(async () => {
+                             await sampleSelection.deleteSelected()
+                             refresh()
+                         }))
+                 )
+             )}
              data-selection={JSON.stringify(sample)}
              ondragstart={() => playback.eject()}
              draggable>
-            {metaElement}
+            <div className="meta"
+                 onInit={element => lifecycle.own(
+                     playback.subscribe(sample.uuid, event => {
+                         element.classList.remove("buffering", "playing", "error")
+                         element.classList.add(event.type)
+                     })
+                 )}
+                 ondblclick={() => playback.toggle(sample.uuid)}>
+                <span>{name}</span>
+                <span className="right">{bpm.toFixed(1)}</span>
+                <span className="right">{duration.toFixed(1)}</span>
+            </div>
             {location === AssetLocation.Local && (
                 <div className="edit">
-                    {editButton}
-                    {deleteButton}
+                    <Button lifecycle={lifecycle} appearance={{activeColor: "white"}}
+                            onClick={async (event) => {
+                                event.stopPropagation()
+                                const {status, value: meta} =
+                                    await Promises.tryCatch(SampleDialogs.showEditSampleDialog(sample))
+                                if (status === "resolved") {
+                                    await SampleStorage.get()
+                                        .updateSampleMeta(UUID.parse(meta.uuid), Objects.exclude(meta, "uuid"))
+                                    refresh()
+                                }
+                            }}>
+                        <Icon symbol={IconSymbol.Pencil}/>
+                    </Button>
+                    <Button lifecycle={lifecycle} appearance={{activeColor: "white"}}
+                            onClick={async (event) => {
+                                event.stopPropagation()
+                                await sampleSelection.deleteSamples(sample)
+                                refresh()
+                            }}>
+                        <Icon symbol={IconSymbol.Close}/>
+                    </Button>
                 </div>
             )}
         </div>
     )
-    lifecycle.ownAll(
-        DragAndDrop.installSource(element, () => ({type: "sample", sample})),
-        ContextMenu.subscribe(element, collector => collector.addItems(
-            MenuItem.default({label: "Create Audio Track(s)"})
-                .setTriggerProcedure(() => sampleSelection.requestDevice()),
-            MenuItem.default({label: "Delete Sample(s)", selectable: location === AssetLocation.Local})
-                .setTriggerProcedure(async () => {
-                    await sampleSelection.deleteSelected()
-                    refresh()
-                }))
-        ),
-        playback.subscribe(sample.uuid, event => {
-            metaElement.classList.remove("buffering", "playing", "error")
-            metaElement.classList.add(event.type)
-            switch (event.type) {
-                case "idle":
-                    break
-                case "buffering":
-                    break
-                case "playing":
-                    break
-                case "error":
-                    break
-            }
-        })
-    )
-    return element
 }

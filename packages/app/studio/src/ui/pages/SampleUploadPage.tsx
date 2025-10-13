@@ -4,7 +4,7 @@ import {StudioService} from "@/service/StudioService.ts"
 import {Files, Html} from "@opendaw/lib-dom"
 import {Dialogs} from "@/ui/components/dialogs.tsx"
 import {estimateBpm} from "@opendaw/lib-dsp"
-import {FilePickerAcceptTypes, WavFile} from "@opendaw/studio-core"
+import {FilePickerAcceptTypes, OpenSampleAPI, WavFile} from "@opendaw/studio-core"
 
 const className = Html.adoptStyleSheet(css, "SampleUploadPage")
 
@@ -29,7 +29,7 @@ export const SampleUploadPage: PageFactory<StudioService> = ({service}: PageCont
                         console.debug("sampleRate", sample_rate)
                         console.debug("duration", duration)
                         console.debug("bpm", bpm)
-                        await service.sampleAPI.upload(wav, {name, bpm, sample_rate, duration, origin: "openDAW"})
+                        await OpenSampleAPI.get().upload(wav, {name, bpm, sample_rate, duration, origin: "openDAW"})
                     } catch (error) {
                         if (error instanceof DOMException && error.name === "AbortError") {
                             console.debug("Caught an AbortError")

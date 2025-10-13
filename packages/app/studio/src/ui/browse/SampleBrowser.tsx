@@ -4,7 +4,7 @@ import {Await, createElement, Frag, Hotspot, HotspotUpdater, Inject, replaceChil
 import {Events, Html, Keyboard} from "@opendaw/lib-dom"
 import {Runtime} from "@opendaw/lib-runtime"
 import {IconSymbol} from "@opendaw/studio-adapters"
-import {ProjectSignals, SampleStorage} from "@opendaw/studio-core"
+import {OpenSampleAPI, ProjectSignals, SampleStorage} from "@opendaw/studio-core"
 import {StudioService} from "@/service/StudioService.ts"
 import {ThreeDots} from "@/ui/spinner/ThreeDots.tsx"
 import {Button} from "@/ui/components/Button.tsx"
@@ -23,7 +23,7 @@ type Construct = {
     service: StudioService
 }
 
-const location = new DefaultObservableValue(AssetLocation.Cloud)
+const location = new DefaultObservableValue(AssetLocation.OpenDAW)
 
 export const SampleBrowser = ({lifecycle, service}: Construct) => {
     const entries: HTMLElement = <div className="scrollable"/>
@@ -40,7 +40,7 @@ export const SampleBrowser = ({lifecycle, service}: Construct) => {
             <div className="filter">
                 <RadioGroup lifecycle={lifecycle} model={location} elements={[
                     {
-                        value: AssetLocation.Cloud,
+                        value: AssetLocation.OpenDAW,
                         element: <Icon symbol={IconSymbol.CloudFolder}/>,
                         tooltip: "Online samples"
                     },
@@ -61,8 +61,8 @@ export const SampleBrowser = ({lifecycle, service}: Construct) => {
                             switch (location.getValue()) {
                                 case AssetLocation.Local:
                                     return SampleStorage.get().list()
-                                case AssetLocation.Cloud:
-                                    return service.sampleAPI.all()
+                                case AssetLocation.OpenDAW:
+                                    return OpenSampleAPI.get().all()
                             }
                         }} loading={() => (
                             <div className="loading">

@@ -97,25 +97,21 @@ export namespace Communicator {
         readonly #messageHandler = (message: Send<PROTOCOL>) => {
             assert(message.type === "send", () => "Message type must be 'send'")
             const object = Object.getPrototypeOf(this.#protocol) === Object.getPrototypeOf({})
-                ? this.#protocol
-                : Object.getPrototypeOf(this.#protocol)
+                ? this.#protocol : Object.getPrototypeOf(this.#protocol)
             const func = asDefined(
                 object[message.func] as Function,
                 `${message.func.toString()} does not exists on ${this.#protocol}`)
             const returnId: number | false = message.returnId
             if (returnId === false) {
-                func.apply(this.#protocol, message.args.map((arg: Arg) => {
-                    return "value" in arg
-                        ? arg.value
-                        : panic(`${message.func.toString()} has no promise.`)
-                }))
+                func.apply(this.#protocol, message.args.map((arg: Arg) => "value" in arg
+                    ? arg.value : panic(`${message.func.toString()} has no promise.`)))
             } else {
                 try {
                     const promise: Promise<any> = func.apply(this.#protocol, message.args
-                        .map(arg => "callback" in arg
-                            ? (...args: any[]) => this.#sendCallback(returnId, arg.callback, args)
-                            : arg.value))
-                    promise.then(value => this.#sendResolve(returnId, value), reason => this.#sendReject(returnId, reason))
+                        .map(arg => "callback" in arg ? (...args: any[]) =>
+                            this.#sendCallback(returnId, arg.callback, args) : arg.value))
+                    promise.then(value => this.#sendResolve(returnId, value),
+                        reason => this.#sendReject(returnId, reason))
                 } catch (reason) {this.#sendReject(returnId, reason)}
             }
         }

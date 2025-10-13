@@ -2,7 +2,7 @@ import {asDefined, RuntimeNotifier, UUID} from "@opendaw/lib-std"
 import {PPQN} from "@opendaw/lib-dsp"
 import {AudioFileBox, AudioRegionBox} from "@opendaw/studio-boxes"
 import {Sample} from "@opendaw/studio-adapters"
-import {ColorCodes, InstrumentFactories, ProjectStorage, SampleStorage} from "@opendaw/studio-core"
+import {ColorCodes, InstrumentFactories, OpenSampleAPI, ProjectStorage, SampleStorage} from "@opendaw/studio-core"
 import {HTMLSelection} from "@/ui/HTMLSelection"
 import {StudioService} from "@/service/StudioService"
 import {Dialogs} from "../components/dialogs"
@@ -50,7 +50,7 @@ export class SampleSelection {
     async deleteSamples(...samples: ReadonlyArray<Sample>) {
         const dialog = RuntimeNotifier.progress({headline: "Checking Sample Usages"})
         const used = await ProjectStorage.listUsedAssets(AudioFileBox)
-        const online = new Set<string>((await this.#service.sampleAPI.all()).map(({uuid}) => uuid))
+        const online = new Set<string>((await OpenSampleAPI.get().all()).map(({uuid}) => uuid))
         dialog.terminate()
         const approved = await Dialogs.approve({
             headline: "Remove Sample(s)?",
