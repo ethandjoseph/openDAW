@@ -4,6 +4,7 @@ import {CloudService} from "./CloudService"
 import {CloudHandler} from "./CloudHandler"
 import {DropboxHandler} from "./DropboxHandler"
 import {GoogleDriveHandler} from "./GoogleDriveHandler"
+import {VITE_DROPBOX_CLIENT_ID, VITE_GOOGLE_CLIENT_ID} from "../env"
 
 export class CloudAuthManager {
     static create(): CloudAuthManager {return new CloudAuthManager()}
@@ -145,7 +146,7 @@ export class CloudAuthManager {
     async #oauthDropbox(): Promise<CloudHandler> {
         return this.#oauthPkceFlow({
             service: "dropbox",
-            clientId: asDefined(import.meta.env?.VITE_DROPBOX_CLIENT_ID, "Missing VITE_DROPBOX_CLIENT_ID"),
+            clientId: asDefined(VITE_DROPBOX_CLIENT_ID, "Missing VITE_DROPBOX_CLIENT_ID"),
             authUrlBase: "https://www.dropbox.com/oauth2/authorize",
             tokenUrl: "https://api.dropboxapi.com/oauth2/token",
             scope: "", // Dropbox scope is optional
@@ -156,7 +157,7 @@ export class CloudAuthManager {
     }
 
     async #oauthGoogle(): Promise<CloudHandler> {
-        const clientId = asDefined(import.meta.env?.VITE_GOOGLE_CLIENT_ID, "Missing VITE_GOOGLE_CLIENT_ID")
+        const clientId = asDefined(VITE_GOOGLE_CLIENT_ID, "Missing VITE_GOOGLE_CLIENT_ID")
         const scope = "https://www.googleapis.com/auth/drive.appdata"
 
         const redirectUri = `${location.origin}/auth-callback.html`

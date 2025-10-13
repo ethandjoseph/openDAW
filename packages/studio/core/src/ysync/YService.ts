@@ -7,13 +7,12 @@ import {YSync} from "./YSync"
 import * as Y from "yjs"
 import {WebsocketProvider} from "y-websocket"
 import {Project, ProjectEnv} from "../project"
+import {VITE_VJS_LOCAL_SERVER_URL, VITE_VJS_ONLINE_SERVER_URL, VITE_VJS_USE_LOCAL_SERVER} from "../env"
 
 // https://inspector.yjs.dev/
 
 export namespace YService {
-    const {VITE_VJS_USE_LOCAL_SERVER, VITE_VJS_LOCAL_SERVER_URL, VITE_VJS_ONLINE_SERVER_URL} = import.meta.env
-    const isDev = VITE_VJS_USE_LOCAL_SERVER === "true"
-    const serverUrl = isDev ? VITE_VJS_LOCAL_SERVER_URL : VITE_VJS_ONLINE_SERVER_URL
+    const serverUrl = VITE_VJS_USE_LOCAL_SERVER === "true" ? VITE_VJS_LOCAL_SERVER_URL : VITE_VJS_ONLINE_SERVER_URL
 
     export const getOrCreateRoom = async (optProject: Option<Project>,
                                           env: ProjectEnv,
