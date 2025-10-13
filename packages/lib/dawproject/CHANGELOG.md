@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.20](https://github.com/andremichelle/openDAW/compare/@opendaw/lib-dawproject@0.0.19...@opendaw/lib-dawproject@0.0.20) (2025-10-13)
+
+**Note:** Version bump only for package @opendaw/lib-dawproject
+
 ## [0.0.19](https://github.com/andremichelle/openDAW/compare/@opendaw/lib-dawproject@0.0.18...@opendaw/lib-dawproject@0.0.19) (2025-10-11)
 
 **Note:** Version bump only for package @opendaw/lib-dawproject
