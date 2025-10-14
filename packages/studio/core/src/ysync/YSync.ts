@@ -116,9 +116,13 @@ export class YSync<T> implements Terminable {
             })
             this.#ignoreUpdates = true
             this.#boxGraph.endTransaction()
-            this.#boxGraph.verifyPointers()
             this.#ignoreUpdates = false
-
+            try {
+                this.#boxGraph.verifyPointers()
+            } catch (reason) {
+                this.terminate()
+                return panic(reason)
+            }
             const highLevelConflict = this.#conflict.mapOr(check => check(), false)
             if (highLevelConflict) {
                 this.#rollbackTransaction(events)
