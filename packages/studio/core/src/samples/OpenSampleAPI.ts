@@ -35,8 +35,8 @@ export class OpenSampleAPI implements SampleAPI {
     private constructor() {}
 
     async all(): Promise<ReadonlyArray<Sample>> {
-        return Promises.retry(() => fetch(`${OpenSampleAPI.ApiRoot}/list.php`, OpenDAWHeaders)
-            .then(x => x.json(), () => []))
+        return Promises.guardedRetry(() => fetch(`${OpenSampleAPI.ApiRoot}/list.php`, OpenDAWHeaders)
+            .then(x => x.json(), () => []), (_error, count) => count < 10)
     }
 
     async get(uuid: UUID.Bytes): Promise<Sample> {

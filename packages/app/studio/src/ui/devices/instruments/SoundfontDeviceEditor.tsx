@@ -104,7 +104,7 @@ export const SoundfontDeviceEditor = ({lifecycle, service, adapter, deviceHost}:
                                       root={MenuItem.root().setRuntimeChildrenProcedure(parent => {
                                           parent.addMenuItem(
                                               MenuItem.default({
-                                                  label: "Cloud",
+                                                  label: "Stock",
                                                   icon: IconSymbol.CloudFolder,
                                                   selectable: service.soundfontService
                                                       .remote.mapOr(list => list.length > 0, false)

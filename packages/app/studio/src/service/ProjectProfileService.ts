@@ -21,10 +21,10 @@ import {
     ProjectMeta,
     ProjectProfile,
     ProjectStorage,
-    SampleService
+    SampleService,
+    SoundfontService
 } from "@opendaw/studio-core"
-import {SampleLoaderManager} from "@opendaw/studio-adapters"
-import {SampleVerifier} from "@/project/SampleVerifier"
+import {SampleLoaderManager, SoundfontLoaderManager} from "@opendaw/studio-adapters"
 
 export class ProjectProfileService implements MutableObservableValue<Option<ProjectProfile>> {
     readonly #profile: DefaultObservableValue<Option<ProjectProfile>>
@@ -32,15 +32,21 @@ export class ProjectProfileService implements MutableObservableValue<Option<Proj
     readonly #env: ProjectEnv
     readonly #sampleService: SampleService
     readonly #sampleManager: SampleLoaderManager
+    readonly #soundfontService: SoundfontService
+    readonly #soundfontManager: SoundfontLoaderManager
 
-    constructor({env, sampleService, sampleManager}: {
+    constructor({env, sampleService, sampleManager, soundfontService, soundfontManager}: {
         env: ProjectEnv,
         sampleService: SampleService,
-        sampleManager: SampleLoaderManager
+        sampleManager: SampleLoaderManager,
+        soundfontService: SoundfontService,
+        soundfontManager: SoundfontLoaderManager
     }) {
         this.#env = env
         this.#sampleService = sampleService
         this.#sampleManager = sampleManager
+        this.#soundfontService = soundfontService
+        this.#soundfontManager = soundfontManager
         this.#profile = new DefaultObservableValue<Option<ProjectProfile>>(Option.None)
     }
 
@@ -71,9 +77,10 @@ export class ProjectProfileService implements MutableObservableValue<Option<Proj
         })
     }
 
-    async loadFromLocalStorage(uuid: UUID.Bytes, meta: ProjectMeta) {
+    async load(uuid: UUID.Bytes, meta: ProjectMeta) {
         const project: Project = await ProjectStorage.loadProject(uuid).then(buffer => Project.load(this.#env, buffer))
-        await SampleVerifier.verify(project.boxGraph, this.#sampleService, this.#sampleManager)
+        await this.#sampleService.replaceMissingFiles(project.boxGraph, this.#sampleManager)
+        await this.#soundfontService.replaceMissingFiles(project.boxGraph, this.#soundfontManager)
         const cover = await ProjectStorage.loadCover(uuid)
         this.#setProfile(uuid, project, meta, cover, true)
     }

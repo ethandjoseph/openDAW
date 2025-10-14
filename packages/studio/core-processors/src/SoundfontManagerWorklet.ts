@@ -36,4 +36,5 @@ export class SoundfontManagerWorklet implements SoundfontLoaderManager {
     }
 
     remove(_uuid: UUID.Bytes) {}
+    invalidate(_uuid: UUID.Bytes) {}
 }

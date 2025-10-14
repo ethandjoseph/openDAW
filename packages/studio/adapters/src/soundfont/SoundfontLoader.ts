@@ -7,4 +7,5 @@ export interface SoundfontLoader {
     get uuid(): UUID.Bytes
     get state(): SoundfontLoaderState
     subscribe(observer: Observer<SoundfontLoaderState>): Subscription
+    invalidate(): void
 }

@@ -1,21 +1,24 @@
-import {Arrays, isUndefined, Procedure, Progress, UUID} from "@opendaw/lib-std"
+import {Arrays, Class, isUndefined, Procedure, Progress, UUID} from "@opendaw/lib-std"
+import {Box} from "@opendaw/lib-box"
 import {estimateBpm} from "@opendaw/lib-dsp"
 import {Promises} from "@opendaw/lib-runtime"
 import {SamplePeaks} from "@opendaw/lib-fusion"
+import {AudioFileBox} from "@opendaw/studio-boxes"
 import {AudioData, Sample, SampleMetaData} from "@opendaw/studio-adapters"
-import {FilePickerAcceptTypes, SampleStorage, Workers} from "../index"
 import {AssetService} from "../AssetService"
+import {FilePickerAcceptTypes} from "../FilePickerAcceptTypes"
+import {Workers} from "../Workers"
+import {SampleStorage} from "./SampleStorage"
+import {OpenSampleAPI} from "./OpenSampleAPI"
 
 export class SampleService extends AssetService<Sample> {
     protected readonly namePlural: string = "Samples"
     protected readonly nameSingular: string = "Sample"
+    protected readonly boxType: Class<Box> = AudioFileBox
+    protected readonly filePickerOptions: FilePickerOptions = FilePickerAcceptTypes.WavFiles
 
     constructor(readonly audioContext: AudioContext, onUpdate: Procedure<Sample>) {
         super(onUpdate)
-    }
-
-    async browse(multiple: boolean): Promise<ReadonlyArray<Sample>> {
-        return this.browseFiles(multiple, FilePickerAcceptTypes.WavFiles)
     }
 
     async importFile({uuid, name, arrayBuffer, progressHandler = Progress.Empty}
@@ -54,5 +57,11 @@ export class SampleService extends AssetService<Sample> {
         const sample = {uuid: UUID.toString(uuid), ...meta}
         this.onUpdate(sample)
         return sample
+    }
+
+    protected async collectAllFiles(): Promise<ReadonlyArray<Sample>> {
+        const stock = await OpenSampleAPI.get().all()
+        const local = await SampleStorage.get().list()
+        return Arrays.merge(stock, local, (sample, {uuid}) => sample.uuid === uuid)
     }
 }

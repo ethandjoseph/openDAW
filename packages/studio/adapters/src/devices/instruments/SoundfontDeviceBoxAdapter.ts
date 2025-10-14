@@ -1,4 +1,13 @@
-import {int, MutableObservableOption, ObservableOption, Option, Terminator, UUID} from "@opendaw/lib-std"
+import {
+    int,
+    MutableObservableOption,
+    ObservableOption,
+    Option,
+    Subscription,
+    Terminable,
+    Terminator,
+    UUID
+} from "@opendaw/lib-std"
 import {SoundfontDeviceBox} from "@opendaw/studio-boxes"
 import {Address, BooleanField, FieldKeys, StringField} from "@opendaw/lib-box"
 import {DeviceHost, Devices, InstrumentDeviceBoxAdapter} from "../../DeviceAdapter"
@@ -25,6 +34,8 @@ export class SoundfontDeviceBoxAdapter implements InstrumentDeviceBoxAdapter {
     readonly #loader: MutableObservableOption<SoundfontLoader>
     readonly #soundfont: MutableObservableOption<SoundFont2>
     readonly #preset: MutableObservableOption<Preset>
+
+    #loaderSubscription: Subscription = Terminable.Empty
 
     constructor(context: BoxAdaptersContext, box: SoundfontDeviceBox) {
         this.#context = context
@@ -68,9 +79,15 @@ export class SoundfontDeviceBoxAdapter implements InstrumentDeviceBoxAdapter {
 
     audioUnitBoxAdapter(): AudioUnitBoxAdapter {return this.deviceHost().audioUnitBoxAdapter()}
 
-    parameterAt(fieldIndices: FieldKeys): AutomatableParameterFieldAdapter {return this.#parametric.parameterAt(fieldIndices)}
+    parameterAt(fieldIndices: FieldKeys): AutomatableParameterFieldAdapter {
+        return this.#parametric.parameterAt(fieldIndices)
+    }
 
-    terminate(): void {this.#parametric.terminate()}
+    terminate(): void {
+        this.#loaderSubscription.terminate()
+        this.#loaderSubscription = Terminable.Empty
+        this.#parametric.terminate()
+    }
 
     #wrapParameters(_box: SoundfontDeviceBox) {
         return {} as const
@@ -85,18 +102,16 @@ export class SoundfontDeviceBoxAdapter implements InstrumentDeviceBoxAdapter {
             none: () => {
                 this.#preset.clear()
                 this.#soundfont.clear()
-                const subscription = loader.subscribe(state => {
+                this.#loaderSubscription.terminate()
+                this.#loaderSubscription = loader.subscribe(state => {
                     if (state.type === "loaded") {
-                        subscription.terminate()
                         const soundfont = loader.soundfont.unwrap()
                         this.#preset.wrap(soundfont.presets[this.presetIndex] ?? soundfont.presets[0])
                         this.#soundfont.wrap(soundfont)
                     } else if (state.type === "error") {
-                        subscription.terminate()
                         this.#preset.clear()
                         this.#soundfont.clear()
                     } else if (state.type === "idle") {
-                        subscription.terminate()
                         this.#preset.clear()
                         this.#soundfont.clear()
                     }

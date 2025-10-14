@@ -1,6 +1,20 @@
-import {DefaultObservableValue, Errors, panic, Procedure, Progress, RuntimeNotifier, UUID} from "@opendaw/lib-std"
+import {
+    Class,
+    DefaultObservableValue,
+    Errors,
+    isInstanceOf,
+    isNotUndefined,
+    panic,
+    Procedure,
+    Progress,
+    RuntimeNotifier,
+    UUID
+} from "@opendaw/lib-std"
 import {Files} from "@opendaw/lib-dom"
 import {Promises} from "@opendaw/lib-runtime"
+import {BoxGraph} from "@opendaw/lib-box"
+import {Sample, Soundfont} from "@opendaw/studio-adapters"
+import {AudioFileBox, SoundfontFileBox} from "@opendaw/studio-boxes"
 
 export namespace AssetService {
     export type ImportArgs = {
@@ -11,13 +25,50 @@ export namespace AssetService {
     }
 }
 
-export abstract class AssetService<T> {
+export abstract class AssetService<T extends Sample | Soundfont> {
     protected abstract readonly nameSingular: string
     protected abstract readonly namePlural: string
+    protected abstract readonly boxType: Class<AudioFileBox | SoundfontFileBox>
+    protected abstract readonly filePickerOptions: FilePickerOptions
 
     protected constructor(protected readonly onUpdate: Procedure<T>) {}
 
+    async browse(multiple: boolean): Promise<ReadonlyArray<T>> {
+        return this.browseFiles(multiple, this.filePickerOptions)
+    }
+
     abstract importFile(args: AssetService.ImportArgs): Promise<T>
+
+    async replaceMissingFiles(boxGraph: BoxGraph, manager: { invalidate: (uuid: UUID.Bytes) => void }): Promise<void> {
+        const available = await this.collectAllFiles()
+        const boxes = boxGraph.boxes().filter(box => isInstanceOf(box, this.boxType))
+        if (boxes.length === 0) {return}
+        for (const box of boxes) {
+            const uuid = box.address.uuid
+            const uuidAsString = UUID.toString(uuid)
+            if (isNotUndefined(available.find(({uuid}) => uuid === uuidAsString))) {continue}
+            const approved = await RuntimeNotifier.approve({
+                headline: "Missing Asset",
+                message: `Could not find ${this.nameSingular} '${box.fileName.getValue()}'`,
+                cancelText: "Ignore",
+                approveText: "Browse"
+            })
+            if (!approved) {continue}
+            const {error, status, value: files} =
+                await Promises.tryCatch(Files.open({...this.filePickerOptions, multiple: false}))
+            if (status === "rejected") {
+                if (Errors.isAbort(error)) {return} else {return panic(String(error)) }
+            }
+            if (files.length === 0) {return}
+            const arrayBuffer = await files[0].arrayBuffer()
+            const asset = await this.importFile({uuid, arrayBuffer, progressHandler: Progress.Empty})
+            await RuntimeNotifier.info({
+                headline: "Replaced Asset",
+                message: `${asset.name} has been replaced`
+            })
+            manager.invalidate(uuid)
+        }
+    }
 
     protected async browseFiles(multiple: boolean, filePickerSettings: FilePickerOptions): Promise<ReadonlyArray<T>> {
         const {error, status, value: files} =
@@ -34,11 +85,7 @@ export abstract class AssetService<T> {
         const imported: Array<T> = []
         for (const [index, file] of files.entries()) {
             const arrayBuffer = await file.arrayBuffer()
-            const {
-                status,
-                value,
-                error
-            } = await Promises.tryCatch(this.importFile({
+            const {status, value, error} = await Promises.tryCatch(this.importFile({
                 name: file.name,
                 arrayBuffer: arrayBuffer,
                 progressHandler: progressHandler[index]
@@ -54,4 +101,6 @@ export abstract class AssetService<T> {
         }
         return imported
     }
+
+    protected abstract collectAllFiles(): Promise<ReadonlyArray<T>>
 }

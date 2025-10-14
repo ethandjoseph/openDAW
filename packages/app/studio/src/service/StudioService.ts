@@ -130,7 +130,9 @@ export class StudioService implements ProjectEnv {
         this.samplePlayback = new SamplePlayback()
         this.#dawProjectService = new DawProjectService(this.#sampleService)
         this.#projectProfileService = new ProjectProfileService({
-            env: this, sampleService: this.#sampleService, sampleManager: this.sampleManager
+            env: this,
+            sampleService: this.#sampleService, sampleManager: this.sampleManager,
+            soundfontService: this.#soundfontService, soundfontManager: this.soundfontManager
         })
 
         this.#listenProject()
@@ -181,7 +183,7 @@ export class StudioService implements ProjectEnv {
         const {status, value} = await Promises.tryCatch(ProjectDialogs.showBrowseDialog(this))
         if (status === "resolved") {
             const [uuid, meta] = value
-            await this.#projectProfileService.loadFromLocalStorage(uuid, meta)
+            await this.#projectProfileService.load(uuid, meta)
         }
     }
 

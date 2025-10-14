@@ -1,8 +1,7 @@
 import {Progress, SortedSet, UUID} from "@opendaw/lib-std"
+import {SoundfontLoader, SoundfontLoaderManager, SoundfontMetaData} from "@opendaw/studio-adapters"
 import {DefaultSoundfontLoader} from "./DefaultSoundfontLoader"
 import {SoundfontProvider} from "./SoundfontProvider"
-import {SoundfontLoader, SoundfontLoaderManager, SoundfontMetaData} from "@opendaw/studio-adapters"
-import type {SoundFont2} from "soundfont2"
 
 export class DefaultSoundfontLoaderManager implements SoundfontLoaderManager, SoundfontProvider {
     readonly #provider: SoundfontProvider
@@ -22,4 +21,6 @@ export class DefaultSoundfontLoaderManager implements SoundfontLoaderManager, So
     getOrCreate(uuid: UUID.Bytes): SoundfontLoader {
         return this.#loaders.getOrCreate(uuid, uuid => new DefaultSoundfontLoader(this, uuid))
     }
+
+    invalidate(uuid: UUID.Bytes) {this.#loaders.opt(uuid).ifSome(loader => loader.invalidate())}
 }

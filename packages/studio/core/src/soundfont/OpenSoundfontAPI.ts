@@ -10,13 +10,13 @@ export class OpenSoundfontAPI {
     @Lazy
     static get(): OpenSoundfontAPI {return new OpenSoundfontAPI()}
 
-    readonly #memoized: () => Promise<ReadonlyArray<Soundfont>> = Promises.memoizeAsync(() => Promises.retry(() =>
+    readonly #memoized: () => Promise<ReadonlyArray<Soundfont>> = Promises.memoizeAsync(() => Promises.guardedRetry(() =>
         fetch(`${OpenSoundfontAPI.ApiRoot}/list.json`, OpenDAWHeaders)
             .then(x => x.json())
             .catch(reason => RuntimeNotifier.info({
                 headline: "OpenSoundfont API",
                 message: `Could not connect to OpenSoundfont API\nReason: '${reason}'`
-            }).then(() => []))))
+            }).then(() => [])), (_error, count) => count < 10))
 
     private constructor() {}
 

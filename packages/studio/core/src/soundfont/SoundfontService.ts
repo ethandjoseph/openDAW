@@ -1,15 +1,19 @@
-import {Arrays, Option, panic, Procedure, RuntimeNotifier, tryCatch, UUID} from "@opendaw/lib-std"
+import {Arrays, Class, Option, panic, Procedure, RuntimeNotifier, tryCatch, UUID} from "@opendaw/lib-std"
+import {Box} from "@opendaw/lib-box"
+import {Wait} from "@opendaw/lib-runtime"
+import {SoundfontFileBox} from "@opendaw/studio-boxes"
 import {Soundfont, SoundfontMetaData} from "@opendaw/studio-adapters"
 import {SoundFont2} from "soundfont2"
 import {SoundfontStorage} from "./SoundfontStorage"
 import {FilePickerAcceptTypes} from "../FilePickerAcceptTypes"
 import {OpenSoundfontAPI} from "./OpenSoundfontAPI"
 import {AssetService} from "../AssetService"
-import {Wait} from "@opendaw/lib-runtime"
 
 export class SoundfontService extends AssetService<Soundfont> {
     protected readonly namePlural: string = "Soundfonts"
     protected readonly nameSingular: string = "Soundfont"
+    protected readonly boxType: Class<Box> = SoundfontFileBox
+    protected readonly filePickerOptions: FilePickerOptions = FilePickerAcceptTypes.SoundfontFiles
 
     #local: Option<Array<Soundfont>> = Option.None
     #remote: Option<ReadonlyArray<Soundfont>> = Option.None
@@ -28,10 +32,6 @@ export class SoundfontService extends AssetService<Soundfont> {
 
     get local(): Option<ReadonlyArray<Soundfont>> {return this.#local}
     get remote(): Option<ReadonlyArray<Soundfont>> {return this.#remote}
-
-    async browse(multiple: boolean = false): Promise<ReadonlyArray<Soundfont>> {
-        return this.browseFiles(multiple, FilePickerAcceptTypes.SoundfontFiles)
-    }
 
     async importFile({uuid, arrayBuffer}: AssetService.ImportArgs): Promise<Soundfont> {
         if (this.#local.isEmpty()) {
@@ -73,5 +73,11 @@ export class SoundfontService extends AssetService<Soundfont> {
         this.onUpdate(soundfont)
         updater.terminate()
         return soundfont
+    }
+
+    protected async collectAllFiles(): Promise<ReadonlyArray<Soundfont>> {
+        const stock = await OpenSoundfontAPI.get().all()
+        const local = await SoundfontStorage.get().list()
+        return Arrays.merge(stock, local, (a, b) => a.uuid === b.uuid)
     }
 }

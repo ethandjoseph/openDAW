@@ -3,14 +3,14 @@ import {Peaks} from "./Peaks"
 
 export namespace PeaksPainter {
     export interface Layout {
-        x0: number,
-        x1: number,
-        u0: number,
-        u1: number
-        y0: number,
-        y1: number,
-        v0: number,
-        v1: number
+        x0: number, // screen left (0)
+        x1: number, // screen right (width)
+        u0: number, // sample start (0)
+        u1: number // sample end (numFrames of audio-data)
+        y0: number, // screen top (0)
+        y1: number, // screen bottom (height)
+        v0: number, // value min (-1)
+        v1: number // value max (+1)
     }
 
     export const renderBlocks = (path: CanvasRenderingContext2D,

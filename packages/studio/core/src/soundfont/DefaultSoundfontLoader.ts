@@ -31,6 +31,13 @@ export class DefaultSoundfontLoader implements SoundfontLoader {
         return this.#notifier.subscribe(observer)
     }
 
+    invalidate(): void {
+        this.#state = {type: "progress", progress: 0.0}
+        this.#meta = Option.None
+        this.#soundfont = Option.None
+        this.#get()
+    }
+
     get uuid(): UUID.Bytes {return this.#uuid}
     get soundfont(): Option<SoundFont2> {return this.#soundfont}
     get meta(): Option<SoundfontMetaData> {return this.#meta}
