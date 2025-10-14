@@ -88,32 +88,47 @@ export class YSync<T> implements Terminable {
             console.debug(`got ${events.length} ${local ? "local" : "external"} updates from '${originLabel}'`)
             if (local) {return}
             this.#boxGraph.beginTransaction()
-            events.forEach(event => {
+            for (const event of events) {
                 const path = event.path
                 const keys = event.changes.keys
-                keys.entries().forEach(([key, change]: [string, { action: "add" | "delete" | "update" }]) => {
-                    if (change.action === "add") {
-                        assert(path.length === 0, "'Add' cannot have a path")
-                        const map = this.#boxesMap.get(key) as Y.Map<unknown>
-                        const name = map.get("name") as keyof T
-                        const fields = map.get("fields") as Y.Map<unknown>
-                        const uuid = UUID.parse(key)
-                        this.#boxGraph.createBox(name, uuid, box => YMapper.applyFromBoxMap(box, fields))
-                    } else if (change.action === "update") {
-                        if (path.length === 0) {return}
-                        assert(path.length >= 2, "Invalid path: must have at least 2 elements (uuid, 'fields').")
-                        this.#updateValue(path, key)
-                    } else if (change.action === "delete") {
-                        assert(path.length === 0, "'Delete' cannot have a path")
-                        const box = this.#boxGraph.findBox(UUID.parse(key))
-                            .unwrap("Could not find box to delete")
-                        // It is possible that Yjs have swallowed the pointer updates since were are 'inside' the box.
-                        box.outgoingEdges().forEach(([pointer]) => pointer.defer())
-                        box.incomingEdges().forEach(pointer => pointer.defer())
-                        this.#boxGraph.unstageBox(box)
+                for (const [key, change] of keys.entries()) {
+                    try {
+                        if (change.action === "add") {
+                            assert(path.length === 0, "'Add' cannot have a path")
+                            const map = this.#boxesMap.get(key) as Y.Map<unknown>
+                            const name = map.get("name") as keyof T
+                            const fields = map.get("fields") as Y.Map<unknown>
+                            const uuid = UUID.parse(key)
+                            const optBox = this.#boxGraph.findBox(UUID.parse(key))
+                            if (optBox.isEmpty()) {
+                                this.#boxGraph.createBox(name, uuid, box => YMapper.applyFromBoxMap(box, fields))
+                            } else {
+                                console.warn(`Cannot create box at '${key}'. It already exists.`)
+                                YMapper.applyFromBoxMap(optBox.unwrap(), fields)
+                            }
+                        } else if (change.action === "update") {
+                            if (path.length === 0) {return}
+                            assert(path.length >= 2, "Invalid path: must have at least 2 elements (uuid, 'fields').")
+                            this.#updateValue(path, key)
+                        } else if (change.action === "delete") {
+                            assert(path.length === 0, "'Delete' cannot have a path")
+                            const optBox = this.#boxGraph.findBox(UUID.parse(key))
+                            if (optBox.isEmpty()) {
+                                console.warn(`Could not find box to delete at '${key}'`)
+                            } else {
+                                const box = optBox.unwrap()
+                                // It is possible that Yjs have swallowed the pointer releases since they were 'inside' the box.
+                                box.outgoingEdges().forEach(([pointer]) => pointer.defer())
+                                box.incomingEdges().forEach(pointer => pointer.defer())
+                                this.#boxGraph.unstageBox(box)
+                            }
+                        }
+                    } catch (reason) {
+                        this.terminate()
+                        return panic(reason)
                     }
-                })
-            })
+                }
+            }
             this.#ignoreUpdates = true
             this.#boxGraph.endTransaction()
             this.#ignoreUpdates = false
