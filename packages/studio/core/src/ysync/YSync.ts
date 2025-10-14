@@ -83,12 +83,10 @@ export class YSync<T> implements Terminable {
     terminate(): void {this.#terminator.terminate()}
 
     #setupYjs(): Subscription {
-        const eventHandler: EventHandler = (events, transaction) => {
-            console.debug(`got ${transaction.local ? "local" : "external"} updates`, transaction.origin)
-            if (transaction.local) {
-                console.debug("Skip local updates")
-                return
-            }
+        const eventHandler: EventHandler = (events, {origin, local}) => {
+            const originLabel = typeof origin === "string" ? origin : origin.constructor.name
+            console.debug(`got ${events.length} ${local ? "local" : "external"} updates from '${originLabel}'`)
+            if (local) {return}
             this.#boxGraph.beginTransaction()
             events.forEach(event => {
                 const path = event.path
