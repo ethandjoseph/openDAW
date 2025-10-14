@@ -31,9 +31,9 @@ import {
     ProcessorOptions
 } from "@opendaw/studio-adapters"
 import {BoxIO} from "@opendaw/studio-boxes"
-import {Project} from "./project/Project"
 import {Engine} from "./Engine"
-import {SoundFont2} from "soundfont2"
+import {Project} from "./project"
+import type {SoundFont2} from "soundfont2"
 
 export class EngineWorklet extends AudioWorkletNode implements Engine {
     static ID: int = 0 | 0

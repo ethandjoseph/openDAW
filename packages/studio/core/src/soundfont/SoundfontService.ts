@@ -1,19 +1,21 @@
-import {Arrays, Class, Option, panic, Procedure, RuntimeNotifier, tryCatch, UUID} from "@opendaw/lib-std"
+import {Arrays, Class, Option, panic, Procedure, RuntimeNotifier, UUID} from "@opendaw/lib-std"
 import {Box} from "@opendaw/lib-box"
-import {Wait} from "@opendaw/lib-runtime"
+import {Promises, Wait} from "@opendaw/lib-runtime"
 import {SoundfontFileBox} from "@opendaw/studio-boxes"
 import {Soundfont, SoundfontMetaData} from "@opendaw/studio-adapters"
-import {SoundFont2} from "soundfont2"
 import {SoundfontStorage} from "./SoundfontStorage"
 import {FilePickerAcceptTypes} from "../FilePickerAcceptTypes"
 import {OpenSoundfontAPI} from "./OpenSoundfontAPI"
 import {AssetService} from "../AssetService"
+import type {SoundFont2} from "soundfont2"
 
 export class SoundfontService extends AssetService<Soundfont> {
     protected readonly namePlural: string = "Soundfonts"
     protected readonly nameSingular: string = "Soundfont"
     protected readonly boxType: Class<Box> = SoundfontFileBox
     protected readonly filePickerOptions: FilePickerOptions = FilePickerAcceptTypes.SoundfontFiles
+
+    readonly #soundFont2 = Promises.memoizeAsync(() => import ("soundfont2"))
 
     #local: Option<Array<Soundfont>> = Option.None
     #remote: Option<ReadonlyArray<Soundfont>> = Option.None
@@ -52,9 +54,9 @@ export class SoundfontService extends AssetService<Soundfont> {
         uuid ??= await UUID.sha256(arrayBuffer)
         console.timeEnd("UUID.sha256")
         console.time("SoundFont2")
-        const {status, value: soundFont2, error} = tryCatch(() => new SoundFont2(new Uint8Array(arrayBuffer)))
+        const {status, value: soundFont2, error} = await Promises.tryCatch(this.#createSoundFont2(arrayBuffer))
         console.timeEnd("SoundFont2")
-        if (status === "failure") {
+        if (status === "rejected") {
             updater.terminate()
             return panic(error)
         }
@@ -79,5 +81,10 @@ export class SoundfontService extends AssetService<Soundfont> {
         const stock = await OpenSoundfontAPI.get().all()
         const local = await SoundfontStorage.get().list()
         return Arrays.merge(stock, local, (a, b) => a.uuid === b.uuid)
+    }
+
+    async #createSoundFont2(buffer: ArrayBuffer): Promise<SoundFont2> {
+        const {SoundFont2} = await this.#soundFont2()
+        return new SoundFont2(new Uint8Array(buffer))
     }
 }

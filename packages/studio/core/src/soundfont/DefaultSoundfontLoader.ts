@@ -3,13 +3,15 @@ import {Promises} from "@opendaw/lib-runtime"
 import {SoundfontLoader, SoundfontLoaderState, SoundfontMetaData} from "@opendaw/studio-adapters"
 import {DefaultSoundfontLoaderManager} from "./DefaultSoundfontLoaderManager"
 import {SoundfontStorage} from "./SoundfontStorage"
-import {SoundFont2} from "soundfont2"
+import type {SoundFont2} from "soundfont2"
 
 export class DefaultSoundfontLoader implements SoundfontLoader {
     readonly #manager: DefaultSoundfontLoaderManager
 
     readonly #uuid: UUID.Bytes
     readonly #notifier: Notifier<SoundfontLoaderState>
+
+    readonly #soundFont2 = Promises.memoizeAsync(() => import ("soundfont2"))
 
     #meta: Option<SoundfontMetaData> = Option.None
     #soundfont: Option<SoundFont2> = Option.None
@@ -51,8 +53,8 @@ export class DefaultSoundfontLoader implements SoundfontLoader {
     }
 
     #get(): void {
-        SoundfontStorage.get().load(this.#uuid).then(([file, meta]) => {
-                this.#soundfont = Option.wrap(new SoundFont2(new Uint8Array(file)))
+        SoundfontStorage.get().load(this.#uuid).then(async ([file, meta]) => {
+                this.#soundfont = Option.wrap(await this.#createSoundFont2(file))
                 this.#meta = Option.wrap(meta)
                 this.#setState({type: "loaded"})
             },
@@ -77,12 +79,17 @@ export class DefaultSoundfontLoader implements SoundfontLoader {
         const [file, meta] = fetchResult.value
         const storeResult = await Promises.tryCatch(SoundfontStorage.get().save({uuid: this.#uuid, file, meta}))
         if (storeResult.status === "resolved") {
-            this.#soundfont = Option.wrap(new SoundFont2(new Uint8Array(file)))
+            this.#soundfont = Option.wrap(await this.#createSoundFont2(file))
             this.#meta = Option.wrap(meta)
             this.#setState({type: "loaded"})
         } else {
             console.warn(storeResult.error)
             this.#setState({type: "error", reason: "N/A"})
         }
+    }
+
+    async #createSoundFont2(buffer: ArrayBuffer): Promise<SoundFont2> {
+        const {SoundFont2} = await this.#soundFont2()
+        return new SoundFont2(new Uint8Array(buffer))
     }
 }
