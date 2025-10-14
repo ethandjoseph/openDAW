@@ -3,75 +3,9 @@ import {IconSymbol, Sample} from "@opendaw/studio-adapters"
 import {Surface} from "@/ui/surface/Surface"
 import {createElement} from "@opendaw/lib-jsx"
 import {Dialogs} from "@/ui/components/dialogs"
-import {Errors, isDefined, UUID} from "@opendaw/lib-std"
-import {Promises} from "@opendaw/lib-runtime"
-import {Files} from "@opendaw/lib-dom"
-import {FilePickerAcceptTypes, SampleService} from "@opendaw/studio-core"
+import {Errors} from "@opendaw/lib-std"
 
 export namespace SampleDialogs {
-    export const missingSampleDialog = async (sampleService: SampleService,
-                                              uuid: UUID.Bytes,
-                                              name: string): Promise<Sample> => {
-        const {resolve, reject, promise} = Promise.withResolvers<Sample>()
-        const dialog: HTMLDialogElement = (
-            <Dialog headline="Missing Sample"
-                    icon={IconSymbol.Waveform}
-                    cancelable={true}
-                    buttons={[{
-                        text: "Ignore",
-                        primary: false,
-                        onClick: handler => {
-                            reject(Errors.AbortError)
-                            handler.close()
-                        }
-                    }, {
-                        text: "Browse",
-                        primary: true,
-                        onClick: async handler => {
-                            const {error, status, value: files} =
-                                await Promises.tryCatch(Files.open({
-                                    ...FilePickerAcceptTypes.WavFiles,
-                                    multiple: false
-                                }))
-                            if (status === "rejected") {
-                                if (!Errors.isAbort(error)) {
-                                    throw error
-                                }
-                                return
-                            }
-                            const file = files?.at(0)
-                            if (isDefined(file)) {
-                                const {
-                                    status,
-                                    value: sample
-                                } = await Promises.tryCatch(
-                                    sampleService.importFile({
-                                        uuid,
-                                        name: file.name,
-                                        arrayBuffer: await file.arrayBuffer()
-                                    }))
-                                if (status === "resolved") {
-                                    handler.close()
-                                    resolve(sample)
-                                }
-                            }
-                        }
-                    }]}>
-                <div
-                    style={{
-                        padding: "1em 0",
-                        display: "grid",
-                        gridTemplateColumns: "auto 1fr",
-                        columnGap: "1em"
-                    }}>{name}</div>
-            </Dialog>
-        )
-        dialog.oncancel = () => reject(Errors.AbortError)
-        Surface.get().flyout.appendChild(dialog)
-        dialog.showModal()
-        return promise
-    }
-
     export const showEditSampleDialog = async (sample: Sample): Promise<Sample> => {
         if (sample.origin === "openDAW") {
             return Promise.reject("Cannot change sample from the cloud")
