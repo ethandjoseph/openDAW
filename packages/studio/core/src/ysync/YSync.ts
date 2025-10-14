@@ -1,8 +1,8 @@
 import {
     asDefined,
+    asInstanceOf,
     assert,
     EmptyExec,
-    isInstanceOf,
     isUndefined,
     JSONValue,
     Option,
@@ -39,7 +39,7 @@ export class YSync<T> implements Terminable {
             const key = UUID.toString(box.address.uuid)
             const map = YMapper.createBoxMap(box)
             boxesMap.set(key, map)
-        }), "populate")
+        }), "[openDAW] populate")
         return sync
     }
 
@@ -84,9 +84,9 @@ export class YSync<T> implements Terminable {
 
     #setupYjs(): Subscription {
         const eventHandler: EventHandler = (events, transaction) => {
-            console.debug("got updates", transaction.origin)
+            console.debug(`got ${transaction.local ? "local" : "external"} updates`, transaction.origin)
             if (transaction.local) {
-                console.debug("Skip local update")
+                console.debug("Skip local updates")
                 return
             }
             this.#boxGraph.beginTransaction()
@@ -148,29 +148,29 @@ export class YSync<T> implements Terminable {
     }
 
     #rollbackTransaction(events: ReadonlyArray<Y.YEvent<any>>): void {
-        console.debug("rollbackTransaction", events.length)
-        for (let i = events.length - 1; i >= 0; i--) {
-            const event = events[i]
-            const target = event.target
-            if (!isInstanceOf(target, Y.Map)) {
-                return panic("Only Y.Map events are supported")
-            }
-            Array.from(event.changes.keys.entries())
-                .reverse()
-                .forEach(([key, change]) => {
-                    if (change.action === "add") {
-                        target.delete(key)
-                    } else if (change.action === "update") {
-                        if (isUndefined(change.oldValue)) {
+        console.debug(`rollback ${events.length} events...`)
+        this.#doc.transact(() => {
+            for (let i = events.length - 1; i >= 0; i--) {
+                const event = events[i]
+                const target = asInstanceOf(event.target, Y.Map)
+                Array.from(event.changes.keys.entries())
+                    .toReversed()
+                    .forEach(([key, change]) => {
+                        if (change.action === "add") {
                             target.delete(key)
-                        } else {
+                        } else if (change.action === "update") {
+                            if (isUndefined(change.oldValue)) {
+                                console.warn(`oldValue of ${change} is undefined`)
+                                target.delete(key)
+                            } else {
+                                target.set(key, change.oldValue)
+                            }
+                        } else if (change.action === "delete") {
                             target.set(key, change.oldValue)
                         }
-                    } else if (change.action === "delete") {
-                        target.set(key, change.oldValue)
-                    }
-                })
-        }
+                    })
+            }
+        }, "[openDAW] rollback")
     }
 
     #setupOpenDAW(): Terminable {
@@ -217,7 +217,7 @@ export class YSync<T> implements Terminable {
                         } else if (update.type === "delete") {
                             this.#boxesMap.delete(UUID.toString(update.uuid))
                         }
-                    }), "openDAW")
+                    }), "[openDAW] updates")
                     this.#updates.length = 0
                 }
             }),
