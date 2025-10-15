@@ -66,6 +66,10 @@ export class GraphEdges {
         if (sources.length === 0) {this.#incoming.removeByKey(target)}
     }
 
+    isConnected(source: PointerField, target: Address): boolean {
+        return this.#outgoing.opt(source.address).mapOr(([, actualTarget]) => actualTarget.equals(target), false)
+    }
+
     outgoingEdgesOf(box: Box): ReadonlyArray<[PointerField, Address]> {
         return this.#collectSameBox(this.#outgoing, box.address.uuid, ([{box: {address: {uuid}}}]) => uuid)
     }

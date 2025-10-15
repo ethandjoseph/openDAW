@@ -155,13 +155,14 @@ export class PointerField<P extends PointerTypes = PointerTypes> extends Field<U
     }
 
     toJSON(): Optional<JSONValue> {
-        return PointerField.#encoder.match({
-            none: () => this.#targetAddress,
-            some: encoder => encoder.map(this)
-        }).match({
-            none: () => null,
-            some: address => address.toString()
-        })
+        return PointerField.#encoder
+            .match({
+                none: () => this.#targetAddress,
+                some: encoder => encoder.map(this)
+            }).match({
+                none: () => null,
+                some: address => address.toString()
+            })
     }
 
     fromJSON(value: JSONValue): void {

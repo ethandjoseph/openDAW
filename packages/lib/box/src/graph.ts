@@ -52,6 +52,11 @@ export class BoxGraph<BoxMap = any> {
     readonly #transactionListeners: Listeners<TransactionListener>
     readonly #dispatchers: Dispatchers<FieldUpdate>
     readonly #edges: GraphEdges
+    readonly #pointerTransactionState: SortedSet<Address, {
+        pointer: PointerField,
+        initial: Option<Address>,
+        final: Option<Address>
+    }>
     readonly #finalizeTransactionObservers: Array<Exec>
 
     #inTransaction: boolean = false
@@ -66,6 +71,7 @@ export class BoxGraph<BoxMap = any> {
         this.#immediateUpdateListeners = new Listeners<UpdateListener>()
         this.#transactionListeners = new Listeners<TransactionListener>()
         this.#edges = new GraphEdges()
+        this.#pointerTransactionState = Address.newSet(({pointer}) => pointer.address)
         this.#finalizeTransactionObservers = []
     }
 
@@ -77,12 +83,19 @@ export class BoxGraph<BoxMap = any> {
 
     endTransaction(): void {
         assert(this.#inTransaction, "No transaction in progress")
-        this.#inTransaction = false
         if (this.#deferredPointerUpdates.length > 0) {
             this.#deferredPointerUpdates.forEach(({pointerField, update}) =>
                 this.#processPointerVertexUpdate(pointerField, update))
             this.#deferredPointerUpdates.length = 0
         }
+        this.#pointerTransactionState.forEach(({pointer, initial, final}) => {
+            if (!initial.equals(final)) {
+                initial.ifSome(address => this.findVertex(address).unwrapOrUndefined()?.pointerHub.onRemoved(pointer))
+                final.ifSome(address => this.findVertex(address).unwrapOrUndefined()?.pointerHub.onAdded(pointer))
+            }
+        })
+        this.#pointerTransactionState.clear()
+        this.#inTransaction = false
         // it is possible that new observers will be added while executing
         while (this.#finalizeTransactionObservers.length > 0) {
             this.#finalizeTransactionObservers.splice(0).forEach(observer => observer())
@@ -187,13 +200,16 @@ export class BoxGraph<BoxMap = any> {
 
     #processPointerVertexUpdate(pointerField: PointerField, update: PointerUpdate): void {
         const {oldAddress, newAddress} = update
-        const oldVertex = oldAddress.flatMap(address => this.findVertex(address))
-        const newVertex = newAddress.flatMap(address => this.findVertex(address))
-        pointerField.resolvedTo(newVertex)
-        if (!oldVertex.equals(newVertex)) {
-            oldVertex.ifSome(vertex => vertex.pointerHub.onRemoved(pointerField))
-            newVertex.ifSome(vertex => vertex.pointerHub.onAdded(pointerField))
-        }
+        pointerField.resolvedTo(newAddress.flatMap(address => this.findVertex(address)))
+        const optState = this.#pointerTransactionState.opt(pointerField.address)
+        optState.match<unknown>({
+            none: () => this.#pointerTransactionState.add({
+                pointer: pointerField,
+                initial: oldAddress,
+                final: newAddress
+            }),
+            some: state => state.final = newAddress
+        })
         this.#dispatchers.dispatch(update)
         this.#updateListeners.proxy.onUpdate(update)
     }

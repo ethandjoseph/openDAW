@@ -106,10 +106,10 @@ export class YSync<T> implements Terminable {
                     }
                 }
             }
-            this.#ignoreUpdates = true
-            this.#boxGraph.endTransaction()
-            this.#ignoreUpdates = false
             try {
+                this.#ignoreUpdates = true
+                this.#boxGraph.endTransaction()
+                this.#ignoreUpdates = false
                 this.#boxGraph.verifyPointers()
             } catch (reason) {
                 this.terminate()
