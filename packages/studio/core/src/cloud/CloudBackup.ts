@@ -15,7 +15,7 @@ import {CloudHandler} from "./CloudHandler"
 import {CloudAuthManager} from "./CloudAuthManager"
 import {CloudBackupSamples} from "./CloudBackupSamples"
 import {CloudBackupProjects} from "./CloudBackupProjects"
-import {CloudBackupSoundfonts} from "./CloudBackupSoundfont"
+import {CloudBackupSoundfonts} from "./CloudBackupSoundfonts"
 import {ProjectSignals} from "../project"
 
 export namespace CloudBackup {

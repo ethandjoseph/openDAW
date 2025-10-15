@@ -124,7 +124,7 @@ export class CloudBackupSoundfonts {
                 await SoundfontStorage.get().save({
                     uuid: UUID.parse(soundfont.uuid),
                     file: buffer,
-                    meta: soundfont
+                    meta: {...soundfont, size: buffer.byteLength}
                 })
                 return soundfont
             }))

@@ -8,7 +8,7 @@ import {
     TimelineBox,
     UserInterfaceBox
 } from "@opendaw/studio-boxes"
-import {assert, ByteArrayInput, isInstanceOf, Option, UUID} from "@opendaw/lib-std"
+import {assert, ByteArrayInput, isInstanceOf, isNotUndefined, Option, UUID} from "@opendaw/lib-std"
 import {AudioUnitType} from "@opendaw/studio-enums"
 import {ProjectSkeleton} from "./ProjectSkeleton"
 import {ProjectMandatoryBoxes} from "./ProjectMandatoryBoxes"
@@ -30,36 +30,36 @@ export namespace ProjectDecoder {
     }
 
     export const findMandatoryBoxes = (boxGraph: BoxGraph): ProjectMandatoryBoxes => {
-        const boxes: Partial<ProjectMandatoryBoxes> = {}
+        const required: Partial<ProjectMandatoryBoxes> = {}
         for (const box of boxGraph.boxes()) {
             box.accept<BoxVisitor>({
-                visitRootBox: (box: RootBox) => boxes.rootBox = box,
-                visitTimelineBox: (box: TimelineBox) => boxes.timelineBox = box,
+                visitRootBox: (box: RootBox) => required.rootBox = box,
+                visitTimelineBox: (box: TimelineBox) => required.timelineBox = box,
                 visitUserInterfaceBox: (box: UserInterfaceBox) => {
                     const root = box.root.targetVertex.unwrapOrNull()?.box
                     if (isInstanceOf(root, RootBox)) {
-                        boxes.userInterfaceBox = box
+                        required.userInterfaceBox = box
                     }
                 },
                 visitAudioUnitBox: (box: AudioUnitBox) => {
                     if (box.type.getValue() === AudioUnitType.Output) {
-                        boxes.masterAudioUnit = box
+                        required.masterAudioUnit = box
                     }
                 },
                 visitAudioBusBox: (box: AudioBusBox) => {
                     const output = box.output.targetVertex.unwrapOrNull()?.box
                     if (isInstanceOf(output, AudioUnitBox) && output.type.getValue() === AudioUnitType.Output) {
-                        boxes.masterBusBox = box
+                        required.masterBusBox = box
                     }
                 }
             })
         }
-        assert(boxes.rootBox !== undefined, "RootBox not found")
-        assert(boxes.timelineBox !== undefined, "TimelineBox not found")
-        assert(boxes.userInterfaceBox !== undefined, "UserInterfaceBox not found")
-        assert(boxes.masterAudioUnit !== undefined, "MasterAudioUnit not found")
-        assert(boxes.masterBusBox !== undefined, "MasterBusBox not found")
-        return boxes as ProjectMandatoryBoxes
+        assert(isNotUndefined(required.rootBox), "RootBox not found")
+        assert(isNotUndefined(required.timelineBox), "TimelineBox not found")
+        assert(isNotUndefined(required.userInterfaceBox), "UserInterfaceBox not found")
+        assert(isNotUndefined(required.masterAudioUnit), "MasterAudioUnit not found")
+        assert(isNotUndefined(required.masterBusBox), "MasterBusBox not found")
+        return required as ProjectMandatoryBoxes
     }
 
     const readMandatoryBoxes = (boxGraph: BoxGraph, input: ByteArrayInput): ProjectMandatoryBoxes => {

@@ -46,11 +46,10 @@ import {ProjectEnv} from "./ProjectEnv"
 import {Mixer} from "../Mixer"
 import {ProjectApi} from "./ProjectApi"
 import {ProjectMigration} from "./ProjectMigration"
-import {CaptureDevices} from "../capture/CaptureDevices"
+import {CaptureDevices, Recording} from "../capture"
 import {EngineFacade} from "../EngineFacade"
 import {EngineWorklet} from "../EngineWorklet"
-import {Recording} from "../capture/Recording"
-import {MIDILearning} from "../midi/MIDILearning"
+import {MIDILearning} from "../midi"
 import {ProjectValidation} from "./ProjectValidation"
 
 export type RestartWorklet = { unload: Procedure<unknown>, load: Procedure<EngineWorklet> }
