@@ -5,7 +5,7 @@ export const SampleMetaData = z.object({
     bpm: z.number(),
     duration: z.number(),
     sample_rate: z.number(),
-    origin: z.enum(["openDAW", "recording", "import"]).default("openDAW")
+    origin: z.enum(["openDAW", "recording", "import"])
 })
 
 export type SampleMetaData = z.infer<typeof SampleMetaData>
