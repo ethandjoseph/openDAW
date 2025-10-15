@@ -53,7 +53,7 @@ export const Modular = ({lifecycle, service}: Construct) => {
         const modularSystemAdapter = boxAdapters.adapterFor(incomingElement.box as ModularBox, ModularAdapter)
         addModularSystem(modularSystemAdapter)
     }
-    lifecycle.own(pointerHub.subscribeTransactual({
+    lifecycle.own(pointerHub.subscribe({
         onAdd: (pointer: PointerField) =>
             addModularSystem(boxAdapters.adapterFor(pointer.box as ModularBox, ModularAdapter)),
         onRemove: (pointer: PointerField) => removeModularSystem(pointer.address.uuid)

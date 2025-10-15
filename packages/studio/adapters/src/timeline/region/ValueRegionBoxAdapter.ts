@@ -53,7 +53,7 @@ export class ValueRegionBoxAdapter implements LoopableRegionBoxAdapter<ValueEven
         this.#changeNotifier = new Notifier<void>()
         this.#isSelected = false
 
-        this.#terminator.own(this.#box.pointerHub.subscribeImmediate({
+        this.#terminator.own(this.#box.pointerHub.subscribe({
             onAdd: () => this.#dispatchChange(),
             onRemove: () => this.#dispatchChange()
         }))

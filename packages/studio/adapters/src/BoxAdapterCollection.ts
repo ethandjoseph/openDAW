@@ -16,7 +16,7 @@ export class BoxAdapterCollection<ADAPTER extends BoxAdapter> implements Termina
     constructor(pointerHub: PointerHub, provider: Func<Box, ADAPTER>, pointers: Pointers) {
         this.#entries = UUID.newSet(adapter => adapter.uuid)
         this.#listeners = new Listeners<AdapterCollectionListener<ADAPTER>>()
-        this.#subscription = pointerHub.catchupAndSubscribeTransactual({
+        this.#subscription = pointerHub.catchupAndSubscribe({
             onAdd: (pointer: PointerField) => {
                 const adapter: ADAPTER = provider(pointer.box)
                 const added = this.#entries.add(adapter)

@@ -13,7 +13,7 @@ export class CaptureDevices implements Terminable {
     constructor(project: Project) {
         this.#project = project
         this.#captures = UUID.newSet<Capture>(unit => unit.uuid)
-        this.#subscription = this.#project.rootBox.audioUnits.pointerHub.catchupAndSubscribeTransactual({
+        this.#subscription = this.#project.rootBox.audioUnits.pointerHub.catchupAndSubscribe({
             onAdd: ({box}) => {
                 const audioUnitBox = asInstanceOf(box, AudioUnitBox)
                 const capture: Maybe<Capture> = audioUnitBox.capture.targetVertex

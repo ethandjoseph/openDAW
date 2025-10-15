@@ -36,7 +36,7 @@ export abstract class AbstractProcessor implements Processor, TerminableOwner, T
     bindParameter<T extends PrimitiveValues>(adapter: AutomatableParameterFieldAdapter<T>): AutomatableParameter<T> {
         const parameter = new AutomatableParameter<T>(this.#context, adapter)
         parameter.ownAll(
-            adapter.field.pointerHub.catchupAndSubscribeTransactual({
+            adapter.field.pointerHub.catchupAndSubscribe({
                 onAdd: (_pointer: PointerField) => {
                     if (this.#updateClockConnection.isEmpty()) {
                         this.#updateClockConnection = Option.wrap(this.#context.updateClock.addEventOutput(this.#eventInput))

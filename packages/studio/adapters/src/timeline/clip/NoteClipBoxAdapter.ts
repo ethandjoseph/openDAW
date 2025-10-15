@@ -44,7 +44,7 @@ export class NoteClipBoxAdapter implements ClipBoxAdapter<NoteEventCollectionBox
         this.#selectedValue = this.#terminator.own(new DefaultObservableValue(false))
         this.#changeNotifier = this.#terminator.own(new Notifier<void>())
         this.#terminator.ownAll(
-            this.#box.pointerHub.subscribeImmediate({
+            this.#box.pointerHub.subscribe({
                 onAdd: () => this.#dispatchChange(),
                 onRemove: () => this.#dispatchChange()
             }),

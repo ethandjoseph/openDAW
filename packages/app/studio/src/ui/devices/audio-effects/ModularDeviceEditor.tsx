@@ -71,7 +71,7 @@ export const ModularDeviceEditor = ({lifecycle, service, adapter, deviceHost}: C
         assert(sucess === true, `Could not resolve ${box}`)
     }
     adapter.box.userInterface.elements.pointerHub.incoming().forEach(pointer => addElement(pointer.box))
-    lifecycle.own(adapter.box.userInterface.elements.pointerHub.subscribeTransactual({
+    lifecycle.own(adapter.box.userInterface.elements.pointerHub.subscribe({
         onAdd: (pointer: PointerField) => addElement(pointer.box),
         onRemove: (pointer: PointerField) => removeElement(pointer.box)
     }))

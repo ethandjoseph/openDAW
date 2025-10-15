@@ -44,7 +44,7 @@ describe("running tests on forged source code", () => {
     it("connect & delete delay", (scene: TestScene) => {
         const module_added = vi.fn()
         const module_removed = vi.fn()
-        const subscription = scene.network.modules.pointerHub.subscribeImmediate({
+        const subscription = scene.network.modules.pointerHub.subscribe({
             onAdd: (_pointer: PointerField) => module_added(),
             onRemove: (_pointer: PointerField) => module_removed()
         }, PointerType.NetworkModule)

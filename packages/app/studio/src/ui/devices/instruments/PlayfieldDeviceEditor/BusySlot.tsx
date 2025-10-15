@@ -108,7 +108,7 @@ export const BusySlot = ({
         connectBoolean(soloValue, soloWrapper),
         connectBoolean(excludeValue, excludeWrapper),
         TextTooltip.default(iconEdit, () => "Edit Sample"),
-        audioEffectsField.catchupAndSubscribeTransactual({
+        audioEffectsField.catchupAndSubscribe({
             onAdd: () => iconEdit.classList.toggle("has-effects", audioEffectsField.nonEmpty()),
             onRemove: () => iconEdit.classList.toggle("has-effects", audioEffectsField.nonEmpty())
         }),

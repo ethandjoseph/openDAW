@@ -44,7 +44,7 @@ export class IndexedBoxAdapterCollection<A extends IndexedBoxAdapter, P extends 
         this.#field = field
         this.#entries = UUID.newSet(entry => entry.adapter.uuid)
         this.#listeners = new Listeners<IndexedAdapterCollectionListener<A>>()
-        this.#subscription = field.pointerHub.catchupAndSubscribeTransactual({
+        this.#subscription = field.pointerHub.catchupAndSubscribe({
             onAdd: (pointer: PointerField) => {
                 this.#sorted = null
                 const adapter: A = provider(pointer.box)

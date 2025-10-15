@@ -57,14 +57,14 @@ export class ValueEventCollectionBoxAdapter implements BoxAdapter {
             }
         }
         this.#box.events.pointerHub.incoming().forEach(({box}) => addValueProcedure(box))
-        this.#terminator.own(this.#box.events.pointerHub.subscribeTransactual({
+        this.#terminator.own(this.#box.events.pointerHub.subscribe({
             onAdd: ({box}) => addValueProcedure(box),
             onRemove: ({box: {address: {uuid}}}) => {
                 this.#events.remove(this.#adapters.removeByKey(uuid))
                 this.#onEventsChanged()
             }
         }))
-        this.#terminator.own(this.#box.owners.pointerHub.subscribeTransactual({
+        this.#terminator.own(this.#box.owners.pointerHub.subscribe({
             onAdd: () => this.#changeNotifier.notify(this),
             onRemove: () => this.#changeNotifier.notify(this)
         }))

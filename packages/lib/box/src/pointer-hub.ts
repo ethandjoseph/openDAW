@@ -1,14 +1,12 @@
 import {PointerField, PointerTypes} from "./pointer"
 import {Vertex} from "./vertex"
-import {Exec, int, Iterables, Listeners, Option, panic, SortedSet, Subscription, Unhandled} from "@opendaw/lib-std"
+import {int, Iterables, Listeners, Option, panic, SortedSet, Subscription} from "@opendaw/lib-std"
 import {Address} from "./address"
 
 export interface PointerListener {
     onAdd(pointer: PointerField): void
     onRemove(pointer: PointerField): void
 }
-
-type ChangeLog = Array<{ type: "add" | "remove", pointerField: PointerField }>
 
 export class PointerHub {
     static validate(pointer: PointerField, target: Vertex): Option<string> {
@@ -24,34 +22,26 @@ export class PointerHub {
 
     readonly #vertex: Vertex
 
-    readonly #immediateListeners: Listeners<PointerListener>
-    readonly #transactualListeners: Listeners<PointerListener>
-
-    #inTransaction: Option<ChangeLog> = Option.None
+    readonly #listeners: Listeners<PointerListener>
 
     constructor(vertex: Vertex) {
         this.#vertex = vertex
 
-        this.#immediateListeners = new Listeners<PointerListener>()
-        this.#transactualListeners = new Listeners<PointerListener>()
+        this.#listeners = new Listeners<PointerListener>()
     }
 
-    subscribeImmediate(listener: PointerListener, ...filter: ReadonlyArray<PointerTypes>): Subscription {
-        return this.#addFilteredListener(this.#immediateListeners, listener, filter)
+    subscribe(listener: PointerListener, ...filter: ReadonlyArray<PointerTypes>): Subscription {
+        return this.#addFilteredListener(this.#listeners, listener, filter)
     }
 
-    subscribeTransactual(listener: PointerListener, ...filter: ReadonlyArray<PointerTypes>): Subscription {
-        return this.#addFilteredListener(this.#transactualListeners, listener, filter)
-    }
-
-    catchupAndSubscribeTransactual(listener: PointerListener, ...filter: ReadonlyArray<PointerTypes>): Subscription {
+    catchupAndSubscribe(listener: PointerListener, ...filter: ReadonlyArray<PointerTypes>): Subscription {
         const added: SortedSet<Address, PointerField> = Address.newSet(pointer => pointer.address)
         added.addMany(this.filter(...filter))
         added.forEach(pointer => listener.onAdd(pointer))
         // This takes track of the listener notification state.
         // It is possible that the pointer has been added, but it has not been notified yet.
         // That would cause the listener.onAdd method to be invoked twice.
-        return this.subscribeTransactual({
+        return this.subscribe({
             onAdd: (pointer: PointerField) => {
                 if (added.add(pointer)) {
                     listener.onAdd(pointer)
@@ -79,23 +69,11 @@ export class PointerHub {
     onAdded(pointerField: PointerField): void {
         const issue: Option<string> = PointerHub.validate(pointerField, this.#vertex)
         if (issue.nonEmpty()) {return panic(issue.unwrap())}
-        if (this.#inTransaction.isEmpty()) {
-            this.#inTransaction = Option.wrap([{type: "add", pointerField}])
-            this.#vertex.graph.subscribeEndTransaction(this.#onEndTransaction)
-        } else {
-            this.#inTransaction.unwrap().push({type: "add", pointerField})
-        }
-        this.#immediateListeners.proxy.onAdd(pointerField)
+        this.#listeners.proxy.onAdd(pointerField)
     }
 
     onRemoved(pointerField: PointerField): void {
-        if (this.#inTransaction.isEmpty()) {
-            this.#inTransaction = Option.wrap([{type: "remove", pointerField}])
-            this.#vertex.graph.subscribeEndTransaction(this.#onEndTransaction)
-        } else {
-            this.#inTransaction.unwrap().push({type: "remove", pointerField})
-        }
-        this.#immediateListeners.proxy.onRemove(pointerField)
+        this.#listeners.proxy.onRemove(pointerField)
     }
 
     toString(): string {
@@ -118,23 +96,5 @@ export class PointerHub {
                 }
             }
         })
-    }
-
-    readonly #onEndTransaction: Exec = (): void => {
-        // here was a condition checking if the vertex is still attached. If not, it did not notify the listeners.
-        // I think now, this is wrong. It is up to the consumer to decide how to deal with that.
-        // Anyway, this has been removed without remembering why I added it in the first place. Watch out ;)
-        const log: ChangeLog = this.#inTransaction.unwrap("Callback without ChangeLog")
-        log.forEach(({type, pointerField}) => {
-            if (type === "add") {
-                this.#transactualListeners.proxy.onAdd(pointerField)
-            } else if (type === "remove") {
-                this.#transactualListeners.proxy.onRemove(pointerField)
-            } else {
-                return Unhandled(type)
-            }
-        })
-        log.length = 0
-        this.#inTransaction = Option.None
     }
 }

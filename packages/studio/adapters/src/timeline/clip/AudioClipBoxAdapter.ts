@@ -45,7 +45,7 @@ export class AudioClipBoxAdapter implements ClipBoxAdapter<never> {
         this.#changeNotifier = this.#terminator.own(new Notifier<void>())
 
         this.#terminator.ownAll(
-            this.#box.pointerHub.subscribeImmediate({
+            this.#box.pointerHub.subscribe({
                 onAdd: () => this.#dispatchChange(),
                 onRemove: () => this.#dispatchChange()
             }),

@@ -21,7 +21,7 @@ export class MarkerTrackAdapter implements Terminable {
         this.#adapters = UUID.newSet<MarkerBoxAdapter>(adapter => adapter.uuid)
         this.#events = EventCollection.create(MarkerBoxAdapter.Comparator)
 
-        this.#subscription = this.#object.markers.pointerHub.catchupAndSubscribeTransactual({
+        this.#subscription = this.#object.markers.pointerHub.catchupAndSubscribe({
             onAdd: ({box}) => {
                 if (box instanceof MarkerBox) {
                     const adapter = this.#context.boxAdapters.adapterFor(box, MarkerBoxAdapter)

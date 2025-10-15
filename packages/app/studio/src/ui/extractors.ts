@@ -69,7 +69,7 @@ export namespace Extractors {
         if (isDefined(catchup)) {
             watch(catchup.box)
         }
-        lifecycle.own(pointerHub.subscribeTransactual({
+        lifecycle.own(pointerHub.subscribe({
             onAdd: (pointer: PointerField) => watch(pointer.box),
             onRemove: (_pointer: PointerField) => {
                 subscriptor.terminate()

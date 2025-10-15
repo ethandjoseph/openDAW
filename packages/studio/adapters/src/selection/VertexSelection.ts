@@ -118,7 +118,7 @@ export class VertexSelection implements Selection<SelectableVertex> {
     }
 
     #watch(target: Field): Subscription {
-        return target.pointerHub.catchupAndSubscribeTransactual({
+        return target.pointerHub.catchupAndSubscribe({
             onAdd: (pointer: PointerField) => {
                 const box = asInstanceOf(pointer.box, SelectionBox)
                 assert(box.isAttached(), "SelectionBox is not attached")

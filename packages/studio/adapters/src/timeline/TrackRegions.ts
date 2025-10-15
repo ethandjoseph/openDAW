@@ -22,7 +22,7 @@ export class TrackRegions {
         this.#collection = RegionCollection.create<AnyRegionBoxAdapter>(RegionComparator)
         this.#adapters = UUID.newSet<AnyRegionBoxAdapter>(adapter => adapter.uuid)
         this.#terminator.ownAll(
-            this.#trackBoxAdapter.box.regions.pointerHub.catchupAndSubscribeTransactual({
+            this.#trackBoxAdapter.box.regions.pointerHub.catchupAndSubscribe({
                 onAdd: ({box}) => {
                     const adapter = RegionAdapters.for(boxAdapters, box)
                     const added = this.#adapters.add(adapter)

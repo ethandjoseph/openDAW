@@ -1,5 +1,5 @@
 import {AudioRegionBox} from "@opendaw/studio-boxes"
-import {int, Notifier, Maybe, Observer, Option, safeExecute, Subscription, Terminator, UUID} from "@opendaw/lib-std"
+import {int, Maybe, Notifier, Observer, Option, safeExecute, Subscription, Terminator, UUID} from "@opendaw/lib-std"
 import {Pointers} from "@opendaw/studio-enums"
 import {Address, Field, PointerField, Propagation, Update} from "@opendaw/lib-box"
 import {PPQN, ppqn} from "@opendaw/lib-dsp"
@@ -46,7 +46,7 @@ export class AudioRegionBoxAdapter implements LoopableRegionBoxAdapter<never> {
         // this.#terminator.own(this.#project.timelineBox.bpm.subscribe(() => this.trackAdapter.unwrapOrNull()?.dispatchChange()))
 
         this.#terminator.ownAll(
-            this.#box.pointerHub.subscribeImmediate({
+            this.#box.pointerHub.subscribe({
                 onAdd: () => this.#dispatchChange(),
                 onRemove: () => this.#dispatchChange()
             }),
