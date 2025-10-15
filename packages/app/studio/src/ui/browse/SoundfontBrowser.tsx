@@ -99,6 +99,7 @@ export const SoundfontBrowser = ({lifecycle, service}: Construct) => {
                                 <Frag>
                                     <header>
                                         <span>Name</span>
+                                        <span style={{textAlign: "right"}}>Size</span>
                                     </header>
                                     {entries}
                                 </Frag>

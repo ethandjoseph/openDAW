@@ -3,6 +3,7 @@ import {
     asInstanceOf,
     assert,
     EmptyExec,
+    Errors,
     isUndefined,
     JSONValue,
     Option,
@@ -87,7 +88,6 @@ export class YSync<T> implements Terminable {
             const originLabel = typeof origin === "string" ? origin : "WebsocketProvider"
             console.debug(`got ${events.length} ${local ? "local" : "external"} updates from '${originLabel}'`)
             if (local) {return}
-            console.debug("beginTransaction")
             this.#boxGraph.beginTransaction()
             for (const event of events) {
                 const path = event.path
@@ -97,7 +97,7 @@ export class YSync<T> implements Terminable {
                         assert(path.length === 0, "'Add' cannot have a path")
                         this.#createBox(key)
                     } else if (change.action === "update") {
-                        if (path.length === 0) {return}
+                        if (path.length === 0) {continue}
                         assert(path.length >= 2, "Invalid path: must have at least 2 elements (uuid, 'fields').")
                         this.#updateValue(path, key)
                     } else if (change.action === "delete") {
@@ -109,7 +109,6 @@ export class YSync<T> implements Terminable {
             this.#ignoreUpdates = true
             this.#boxGraph.endTransaction()
             this.#ignoreUpdates = false
-            console.debug("endTransactionTransaction")
             try {
                 this.#boxGraph.verifyPointers()
             } catch (reason) {
