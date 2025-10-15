@@ -29,6 +29,7 @@ import {SoundFont2} from "soundfont2"
             const sf = new SoundFont2(new Uint8Array(x))
             const result: Soundfont = {
                 uuid: uuidAsString,
+                size: x.byteLength,
                 name: sf.metaData.name,
                 license: "Creative Commons CC0 public domain",
                 url: "https://freepats.zenvoid.org/OrchestralStrings/harp.html",

@@ -62,6 +62,7 @@ export class SoundfontService extends AssetService<Soundfont> {
         }
         const meta: SoundfontMetaData = {
             name: soundFont2.metaData.name,
+            size: arrayBuffer.byteLength,
             url: "unknown",
             license: soundFont2.metaData.copyright ?? "No license provided",
             origin: "import"

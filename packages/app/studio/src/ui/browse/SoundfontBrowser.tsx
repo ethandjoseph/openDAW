@@ -115,7 +115,7 @@ export const SoundfontBrowser = ({lifecycle, service}: Construct) => {
         RuntimeSignal.subscribe(signal => signal === ProjectSignals.StorageUpdated && reload.get().update()),
         Events.subscribe(element, "keydown", async event => {
             if (Keyboard.GlobalShortcut.isDelete(event) && location.getValue() === AssetLocation.Local) {
-                // TODO await soundfontService.deleteSoundfont()
+                await soundfontSelection.deleteSelected()
                 reload.get().update()
             }
         })

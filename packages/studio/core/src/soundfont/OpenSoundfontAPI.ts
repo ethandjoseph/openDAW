@@ -33,7 +33,6 @@ export class OpenSoundfontAPI {
             const url = `${OpenSoundfontAPI.FileRoot}/${soundfont.uuid}`
             return fetch(url, OpenDAWHeaders)
                 .then(response => {
-                    const total = parseInt(response.headers.get("Content-Length") ?? "0")
                     let loaded = 0
                     return new Promise<ArrayBuffer>((resolve, reject) => {
                         const reader = asDefined(response.body, "No body in response").getReader()
@@ -44,7 +43,7 @@ export class OpenSoundfontAPI {
                             } else {
                                 chunks.push(value)
                                 loaded += value.length
-                                progress(Math.min(1.0, loaded / total))
+                                progress(loaded / soundfont.size)
                                 reader.read().then(nextChunk, reject)
                             }
                         }

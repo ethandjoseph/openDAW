@@ -1,6 +1,6 @@
 import css from "./SoundfontView.sass?inline"
 import {createElement} from "@opendaw/lib-jsx"
-import {Exec, Lifecycle} from "@opendaw/lib-std"
+import {Exec, isDefined, Lifecycle} from "@opendaw/lib-std"
 import {Icon} from "../components/Icon"
 import {IconSymbol, Soundfont} from "@opendaw/studio-adapters"
 import {AssetLocation} from "@/ui/browse/AssetLocation"
@@ -21,10 +21,19 @@ type Construct = {
     refresh: Exec
 }
 
+const formatBytes = (bytes: number, decimals = 1): string => {
+    if (bytes === 0) {return "0 B"}
+    const k = 1024
+    const sizes = ["B", "KB", "MB", "GB", "TB"]
+    const i = Math.floor(Math.log(bytes) / Math.log(k))
+    const value = bytes / Math.pow(k, i)
+    return `${value.toFixed(decimals)} ${sizes[i]}`
+}
+
 export const SoundfontView = ({
                                   lifecycle, soundfontSelection, soundfont, location, refresh
                               }: Construct) => {
-    const {name} = soundfont
+    const {name, size} = soundfont
     const deleteButton: Element = (
         <Button lifecycle={lifecycle} appearance={{activeColor: "white"}}
                 onClick={async (event) => {
@@ -41,6 +50,7 @@ export const SoundfontView = ({
              draggable>
             <div className="meta">
                 <span>{name}</span>
+                <span style={{textAlign: "right"}}>{isDefined(size) ? formatBytes(size) : "N/A"}</span>
             </div>
             {location === AssetLocation.Local && (
                 <div className="edit">
