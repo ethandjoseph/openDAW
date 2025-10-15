@@ -48,10 +48,12 @@ export class CloudAuthManager {
             }
         })
         const handler = await memo()
-        const {status} = await Promises.tryCatch(handler.alive())
+        const {status, error} = await Promises.tryCatch(handler.alive())
         if (status === "rejected") {
+            // Do not auto-retry here to avoid reopening the OAuth popup in a loop.
+            // Instead, clear the memoized handler and surface the error to the caller.
             this.#memoizedHandlers.delete(service)
-            return this.getHandler(service)
+            return Promise.reject(error)
         }
         console.debug(`Handler for '${service}' is alive`)
         return handler
@@ -115,7 +117,7 @@ export class CloudAuthManager {
                     if (!response.ok) {
                         const errorText = await response.text()
                         console.error("[CloudAuth] Token exchange error:", errorText)
-                        return panic(`Token exchange failed: ${response.statusText}`)
+                        return panic(`Token exchange failed: ${errorText}`)
                     }
                     const dataJson = await response.json()
                     const accessToken = dataJson.access_token
