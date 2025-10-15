@@ -1,4 +1,4 @@
-import {Arrays, asDefined, panic} from "@opendaw/lib-std"
+import {Arrays, asDefined, isNotUndefined, panic} from "@opendaw/lib-std"
 import {Communicator, Messenger, Promises} from "@opendaw/lib-runtime"
 import {OpfsProtocol} from "./OpfsProtocol"
 import "../types"
@@ -71,19 +71,22 @@ export namespace OpfsWorker {
             }
 
             async #acquireLock<T>(path: string, operation: () => Promise<T>): Promise<T> {
-                const existingLock = this.#locks.get(path)
-                if (existingLock) {
-                    await existingLock
-                }
-                let releaseLock: () => void = () => panic("Lock not acquired")
-                const lockPromise = new Promise<void>(resolve => releaseLock = resolve)
-                this.#locks.set(path, lockPromise)
-                try {
-                    return await operation()
-                } finally {
-                    releaseLock()
-                    if (this.#locks.get(path) === lockPromise) {
-                        this.#locks.delete(path)
+                while (true) {
+                    const existingLock = this.#locks.get(path)
+                    if (isNotUndefined(existingLock)) {
+                        await existingLock
+                        continue
+                    }
+                    let releaseLock: () => void = () => panic("Lock not acquired")
+                    const lockPromise = new Promise<void>(resolve => releaseLock = resolve)
+                    this.#locks.set(path, lockPromise)
+                    try {
+                        return await operation()
+                    } finally {
+                        if (this.#locks.get(path) === lockPromise) {
+                            this.#locks.delete(path)
+                        }
+                        releaseLock()
                     }
                 }
             }
