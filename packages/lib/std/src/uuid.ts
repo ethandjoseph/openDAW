@@ -86,6 +86,12 @@ export namespace UUID {
         return result
     }
 
+    export type ZodLike = { string: typeof import("zod").string }
+    export const zType = (z: ZodLike) =>
+        z.string()
+            .refine((uuid): uuid is UUID.String => UUID.validateString(uuid), {message: "Invalid UUID format"})
+            .transform(uuid => uuid as UUID.String)
+
     const fromUint8Array = (arr: Uint8Array): Uint8Array => {
         assert(arr.length === length, "UUID must be 16 bytes long")
         arr[6] = (arr[6] & 0x0f) | 0x40 // Version 4 (random)

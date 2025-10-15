@@ -36,12 +36,19 @@ import WorkletsUrl from "@opendaw/studio-core/processors.js?url"
 window.name = "main"
 
 const loadBuildInfo = async () => fetch(`/build-info.json?v=${Date.now()}`)
-    .then(x => x.json().then(x => x as BuildInfo))
+    .then(x => x.json())
+    .then(x => BuildInfo.parse(x))
 
 ;(async () => {
         console.time("boot")
         if (!window.crossOriginIsolated) {return panic("window must be crossOriginIsolated")}
         console.debug("booting...")
+        const {status, value: buildInfo} = await Promises.tryCatch(loadBuildInfo())
+        if (status === "rejected") {
+            alert("Error loading build info. Please reload the page.")
+            return
+        }
+        console.debug("buildInfo", buildInfo)
         await FontLoader.load()
         await Workers.install(WorkersUrl)
         AudioWorklets.install(WorkletsUrl)
@@ -51,8 +58,6 @@ const loadBuildInfo = async () => fetch(`/build-info.json?v=${Date.now()}`)
             replaceChildren(document.body, MissingFeature({error: testFeaturesResult.error}))
             return
         }
-        const buildInfo: BuildInfo = await loadBuildInfo()
-        console.debug("buildInfo", buildInfo)
         console.debug("isLocalHost", Browser.isLocalHost())
         console.debug("agent", Browser.userAgent)
         const sampleRate = Browser.isFirefox() ? undefined : 48000

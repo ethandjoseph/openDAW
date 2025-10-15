@@ -2,6 +2,7 @@ import {asDefined, Lazy, Procedure, RuntimeNotifier, unitValue, UUID} from "@ope
 import {Soundfont, SoundfontMetaData} from "@opendaw/studio-adapters"
 import {OpenDAWHeaders} from "../OpenDAWHeaders"
 import {Promises} from "@opendaw/lib-runtime"
+import {z} from "zod"
 
 export class OpenSoundfontAPI {
     static readonly ApiRoot = "https://api.opendaw.studio/soundfonts"
@@ -13,6 +14,7 @@ export class OpenSoundfontAPI {
     readonly #memoized: () => Promise<ReadonlyArray<Soundfont>> = Promises.memoizeAsync(() => Promises.guardedRetry(() =>
         fetch(`${OpenSoundfontAPI.ApiRoot}/list.json`, OpenDAWHeaders)
             .then(x => x.json())
+            .then(x => z.array(Soundfont).parse(x))
             .catch(reason => RuntimeNotifier.info({
                 headline: "OpenSoundfont API",
                 message: `Could not connect to OpenSoundfont API\nReason: '${reason}'`

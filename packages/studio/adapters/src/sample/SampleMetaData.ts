@@ -1,7 +1,11 @@
-export type SampleMetaData = {
-    name: string
-    bpm: number
-    duration: number
-    sample_rate: number
-    origin: "openDAW" | "recording" | "import"
-}
+import {z} from "zod"
+
+export const SampleMetaData = z.object({
+    name: z.string(),
+    bpm: z.number(),
+    duration: z.number(),
+    sample_rate: z.number(),
+    origin: z.enum(["openDAW", "recording", "import"])
+})
+
+export type SampleMetaData = z.infer<typeof SampleMetaData>

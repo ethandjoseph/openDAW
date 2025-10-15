@@ -14,6 +14,7 @@ import {network, Promises} from "@opendaw/lib-runtime"
 import {AudioData, Sample, SampleMetaData} from "@opendaw/studio-adapters"
 import {SampleAPI} from "@opendaw/studio-core"
 import {base64Credentials, OpenDAWHeaders} from "../OpenDAWHeaders"
+import {z} from "zod"
 
 // Standard openDAW samples (considered to be non-removable)
 export class OpenSampleAPI implements SampleAPI {
@@ -36,13 +37,13 @@ export class OpenSampleAPI implements SampleAPI {
 
     async all(): Promise<ReadonlyArray<Sample>> {
         return Promises.guardedRetry(() => fetch(`${OpenSampleAPI.ApiRoot}/list.php`, OpenDAWHeaders)
-            .then(x => x.json(), () => []), (_error, count) => count < 10)
+            .then(x => x.json().then(x => z.array(Sample).parse(x)), () => []), (_error, count) => count < 10)
     }
 
     async get(uuid: UUID.Bytes): Promise<Sample> {
         const url = `${OpenSampleAPI.ApiRoot}/get.php?uuid=${UUID.toString(uuid)}`
         const sample: Sample = await Promises.retry(() => network.limitFetch(url, OpenDAWHeaders)
-            .then(x => x.json()))
+            .then(x => x.json().then(x => Sample.parse(x))))
             .then(x => {if ("error" in x) {return panic(x.error)} else {return x}})
         return Object.freeze({...sample, origin: "openDAW"})
     }
@@ -104,10 +105,8 @@ export class OpenSampleAPI implements SampleAPI {
                 if (xhr.status === 200) {
                     RuntimeNotifier.info({message: xhr.responseText})
                 } else {
-                    const {
-                        status,
-                        value
-                    } = tryCatch(() => JSON.parse(xhr.responseText).message ?? "Unknown error message")
+                    const {status, value} =
+                        tryCatch(() => JSON.parse(xhr.responseText).message ?? "Unknown error message")
                     RuntimeNotifier.info({
                         headline: "Upload Failure",
                         message: status === "success" ? value : "Unknown error"

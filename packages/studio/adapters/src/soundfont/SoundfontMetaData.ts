@@ -1,9 +1,11 @@
-import {int} from "@opendaw/lib-std"
+import {z} from "zod"
 
-export interface SoundfontMetaData {
-    name: string
-    size: int
-    url: string
-    license: string
-    origin: "openDAW" | "import"
-}
+export const SoundfontMetaData = z.object({
+    name: z.string(),
+    size: z.number().int(),
+    url: z.string(),
+    license: z.string(),
+    origin: z.enum(["openDAW", "import"])
+})
+
+export type SoundfontMetaData = z.infer<typeof SoundfontMetaData>

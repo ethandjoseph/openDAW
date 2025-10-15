@@ -1,4 +1,9 @@
-import {SampleMetaData} from "./SampleMetaData"
 import {UUID} from "@opendaw/lib-std"
+import {SampleMetaData} from "./SampleMetaData"
+import {z} from "zod"
 
-export type Sample = { uuid: UUID.String } & SampleMetaData
+export const Sample = SampleMetaData.extend({
+    uuid: UUID.zType(z)
+})
+
+export type Sample = z.infer<typeof Sample>
