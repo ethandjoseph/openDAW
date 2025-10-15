@@ -84,7 +84,7 @@ export class YSync<T> implements Terminable {
 
     #setupYjs(): Subscription {
         const eventHandler: EventHandler = (events, {origin, local}) => {
-            const originLabel = typeof origin === "string" ? origin : origin.constructor.name
+            const originLabel = typeof origin === "string" ? origin : "WebsocketProvider"
             console.debug(`got ${events.length} ${local ? "local" : "external"} updates from '${originLabel}'`)
             if (local) {return}
             this.#boxGraph.beginTransaction()
@@ -95,33 +95,14 @@ export class YSync<T> implements Terminable {
                     try {
                         if (change.action === "add") {
                             assert(path.length === 0, "'Add' cannot have a path")
-                            const map = this.#boxesMap.get(key) as Y.Map<unknown>
-                            const name = map.get("name") as keyof T
-                            const fields = map.get("fields") as Y.Map<unknown>
-                            const uuid = UUID.parse(key)
-                            const optBox = this.#boxGraph.findBox(UUID.parse(key))
-                            if (optBox.isEmpty()) {
-                                this.#boxGraph.createBox(name, uuid, box => YMapper.applyFromBoxMap(box, fields))
-                            } else {
-                                console.warn(`Cannot create box at '${key}'. It already exists.`)
-                                YMapper.applyFromBoxMap(optBox.unwrap(), fields)
-                            }
+                            this.#createBox(key)
                         } else if (change.action === "update") {
                             if (path.length === 0) {return}
                             assert(path.length >= 2, "Invalid path: must have at least 2 elements (uuid, 'fields').")
                             this.#updateValue(path, key)
                         } else if (change.action === "delete") {
                             assert(path.length === 0, "'Delete' cannot have a path")
-                            const optBox = this.#boxGraph.findBox(UUID.parse(key))
-                            if (optBox.isEmpty()) {
-                                console.warn(`Could not find box to delete at '${key}'`)
-                            } else {
-                                const box = optBox.unwrap()
-                                // It is possible that Yjs have swallowed the pointer releases since they were 'inside' the box.
-                                box.outgoingEdges().forEach(([pointer]) => pointer.defer())
-                                box.incomingEdges().forEach(pointer => pointer.defer())
-                                this.#boxGraph.unstageBox(box)
-                            }
+                            this.#deleteBox(key)
                         }
                     } catch (reason) {
                         this.terminate()
@@ -147,13 +128,31 @@ export class YSync<T> implements Terminable {
         return {terminate: () => {this.#boxesMap.unobserveDeep(eventHandler)}}
     }
 
+    #createBox(key: string): void {
+        const map = this.#boxesMap.get(key) as Y.Map<unknown>
+        const name = map.get("name") as keyof T
+        const fields = map.get("fields") as Y.Map<unknown>
+        const uuid = UUID.parse(key)
+        const optBox = this.#boxGraph.findBox(UUID.parse(key))
+        if (optBox.isEmpty()) {
+            this.#boxGraph.createBox(name, uuid, box => YMapper.applyFromBoxMap(box, fields))
+        } else {
+            console.debug(`Box '${key}' has already been created. Performing 'Upsert'.`)
+            YMapper.applyFromBoxMap(optBox.unwrap(), fields)
+        }
+    }
+
     #updateValue(path: ReadonlyArray<string | number>, key: string): void {
+        const vertexOption = this.#boxGraph.findVertex(YMapper.pathToAddress(path, key))
+        if (vertexOption.isEmpty()) {
+            console.debug(`Vertex at '${path}' does not exist. Ignoring.`)
+            return
+        }
+        const vertex = vertexOption.unwrap("Could not find field")
         const [uuidAsString, fieldsKey, ...fieldKeys] = path
         const targetMap = YMapper.findMap((this.#boxesMap
             .get(String(uuidAsString)) as Y.Map<unknown>)
             .get(String(fieldsKey)) as Y.Map<unknown>, fieldKeys)
-        const vertexOption = this.#boxGraph.findVertex(YMapper.pathToAddress(path, key))
-        const vertex = vertexOption.unwrap("Could not find field")
         assert(vertex.isField(), "Vertex must be either Primitive or Pointer")
         vertex.accept({
             visitField: (_: Field) => panic("Vertex must be either Primitive or Pointer"),
@@ -162,6 +161,19 @@ export class YSync<T> implements Terminable {
             visitPointerField: (field: PointerField) => field.fromJSON(targetMap.get(key) as JSONValue),
             visitPrimitiveField: (field: PrimitiveField) => field.fromJSON(targetMap.get(key) as JSONValue)
         })
+    }
+
+    #deleteBox(key: string): void {
+        const optBox = this.#boxGraph.findBox(UUID.parse(key))
+        if (optBox.isEmpty()) {
+            console.debug(`Box '${key}' has already been deleted. Ignoring.`)
+        } else {
+            const box = optBox.unwrap()
+            // It is possible that Yjs have swallowed the pointer releases since they were 'inside' the box.
+            box.outgoingEdges().forEach(([pointer]) => pointer.defer())
+            box.incomingEdges().forEach(pointer => pointer.defer())
+            this.#boxGraph.unstageBox(box)
+        }
     }
 
     #rollbackTransaction(events: ReadonlyArray<Y.YEvent<any>>): void {
