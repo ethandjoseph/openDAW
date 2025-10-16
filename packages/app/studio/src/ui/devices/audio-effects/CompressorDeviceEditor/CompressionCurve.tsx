@@ -28,7 +28,7 @@ export const CompressionCurve = ({lifecycle, adapter}: Construct) => {
                     context.translate(padding, padding)
                     context.save()
                     context.lineWidth = 0.0
-                    context.strokeStyle = "rgba(255, 255, 255, 0.04)"
+                    context.strokeStyle = "rgba(255, 255, 255, 0.03)"
                     context.beginPath()
                     for (let i = 0; i <= numSegments; i++) {
                         const pos = (i / numSegments) * size
@@ -49,7 +49,7 @@ export const CompressionCurve = ({lifecycle, adapter}: Construct) => {
                             path2D.lineTo(x, y)
                         }
                     }
-                    context.fillStyle = "hsla(200, 83%, 60%, 0.04)"
+                    context.fillStyle = "hsla(200, 83%, 60%, 0.08)"
                     context.strokeStyle = "hsla(200, 83%, 60%, 0.80)"
                     context.stroke(path2D)
                     path2D.lineTo(size, size)

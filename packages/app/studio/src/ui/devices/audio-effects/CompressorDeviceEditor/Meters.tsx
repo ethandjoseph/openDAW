@@ -18,9 +18,9 @@ export const Meters = ({lifecycle, values}: Construct) => {
     const width = 36
     const {height, padding, innerHeight} = Vertical
     const meters: ReadonlyArray<SVGRectElement> = [
-        <rect x="16" y="0" width="4" height={innerHeight * 2} fill={Colors.cream} rx="1" ry="1"/>,
+        <rect x="16" y="0" width="4" height={innerHeight * 2} fill="rgba(255, 255, 255, 0.2)" rx="1" ry="1"/>,
         <rect x="23" y="0" width="4" height={innerHeight} fill={Colors.orange} rx="1" ry="1"/>,
-        <rect x="30" y="0" width="4" height={innerHeight * 2 / 3} fill={Colors.cream} rx="1" ry="1"/>
+        <rect x="30" y="0" width="4" height={innerHeight * 2 / 3} fill="rgba(255, 255, 255, 0.2)" rx="1" ry="1"/>
     ]
     const setMeter = (meter: SVGRectElement, top: number, bottom: number) => {
         const min = Math.min(top, bottom)
@@ -44,9 +44,9 @@ export const Meters = ({lifecycle, values}: Construct) => {
                           fill="rgba(255, 255, 255, 0.25)"
                           alignment-baseline="middle">{db}</text>
                 ))}
-                <rect x="16" y="0" width="4" height={innerHeight} fill="rgba(0, 0, 0, 0.5)" rx="1" ry="1"/>
-                <rect x="23" y="0" width="4" height={innerHeight} fill="rgba(0, 0, 0, 0.5)" rx="1" ry="1"/>
-                <rect x="30" y="0" width="4" height={innerHeight} fill="rgba(0, 0, 0, 0.5)" rx="1" ry="1"/>
+                <rect x="16" y="0" width="4" height={innerHeight} fill="rgba(0, 0, 0, 0.2)" rx="1" ry="1"/>
+                <rect x="23" y="0" width="4" height={innerHeight} fill="rgba(0, 0, 0, 0.2)" rx="1" ry="1"/>
+                <rect x="30" y="0" width="4" height={innerHeight} fill="rgba(0, 0, 0, 0.2)" rx="1" ry="1"/>
                 {meters}
             </g>
         </svg>
