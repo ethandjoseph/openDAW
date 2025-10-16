@@ -1,4 +1,4 @@
-import {Func, int, isDefined, Nullable, Maybe, Predicate, Procedure} from "./lang"
+import {Func, int, isDefined, Maybe, Nullable, Predicate, Procedure} from "./lang"
 
 export class Iterables {
     static* empty<T>(): Iterable<T> {}

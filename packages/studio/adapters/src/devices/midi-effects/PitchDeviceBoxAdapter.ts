@@ -6,7 +6,7 @@ import {DeviceHost, Devices, MidiEffectDeviceAdapter} from "../../DeviceAdapter"
 import {BoxAdaptersContext} from "../../BoxAdaptersContext"
 import {ParameterAdapterSet} from "../../ParameterAdapterSet"
 import {AudioUnitBoxAdapter} from "../../audio-unit/AudioUnitBoxAdapter"
-import { AutomatableParameterFieldAdapter } from "../../AutomatableParameterFieldAdapter"
+import {AutomatableParameterFieldAdapter} from "../../AutomatableParameterFieldAdapter"
 
 export class PitchDeviceBoxAdapter implements MidiEffectDeviceAdapter {
     readonly type = "midi-effect"

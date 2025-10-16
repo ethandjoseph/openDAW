@@ -2,8 +2,8 @@ import {EventCollection, LoopableRegion, ppqn, PPQN, RegionCollection} from "@op
 import {
     Arrays,
     int,
-    Notifier,
     Maybe,
+    Notifier,
     Observer,
     Option,
     safeExecute,

@@ -1,4 +1,4 @@
-declare module '*.xml?raw' {
+declare module "*.xml?raw" {
     const content: string
     export default content
 }

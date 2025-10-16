@@ -9,7 +9,6 @@ import {AudioUnitBoxAdapter} from "../../audio-unit/AudioUnitBoxAdapter"
 import {ModularAdapter} from "../../modular/modular"
 import {DeviceInterfaceKnobAdapter} from "../../modular/user-interface"
 
-
 export class ModularDeviceBoxAdapter implements AudioEffectDeviceAdapter {
     readonly type = "audio-effect"
     readonly accepts = "audio"

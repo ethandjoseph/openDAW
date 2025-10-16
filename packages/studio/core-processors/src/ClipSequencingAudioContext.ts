@@ -1,10 +1,13 @@
-import {AnyClipBoxAdapter} from "@opendaw/studio-adapters"
+import {
+    AnyClipBoxAdapter,
+    ClipSequencing,
+    ClipSequencingUpdates,
+    Section,
+    TrackBoxAdapter
+} from "@opendaw/studio-adapters"
 import {Arrays, identity, Option, quantizeFloor, SortedSet, UUID} from "@opendaw/lib-std"
 import {ppqn, PPQN} from "@opendaw/lib-dsp"
-import {TrackBoxAdapter} from "@opendaw/studio-adapters"
 import {BoxGraph, Update} from "@opendaw/lib-box"
-import {ClipSequencing, Section} from "@opendaw/studio-adapters"
-import {ClipSequencingUpdates} from "@opendaw/studio-adapters"
 
 // Just convenient to identify which UUID is for which type
 type ClipKey = UUID.Bytes

@@ -2,8 +2,8 @@ import {LoopableRegion, NoteEvent, ppqn, PPQN, RegionCollection} from "@opendaw/
 import {
     Arrays,
     int,
-    Notifier,
     Maybe,
+    Notifier,
     Observer,
     Option,
     safeExecute,

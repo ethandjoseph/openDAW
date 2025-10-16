@@ -71,4 +71,5 @@ Each in-house library has a clear, focused purpose.
 
 * [jszip](https://www.npmjs.com/package/jszip) (Pack & Unpack Zip-Files)
 * [markdown-it](https://www.npmjs.com/package/markdown-it) + markdown-it-table (Markdown parsing/rendering)
-* [d3-force](https://github.com/d3/d3-force) and [force-graph](https://github.com/vasturiano/force-graph) (graph/layout) < dynamic import
+* [d3-force](https://github.com/d3/d3-force) and [force-graph](https://github.com/vasturiano/force-graph) (
+  graph/layout) < dynamic import

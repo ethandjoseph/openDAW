@@ -10,11 +10,11 @@
                     <Review score="4">Dark fantasy masterpiece.</Review>
                 </Comic>
             </Shelf>
-            <Shelf id="sh2" />
+            <Shelf id="sh2"/>
         </Section>
         <Section id="sec2" name="Non-Fiction">
             <Shelf id="sh3">
-                <Textbook title="A Brief History of Time" author="Stephen Hawking" edition="2" />
+                <Textbook title="A Brief History of Time" author="Stephen Hawking" edition="2"/>
             </Shelf>
         </Section>
     </Sections>

@@ -2,7 +2,8 @@ import {Box, Vertex} from "@opendaw/lib-box"
 import {
     BoxVisitor,
     ModularAudioInputBox,
-    ModularAudioOutputBox, ModuleAttributes,
+    ModularAudioOutputBox,
+    ModuleAttributes,
     ModuleDelayBox,
     ModuleGainBox,
     ModuleMultiplierBox

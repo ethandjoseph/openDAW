@@ -40,14 +40,14 @@ describe("color", () => {
     })
 
     it("should convert HEX to HSL correctly (approximate)", () => {
-        const { h, s, l } = hexToHsl("#e6bf99")
+        const {h, s, l} = hexToHsl("#e6bf99")
         expect(h).toBeCloseTo(30, 0)
         expect(s).toBeCloseTo(0.6, 1)
         expect(l).toBeCloseTo(0.75, 2)
     })
 
     it("should work without leading # in hex", () => {
-        const { h, s, l } = hexToHsl("e6bf99")
+        const {h, s, l} = hexToHsl("e6bf99")
         expect(h).toBeCloseTo(30, 0)
         expect(s).toBeCloseTo(0.6, 1)
         expect(l).toBeCloseTo(0.75, 2)
@@ -55,11 +55,11 @@ describe("color", () => {
 
     it("should round-trip between HSL and HEX", () => {
         const colors = [
-            { h: 0, s: 1, l: 0.5 },
-            { h: 120, s: 1, l: 0.5 },
-            { h: 240, s: 1, l: 0.5 },
-            { h: 30, s: 0.6, l: 0.75 },
-            { h: 200, s: 0.4, l: 0.3 }
+            {h: 0, s: 1, l: 0.5},
+            {h: 120, s: 1, l: 0.5},
+            {h: 240, s: 1, l: 0.5},
+            {h: 30, s: 0.6, l: 0.75},
+            {h: 200, s: 0.4, l: 0.3}
         ]
 
         for (const c of colors) {

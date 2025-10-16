@@ -2,8 +2,8 @@ import {EventCollection, ppqn, PPQN} from "@opendaw/lib-dsp"
 import {
     DefaultObservableValue,
     int,
-    Notifier,
     Maybe,
+    Notifier,
     ObservableValue,
     Observer,
     Option,

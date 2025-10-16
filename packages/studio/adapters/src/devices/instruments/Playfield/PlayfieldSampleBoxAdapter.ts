@@ -5,7 +5,8 @@ import {Address, BooleanField, Field, Int32Field, StringField} from "@opendaw/li
 import {
     AudioEffectDeviceAdapter,
     DeviceAccepts,
-    DeviceHost, Devices,
+    DeviceHost,
+    Devices,
     InstrumentDeviceBoxAdapter,
     MidiEffectDeviceAdapter
 } from "../../../DeviceAdapter"

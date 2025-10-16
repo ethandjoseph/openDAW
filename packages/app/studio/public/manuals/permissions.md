@@ -8,7 +8,8 @@ as it makes working with openDAW much smoother.
 
 ## More Info
 
-In all modern browsers, `navigator.mediaDevices.enumerateDevices()` will only list audio and video devices after the user
+In all modern browsers, `navigator.mediaDevices.enumerateDevices()` will only list audio and video devices after the
+user
 grants permission—typically via a getUserMedia() call. Chrome, Safari, and Firefox have all adopted this behavior to
 protect user privacy and reduce fingerprinting risks. Without permission, device names, IDs, or availability remain
 hidden. This is how browsers are designed. Granting microphone access ensures openDAW can list
