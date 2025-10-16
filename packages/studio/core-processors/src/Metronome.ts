@@ -1,8 +1,6 @@
 import {BlockFlag, ProcessInfo} from "./processing"
-import {Fragmentor, PPQN} from "@opendaw/lib-dsp"
+import {AudioBuffer, Fragmentor, PPQN, RenderQuantum} from "@opendaw/lib-dsp"
 import {assert, Bits, int, TAU} from "@opendaw/lib-std"
-import {RenderQuantum} from "./constants"
-import {AudioBuffer} from "./AudioBuffer"
 import {TimeInfo} from "./TimeInfo"
 
 export class Metronome {

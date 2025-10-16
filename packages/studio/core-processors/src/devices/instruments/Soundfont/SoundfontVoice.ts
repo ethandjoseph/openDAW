@@ -1,8 +1,7 @@
 import type {Generator, InstrumentZone, PresetZone, SoundFont2, ZoneMap} from "soundfont2"
-import {midiToHz, NoteEvent, velocityToGain} from "@opendaw/lib-dsp"
+import {AudioBuffer, midiToHz, NoteEvent, velocityToGain} from "@opendaw/lib-dsp"
 import {Id, int, isNotUndefined, Optional} from "@opendaw/lib-std"
 import {ADSREnvelope} from "./ADSREnvelope"
-import {AudioBuffer} from "../../../AudioBuffer"
 import {GeneratorType} from "./GeneratorType"
 
 const getNumericGenerator = (generators: ZoneMap<Generator>, type: GeneratorType): Optional<number> =>

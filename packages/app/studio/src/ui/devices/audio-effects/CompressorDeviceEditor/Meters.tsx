@@ -4,6 +4,7 @@ import {clampUnit, Lifecycle} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {LinearScale} from "@/ui/canvas/scale"
 import {Colors} from "@opendaw/studio-core"
+import {Vertical} from "@/ui/devices/audio-effects/CompressorDeviceEditor/Vertical"
 
 const className = Html.adoptStyleSheet(css, "Meters")
 
@@ -15,9 +16,7 @@ type Construct = {
 export const Meters = ({lifecycle, values}: Construct) => {
     const scale = new LinearScale(0, 24)
     const width = 36
-    const height = 157
-    const padding = 10
-    const innerHeight = height - padding * 2
+    const {height, padding, innerHeight} = Vertical
     const meters: ReadonlyArray<SVGRectElement> = [
         <rect x="16" y="0" width="4" height={innerHeight * 2} fill={Colors.cream} rx="1" ry="1"/>,
         <rect x="23" y="0" width="4" height={innerHeight} fill={Colors.orange} rx="1" ry="1"/>,

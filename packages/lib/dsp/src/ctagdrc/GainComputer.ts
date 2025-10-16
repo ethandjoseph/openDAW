@@ -29,16 +29,14 @@ export class GainComputer {
         }
     }
 
-    #applyCompression(input: number): number {
+    applyCompression(input: number): number {
         const overshoot = input - this.#threshold
-
         if (overshoot <= -this.#kneeHalf) {
             return 0.0
         }
         if (overshoot > -this.#kneeHalf && overshoot <= this.#kneeHalf) {
             return 0.5 * this.#slope * ((overshoot + this.#kneeHalf) * (overshoot + this.#kneeHalf)) / this.#knee
         }
-
         return this.#slope * overshoot
     }
 
@@ -46,7 +44,7 @@ export class GainComputer {
         for (let i = 0; i < numSamples; ++i) {
             const level = Math.max(Math.abs(src[i]), 1e-6)
             const levelInDecibels = gainToDecibels(level)
-            src[i] = this.#applyCompression(levelInDecibels)
+            src[i] = this.applyCompression(levelInDecibels)
         }
     }
 }

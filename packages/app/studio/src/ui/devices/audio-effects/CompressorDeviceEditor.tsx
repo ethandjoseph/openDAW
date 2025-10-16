@@ -12,6 +12,7 @@ import {ParameterToggleButton} from "@/ui/devices/ParameterToggleButton"
 import {ParameterLabel} from "@/ui/components/ParameterLabel"
 import {RelativeUnitValueDragging} from "@/ui/wrapper/RelativeUnitValueDragging"
 import {Meters} from "@/ui/devices/audio-effects/CompressorDeviceEditor/Meters"
+import {CompressionCurve} from "@/ui/devices/audio-effects/CompressorDeviceEditor/CompressionCurve"
 
 const className = Html.adoptStyleSheet(css, "CompressorDeviceEditor")
 
@@ -73,7 +74,7 @@ export const CompressorDeviceEditor = ({lifecycle, service, adapter, deviceHost}
                                           .map(parameter => createLabelControlFrag(parameter))}
                                   </div>
                               </div>
-                              <div className="display"/>
+                              <CompressionCurve lifecycle={lifecycle} adapter={adapter}/>
                               <Meters lifecycle={lifecycle} values={values}/>
                           </div>)}
                       populateMeter={() => (

@@ -5,6 +5,7 @@
 This is a TypeScript port of the CTAG Dynamic Range Compressor (CTAGDRC), originally created by Phillip Lamp.
 
 **Original Project:**
+
 - Name: CTAGDRC (CTAG Dynamic Range Compressor)
 - Author: Phillip Lamp
 - Original Repository: https://github.com/p-hlp/CTAGDRC
@@ -13,15 +14,19 @@ This is a TypeScript port of the CTAG Dynamic Range Compressor (CTAGDRC), origin
 
 **LookAhead Implementation:**
 The lookahead implementation is based on work by Daniel Rudrich:
+
 - https://github.com/DanielRudrich/SimpleCompressor/blob/master/docs/lookAheadLimiter.md
 - Copyright (C) 2019 Daniel Rudrich
 
 ## Description
 
-This TypeScript implementation faithfully ports the DSP (Digital Signal Processing) algorithms from the original C++/JUCE implementation to work in a web audio context. The compressor implements a feedforward VCA-style topology based on research papers on digital dynamic range compression.
+This TypeScript implementation faithfully ports the DSP (Digital Signal Processing) algorithms from the original
+C++/JUCE implementation to work in a web audio context. The compressor implements a feedforward VCA-style topology based
+on research papers on digital dynamic range compression.
 
 ### Key Features Ported:
-- **Gain Computer**: Calculates compression curve with threshold, ratio, and soft knee
+
+- **Gain Computer**: Calculates a compression curve with a threshold, ratio, and soft knee
 - **Level Detector (Ballistics)**: Smooth branched peak detector for attack/release timing
 - **Crest Factor Analysis**: Automatic attack/release adjustment based on signal characteristics
 - **LookAhead Limiting**: Anticipates peaks and fades in gain reduction to prevent distortion
@@ -32,7 +37,8 @@ This TypeScript implementation faithfully ports the DSP (Digital Signal Processi
 
 The original implementation was based on the following academic papers:
 
-1. Giannoulis, D., Massberg, M., & Reiss, J. D. (2012). "Digital Dynamic Range Compressor Design – A Tutorial and Analysis"
+1. Giannoulis, D., Massberg, M., & Reiss, J. D. (2012). "Digital Dynamic Range Compressor Design – A Tutorial and
+   Analysis"
    https://www.eecs.qmul.ac.uk/~josh/documents/2012/GiannoulisMassbergReiss-dynamicrangecompression-JAES2012.pdf
 
 2. Reiss, J. D. "Tutorial on Automatic Mixing"
@@ -66,6 +72,7 @@ along with this program. If not, see <https://www.gnu.org/licenses/>.
 ## Modifications
 
 This TypeScript port includes the following adaptations:
+
 - Conversion from C++ to TypeScript
 - Adaptation to work with TypeScript/JavaScript typed arrays instead of JUCE AudioBuffer
 - Integration with a web-based audio processing architecture

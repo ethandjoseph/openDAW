@@ -51,7 +51,7 @@ const DrumBox: ClassSchema<PointerType> = {
         10: {type: "float32", name: "gain", value: 0.0, pointerRules: DefaultParameterPointerRules},
         11: {type: "float32", name: "cutoff", value: 18000.0, pointerRules: DefaultParameterPointerRules},
         12: {type: "float32", name: "resonance", pointerRules: DefaultParameterPointerRules},
-        13: {type: "boolean", name: "compressor", pointerRules: DefaultParameterPointerRules},
+        13: {type: "boolean", name: "ctagdrc", pointerRules: DefaultParameterPointerRules},
         20: {type: "int32", name: "patternIndex"},
         21: {
             type: "array", name: "patterns", length: 28, element: {

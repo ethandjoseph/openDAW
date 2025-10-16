@@ -1,27 +1,28 @@
 import {AudioEffectDeviceAdapter, CompressorDeviceBoxAdapter} from "@opendaw/studio-adapters"
 import {int, Option, Terminable, UUID} from "@opendaw/lib-std"
-import {Event, gainToDb} from "@opendaw/lib-dsp"
+import {AudioBuffer, Event, gainToDb, RenderQuantum} from "@opendaw/lib-dsp"
 import {EngineContext} from "../../EngineContext"
 import {Block, Processor} from "../../processing"
-import {AudioBuffer} from "../../AudioBuffer"
 import {PeakBroadcaster} from "../../PeakBroadcaster"
 import {AudioProcessor} from "../../AudioProcessor"
 import {AutomatableParameter} from "../../AutomatableParameter"
 import {AudioEffectDeviceProcessor} from "../../AudioEffectDeviceProcessor"
-import {RenderQuantum} from "../../constants"
-import {LevelDetector} from "./compressor/LevelDetector"
-import {GainComputer} from "./compressor/GainComputer"
-import {DelayLine} from "./compressor/DelayLine"
-import {LookAhead} from "./compressor/LookAhead"
-import {SmoothingFilter} from "./compressor/SmoothingFilter"
-import {decibelsToGain} from "./compressor/conversation"
+import {
+    decibelsToGain,
+    DelayLine,
+    GainComputer,
+    LevelDetector,
+    LookAhead,
+    SmoothingFilter
+} from "@opendaw/lib-dsp/ctagdrc"
 
 /**
  * Ported from https://github.com/p-hlp/CTAGDRC
- * More information in the ./compressor/readme.md file
+ * More information in the ./ctagdrc/readme.md file
  */
 export class CompressorDeviceProcessor extends AudioProcessor implements AudioEffectDeviceProcessor {
-    static readonly PEAK_DECAY_PER_SAMPLE = Math.exp(-1.0 / (sampleRate * 0.250))
+    static readonly PEAK_DECAY_PER_SAMPLE = Math.exp(-1.0 / (sampleRate * 0.500))
+    static readonly REDUCTION_DECAY_PER_SAMPLE = RenderQuantum / sampleRate * 0.050
 
     static ID: int = 0 | 0
 
@@ -200,13 +201,12 @@ export class CompressorDeviceProcessor extends AudioProcessor implements AudioEf
         this.#ballistics.applyBallistics(this.#sidechainSignal, numSamples)
 
         // Get minimum = max gain reduction from a sidechain signal
-        const millisecondsDecay = 0.200
         for (let i = 0; i < numSamples; i++) {
             const peak = this.#sidechainSignal[i]
             if (this.#redMin >= peak) {
                 this.#redMin = peak
             } else {
-                this.#redMin += RenderQuantum / sampleRate * millisecondsDecay
+                this.#redMin += CompressorDeviceProcessor.REDUCTION_DECAY_PER_SAMPLE
             }
         }
 

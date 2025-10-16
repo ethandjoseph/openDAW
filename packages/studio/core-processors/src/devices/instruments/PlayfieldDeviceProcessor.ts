@@ -1,7 +1,6 @@
 import {byte, Option, SortedSet, Terminable, Terminator, UUID} from "@opendaw/lib-std"
 import {PlayfieldDeviceBoxAdapter, PlayfieldSampleBoxAdapter} from "@opendaw/studio-adapters"
 import {EngineContext} from "../../EngineContext"
-import {AudioBuffer} from "../../AudioBuffer"
 import {Processor} from "../../processing"
 import {AutomatableParameter} from "../../AutomatableParameter"
 import {NoteEventSource, NoteEventTarget} from "../../NoteEventSource"
@@ -9,6 +8,7 @@ import {PlayfieldSequencer} from "./Playfield/PlayfieldSequencer"
 import {MixProcessor} from "./Playfield/MixProcessor"
 import {SampleProcessor} from "./Playfield/SampleProcessor"
 import {DeviceProcessor} from "../../DeviceProcessor"
+import {AudioBuffer} from "@opendaw/lib-dsp"
 
 export class PlayfieldDeviceProcessor implements DeviceProcessor, NoteEventTarget {
     readonly #terminator = new Terminator()
