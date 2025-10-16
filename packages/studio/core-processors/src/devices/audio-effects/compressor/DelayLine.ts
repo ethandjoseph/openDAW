@@ -14,7 +14,6 @@ export class DelayLine {
         this.#numChannels = numChannels
         this.#delayInSamples = Math.floor(sampleRate * delayInSeconds)
         this.#delayBufferSize = maxBlockSize + this.#delayInSamples
-
         for (let ch = 0; ch < numChannels; ch++) {
             this.#delayBuffer[ch] = new Float32Array(this.#delayBufferSize)
         }
@@ -22,23 +21,20 @@ export class DelayLine {
     }
 
     process(buffer: AudioBuffer, numSamples: int): void {
-        if (this.#delayInSamples === 0) return
-
+        if (this.#delayInSamples === 0) {return}
+        let readPosition = (this.#writePosition - this.#delayInSamples + this.#delayBufferSize) % this.#delayBufferSize
         for (let ch = 0; ch < this.#numChannels; ch++) {
             const channelData = buffer.getChannel(ch)
-
-            // Push samples
+            let writePos = this.#writePosition
+            let readPos = readPosition
             for (let i = 0; i < numSamples; i++) {
-                this.#delayBuffer[ch][this.#writePosition] = channelData[i]
-                this.#writePosition = (this.#writePosition + 1) % this.#delayBufferSize
-            }
-
-            // Read samples
-            let readPosition = (this.#writePosition - numSamples - this.#delayInSamples + this.#delayBufferSize) % this.#delayBufferSize
-            for (let i = 0; i < numSamples; i++) {
-                channelData[i] = this.#delayBuffer[ch][readPosition]
-                readPosition = (readPosition + 1) % this.#delayBufferSize
+                const delayedSample = this.#delayBuffer[ch][readPos]
+                this.#delayBuffer[ch][writePos] = channelData[i]
+                channelData[i] = delayedSample
+                writePos = (writePos + 1) % this.#delayBufferSize
+                readPos = (readPos + 1) % this.#delayBufferSize
             }
         }
+        this.#writePosition = (this.#writePosition + numSamples) % this.#delayBufferSize
     }
 }

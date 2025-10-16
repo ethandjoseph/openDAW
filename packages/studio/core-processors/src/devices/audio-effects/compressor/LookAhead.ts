@@ -30,7 +30,8 @@ export class LookAhead {
     }
 
     #readSamples(dst: Float32Array, numSamples: int): void {
-        let readPosition = (this.#writePosition - this.#numLastPushed - this.#delayInSamples + this.#bufferSize) % this.#bufferSize
+        let readPosition = this.#writePosition - this.#numLastPushed - this.#delayInSamples
+        if (readPosition < 0) readPosition += this.#bufferSize
         for (let i = 0; i < numSamples; i++) {
             dst[i] = this.#buffer[readPosition]
             readPosition = (readPosition + 1) % this.#bufferSize
@@ -38,11 +39,12 @@ export class LookAhead {
     }
 
     #processSamples(): void {
-        let index = (this.#writePosition - 1 + this.#bufferSize) % this.#bufferSize
+        let index = this.#writePosition - 1
+        if (index < 0) index += this.#bufferSize
+
         let nextValue = 0.0
         let slope = 0.0
 
-        // Process the samples that were just pushed
         for (let i = 0; i < this.#numLastPushed; i++) {
             const sample = this.#buffer[index]
             if (sample > nextValue) {
@@ -52,10 +54,10 @@ export class LookAhead {
                 slope = -sample / this.#delayInSamples
                 nextValue = sample + slope
             }
-            index = (index - 1 + this.#bufferSize) % this.#bufferSize
+            index = index - 1
+            if (index < 0) index += this.#bufferSize
         }
 
-        // Process the delay range
         let procMinimumFound = false
         for (let i = 0; i < this.#delayInSamples && !procMinimumFound; i++) {
             const sample = this.#buffer[index]
@@ -66,7 +68,8 @@ export class LookAhead {
                 procMinimumFound = true
                 break
             }
-            index = (index - 1 + this.#bufferSize) % this.#bufferSize
+            index = index - 1
+            if (index < 0) index += this.#bufferSize
         }
     }
 }

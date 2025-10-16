@@ -96,7 +96,7 @@ export class CompressorDeviceProcessor extends AudioProcessor implements AudioEf
         this.parameterMakeup = this.own(this.bindParameter(makeup))
         this.parameterMix = this.own(this.bindParameter(mix))
 
-        // Initialize DSP
+        // TODO replace
         this.#sampleRate = sampleRate
         this.#maxBlockSize = RenderQuantum
 
