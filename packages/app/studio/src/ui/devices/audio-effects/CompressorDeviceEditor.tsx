@@ -11,6 +11,7 @@ import {EffectFactories} from "@opendaw/studio-core"
 import {ParameterToggleButton} from "@/ui/devices/ParameterToggleButton"
 import {ParameterLabel} from "@/ui/components/ParameterLabel"
 import {RelativeUnitValueDragging} from "@/ui/wrapper/RelativeUnitValueDragging"
+import {Meters} from "@/ui/devices/audio-effects/CompressorDeviceEditor/Meters"
 
 const className = Html.adoptStyleSheet(css, "CompressorDeviceEditor")
 
@@ -29,9 +30,9 @@ export const CompressorDeviceEditor = ({lifecycle, service, adapter, deviceHost}
         threshold, ratio, knee, makeup,
         attack, release, inputgain, mix
     } = adapter.namedParameter
-    lifecycle.own(project.liveStreamReceiver.subscribeFloat(adapter.address.append(0), _value => {
-        // console.debug(value)
-    }))
+    const values = new Float32Array([Number.NEGATIVE_INFINITY, 0.0, Number.NEGATIVE_INFINITY])
+    lifecycle.own(project.liveStreamReceiver.subscribeFloats(
+        adapter.address.append(0), processorValues => values.set(processorValues)))
     const createLabelControlFrag = (parameter: AutomatableParameterFieldAdapter<number>) => (
         <Frag>
             <span>{parameter.name}</span>
@@ -73,7 +74,7 @@ export const CompressorDeviceEditor = ({lifecycle, service, adapter, deviceHost}
                                   </div>
                               </div>
                               <div className="display"/>
-                              <div className="meters"/>
+                              <Meters lifecycle={lifecycle} values={values}/>
                           </div>)}
                       populateMeter={() => (
                           <DevicePeakMeter lifecycle={lifecycle}
