@@ -167,11 +167,11 @@ export class LiveStreamReceiver implements Terminable {
         this.#bytes.terminate()
     }
 
-    subscribeFloat(address: Address, procedure: Procedure<int>): Subscription {
+    subscribeFloat(address: Address, procedure: Procedure<float>): Subscription {
         return this.#float.subscribe(address, procedure)
     }
 
-    subscribeInteger(address: Address, procedure: Procedure<float>): Subscription {
+    subscribeInteger(address: Address, procedure: Procedure<int>): Subscription {
         return this.#integer.subscribe(address, procedure)
     }
 

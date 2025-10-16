@@ -20,6 +20,7 @@ import {
     AudioUnitBox,
     AuxSendBox,
     BoxVisitor,
+    CompressorDeviceBox,
     DelayDeviceBox,
     DeviceInterfaceKnobBox,
     GrooveShuffleBox,
@@ -104,6 +105,7 @@ import {UnknownAudioEffectDeviceBoxAdapter} from "./devices/audio-effects/Unknow
 import {UnknownMidiEffectDeviceBoxAdapter} from "./devices/midi-effects/UnknownMidiEffectDeviceBoxAdapter"
 import {SoundfontDeviceBoxAdapter} from "./devices/instruments/SoundfontDeviceBoxAdapter"
 import {SoundfontFileBoxAdapter} from "./soundfont/SoundfontFileBoxAdapter"
+import {CompressorDeviceBoxAdapter} from "./devices/audio-effects/CompressorDeviceBoxAdapter"
 
 export class BoxAdapters implements Terminable {
     readonly #context: BoxAdaptersContext
@@ -161,6 +163,7 @@ export class BoxAdapters implements Terminable {
             visitPitchDeviceBox: (box: PitchDeviceBox) => new PitchDeviceBoxAdapter(this.#context, box),
             visitStereoToolDeviceBox: (box: StereoToolDeviceBox) => new StereoToolDeviceBoxAdapter(this.#context, box),
             visitDelayDeviceBox: (box: DelayDeviceBox) => new DelayDeviceBoxAdapter(this.#context, box),
+            visitCompressorDeviceBox: (box: CompressorDeviceBox) => new CompressorDeviceBoxAdapter(this.#context, box),
             visitReverbDeviceBox: (box: ReverbDeviceBox) => new ReverbDeviceBoxAdapter(this.#context, box),
             visitRevampDeviceBox: (box: RevampDeviceBox) => new RevampDeviceBoxAdapter(this.#context, box),
             visitUnknownAudioEffectDeviceBox: (box: UnknownAudioEffectDeviceBox) => new UnknownAudioEffectDeviceBoxAdapter(this.#context, box),

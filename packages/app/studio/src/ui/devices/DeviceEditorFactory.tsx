@@ -3,6 +3,7 @@ import {
     ArpeggioDeviceBox,
     AudioBusBox,
     BoxVisitor,
+    CompressorDeviceBox,
     DelayDeviceBox,
     ModularDeviceBox,
     NanoDeviceBox,
@@ -23,6 +24,7 @@ import {ArpeggioDeviceEditor} from "@/ui/devices/midi-effects/ArpeggioDeviceEdit
 import {
     ArpeggioDeviceBoxAdapter,
     AudioBusBoxAdapter,
+    CompressorDeviceBoxAdapter,
     DelayDeviceBoxAdapter,
     DeviceHost,
     ModularDeviceBoxAdapter,
@@ -58,6 +60,7 @@ import {ZeitgeistDeviceEditor} from "@/ui/devices/midi-effects/ZeitgeistDeviceEd
 import {UnknownEffectDeviceEditor} from "@/ui/devices/UnknownEffectDeviceEditor"
 import {StudioService} from "@/service/StudioService"
 import {SoundfontDeviceEditor} from "@/ui/devices/instruments/SoundfontDeviceEditor"
+import {CompressorDeviceEditor} from "@/ui/devices/audio-effects/CompressorDeviceEditor"
 
 export namespace DeviceEditorFactory {
     export const toMidiEffectDeviceEditor = (service: StudioService, lifecycle: Lifecycle, box: Box, deviceHost: DeviceHost) =>
@@ -157,6 +160,12 @@ export namespace DeviceEditorFactory {
                                    service={service}
                                    adapter={service.project.boxAdapters.adapterFor(box, DelayDeviceBoxAdapter)}
                                    deviceHost={deviceHost}/>
+            ),
+            visitCompressorDeviceBox: (box: CompressorDeviceBox) => (
+                <CompressorDeviceEditor lifecycle={lifecycle}
+                                        service={service}
+                                        adapter={service.project.boxAdapters.adapterFor(box, CompressorDeviceBoxAdapter)}
+                                        deviceHost={deviceHost}/>
             ),
             visitReverbDeviceBox: (box: ReverbDeviceBox) => (
                 <ReverbDeviceEditor lifecycle={lifecycle}

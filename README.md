@@ -219,6 +219,12 @@ participate, visit our [Contribute](https://opendaw.org/contribute) page.
 * [LinkedIn](https://www.linkedin.com/company/opendaw-org/)
 * [Instagram](https://www.instagram.com/opendaw.studio)
 
+## Contributions
+
+### Icons
+
+* Compress by Gregor Cresnar from <a href="https://thenounproject.com/browse/icons/term/compress/" target="_blank" title="Compress Icons">Noun Project</a> (CC BY 3.0)
+
 ## Dual-Licensing Model
 
 openDAW is available **under two alternative license terms**:

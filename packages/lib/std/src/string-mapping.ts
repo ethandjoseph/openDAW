@@ -39,6 +39,7 @@ export namespace StringMapping {
                 return index === -1 ? {type: "unknown", value: "💣"} : {type: "explicit", value: index}
             }
         }
+
     export const values = <T>(unit: string, values: ReadonlyArray<T>, strings: ReadonlyArray<string>): StringMapping<T> =>
         new class implements StringMapping<T> {
             x(y: T): StringResult {
@@ -49,6 +50,7 @@ export namespace StringMapping {
                 return index === -1 ? {type: "unknown", value: "💣"} : {type: "explicit", value: values[index]}
             }
         }
+
     export const bool = new class implements StringMapping<boolean> {
         y(x: string): ParseResult<boolean> {
             switch (x.trim()) {
@@ -61,7 +63,7 @@ export namespace StringMapping {
             }
         }
         x(y: boolean): StringResult {
-            return {value: String(y), unit: ""}
+            return {value: y ? "On" : "Off", unit: ""}
         }
     }
 

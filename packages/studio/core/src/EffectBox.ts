@@ -1,5 +1,6 @@
 import {
     ArpeggioDeviceBox,
+    CompressorDeviceBox,
     DelayDeviceBox,
     ModularDeviceBox,
     PitchDeviceBox,
@@ -14,4 +15,4 @@ import {
 export type EffectBox =
     | ArpeggioDeviceBox | PitchDeviceBox | ZeitgeistDeviceBox | UnknownMidiEffectDeviceBox
     | DelayDeviceBox | ReverbDeviceBox | RevampDeviceBox | StereoToolDeviceBox
-    | ModularDeviceBox | UnknownAudioEffectDeviceBox
+    | ModularDeviceBox | UnknownAudioEffectDeviceBox | CompressorDeviceBox

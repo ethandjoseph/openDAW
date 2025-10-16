@@ -2,6 +2,7 @@ import {
     ArpeggioDeviceBox,
     AudioBusBox,
     BoxVisitor,
+    CompressorDeviceBox,
     DelayDeviceBox,
     ModularDeviceBox,
     NanoDeviceBox,
@@ -21,6 +22,7 @@ import {DelayDeviceProcessor} from "./devices/audio-effects/DelayDeviceProcessor
 import {
     ArpeggioDeviceBoxAdapter,
     AudioBusBoxAdapter,
+    CompressorDeviceBoxAdapter,
     DelayDeviceBoxAdapter,
     ModularDeviceBoxAdapter,
     NanoDeviceBoxAdapter,
@@ -56,6 +58,7 @@ import {InstrumentDeviceProcessor} from "./InstrumentDeviceProcessor"
 import {AudioEffectDeviceProcessor} from "./AudioEffectDeviceProcessor"
 import {UnknownMidiEffectDeviceProcessor} from "./devices/midi-effects/UnknownMidiEffectDeviceProcessor"
 import {SoundfontDeviceProcessor} from "./devices/instruments/SoundfontDeviceProcessor"
+import {CompressorDeviceProcessor} from "./devices/audio-effects/CompressorDeviceProcessor"
 
 export namespace InstrumentDeviceProcessorFactory {
     export const create = (context: EngineContext,
@@ -99,6 +102,8 @@ export namespace AudioEffectDeviceProcessorFactory {
                 new NopDeviceProcessor(context, context.boxAdapters.adapterFor(box, UnknownAudioEffectDeviceBoxAdapter)),
             visitStereoToolDeviceBox: (box: StereoToolDeviceBox): AudioEffectDeviceProcessor =>
                 new StereoToolDeviceProcessor(context, context.boxAdapters.adapterFor(box, StereoToolDeviceBoxAdapter)),
+            visitCompressorDeviceBox: (box: CompressorDeviceBox): AudioEffectDeviceProcessor =>
+                new CompressorDeviceProcessor(context, context.boxAdapters.adapterFor(box, CompressorDeviceBoxAdapter)),
             visitDelayDeviceBox: (box: DelayDeviceBox): AudioEffectDeviceProcessor =>
                 new DelayDeviceProcessor(context, context.boxAdapters.adapterFor(box, DelayDeviceBoxAdapter)),
             visitReverbDeviceBox: (box: ReverbDeviceBox): AudioEffectDeviceProcessor =>
