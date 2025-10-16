@@ -7,10 +7,12 @@ if ((globalThis as any)[key]) {
     console.debug(`%c${key.description}%c is now available in ${globalThis.constructor.name}.`, "color: hsl(200, 83%, 60%)", "color: inherit")
 }
 
+export * from "./AudioBuffer"
 export * from "./biquad-coeff"
 export * from "./biquad-processor"
 export * from "./bpm-tools"
 export * from "./chords"
+export * from "./constants"
 export * from "./delay"
 export * from "./events"
 export * from "./fft"

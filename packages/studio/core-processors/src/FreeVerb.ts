@@ -1,5 +1,5 @@
 import {int, nextPowOf2} from "@opendaw/lib-std"
-import {AudioBuffer} from "./AudioBuffer"
+import {AudioBuffer} from "@opendaw/lib-dsp"
 
 export class FreeVerb {
     roomSize: number

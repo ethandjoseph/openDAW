@@ -8,6 +8,7 @@ import {
     nextPowOf2,
     Option,
     Provider,
+    safeExecute,
     Terminable
 } from "@opendaw/lib-std"
 import {Address} from "@opendaw/lib-box"
@@ -97,15 +98,16 @@ export class LiveStreamBroadcaster {
         })
     }
 
-    broadcastFloats(address: Address, values: Float32Array, update: Exec): Terminable {
+    broadcastFloats(address: Address, values: Float32Array, before?: Exec, after?: Exec): Terminable {
         return this.#storeChunk(new class implements Package {
             readonly type: PackageType = PackageType.FloatArray
             readonly address: Address = address
             readonly capacity: number = 4 + (values.byteLength << 2)
             put(output: ByteArrayOutput): void {
-                update()
+                safeExecute(before)
                 output.writeInt(values.length)
                 for (const value of values) {output.writeFloat(value)}
+                safeExecute(after)
             }
         })
     }

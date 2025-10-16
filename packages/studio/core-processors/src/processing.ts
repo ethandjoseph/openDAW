@@ -1,7 +1,6 @@
 import {int, Terminable} from "@opendaw/lib-std"
-import {NoteEvent, ppqn} from "@opendaw/lib-dsp"
+import {AudioBuffer, NoteEvent, ppqn} from "@opendaw/lib-dsp"
 import {EventBuffer} from "./EventBuffer"
-import {AudioBuffer} from "./AudioBuffer"
 import {UpdateEvent} from "./UpdateClock"
 
 export const enum BlockFlag {

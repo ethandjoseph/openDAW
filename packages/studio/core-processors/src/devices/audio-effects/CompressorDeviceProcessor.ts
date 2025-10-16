@@ -1,22 +1,29 @@
 import {AudioEffectDeviceAdapter, CompressorDeviceBoxAdapter} from "@opendaw/studio-adapters"
 import {int, Option, Terminable, UUID} from "@opendaw/lib-std"
-import {Event} from "@opendaw/lib-dsp"
+import {AudioBuffer, Event, gainToDb, RenderQuantum} from "@opendaw/lib-dsp"
 import {EngineContext} from "../../EngineContext"
 import {Block, Processor} from "../../processing"
-import {AudioBuffer} from "../../AudioBuffer"
 import {PeakBroadcaster} from "../../PeakBroadcaster"
 import {AudioProcessor} from "../../AudioProcessor"
 import {AutomatableParameter} from "../../AutomatableParameter"
 import {AudioEffectDeviceProcessor} from "../../AudioEffectDeviceProcessor"
-import {LevelDetector} from "./compressor/LevelDetector"
-import {GainComputer} from "./compressor/GainComputer"
-import {DelayLine} from "./compressor/DelayLine"
-import {LookAhead} from "./compressor/LookAhead"
-import {SmoothingFilter} from "./compressor/SmoothingFilter"
-import {RenderQuantum} from "../../constants"
-import {decibelsToGain} from "./compressor/conversation"
+import {
+    decibelsToGain,
+    DelayLine,
+    GainComputer,
+    LevelDetector,
+    LookAhead,
+    SmoothingFilter
+} from "@opendaw/lib-dsp/ctagdrc"
 
+/**
+ * Ported from https://github.com/p-hlp/CTAGDRC
+ * More information in 'packages/lib/dsp/src/ctagdrc/readme.md'
+ */
 export class CompressorDeviceProcessor extends AudioProcessor implements AudioEffectDeviceProcessor {
+    static readonly PEAK_DECAY_PER_SAMPLE = Math.exp(-1.0 / (sampleRate * 0.500))
+    static readonly REDUCTION_DECAY_PER_SAMPLE = RenderQuantum / sampleRate * 0.050
+
     static ID: int = 0 | 0
 
     readonly #id: int = CompressorDeviceProcessor.ID++
@@ -61,15 +68,17 @@ export class CompressorDeviceProcessor extends AudioProcessor implements AudioEf
     readonly #smoothedAutoMakeup: SmoothingFilter
 
     // State variables
-    readonly #sampleRate: number
-    readonly #maxBlockSize: int
     readonly #sidechainSignal: Float32Array
     readonly #originalSignal: readonly [Float32Array, Float32Array]
     readonly #lookaheadDelay: number = 0.005
+    readonly #editorValues: Float32Array
 
     #prevInput: number = 0.0
     #autoMakeup: number = 0.0
-    #maxGainReduction: number = 0.0
+
+    #inpMax: number = 0.0
+    #outMax: number = 0.0
+    #redMin: number = 0.0
 
     constructor(context: EngineContext, adapter: CompressorDeviceBoxAdapter) {
         super(context)
@@ -77,6 +86,7 @@ export class CompressorDeviceProcessor extends AudioProcessor implements AudioEf
         this.#adapter = adapter
         this.#output = new AudioBuffer()
         this.#peaks = this.own(new PeakBroadcaster(context.broadcaster, adapter.address))
+        this.#editorValues = new Float32Array([Number.NEGATIVE_INFINITY, 0.0, Number.NEGATIVE_INFINITY])
 
         const {
             lookahead, automakeup, autoattack, autorelease,
@@ -96,25 +106,26 @@ export class CompressorDeviceProcessor extends AudioProcessor implements AudioEf
         this.parameterMakeup = this.own(this.bindParameter(makeup))
         this.parameterMix = this.own(this.bindParameter(mix))
 
-        // TODO replace
-        this.#sampleRate = sampleRate
-        this.#maxBlockSize = RenderQuantum
-
-        this.#ballistics = new LevelDetector(this.#sampleRate)
-        this.#delay = new DelayLine(this.#sampleRate, 0.005, this.#maxBlockSize, 2)
-        this.#lookaheadProcessor = new LookAhead(this.#sampleRate, this.#lookaheadDelay, this.#maxBlockSize)
-        this.#smoothedAutoMakeup = new SmoothingFilter(this.#sampleRate)
+        this.#ballistics = new LevelDetector(sampleRate)
+        this.#delay = new DelayLine(sampleRate, 0.005, RenderQuantum, 2)
+        this.#lookaheadProcessor = new LookAhead(sampleRate, this.#lookaheadDelay, RenderQuantum)
+        this.#smoothedAutoMakeup = new SmoothingFilter(sampleRate)
         this.#smoothedAutoMakeup.setAlpha(0.03)
 
-        this.#sidechainSignal = new Float32Array(this.#maxBlockSize)
+        this.#sidechainSignal = new Float32Array(RenderQuantum)
         this.#originalSignal = [
-            new Float32Array(this.#maxBlockSize),
-            new Float32Array(this.#maxBlockSize)
+            new Float32Array(RenderQuantum),
+            new Float32Array(RenderQuantum)
         ]
 
         this.ownAll(
             context.registerProcessor(this),
-            context.broadcaster.broadcastFloat(adapter.address.append(0), () => this.#maxGainReduction)
+            context.broadcaster.broadcastFloats(adapter.address.append(0),
+                this.#editorValues, () => {
+                    this.#editorValues[0] = gainToDb(this.#inpMax)
+                    this.#editorValues[1] = this.#redMin
+                    this.#editorValues[2] = gainToDb(this.#outMax)
+                })
         )
         this.readAllParameters()
     }
@@ -131,7 +142,9 @@ export class CompressorDeviceProcessor extends AudioProcessor implements AudioEf
         this.#originalSignal[1].fill(0)
         this.#prevInput = this.#inputgain
         this.#autoMakeup = 0.0
-        this.#maxGainReduction = 0.0
+        this.#inpMax = 0.0
+        this.#outMax = 0.0
+        this.#redMin = 0.0
     }
 
     get uuid(): UUID.Bytes {return this.#adapter.uuid}
@@ -152,31 +165,30 @@ export class CompressorDeviceProcessor extends AudioProcessor implements AudioEf
         const source = this.#source.unwrap()
 
         const numSamples = to - from
-        const leftChannel = this.#output.getChannel(0)
-        const rightChannel = this.#output.getChannel(1)
-        const srcLeft = source.getChannel(0)
-        const srcRight = source.getChannel(1)
+        const srcL = source.getChannel(0)
+        const srcR = source.getChannel(1)
+        const outL = this.#output.getChannel(0)
+        const outR = this.#output.getChannel(1)
 
-        // Copy input to output
         for (let i = from; i < to; i++) {
-            leftChannel[i] = srcLeft[i]
-            rightChannel[i] = srcRight[i]
+            const l = srcL[i]
+            const r = srcR[i]
+            outL[i] = l
+            outR[i] = r
+            const peak = Math.max(Math.abs(l), Math.abs(r))
+            if (this.#inpMax <= peak) {this.#inpMax = peak} else {this.#inpMax *= CompressorDeviceProcessor.PEAK_DECAY_PER_SAMPLE}
         }
 
         // Clear sidechain and original signal buffers
         this.#sidechainSignal.fill(0, 0, numSamples)
-        this.#maxGainReduction = 0.0
 
         // Apply input gain
-        this.#applyInputGain(leftChannel, rightChannel, from, numSamples)
+        this.#applyInputGain(outL, outR, from, numSamples)
 
         // Get max L/R amplitude values and fill sidechain signal
         for (let i = 0; i < numSamples; i++) {
             const idx = from + i
-            this.#sidechainSignal[i] = Math.max(
-                Math.abs(leftChannel[idx]),
-                Math.abs(rightChannel[idx])
-            )
+            this.#sidechainSignal[i] = Math.max(Math.abs(outL[idx]), Math.abs(outR[idx]))
         }
 
         // Calculate crest factor on max amplitude values
@@ -189,11 +201,14 @@ export class CompressorDeviceProcessor extends AudioProcessor implements AudioEf
         this.#ballistics.applyBallistics(this.#sidechainSignal, numSamples)
 
         // Get minimum = max gain reduction from a sidechain signal
-        let minValue = this.#sidechainSignal[0]
-        for (let i = 1; i < numSamples; i++) {
-            minValue = Math.min(minValue, this.#sidechainSignal[i])
+        for (let i = 0; i < numSamples; i++) {
+            const peak = this.#sidechainSignal[i]
+            if (this.#redMin >= peak) {
+                this.#redMin = peak
+            } else {
+                this.#redMin += CompressorDeviceProcessor.REDUCTION_DECAY_PER_SAMPLE
+            }
         }
-        this.#maxGainReduction = minValue
 
         // Calculate auto makeup
         this.#autoMakeup = this.#calculateAutoMakeup(this.#sidechainSignal, numSamples)
@@ -217,25 +232,29 @@ export class CompressorDeviceProcessor extends AudioProcessor implements AudioEf
         // Copy buffer to the original signal for dry/wet mixing
         for (let i = 0; i < numSamples; i++) {
             const idx = from + i
-            this.#originalSignal[0][i] = leftChannel[idx]
-            this.#originalSignal[1][i] = rightChannel[idx]
+            this.#originalSignal[0][i] = outL[idx]
+            this.#originalSignal[1][i] = outR[idx]
         }
 
         // Multiply attenuation with buffer - apply compression
         for (let i = 0; i < numSamples; i++) {
             const idx = from + i
-            leftChannel[idx] *= this.#sidechainSignal[i]
-            rightChannel[idx] *= this.#sidechainSignal[i]
+            outL[idx] *= this.#sidechainSignal[i]
+            outR[idx] *= this.#sidechainSignal[i]
         }
 
-        // Mix dry & wet signal
+        // Mix dry and wet signal
         for (let i = 0; i < numSamples; i++) {
             const idx = from + i
-            leftChannel[idx] = leftChannel[idx] * this.#mix + this.#originalSignal[0][i] * (1 - this.#mix)
-            rightChannel[idx] = rightChannel[idx] * this.#mix + this.#originalSignal[1][i] * (1 - this.#mix)
+            const l = outL[idx] * this.#mix + this.#originalSignal[0][i] * (1.0 - this.#mix)
+            const r = outR[idx] * this.#mix + this.#originalSignal[1][i] * (1.0 - this.#mix)
+            const peak = Math.max(Math.abs(l), Math.abs(r))
+            if (this.#outMax <= peak) {this.#outMax = peak} else {this.#outMax *= CompressorDeviceProcessor.PEAK_DECAY_PER_SAMPLE}
+            outL[idx] = l
+            outR[idx] = r
         }
 
-        this.#peaks.process(leftChannel, rightChannel, from, to)
+        this.#peaks.process(outL, outR, from, to)
     }
 
     #applyInputGain(left: Float32Array, right: Float32Array, offset: int, numSamples: int): void {

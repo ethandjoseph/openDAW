@@ -1,5 +1,5 @@
 import {assert, Bits, isInstanceOf, Option, UUID} from "@opendaw/lib-std"
-import {LoopableRegion} from "@opendaw/lib-dsp"
+import {AudioBuffer, LoopableRegion, RenderQuantum} from "@opendaw/lib-dsp"
 import {
     AudioClipBoxAdapter,
     AudioData,
@@ -8,11 +8,9 @@ import {
     TapeDeviceBoxAdapter,
     TrackType
 } from "@opendaw/studio-adapters"
-import {RenderQuantum} from "../../constants"
 import {EngineContext} from "../../EngineContext"
 import {AudioGenerator, Block, BlockFlag, ProcessInfo, Processor} from "../../processing"
 import {AbstractProcessor} from "../../AbstractProcessor"
-import {AudioBuffer} from "../../AudioBuffer"
 import {PeakBroadcaster} from "../../PeakBroadcaster"
 import {AutomatableParameter} from "../../AutomatableParameter"
 import {NoteEventTarget} from "../../NoteEventSource"

@@ -11,6 +11,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
+    },
+    "./ctagdrc": {
+      "types": "./dist/ctagdrc/index.d.ts",
+      "default": "./dist/ctagdrc/index.js"
     }
   },
   "files": [

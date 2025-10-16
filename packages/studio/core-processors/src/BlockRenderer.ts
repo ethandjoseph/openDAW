@@ -1,6 +1,5 @@
-import {ppqn, PPQN} from "@opendaw/lib-dsp"
+import {ppqn, PPQN, RenderQuantum} from "@opendaw/lib-dsp"
 import {Block, BlockFlags, ProcessInfo} from "./processing"
-import {RenderQuantum} from "./constants"
 import {EngineContext} from "./EngineContext"
 import {Exec, int, isDefined, Iterables, Nullable, Procedure, SetMultimap, Terminable} from "@opendaw/lib-std"
 import {MarkerBoxAdapter} from "@opendaw/studio-adapters"

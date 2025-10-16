@@ -1,6 +1,5 @@
 import {PeakMeterProcessorOptions} from "@opendaw/studio-adapters"
-import {RenderQuantum} from "./constants"
-import {RMS} from "@opendaw/lib-dsp"
+import {RenderQuantum, RMS} from "@opendaw/lib-dsp"
 import {Arrays, int, Schema, SyncStream} from "@opendaw/lib-std"
 
 export class MeterProcessor extends AudioWorkletProcessor {

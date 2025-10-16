@@ -1,13 +1,12 @@
 import {Arrays, Terminable, UUID} from "@opendaw/lib-std"
 import {AudioProcessor} from "../../../AudioProcessor"
 import {AudioGenerator, Processor} from "../../../processing"
-import {AudioBuffer} from "../../../AudioBuffer"
 import {PeakBroadcaster} from "../../../PeakBroadcaster"
 import {EventBuffer} from "../../../EventBuffer"
 import {EngineContext} from "../../../EngineContext"
-import {RenderQuantum} from "../../../constants"
 import {PlayfieldDeviceProcessor} from "../PlayfieldDeviceProcessor"
 import {AudioDeviceProcessor} from "../../../AudioDeviceProcessor"
+import {AudioBuffer, RenderQuantum} from "@opendaw/lib-dsp"
 
 export class MixProcessor extends AudioProcessor implements AudioDeviceProcessor, Processor, AudioGenerator {
     readonly #device: PlayfieldDeviceProcessor

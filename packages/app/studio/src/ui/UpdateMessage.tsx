@@ -7,7 +7,7 @@ const className = Html.adoptStyleSheet(css, "UpdateMessage")
 export const UpdateMessage = () => {
     return (
         <div className={className}>
-            Update available! (please reload)
+            Update available! (please save now and reload!)
         </div>
     )
 }

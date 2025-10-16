@@ -63,14 +63,14 @@ export class CompressorDeviceBoxAdapter implements AudioEffectDeviceAdapter {
                 box.knee, ValueMapping.linear(0.0, 24.0), StringMapping.decible, "Knee"),
             attack: this.#parametric.createParameter(
                 box.attack, ValueMapping.linear(0.0, 100.0),
-                StringMapping.numeric({unit: "ms", fractionDigits: 1}), "Attack"),
+                StringMapping.numeric({unit: "ms", fractionDigits: 1}), "Attack Time"),
             release: this.#parametric.createParameter(
                 box.release, ValueMapping.linear(5.0, 1500.0),
-                StringMapping.numeric({unit: "ms", fractionDigits: 1}), "Release"),
+                StringMapping.numeric({unit: "ms", fractionDigits: 1}), "Release Time"),
             makeup: this.#parametric.createParameter(
                 box.makeup, ValueMapping.linear(-40.0, 40.0), StringMapping.decible, "Makeup Gain"),
             mix: this.#parametric.createParameter(
-                box.mix, ValueMapping.unipolar(), StringMapping.percent(), "Mix")
+                box.mix, ValueMapping.unipolar(), StringMapping.percent(), "Dry/Wet")
         } as const
     }
 }

@@ -1,4 +1,34 @@
 @use "@/mixins"
 
 component
-  @include mixins.ControlLayout(4)
+  display: grid
+  grid-template: auto 1fr / repeat(8, 36px)
+  row-gap: 0.25em
+  column-gap: 0.25em
+  @include mixins.Control
+
+  > div.toggle-buttons
+    display: contents
+
+    > *
+      grid-column: span 2
+
+  > div.control-section
+    padding: 8px 0 0 0
+    grid-column: span 3
+    display: flex
+    flex-direction: column
+    justify-content: space-between
+
+    > div.controls
+      display: grid
+      column-gap: 0.25em
+      align-items: center
+      align-content: start
+      grid-template-columns: 1fr auto
+
+      > span
+        font-size: 9px
+        white-space: nowrap
+        color: var(--color-dark)
+        text-align: right

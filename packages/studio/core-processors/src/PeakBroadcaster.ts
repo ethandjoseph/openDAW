@@ -1,8 +1,7 @@
 import {Arrays, int, Terminable} from "@opendaw/lib-std"
 import {Address} from "@opendaw/lib-box"
-import {RMS, StereoMatrix} from "@opendaw/lib-dsp"
+import {RenderQuantum, RMS, StereoMatrix} from "@opendaw/lib-dsp"
 import {LiveStreamBroadcaster} from "@opendaw/lib-fusion"
-import {RenderQuantum} from "./constants"
 
 export class PeakBroadcaster implements Terminable {
     static readonly PEAK_DECAY = Math.exp(-1.0 / (sampleRate * 0.250))
@@ -46,8 +45,8 @@ export class PeakBroadcaster implements Terminable {
         for (let i = fromIndex; i < toIndex; i++) {
             const l = outL[i]
             const r = outR[i]
-            if (this.#peakL < l) {this.#peakL = l} else {this.#peakL *= PeakBroadcaster.PEAK_DECAY}
-            if (this.#peakR < r) {this.#peakR = r} else {this.#peakR *= PeakBroadcaster.PEAK_DECAY}
+            if (this.#peakL <= l) {this.#peakL = l} else {this.#peakL *= PeakBroadcaster.PEAK_DECAY}
+            if (this.#peakR <= r) {this.#peakR = r} else {this.#peakR *= PeakBroadcaster.PEAK_DECAY}
             this.#rmsL = rmsL.pushPop(l)
             this.#rmsR = rmsR.pushPop(r)
         }

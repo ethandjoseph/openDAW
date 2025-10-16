@@ -2,9 +2,8 @@ import {EngineContext} from "./EngineContext"
 import {AudioInput, Block, Processor} from "./processing"
 import {Option, Terminable} from "@opendaw/lib-std"
 import {AuxSendBoxAdapter} from "@opendaw/studio-adapters"
-import {AudioBuffer} from "./AudioBuffer"
+import {AudioBuffer, dbToGain, Ramp} from "@opendaw/lib-dsp"
 import {AutomatableParameter} from "./AutomatableParameter"
-import {dbToGain, Ramp} from "@opendaw/lib-dsp"
 import {AudioProcessor} from "./AudioProcessor"
 
 export class AuxSendProcessor extends AudioProcessor implements Processor, AudioInput {

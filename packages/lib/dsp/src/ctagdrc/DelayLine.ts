@@ -1,5 +1,5 @@
 import {int} from "@opendaw/lib-std"
-import {AudioBuffer} from "../../../AudioBuffer"
+import {AudioBuffer} from "../AudioBuffer"
 
 // Delay Line for lookahead
 export class DelayLine {

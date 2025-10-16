@@ -1,5 +1,6 @@
 import {asEnumValue, clamp, Id, int, Option, Terminable, UUID} from "@opendaw/lib-std"
 import {
+    AudioBuffer,
     BandLimitedOscillator,
     BiquadCoeff,
     BiquadMono,
@@ -7,14 +8,13 @@ import {
     Event,
     midiToHz,
     NoteEvent,
+    RenderQuantum,
     velocityToGain,
     Waveform
 } from "@opendaw/lib-dsp"
 import {VaporisateurDeviceBoxAdapter} from "@opendaw/studio-adapters"
-import {RenderQuantum} from "../../constants"
 import {EngineContext} from "../../EngineContext"
 import {AudioProcessor} from "../../AudioProcessor"
-import {AudioBuffer} from "../../AudioBuffer"
 import {Block, Processor} from "../../processing"
 import {PeakBroadcaster} from "../../PeakBroadcaster"
 import {AutomatableParameter} from "../../AutomatableParameter"

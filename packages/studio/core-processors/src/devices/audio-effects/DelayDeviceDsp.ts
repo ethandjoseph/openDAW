@@ -95,7 +95,7 @@ export class DelayDeviceDsp {
         for (let i: int = fromIndex; i < toIndex; ++i) {
             const inpL = iL[i]
             const inpR = iR[i]
-            // magic number prevents filter from getting unstable (beginner's fix)
+            // the magic number prevents filter from getting unstable (beginner's fix)
             const dReadL = bL.processFrame(this.#biquadCoeff, dL[readPosition] * 0.96)
             const dReadR = bR.processFrame(this.#biquadCoeff, dR[readPosition] * 0.96)
             // const crossL = this.cross * dReadR + (1.0 - this.cross) * dReadL
