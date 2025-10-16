@@ -7,6 +7,7 @@ import {Events, Html} from "@opendaw/lib-dom"
 import {Runtime} from "@opendaw/lib-runtime"
 import {FooterLabel} from "@/service/FooterLabel"
 import {Colors, ProjectMeta} from "@opendaw/studio-core"
+import {UserCounter} from "@/UserCounter"
 
 const className = Html.adoptStyleSheet(css, "footer")
 
@@ -63,6 +64,13 @@ export const Footer = ({lifecycle, service}: Construct) => {
             {labelLatency}
             <div title="Build Version">{service.buildInfo.uuid}</div>
             <div title="Build Time">{lastBuildTime}</div>
+            <div title="Users" onInit={async element => {
+                const counter = new UserCounter("https://api.opendaw.studio/users/user-counter.php")
+                element.textContent = String(await counter.start())
+                setInterval(async () => element.textContent = String(await counter.updateUserCount()), 30000)
+                window.addEventListener("beforeunload", () => counter.stop())
+            }}>#
+            </div>
             <div style={{flex: "1"}}/>
             <div style={{color: Colors.cream}}>
                 <LocalLink href="/privacy">Privacy</LocalLink> · <LocalLink href="/imprint">Imprint</LocalLink>
