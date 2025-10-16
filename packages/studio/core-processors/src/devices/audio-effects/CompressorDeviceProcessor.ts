@@ -18,7 +18,7 @@ import {
 
 /**
  * Ported from https://github.com/p-hlp/CTAGDRC
- * More information in the ./ctagdrc/readme.md file
+ * More information in 'packages/lib/dsp/src/ctagdrc/readme.md'
  */
 export class CompressorDeviceProcessor extends AudioProcessor implements AudioEffectDeviceProcessor {
     static readonly PEAK_DECAY_PER_SAMPLE = Math.exp(-1.0 / (sampleRate * 0.500))
