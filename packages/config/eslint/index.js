@@ -14,13 +14,8 @@ module.exports = {
         ecmaVersion: 2020,
     },
     rules: {
-        "@typescript-eslint/indent": ["error", 4],
         "@typescript-eslint/no-non-null-assertion": "off",
         "@typescript-eslint/no-unused-vars": ["warn", {"argsIgnorePattern": "^_"}],
-        "@typescript-eslint/object-curly-spacing": ["error", "never"],
-        "@typescript-eslint/semi": ["error", "never"],
-        "eol-last": ["error", "never"],
-        "no-multi-spaces": "error",
         "no-unused-vars": "warn",
         "no-restricted-imports": [
             "error",
