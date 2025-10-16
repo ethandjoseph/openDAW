@@ -4,10 +4,14 @@ import {CloudService} from "./CloudService"
 import {CloudHandler} from "./CloudHandler"
 import {DropboxHandler} from "./DropboxHandler"
 import {GoogleDriveHandler} from "./GoogleDriveHandler"
-import {VITE_DROPBOX_CLIENT_ID, VITE_GOOGLE_CLIENT_ID} from "../env"
+
+type ClientIds = {
+    Dropbox: string
+    GoogleDrive: string
+}
 
 export class CloudAuthManager {
-    static create(): CloudAuthManager {return new CloudAuthManager()}
+    static create(clientIds: ClientIds): CloudAuthManager {return new CloudAuthManager(clientIds)}
 
     static async #createCodes(): Promise<{ codeVerifier: string; codeChallenge: string }> {
         const array = new Uint8Array(32)
@@ -26,13 +30,11 @@ export class CloudAuthManager {
         return {codeVerifier, codeChallenge}
     }
 
-    static #ID = 0
-
-    readonly id = CloudAuthManager.#ID++
+    readonly #clientIds: ClientIds
 
     readonly #memoizedHandlers = new Map<CloudService, () => Promise<CloudHandler>>()
 
-    private constructor() {}
+    private constructor(clientIds: ClientIds) {this.#clientIds = clientIds}
 
     async getHandler(service: CloudService): Promise<CloudHandler> {
         const memo = Maps.createIfAbsent(this.#memoizedHandlers, service, service => {
@@ -95,7 +97,7 @@ export class CloudAuthManager {
         let handled = false
         channel.onmessage = async (event: MessageEvent<any>) => {
             const data = asDefined(event.data, "No data")
-            console.debug("[CloudAuth] Received via BroadcastChannel:", this.id, data)
+            console.debug("[CloudAuth] Received via BroadcastChannel")
             if (data.type === "auth-callback" && isDefined(data.code)) {
                 if (handled) {return}
                 handled = true
@@ -148,7 +150,7 @@ export class CloudAuthManager {
     async #oauthDropbox(): Promise<CloudHandler> {
         return this.#oauthPkceFlow({
             service: "dropbox",
-            clientId: asDefined(VITE_DROPBOX_CLIENT_ID, "Missing VITE_DROPBOX_CLIENT_ID"),
+            clientId: this.#clientIds.Dropbox,
             authUrlBase: "https://www.dropbox.com/oauth2/authorize",
             tokenUrl: "https://api.dropboxapi.com/oauth2/token",
             scope: "", // Dropbox scope is optional
@@ -159,9 +161,8 @@ export class CloudAuthManager {
     }
 
     async #oauthGoogle(): Promise<CloudHandler> {
-        const clientId = asDefined(VITE_GOOGLE_CLIENT_ID, "Missing VITE_GOOGLE_CLIENT_ID")
+        const clientId = this.#clientIds.GoogleDrive
         const scope = "https://www.googleapis.com/auth/drive.appdata"
-
         const redirectUri = `${location.origin}/auth-callback.html`
         const params = new URLSearchParams({
             client_id: clientId,
@@ -186,7 +187,7 @@ export class CloudAuthManager {
         })
         channel.onmessage = async (event: MessageEvent<any>) => {
             const data = asDefined(event.data, "No data")
-            console.debug("[CloudAuth] Received via BroadcastChannel:", this.id, data)
+            console.debug("[CloudAuth] Received via BroadcastChannel:", data)
             if (data.type === "auth-callback" && isDefined(data.access_token)) {
                 try {
                     const accessToken = data.access_token

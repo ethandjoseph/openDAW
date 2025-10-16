@@ -76,7 +76,10 @@ export const boot = async ({workersUrl, workletsUrl}: { workersUrl: string, work
         fetch: async (uuid: UUID.Bytes, progress: Progress.Handler): Promise<[ArrayBuffer, SoundfontMetaData]> =>
             OpenSoundfontAPI.get().load(uuid, progress)
     })
-    const cloudAuthManager = CloudAuthManager.create()
+    const cloudAuthManager = CloudAuthManager.create({
+        Dropbox: "jtehjzxaxf3bf1l",
+        GoogleDrive: "628747153367-gt1oqcn3trr9l9a7jhigja6l1t3f1oik.apps.googleusercontent.com"
+    })
     const service: StudioService = new StudioService(
         context, audioWorklets.value, audioDevices, sampleManager, soundfontManager, cloudAuthManager, buildInfo)
     const errorHandler = new ErrorHandler(service)
