@@ -8,14 +8,18 @@ import {PeakBroadcaster} from "../../PeakBroadcaster"
 import {AudioProcessor} from "../../AudioProcessor"
 import {AutomatableParameter} from "../../AutomatableParameter"
 import {AudioEffectDeviceProcessor} from "../../AudioEffectDeviceProcessor"
+import {RenderQuantum} from "../../constants"
 import {LevelDetector} from "./compressor/LevelDetector"
 import {GainComputer} from "./compressor/GainComputer"
 import {DelayLine} from "./compressor/DelayLine"
 import {LookAhead} from "./compressor/LookAhead"
 import {SmoothingFilter} from "./compressor/SmoothingFilter"
-import {RenderQuantum} from "../../constants"
 import {decibelsToGain} from "./compressor/conversation"
 
+/**
+ * Ported from https://github.com/p-hlp/CTAGDRC
+ * More information in the ./compressor/readme.md file
+ */
 export class CompressorDeviceProcessor extends AudioProcessor implements AudioEffectDeviceProcessor {
     static ID: int = 0 | 0
 
@@ -61,8 +65,6 @@ export class CompressorDeviceProcessor extends AudioProcessor implements AudioEf
     readonly #smoothedAutoMakeup: SmoothingFilter
 
     // State variables
-    readonly #sampleRate: number
-    readonly #maxBlockSize: int
     readonly #sidechainSignal: Float32Array
     readonly #originalSignal: readonly [Float32Array, Float32Array]
     readonly #lookaheadDelay: number = 0.005
@@ -96,20 +98,16 @@ export class CompressorDeviceProcessor extends AudioProcessor implements AudioEf
         this.parameterMakeup = this.own(this.bindParameter(makeup))
         this.parameterMix = this.own(this.bindParameter(mix))
 
-        // TODO replace
-        this.#sampleRate = sampleRate
-        this.#maxBlockSize = RenderQuantum
-
-        this.#ballistics = new LevelDetector(this.#sampleRate)
-        this.#delay = new DelayLine(this.#sampleRate, 0.005, this.#maxBlockSize, 2)
-        this.#lookaheadProcessor = new LookAhead(this.#sampleRate, this.#lookaheadDelay, this.#maxBlockSize)
-        this.#smoothedAutoMakeup = new SmoothingFilter(this.#sampleRate)
+        this.#ballistics = new LevelDetector(sampleRate)
+        this.#delay = new DelayLine(sampleRate, 0.005, RenderQuantum, 2)
+        this.#lookaheadProcessor = new LookAhead(sampleRate, this.#lookaheadDelay, RenderQuantum)
+        this.#smoothedAutoMakeup = new SmoothingFilter(sampleRate)
         this.#smoothedAutoMakeup.setAlpha(0.03)
 
-        this.#sidechainSignal = new Float32Array(this.#maxBlockSize)
+        this.#sidechainSignal = new Float32Array(RenderQuantum)
         this.#originalSignal = [
-            new Float32Array(this.#maxBlockSize),
-            new Float32Array(this.#maxBlockSize)
+            new Float32Array(RenderQuantum),
+            new Float32Array(RenderQuantum)
         ]
 
         this.ownAll(

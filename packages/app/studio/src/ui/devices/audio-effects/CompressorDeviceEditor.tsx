@@ -1,15 +1,16 @@
 import css from "./CompressorDeviceEditor.sass?inline"
-import {CompressorDeviceBoxAdapter, DeviceHost} from "@opendaw/studio-adapters"
+import {AutomatableParameterFieldAdapter, CompressorDeviceBoxAdapter, DeviceHost} from "@opendaw/studio-adapters"
 import {Lifecycle} from "@opendaw/lib-std"
-import {createElement} from "@opendaw/lib-jsx"
+import {createElement, Frag} from "@opendaw/lib-jsx"
 import {DeviceEditor} from "@/ui/devices/DeviceEditor.tsx"
 import {MenuItems} from "@/ui/devices/menu-items.ts"
-import {ControlBuilder} from "@/ui/devices/ControlBuilder.tsx"
 import {DevicePeakMeter} from "@/ui/devices/panel/DevicePeakMeter.tsx"
 import {Html} from "@opendaw/lib-dom"
 import {StudioService} from "@/service/StudioService"
 import {EffectFactories} from "@opendaw/studio-core"
-import {PrimitiveValues} from "@opendaw/lib-box"
+import {ParameterToggleButton} from "@/ui/devices/ParameterToggleButton"
+import {ParameterLabel} from "@/ui/components/ParameterLabel"
+import {RelativeUnitValueDragging} from "@/ui/wrapper/RelativeUnitValueDragging"
 
 const className = Html.adoptStyleSheet(css, "CompressorDeviceEditor")
 
@@ -23,9 +24,29 @@ type Construct = {
 export const CompressorDeviceEditor = ({lifecycle, service, adapter, deviceHost}: Construct) => {
     const {project} = service
     const {editing, midiLearning} = project
+    const {
+        lookahead, automakeup, autoattack, autorelease,
+        threshold, ratio, knee, makeup,
+        attack, release, inputgain, mix
+    } = adapter.namedParameter
     lifecycle.own(project.liveStreamReceiver.subscribeFloat(adapter.address.append(0), _value => {
         // console.debug(value)
     }))
+    const createLabelControlFrag = (parameter: AutomatableParameterFieldAdapter<number>) => (
+        <Frag>
+            <span>{parameter.name}</span>
+            <RelativeUnitValueDragging lifecycle={lifecycle}
+                                       editing={editing}
+                                       parameter={parameter}>
+                <ParameterLabel lifecycle={lifecycle}
+                                editing={editing}
+                                midiLearning={midiLearning}
+                                adapter={adapter}
+                                parameter={parameter}
+                                framed standalone/>
+            </RelativeUnitValueDragging>
+        </Frag>
+    )
     return (
         <DeviceEditor lifecycle={lifecycle}
                       project={project}
@@ -33,15 +54,26 @@ export const CompressorDeviceEditor = ({lifecycle, service, adapter, deviceHost}
                       populateMenu={parent => MenuItems.forEffectDevice(parent, service, deviceHost, adapter)}
                       populateControls={() => (
                           <div className={className}>
-                              {Object.values(adapter.namedParameter).map(parameter =>
-                                  ControlBuilder.createKnob<PrimitiveValues>({
-                                      lifecycle,
-                                      editing,
-                                      midiLearning,
-                                      adapter,
-                                      parameter
-                                  })
-                              )}
+                              <div className="toggle-buttons">
+                                  {[automakeup, autoattack, autorelease, lookahead]
+                                      .map((parameter) => (
+                                          <ParameterToggleButton lifecycle={lifecycle}
+                                                                 editing={editing}
+                                                                 parameter={parameter}/>
+                                      ))}
+                              </div>
+                              <div className="control-section">
+                                  <div className="controls">
+                                      {[threshold, ratio, knee, makeup]
+                                          .map(parameter => createLabelControlFrag(parameter))}
+                                  </div>
+                                  <div className="controls">
+                                      {[attack, release, inputgain, mix]
+                                          .map(parameter => createLabelControlFrag(parameter))}
+                                  </div>
+                              </div>
+                              <div className="display"/>
+                              <div className="meters"/>
                           </div>)}
                       populateMeter={() => (
                           <DevicePeakMeter lifecycle={lifecycle}
