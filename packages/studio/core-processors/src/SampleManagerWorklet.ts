@@ -1,5 +1,5 @@
 import {Peaks} from "@opendaw/lib-fusion"
-import {AudioData, EngineToClient, SampleLoader, SampleLoaderState, SampleLoaderManager} from "@opendaw/studio-adapters"
+import {AudioData, EngineToClient, SampleLoader, SampleLoaderManager, SampleLoaderState} from "@opendaw/studio-adapters"
 import {Observer, Option, SortedSet, Subscription, Terminable, UUID} from "@opendaw/lib-std"
 
 class AudioLoaderWorklet implements SampleLoader {

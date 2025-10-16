@@ -13,7 +13,7 @@ import {
     Terminator,
     UUID
 } from "@opendaw/lib-std"
-import {Address, Addressable, BoxGraph, Editing, Field, PointerField, PointerListener} from "@opendaw/lib-box"
+import {Address, Addressable, BoxGraph, Editing, Field, PointerField} from "@opendaw/lib-box"
 import {Pointers} from "@opendaw/studio-enums"
 import {SelectionBox} from "@opendaw/studio-boxes"
 import {SelectableVertex} from "./SelectableVertex"

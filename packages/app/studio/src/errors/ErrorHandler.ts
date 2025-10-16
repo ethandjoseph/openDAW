@@ -30,9 +30,12 @@ export class ErrorHandler {
                 Dialogs.info({headline: "Warning", message: reason.message}).then(EmptyExec)
                 return false
             }
-            if(error.message?.includes("script-src blocked eval")) {
+            if (error.message?.includes("script-src blocked eval")) {
                 event.preventDefault()
-                Dialogs.info({headline: "Warning", message: "One of your browser extensions caused an error. Please disable extensions for a more stable experience."}).then(EmptyExec)
+                Dialogs.info({
+                    headline: "Warning",
+                    message: "One of your browser extensions caused an error. Please disable extensions for a more stable experience."
+                }).then(EmptyExec)
                 return false
             }
         }

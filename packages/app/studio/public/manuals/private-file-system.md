@@ -13,7 +13,10 @@ access to user samples, openDAW copies every imported sample into OPFS, allowing
 these files securely without relying on external file paths.
 
 ## Granting OPFS Storage Permission in Firefox
-In Firefox, storing data in OPFS requires explicit user approval due to its privacy settings. Without permission, openDAW may not be able to retain imported samples across sessions. To allow persistent storage for openDAW in Firefox, follow these steps:
+
+In Firefox, storing data in OPFS requires explicit user approval due to its privacy settings. Without permission,
+openDAW may not be able to retain imported samples across sessions. To allow persistent storage for openDAW in Firefox,
+follow these steps:
 
 * Open Firefox Settings
 * Navigate to Privacy & Security

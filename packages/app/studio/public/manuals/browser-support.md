@@ -13,5 +13,6 @@ However, there are differences in which web APIs are supported by each browser.
 ## Legend
 
 ### ⚠️ Workaround
+
 This symbol indicates a temporary solution or alternative approach to bypass a limitation, bug, or
 missing feature. It is not a permanent fix but allows functionality until an official resolution is available.

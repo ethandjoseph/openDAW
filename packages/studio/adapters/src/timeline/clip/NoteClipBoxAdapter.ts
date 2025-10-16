@@ -1,8 +1,8 @@
 import {
     DefaultObservableValue,
     int,
-    Notifier,
     Maybe,
+    Notifier,
     ObservableValue,
     Observer,
     Option,

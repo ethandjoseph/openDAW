@@ -13,8 +13,8 @@
         * ~~If MIDI, select all channels or specific channel~~
         * ~~Arm buttons default behavior should be radio group (shift to add)~~
         * ~~Capture audio~~
-          * layout channels
-          * adjust pre-gain?
+            * layout channels
+            * adjust pre-gain?
         * ~~MIDI Controller (values)~~
         * ~~Put Recording.start into class Project~~
         * ~~Stop (~~start~~) recording at quantized positions~~

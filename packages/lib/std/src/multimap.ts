@@ -1,5 +1,5 @@
 import {Arrays} from "./arrays"
-import {Comparator, int, Nullable, Maybe, Predicate} from "./lang"
+import {Comparator, int, Maybe, Nullable, Predicate} from "./lang"
 import {Sets} from "./sets"
 import {Iterables} from "./iterables"
 import {Maps} from "./maps"

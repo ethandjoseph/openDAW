@@ -14,8 +14,8 @@
     - list used samples
 
 - SampleStorage
-  - list/store/load/delete samples
-  - per-sample files in OPFS
+    - list/store/load/delete samples
+    - per-sample files in OPFS
 
 - ProjectBundle (bundles metadata and samples)
     - encode/decode bundled projects
