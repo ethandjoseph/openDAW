@@ -296,7 +296,7 @@ export namespace Dialogs {
 
     export const cache = (): void => {
         const dialog: HTMLDialogElement = (
-            <Dialog headline="There Is A New Version Available"
+            <Dialog headline="Psst, There Is A New Version"
                     icon={IconSymbol.Robot}
                     buttons={[{
                         text: "Reload",
