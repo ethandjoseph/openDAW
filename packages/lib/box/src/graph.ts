@@ -55,7 +55,8 @@ export class BoxGraph<BoxMap = any> {
     readonly #pointerTransactionState: SortedSet<Address, {
         pointer: PointerField,
         initial: Option<Address>,
-        final: Option<Address>
+        final: Option<Address>,
+        index: int
     }>
     readonly #finalizeTransactionObservers: Array<Exec>
 
@@ -88,12 +89,14 @@ export class BoxGraph<BoxMap = any> {
                 this.#processPointerVertexUpdate(pointerField, update))
             this.#deferredPointerUpdates.length = 0
         }
-        this.#pointerTransactionState.forEach(({pointer, initial, final}) => {
-            if (!initial.equals(final)) {
-                initial.ifSome(address => this.findVertex(address).unwrapOrUndefined()?.pointerHub.onRemoved(pointer))
-                final.ifSome(address => this.findVertex(address).unwrapOrUndefined()?.pointerHub.onAdded(pointer))
-            }
-        })
+        this.#pointerTransactionState.values()
+            .toSorted((a, b) => a.index - b.index)
+            .forEach(({pointer, initial, final}) => {
+                if (!initial.equals(final)) {
+                    initial.ifSome(address => this.findVertex(address).unwrapOrUndefined()?.pointerHub.onRemoved(pointer))
+                    final.ifSome(address => this.findVertex(address).unwrapOrUndefined()?.pointerHub.onAdded(pointer))
+                }
+            })
         this.#pointerTransactionState.clear()
         this.#inTransaction = false
         // it is possible that new observers will be added while executing
@@ -206,7 +209,8 @@ export class BoxGraph<BoxMap = any> {
             none: () => this.#pointerTransactionState.add({
                 pointer: pointerField,
                 initial: oldAddress,
-                final: newAddress
+                final: newAddress,
+                index: 0
             }),
             some: state => state.final = newAddress
         })
