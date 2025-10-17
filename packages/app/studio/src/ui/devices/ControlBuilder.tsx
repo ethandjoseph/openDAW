@@ -16,13 +16,14 @@ type Creation<T extends PrimitiveValues> = {
     options?: ValueGuide.Options
     anchor?: number
     color?: string
+    style?: Partial<CSSStyleDeclaration>
 }
 
 export namespace ControlBuilder {
     export const createKnob = <T extends PrimitiveValues, >
-    ({lifecycle, editing, midiLearning, adapter, parameter, options, anchor, color}: Creation<T>) => {
+    ({lifecycle, editing, midiLearning, adapter, parameter, options, anchor, color, style}: Creation<T>) => {
         return (
-            <Column ems={LKR} color={color ?? Colors.cream}>
+            <Column ems={LKR} color={color ?? Colors.cream} style={style}>
                 <h5>{parameter.name}</h5>
                 <ParameterLabelKnob lifecycle={lifecycle}
                                     editing={editing}

@@ -8,9 +8,10 @@ type Construct = {
     ems: ReadonlyArray<number>
     space?: number,
     color?: string
+    style?: Partial<CSSStyleDeclaration>
 }
 
-export const Column = ({ems, space, color}: Construct, children: JsxValue) => (
+export const Column = ({ems, space, color, style}: Construct, children: JsxValue) => (
     <div className={className}
          style={{
              display: "grid",
@@ -20,7 +21,8 @@ export const Column = ({ems, space, color}: Construct, children: JsxValue) => (
              margin: "0 1px",
              alignContent: "center",
              justifyItems: "center",
-             color: color ?? "inherit"
+             color: color ?? "inherit",
+             ...style
          }}>
         {children}
     </div>

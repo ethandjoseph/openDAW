@@ -129,7 +129,7 @@ export namespace EffectFactories {
 
     export const Crusher: EffectFactory = {
         defaultName: "Crusher",
-        defaultIcon: IconSymbol.Cube,
+        defaultIcon: IconSymbol.Bug,
         description: "Degrates the audio signal",
         separatorBefore: false,
         type: "audio",

@@ -30,12 +30,15 @@ export const CrusherDeviceEditor = ({lifecycle, service, adapter, deviceHost}: C
                       populateControls={() => (
                           <div className={className}>
                               {Object.values(adapter.namedParameter)
-                                  .map(parameter => ControlBuilder.createKnob({
+                                  .map((parameter, index) => ControlBuilder.createKnob({
                                       lifecycle,
                                       editing,
                                       midiLearning,
                                       adapter,
-                                      parameter
+                                      parameter,
+                                      style: index % 2 === 1 ? {
+                                          marginTop: "2.25em"
+                                      } : {}
                                   }))}
                           </div>)}
                       populateMeter={() => (
