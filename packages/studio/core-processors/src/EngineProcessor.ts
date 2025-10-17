@@ -300,9 +300,11 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
     ignoresRegion(uuid: UUID.Bytes): boolean {return this.#ignoredRegions.hasKey(uuid)}
 
     process(inputs: Float32Array[][], outputs: Float32Array[][]): boolean {
+        if (!this.#running) {return false}
         try {
             return this.render(inputs, outputs)
         } catch (error: any) {
+            this.#running = false
             this.#engineToClient.log(error)
             throw error
         }

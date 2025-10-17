@@ -4,11 +4,12 @@ import {
     CaptureAudioBox,
     CaptureMidiBox,
     GrooveShuffleBox,
+    RevampDeviceBox,
     ValueEventBox,
     ValueEventCurveBox,
     ZeitgeistDeviceBox
 } from "@opendaw/studio-boxes"
-import {asDefined, asInstanceOf, UUID} from "@opendaw/lib-std"
+import {asDefined, asInstanceOf, clamp, UUID} from "@opendaw/lib-std"
 import {AudioUnitType} from "@opendaw/studio-enums"
 import {ProjectSkeleton} from "@opendaw/studio-adapters"
 
@@ -76,6 +77,15 @@ export class ProjectMigration {
                         visitTapeDeviceBox: () => CaptureAudioBox.create(boxGraph, UUID.generate())
                     }))
                 box.capture.refer(captureBox)
+                boxGraph.endTransaction()
+            },
+            visitRevampDeviceBox: (box: RevampDeviceBox): void => {
+                // Clamp order in RevampDeviceBox to 0-3
+                // The older version stored the actual order,
+                // but the new version only stores indices, so 4 is not valid anymore
+                boxGraph.beginTransaction()
+                box.lowPass.order.setValue(clamp(box.lowPass.order.getValue(), 0, 3))
+                box.highPass.order.setValue(clamp(box.highPass.order.getValue(), 0, 3))
                 boxGraph.endTransaction()
             }
         }))
