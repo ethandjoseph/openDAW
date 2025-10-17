@@ -9,6 +9,9 @@ component
   text-align: right
   font-size: 8px
   overflow: hidden
+  display: flex
+  justify-content: end
+  column-gap: 0.25em
 
   &.midi, .midi &, &.automated, .automated &
     min-width: 4em
@@ -24,7 +27,8 @@ component
   &:after
     content: attr(unit)
     color: var(--color-dark)
-    margin-left: 0.25em
+    flex: 0 0 1em
+    text-align: left
 
   &.modifying, .modifying &
     color: var(--color-blue)

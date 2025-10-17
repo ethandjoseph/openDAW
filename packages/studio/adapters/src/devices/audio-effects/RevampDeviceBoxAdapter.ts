@@ -97,7 +97,7 @@ const createPass = (parametric: ParameterAdapterSet, pass: RevampPass, name: str
         q: parametric.createParameter(
             pass.q,
             QMapping,
-            StringMapping.numeric({unit: "", fractionDigits: 3}),
+            StringMapping.numeric({unit: "Q", fractionDigits: 3}),
             `${name} Q`)
     })
 }
@@ -131,6 +131,6 @@ const createBell = (parametric: ParameterAdapterSet, bell: RevampBell, name: str
     q: parametric.createParameter(
         bell.q,
         QMapping,
-        StringMapping.numeric({unit: "", fractionDigits: 3}),
+        StringMapping.numeric({unit: "Q", fractionDigits: 3}),
         `${name} Q`)
 })
