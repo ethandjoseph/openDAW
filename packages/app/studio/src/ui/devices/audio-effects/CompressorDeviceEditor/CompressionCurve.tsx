@@ -19,7 +19,7 @@ export const CompressionCurve = ({lifecycle, adapter}: Construct) => {
     const {threshold, ratio, knee} = adapter.namedParameter
     const numSegments = 7
     const segmentSize = size / numSegments
-    const gridColor = "hsla(200, 20%, 70%, 0.2)"
+    const gridColor = "hsla(200, 40%, 70%, 0.12)"
     const computer = new GainComputer()
     return (
         <div className={className}>
@@ -29,7 +29,7 @@ export const CompressionCurve = ({lifecycle, adapter}: Construct) => {
                     left: `${padding}px`,
                     width: `calc(100% - ${padding * 2}px)`,
                     height: `calc(100% - ${padding * 2}px)`,
-                    borderRadius: `${segmentSize / 2}px`,
+                    borderRadius: `${segmentSize / 2}px ${segmentSize / 2}px 0 ${segmentSize / 2}px`,
                     outline: `1px solid ${gridColor}`
                 }}
                 onInit={canvas => {
