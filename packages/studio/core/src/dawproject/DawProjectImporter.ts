@@ -423,8 +423,13 @@ export namespace DawProjectImport {
                 .map(readLane) ?? [])
         }
         await ifDefined(schema.arrangement, arrangement => readArrangement(arrangement))
-        outputPointers.forEach(({target, pointer}) =>
-            pointer.refer(asDefined(audioBusses.get(target), `${target} cannot be found.`).input))
+        outputPointers.forEach(({target, pointer}) => {
+            const value = audioBusses.get(target)
+            // https://github.com/andremichelle/openDAW/issues/25
+            if (isDefined(value)) {
+                pointer.refer(value.input)
+            }
+        })
         rootBox.audioUnits.pointerHub.incoming().forEach(({box}) => {
             const audioUnitBox = asInstanceOf(box, AudioUnitBox)
             if (audioUnitBox.type.getValue() !== AudioUnitType.Output
