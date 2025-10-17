@@ -1,12 +1,14 @@
 import css from "./ProjectBrowser.sass?inline"
 import {StudioService} from "@/service/StudioService"
-import {Lifecycle, Procedure, RuntimeSignal, StringComparator, TimeSpan, UUID} from "@opendaw/lib-std"
+import {Lifecycle, Procedure, RuntimeNotifier, RuntimeSignal, StringComparator, TimeSpan, UUID} from "@opendaw/lib-std"
 import {Icon} from "@/ui/components/Icon"
 import {IconSymbol} from "@opendaw/studio-adapters"
 import {Dialogs} from "@/ui/components/dialogs"
 import {Await, createElement, DomElement, Frag, Group} from "@opendaw/lib-jsx"
 import {Html} from "@opendaw/lib-dom"
 import {ProjectMeta, ProjectSignals, ProjectStorage} from "@opendaw/studio-core"
+import {ContextMenu} from "@/ui/ContextMenu"
+import {MenuItem} from "@/ui/model/menu-item"
 
 const className = Html.adoptStyleSheet(css, "ProjectBrowser")
 
@@ -43,7 +45,15 @@ export const ProjectBrowser = ({service, lifecycle, select}: Construct) => {
                                        const timeString = TimeSpan.millis(new Date(meta.modified).getTime() - now).toUnitString()
                                        const row: HTMLElement = (
                                            <Group>
-                                               <div className="labels" onclick={() => select([uuid, meta])}>
+                                               <div className="labels"
+                                                    onclick={() => select([uuid, meta])}
+                                                    onInit={element => lifecycle.own(ContextMenu.subscribe(element,
+                                                        collector => collector.addItems(MenuItem.default({
+                                                            label: "Show UUID"
+                                                        }).setTriggerProcedure(() => RuntimeNotifier.info({
+                                                            headline: meta.name,
+                                                            message: UUID.toString(uuid)
+                                                        })))))}>
                                                    <div className="name">{meta.name}</div>
                                                    <div className="time">{timeString}</div>
                                                </div>
