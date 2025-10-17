@@ -19,17 +19,14 @@ export class RegionSampleDragAndDrop extends TimelineDragAndDrop<RegionCaptureTa
     }
 
     handleSample({
-                     event,
-                     trackBoxAdapter,
-                     audioFileBox,
-                     sample: {name, duration: durationInSeconds, bpm}
+                     event, trackBoxAdapter, audioFileBox, sample: {name, duration: durationInSeconds, bpm}
                  }: CreateParameters): void {
-        const position = Math.max(this.#snapping.xToUnitFloor(event.clientX - this.capturing.element.getBoundingClientRect().left), 0)
+        const pointerX = event.clientX - this.capturing.element.getBoundingClientRect().left
+        const pointerPulse = Math.max(this.#snapping.xToUnitFloor(pointerX), 0)
         const duration = Math.round(PPQN.secondsToPulses(durationInSeconds, bpm))
-        const solver = RegionClipResolver.fromRange(trackBoxAdapter, position, position + duration)
-        solver()
+        const solver = RegionClipResolver.fromRange(trackBoxAdapter, pointerPulse, pointerPulse + duration)
         AudioRegionBox.create(this.project.boxGraph, UUID.generate(), box => {
-            box.position.setValue(position)
+            box.position.setValue(pointerPulse)
             box.duration.setValue(duration)
             box.loopDuration.setValue(duration)
             box.regions.refer(trackBoxAdapter.box.regions)
@@ -37,5 +34,6 @@ export class RegionSampleDragAndDrop extends TimelineDragAndDrop<RegionCaptureTa
             box.label.setValue(name)
             box.file.refer(audioFileBox)
         })
+        solver()
     }
 }
