@@ -4,6 +4,7 @@ import {
     AudioBusBox,
     BoxVisitor,
     CompressorDeviceBox,
+    CrusherDeviceBox,
     DelayDeviceBox,
     ModularDeviceBox,
     NanoDeviceBox,
@@ -25,6 +26,7 @@ import {
     ArpeggioDeviceBoxAdapter,
     AudioBusBoxAdapter,
     CompressorDeviceBoxAdapter,
+    CrusherDeviceBoxAdapter,
     DelayDeviceBoxAdapter,
     DeviceHost,
     ModularDeviceBoxAdapter,
@@ -61,6 +63,7 @@ import {UnknownEffectDeviceEditor} from "@/ui/devices/UnknownEffectDeviceEditor"
 import {StudioService} from "@/service/StudioService"
 import {SoundfontDeviceEditor} from "@/ui/devices/instruments/SoundfontDeviceEditor"
 import {CompressorDeviceEditor} from "@/ui/devices/audio-effects/CompressorDeviceEditor"
+import {CrusherDeviceEditor} from "@/ui/devices/audio-effects/CrusherDeviceEditor"
 
 export namespace DeviceEditorFactory {
     export const toMidiEffectDeviceEditor = (service: StudioService, lifecycle: Lifecycle, box: Box, deviceHost: DeviceHost) =>
@@ -160,6 +163,12 @@ export namespace DeviceEditorFactory {
                                    service={service}
                                    adapter={service.project.boxAdapters.adapterFor(box, DelayDeviceBoxAdapter)}
                                    deviceHost={deviceHost}/>
+            ),
+            visitCrusherDeviceBox: (box: CrusherDeviceBox) => (
+                <CrusherDeviceEditor lifecycle={lifecycle}
+                                     service={service}
+                                     adapter={service.project.boxAdapters.adapterFor(box, CrusherDeviceBoxAdapter)}
+                                     deviceHost={deviceHost}/>
             ),
             visitCompressorDeviceBox: (box: CompressorDeviceBox) => (
                 <CompressorDeviceEditor lifecycle={lifecycle}

@@ -2,6 +2,7 @@ import {UUID} from "@opendaw/lib-std"
 import {
     ArpeggioDeviceBox,
     CompressorDeviceBox,
+    CrusherDeviceBox,
     DelayDeviceBox,
     GrooveShuffleBox,
     ModularAudioInputBox,
@@ -126,6 +127,20 @@ export namespace EffectFactories {
             })
     }
 
+    export const Crusher: EffectFactory = {
+        defaultName: "Crusher",
+        defaultIcon: IconSymbol.Cube,
+        description: "Degrates the audio signal",
+        separatorBefore: false,
+        type: "audio",
+        create: ({boxGraph}, unit, index): CrusherDeviceBox =>
+            CrusherDeviceBox.create(boxGraph, UUID.generate(), box => {
+                box.label.setValue("Crusher")
+                box.index.setValue(index)
+                box.host.refer(unit)
+            })
+    }
+
     export const Revamp: EffectFactory = {
         defaultName: "Revamp",
         defaultIcon: IconSymbol.EQ,
@@ -179,7 +194,7 @@ export namespace EffectFactories {
     }
 
     export const MidiNamed = {Arpeggio, Pitch, Zeitgeist}
-    export const AudioNamed = {StereoTool, Compressor, Delay, Reverb, Revamp, Modular}
+    export const AudioNamed = {StereoTool, Compressor, Delay, Reverb, Revamp, Crusher, Modular}
     export const MidiList: ReadonlyArray<Readonly<EffectFactory>> = Object.values(MidiNamed)
     export const AudioList: ReadonlyArray<Readonly<EffectFactory>> = Object.values(AudioNamed)
     export const MergedNamed = {...MidiNamed, ...AudioNamed}

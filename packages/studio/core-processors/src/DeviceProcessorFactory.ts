@@ -3,6 +3,7 @@ import {
     AudioBusBox,
     BoxVisitor,
     CompressorDeviceBox,
+    CrusherDeviceBox,
     DelayDeviceBox,
     ModularDeviceBox,
     NanoDeviceBox,
@@ -23,6 +24,7 @@ import {
     ArpeggioDeviceBoxAdapter,
     AudioBusBoxAdapter,
     CompressorDeviceBoxAdapter,
+    CrusherDeviceBoxAdapter,
     DelayDeviceBoxAdapter,
     ModularDeviceBoxAdapter,
     NanoDeviceBoxAdapter,
@@ -59,6 +61,7 @@ import {AudioEffectDeviceProcessor} from "./AudioEffectDeviceProcessor"
 import {UnknownMidiEffectDeviceProcessor} from "./devices/midi-effects/UnknownMidiEffectDeviceProcessor"
 import {SoundfontDeviceProcessor} from "./devices/instruments/SoundfontDeviceProcessor"
 import {CompressorDeviceProcessor} from "./devices/audio-effects/CompressorDeviceProcessor"
+import {CrusherDeviceProcessor} from "./devices/audio-effects/CrusherDeviceProcessor"
 
 export namespace InstrumentDeviceProcessorFactory {
     export const create = (context: EngineContext,
@@ -106,6 +109,8 @@ export namespace AudioEffectDeviceProcessorFactory {
                 new CompressorDeviceProcessor(context, context.boxAdapters.adapterFor(box, CompressorDeviceBoxAdapter)),
             visitDelayDeviceBox: (box: DelayDeviceBox): AudioEffectDeviceProcessor =>
                 new DelayDeviceProcessor(context, context.boxAdapters.adapterFor(box, DelayDeviceBoxAdapter)),
+            visitCrusherDeviceBox: (box: CrusherDeviceBox): AudioEffectDeviceProcessor =>
+                new CrusherDeviceProcessor(context, context.boxAdapters.adapterFor(box, CrusherDeviceBoxAdapter)),
             visitReverbDeviceBox: (box: ReverbDeviceBox): AudioEffectDeviceProcessor =>
                 new ReverbDeviceProcessor(context, context.boxAdapters.adapterFor(box, ReverbDeviceBoxAdapter)),
             visitRevampDeviceBox: (box: RevampDeviceBox): AudioEffectDeviceProcessor =>
