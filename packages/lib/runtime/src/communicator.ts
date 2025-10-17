@@ -110,7 +110,13 @@ export namespace Communicator {
                     const promise: Promise<any> = func.apply(this.#protocol, message.args
                         .map(arg => "callback" in arg ? (...args: any[]) =>
                             this.#sendCallback(returnId, arg.callback, args) : arg.value))
-                    promise.then(value => this.#sendResolve(returnId, value),
+                    promise.then(value => {
+                            try {
+                                this.#sendResolve(returnId, value)
+                            } catch (reason) {
+                                this.#sendReject(returnId, reason)
+                            }
+                        },
                         reason => this.#sendReject(returnId, reason))
                 } catch (reason) {this.#sendReject(returnId, reason)}
             }
