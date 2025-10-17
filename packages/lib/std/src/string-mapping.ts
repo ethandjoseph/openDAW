@@ -67,6 +67,24 @@ export namespace StringMapping {
         }
     }
 
+    export const boolValues = (falseValue: string, trueValue: string) => new class implements StringMapping<boolean> {
+        y(x: string): ParseResult<boolean> {
+            switch (x.trim()) {
+                case trueValue:
+                case "on":
+                case "yes":
+                case "true":
+                    return {type: "explicit", value: true}
+                case falseValue:
+                default:
+                    return {type: "explicit", value: false}
+            }
+        }
+        x(y: boolean): StringResult {
+            return {value: y ? "On" : "Off", unit: ""}
+        }
+    }
+
     class Numeric implements StringMapping<number> {
         readonly #unit: string
         readonly #fractionDigits: int

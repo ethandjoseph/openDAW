@@ -9,7 +9,7 @@ export interface EngineCommands extends Terminable {
     play(): void
     stop(reset: boolean): void
     setPosition(position: ppqn): void
-    startRecording(countIn: boolean): void
+    prepareRecordingState(countIn: boolean): void
     stopRecording(): void
 
     setMetronomeEnabled(enabled: boolean): void

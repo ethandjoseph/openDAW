@@ -65,7 +65,7 @@ export class EngineFacade implements Engine {
     play(): void {this.#worklet.ifSome(worklet => worklet.play())}
     stop(reset: boolean = false): void {this.#worklet.ifSome(worklet => worklet.stop(reset))}
     setPosition(position: ppqn): void {this.#worklet.ifSome(worklet => worklet.setPosition(position))}
-    startRecording(countIn: boolean): void {this.#worklet.ifSome(worklet => worklet.startRecording(countIn))}
+    prepareRecordingState(countIn: boolean): void {this.#worklet.ifSome(worklet => worklet.prepareRecordingState(countIn))}
     stopRecording(): void {this.#worklet.ifSome(worklet => worklet.stopRecording())}
 
     get position(): ObservableValue<ppqn> {return this.#position}

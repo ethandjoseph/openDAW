@@ -179,7 +179,7 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
         return engine
     }
 
-    startRecording(countIn: boolean = true): void {
+    startRecording(countIn: boolean = true) {
         this.engine.assertWorklet()
         if (Recording.isRecording) {return}
         Recording.start(this, countIn).finally()

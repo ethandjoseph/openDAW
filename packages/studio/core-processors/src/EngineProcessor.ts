@@ -185,7 +185,7 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
                         this.#timeInfo.position = this.#playbackTimestamp = position
                     }
                 },
-                startRecording: (countIn: boolean) => {
+                prepareRecordingState: (countIn: boolean) => {
                     if (this.#timeInfo.isRecording || this.#timeInfo.isCountingIn) {return}
                     if (!this.#timeInfo.transporting && countIn) {
                         const position = this.#timeInfo.position

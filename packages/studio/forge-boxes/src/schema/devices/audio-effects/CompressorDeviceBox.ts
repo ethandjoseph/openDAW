@@ -3,6 +3,8 @@ import {Pointers} from "@opendaw/studio-enums"
 import {createAudioEffectDevice} from "../builder"
 import {DefaultParameterPointerRules} from "../../defaults"
 
+// Ported from https://github.com/p-hlp/CTAGDRC
+
 export const CompressorDeviceBox: BoxSchema<Pointers> = createAudioEffectDevice("CompressorDeviceBox", {
     10: {type: "boolean", name: "lookahead", pointerRules: DefaultParameterPointerRules, value: false},
     11: {type: "boolean", name: "automakeup", pointerRules: DefaultParameterPointerRules, value: true},

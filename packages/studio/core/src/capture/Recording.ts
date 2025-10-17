@@ -3,7 +3,7 @@ import {Promises} from "@opendaw/lib-runtime"
 import {AudioUnitBox} from "@opendaw/studio-boxes"
 import {AudioUnitType} from "@opendaw/studio-enums"
 import {InstrumentFactories} from "../InstrumentFactories"
-import {Project} from "../project/Project"
+import {Project} from "../project"
 
 export class Recording {
     static get isRecording(): boolean {return this.#isRecording}
@@ -29,7 +29,7 @@ export class Recording {
             return Errors.warn(String(error))
         }
         terminator.ownAll(...captures.map(capture => capture.startRecording()))
-        engine.startRecording(countIn)
+        engine.prepareRecordingState(countIn)
         const {isRecording, isCountingIn} = engine
         const stop = (): void => {
             if (isRecording.getValue() || isCountingIn.getValue()) {return}

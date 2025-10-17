@@ -24,7 +24,7 @@ component
   &.automated, .automated &
     box-shadow: 0 0 1px 0 var(--color-blue)
 
-  &:after
+  &[unit]:not([unit=""]):after
     content: attr(unit)
     color: var(--color-dark)
     flex: 0 0 1em

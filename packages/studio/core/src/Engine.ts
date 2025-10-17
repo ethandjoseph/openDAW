@@ -16,7 +16,7 @@ export interface Engine extends Terminable {
     play(): void
     stop(): void
     setPosition(position: ppqn): void
-    startRecording(countIn: boolean): void
+    prepareRecordingState(countIn: boolean): void
     stopRecording(): void
     isReady(): Promise<void>
     queryLoadingComplete(): Promise<boolean>
