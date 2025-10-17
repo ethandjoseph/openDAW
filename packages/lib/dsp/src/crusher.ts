@@ -35,7 +35,7 @@ export class Crusher {
         this.#filters[0].process(this.#filterCoeff, inpL, fltL, from, to)
         this.#filters[1].process(this.#filterCoeff, inpR, fltR, from, to)
         const preGain = dbToGain(this.#boostDb)
-        const postGain = dbToGain(-this.#boostDb)
+        const postGain = dbToGain(-this.#boostDb / 2.0)
         const crushRatio = this.#sampleRate / this.#crushedSampleRate
         const steps = Math.pow(2.0, this.#bitDepth) - 1.0
         const stepInv = 1.0 / steps
