@@ -46,8 +46,7 @@ export class AudioUnitInput implements ObservableValue<Option<AudioUnitInputAdap
         }))
         this.#terminator.own(pointerHub.catchupAndSubscribe({
             onAdd: ({box}) => {
-                console.debug("ADD", box)
-                assert(this.#observable.getValue().isEmpty(), "Already set") // FIXME
+                assert(this.#observable.getValue().isEmpty(), "Already set")
                 const input: AudioUnitInputAdapter = box instanceof AudioBusBox
                     ? boxAdapters.adapterFor(box, AudioBusBoxAdapter)
                     : boxAdapters.adapterFor(box, Devices.isInstrument)
@@ -56,7 +55,6 @@ export class AudioUnitInput implements ObservableValue<Option<AudioUnitInputAdap
                 }
             },
             onRemove: ({box}) => {
-                console.debug("REMOVE", box)
                 assert(this.#observable.getValue().unwrap("Cannot remove").box.address
                     .equals(box.address), "Unexpected value to remove")
                 this.#observable.setValue(Option.None)

@@ -28,7 +28,6 @@ export const CompressionCurve = ({lifecycle, adapter}: Construct) => {
                     context.translate(padding, padding)
                     context.save()
                     context.lineWidth = 0.0
-                    context.strokeStyle = "rgba(255, 255, 255, 0.03)"
                     context.beginPath()
                     for (let i = 0; i <= numSegments; i++) {
                         const pos = (i / numSegments) * size
@@ -37,25 +36,37 @@ export const CompressionCurve = ({lifecycle, adapter}: Construct) => {
                         context.moveTo(0, pos)
                         context.lineTo(size, pos)
                     }
+                    context.strokeStyle = "rgba(255, 255, 255, 0.03)"
                     context.stroke()
-                    const path2D = new Path2D()
-                    for (let x = 0; x <= size; x++) {
-                        const db = scale.normToUnit(1.0 - x / size)
-                        const cp = computer.applyCompression(-db) - db
-                        const y = Math.min(scale.unitToNorm(-cp) * size, size)
-                        if (x === 0) {
-                            path2D.moveTo(x, y)
-                        } else {
-                            path2D.lineTo(x, y)
+
+                    const drawPath = (x0: number, x1: number): void => {
+                        const path2D = new Path2D()
+                        for (let x = x0; x <= x1; x++) {
+                            const db = scale.normToUnit(1.0 - x / size)
+                            const cp = computer.applyCompression(-db) - db
+                            const y = Math.min(scale.unitToNorm(-cp) * size, size)
+                            if (x === 0) {
+                                path2D.moveTo(x, y)
+                            } else {
+                                path2D.lineTo(x, y)
+                            }
                         }
+                        context.fillStyle = "hsla(200, 83%, 60%, 0.08)"
+                        context.strokeStyle = "hsla(200, 83%, 60%, 0.80)"
+                        context.stroke(path2D)
+                        path2D.lineTo(x1, size)
+                        path2D.lineTo(x0, size)
+                        path2D.closePath()
+                        context.fill(path2D)
                     }
-                    context.fillStyle = "hsla(200, 83%, 60%, 0.08)"
-                    context.strokeStyle = "hsla(200, 83%, 60%, 0.80)"
-                    context.stroke(path2D)
-                    path2D.lineTo(size, size)
-                    path2D.lineTo(0, size)
-                    path2D.closePath()
-                    context.fill(path2D)
+                    drawPath(0, size)
+                    const kneeValue = knee.getValue()
+                    if (kneeValue > 0.0) {
+                        const thresholdValue = threshold.getValue()
+                        const x0 = (1.0 - scale.unitToNorm(-thresholdValue + kneeValue * 0.5)) * size
+                        const x1 = (1.0 - scale.unitToNorm(-thresholdValue - kneeValue * 0.5)) * size
+                        drawPath(x0, x1)
+                    }
                     context.restore()
                 }))
                 lifecycle.ownAll(
