@@ -103,6 +103,27 @@ Huge thanks to our [ambassadors](https://opendaw.org/ambassadors), whose dedicat
 
 ---
 
+### openDAW Devices
+
+#### Stock Plugins
+
+* Vaporisateur (simple synth with classical waveforms)
+* Playfield (sample player with individual effect chains)
+* Nano (simple sampler pitching a single audio file)
+* Tape (playback device for audio regions and clips)
+* Soundfont (simple soundfont player)
+* Stereo Tool (volume, panning and/or invert the stereo signal)
+* Delay (stereo delay with cross and filter options)
+* Reverb (FreeVerb variation)
+* Revamp (Graphical Equalizer)
+* Arpreggio (midi effect)
+* Pitch (offsets midi note pitches)
+* Zeitgeist (transforms time)
+
+#### Ported Plugins (Excluded in commercial license)
+
+* [Compressor](https://github.com/p-hlp/CTAGDRC) (CTAG Dynamic Range Compressor)
+
 ### Repositories
 
 * [openDAW](https://github.com/andremichelle/opendaw)
@@ -223,7 +244,9 @@ participate, visit our [Contribute](https://opendaw.org/contribute) page.
 
 ### Icons
 
-* Compress by Gregor Cresnar from <a href="https://thenounproject.com/browse/icons/term/compress/" target="_blank" title="Compress Icons">Noun Project</a> (CC BY 3.0)
+* Compress by Gregor Cresnar
+  from <a href="https://thenounproject.com/browse/icons/term/compress/" target="_blank" title="Compress Icons">Noun
+  Project</a> (CC BY 3.0)
 
 ## Dual-Licensing Model
 
