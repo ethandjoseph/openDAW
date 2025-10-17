@@ -162,11 +162,13 @@ export class RevampDeviceProcessor extends AudioProcessor implements AudioEffect
 
     parameterChanged(parameter: AutomatableParameter): void {
         if (parameter === this.#parameterLowPassOrder) {
-            const order = this.#parameterLowPassOrder.getValue()
+            const zeroBasedOrder = this.#parameterLowPassOrder.getValue()
+            const order = zeroBasedOrder + 1
             this.#biquadLowPassProcessors[0].order = order
             this.#biquadLowPassProcessors[1].order = order
         } else if (parameter === this.#parameterHighPassOrder) {
-            const order = this.#parameterHighPassOrder.getValue()
+            const zeroBasedOrder = this.#parameterHighPassOrder.getValue()
+            const order = zeroBasedOrder + 1
             this.#biquadHighPassProcessors[0].order = order
             this.#biquadHighPassProcessors[1].order = order
         } else if (parameter === this.#parameterHighPassFrequency || parameter === this.#parameterHighPassQ) {

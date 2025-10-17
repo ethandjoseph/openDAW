@@ -3,7 +3,7 @@ import {RevampDeviceBox, RevampPass, RevampShelf} from "@opendaw/studio-boxes"
 import {BoxGraph, Field} from "@opendaw/lib-box"
 import {ifDefined, int, UUID} from "@opendaw/lib-std"
 import {Pointers} from "@opendaw/studio-enums"
-import {semitoneToHz} from "@opendaw/lib-dsp"
+import {EffectParameterDefaults} from "../EffectParameterDefaults"
 
 export namespace BuiltinDevices {
     export const equalizer = (boxGraph: BoxGraph,
@@ -28,7 +28,7 @@ export namespace BuiltinDevices {
         const readPass = (schema: BandSchema, pass: RevampPass) => {
             const {order, frequency, q, enabled} = pass
             order.setValue(mapOrder(schema.order))
-            frequency.setValue(semitoneToHz(schema.freq.value))
+            frequency.setValue(ParameterDecoder.readValue(schema.freq))
             ifDefined(schema.Q?.value, value => q.setValue(value))
             ifDefined(schema.enabled?.value, value => enabled.setValue(value))
         }
@@ -39,6 +39,7 @@ export namespace BuiltinDevices {
             ifDefined(schema.enabled?.value, value => enabled.setValue(value))
         }
         return RevampDeviceBox.create(boxGraph, UUID.generate(), box => {
+            EffectParameterDefaults.defaultRevampDeviceBox(box)
             box.host.refer(field)
             box.index.setValue(index)
             box.label.setValue(equalizer.deviceName ?? "Revamp")

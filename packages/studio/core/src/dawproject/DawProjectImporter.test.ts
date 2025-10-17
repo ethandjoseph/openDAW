@@ -3,7 +3,7 @@ import {fileURLToPath} from "url"
 import * as path from "node:path"
 import * as fs from "node:fs"
 import {DawProject} from "./DawProject"
-import {DawProjectImport} from "./DawProjectImport"
+import {DawProjectImport} from "./DawProjectImporter"
 
 describe("DawProjectImport", () => {
     it("import", async () => {

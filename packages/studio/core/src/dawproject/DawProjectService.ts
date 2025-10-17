@@ -6,7 +6,7 @@ import {MetaDataSchema} from "@opendaw/lib-dawproject"
 import {ProjectSkeleton} from "@opendaw/studio-adapters"
 import {DawProject} from "./DawProject"
 import {FilePickerAcceptTypes} from "../FilePickerAcceptTypes"
-import {DawProjectImport} from "./DawProjectImport"
+import {DawProjectImport} from "./DawProjectImporter"
 import {ProjectProfile} from "../project"
 import {SampleService} from "../samples"
 

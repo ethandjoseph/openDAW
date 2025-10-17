@@ -91,7 +91,7 @@ const createPass = (parametric: ParameterAdapterSet, pass: RevampPass, name: str
             `${name} Freq`),
         order: parametric.createParameter(
             pass.order,
-            ValueMapping.linearInteger(1, 4),
+            ValueMapping.linearInteger(0, 3),
             StringMapping.indices("db", ["12", "24", "36", "48"]),
             `${name} Order`),
         q: parametric.createParameter(

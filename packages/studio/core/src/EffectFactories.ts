@@ -1,4 +1,4 @@
-import {INVERSE_SQRT_2, UUID} from "@opendaw/lib-std"
+import {UUID} from "@opendaw/lib-std"
 import {
     ArpeggioDeviceBox,
     CompressorDeviceBox,
@@ -17,6 +17,7 @@ import {
 } from "@opendaw/studio-boxes"
 import {IconSymbol} from "@opendaw/studio-adapters"
 import {EffectFactory} from "./EffectFactory"
+import {EffectParameterDefaults} from "./EffectParameterDefaults"
 
 export namespace EffectFactories {
     export const Arpeggio: EffectFactory = {
@@ -133,27 +134,7 @@ export namespace EffectFactories {
         type: "audio",
         create: ({boxGraph}, unit, index): RevampDeviceBox =>
             RevampDeviceBox.create(boxGraph, UUID.generate(), box => {
-                box.label.setValue("Revamp")
-                box.highPass.frequency.setInitValue(40.0)
-                box.highPass.order.setInitValue(2)
-                box.highPass.q.setInitValue(INVERSE_SQRT_2)
-                box.highPass.enabled.setInitValue(true)
-                box.lowShelf.frequency.setInitValue(80.0)
-                box.lowShelf.gain.setInitValue(6)
-                box.lowBell.frequency.setInitValue(120.0)
-                box.lowBell.gain.setInitValue(6)
-                box.lowBell.q.setInitValue(INVERSE_SQRT_2)
-                box.midBell.frequency.setInitValue(640.0)
-                box.midBell.q.setInitValue(INVERSE_SQRT_2)
-                box.midBell.gain.setInitValue(6)
-                box.highBell.frequency.setInitValue(3600.0)
-                box.highBell.q.setInitValue(INVERSE_SQRT_2)
-                box.highBell.gain.setInitValue(6)
-                box.highShelf.frequency.setInitValue(10000.0)
-                box.highShelf.gain.setInitValue(6)
-                box.lowPass.frequency.setInitValue(15000.0)
-                box.lowPass.order.setInitValue(2)
-                box.lowPass.q.setInitValue(INVERSE_SQRT_2)
+                EffectParameterDefaults.defaultRevampDeviceBox(box)
                 box.index.setValue(index)
                 box.host.refer(unit)
             })

@@ -336,7 +336,7 @@ export namespace DawProjectImport {
                         return readTrackRegions(timeline, asDefined(track, "Region(Clips) must have an id."))
                     } else if (isInstanceOf(timeline, PointsSchema)) {
                         // TODO How to get the actual parameter?
-                        console.debug(timeline.target?.parameter)
+                        // console.debug(timeline.target?.parameter)
                     }
                 }) ?? [])
             }
