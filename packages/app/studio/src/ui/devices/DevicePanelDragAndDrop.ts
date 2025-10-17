@@ -54,6 +54,7 @@ export namespace DevicePanelDragAndDrop {
                 const deviceHost = boxAdapters.adapterFor(editingDeviceChain.unwrap().box, Devices.isHost)
                 if (type === "instrument") {
                     const inputField = deviceHost.inputField
+                    console.debug(`Replace '${inputField.pointerHub.incoming().at(0)?.box.name ?? "no input"} with '${dragData.device}'`)
                     editing.modify(() => {
                         inputField.pointerHub.incoming().forEach(pointer => pointer.box.delete())
                         const {create, defaultIcon, defaultName}: InstrumentFactory =
