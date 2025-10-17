@@ -47,11 +47,11 @@ export class CrusherDeviceBoxAdapter implements AudioEffectDeviceAdapter {
             crusherRate: this.#parametric.createParameter(
                 box.crusherRate,
                 ValueMapping.unipolar(),
-                StringMapping.percent(), "Crusher Rate"),
+                StringMapping.percent(), "Rate"),
             bitDepth: this.#parametric.createParameter(
                 box.bitDepth,
                 ValueMapping.linearInteger(1, 16),
-                StringMapping.numeric(), "Bit Depth"),
+                StringMapping.numeric(), "Bits"),
             boost: this.#parametric.createParameter(
                 box.boost,
                 ValueMapping.linear(0.0, 24.0),
