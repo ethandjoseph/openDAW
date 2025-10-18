@@ -25,7 +25,7 @@ export class Crusher {
         this.#filters = [new ButterworthProcessor(), new ButterworthProcessor()]
         this.#filteredBuffer = [new Float32Array(RenderQuantum), new Float32Array(RenderQuantum)]
         this.#heldSample = new Float32Array(2)
-        this.setCrushedSampleRate(sampleRate)
+        this.setSampleRate(sampleRate)
     }
 
     process(input: StereoMatrix.Channels, output: StereoMatrix.Channels, from: int, to: int): void {
@@ -51,7 +51,7 @@ export class Crusher {
         }
     }
 
-    setCrushedSampleRate(rate: number): void {
+    setSampleRate(rate: number): void {
         this.#crushedSampleRate = clamp(rate, 100.0, this.#sampleRate)
         this.#filterCoeff.setLowpassFrequency(this.#crushedSampleRate / 2.0, this.#sampleRate)
     }

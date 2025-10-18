@@ -33,9 +33,9 @@ export class CrusherDeviceProcessor extends AudioProcessor implements AudioEffec
         this.#dsp = new Crusher(sampleRate)
         this.#peaks = this.own(new PeakBroadcaster(context.broadcaster, adapter.address))
 
-        const {crusherRate, bitDepth, boost, mix} = adapter.namedParameter
-        this.parameterCrusherRate = this.own(this.bindParameter(crusherRate))
-        this.parameterBitDepth = this.own(this.bindParameter(bitDepth))
+        const {crush, bits, boost, mix} = adapter.namedParameter
+        this.parameterCrusherRate = this.own(this.bindParameter(crush))
+        this.parameterBitDepth = this.own(this.bindParameter(bits))
         this.parameterBoost = this.own(this.bindParameter(boost))
         this.parameterMix = this.own(this.bindParameter(mix))
 
@@ -81,7 +81,7 @@ export class CrusherDeviceProcessor extends AudioProcessor implements AudioEffec
 
     parameterChanged(parameter: AutomatableParameter): void {
         if (parameter === this.parameterCrusherRate) {
-            this.#dsp.setCrushedSampleRate(this.parameterCrusherRate.getValue() * sampleRate)
+            this.#dsp.setSampleRate((1.0 - this.parameterCrusherRate.getValue()) * sampleRate)
         } else if (parameter === this.parameterBitDepth) {
             this.#dsp.setBitDepth(this.parameterBitDepth.getValue())
         } else if (parameter === this.parameterBoost) {
