@@ -38,7 +38,9 @@ export const CrusherDeviceEditor = ({lifecycle, service, adapter, deviceHost}: C
                                       parameter,
                                       style: index % 2 === 1 ? {
                                           marginTop: "2.25em"
-                                      } : {}
+                                      } : {
+                                          marginTop: "1.5em"
+                                      }
                                   }))}
                           </div>)}
                       populateMeter={() => (
