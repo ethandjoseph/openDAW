@@ -114,6 +114,7 @@ Huge thanks to our [ambassadors](https://opendaw.org/ambassadors), whose dedicat
 * Soundfont (simple soundfont player)
 * Stereo Tool (volume, panning and/or invert the stereo signal)
 * Delay (stereo delay with cross and filter options)
+* Crusher (degenerates audio signal)
 * Reverb (FreeVerb variation)
 * Revamp (Graphical Equalizer)
 * Arpreggio (midi effect)
