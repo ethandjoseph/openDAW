@@ -126,6 +126,7 @@ export class EngineWorklet extends AudioWorkletNode implements Engine {
                 }))
         Communicator.executor<EngineToClient>(messenger.channel("engine-to-client"), {
                 log: (message: string): void => console.log("WORKLET", message),
+                error: (reason: unknown) => this.dispatchEvent(new ErrorEvent("error", {error: reason})),
                 ready: (): void => resolve(),
                 fetchAudio: (uuid: UUID.Bytes): Promise<AudioData> => {
                     return new Promise((resolve, reject) => {

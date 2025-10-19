@@ -27,6 +27,7 @@ export interface EngineCommands extends Terminable {
 
 export interface EngineToClient {
     log(message: string): void
+    error(reason: unknown): void
     fetchAudio(uuid: UUID.Bytes): Promise<AudioData>
     fetchSoundfont(uuid: UUID.Bytes): Promise<SoundFont2>
     notifyClipSequenceChanges(changes: ClipSequencingUpdates): void

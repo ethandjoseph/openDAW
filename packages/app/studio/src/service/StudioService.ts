@@ -348,9 +348,9 @@ export class StudioService implements ProjectEnv {
                         // we need to restart the screen to subscribe to new broadcaster instances
                         this.switchScreen(null)
                         this.engine.releaseWorklet()
-                        await Dialogs.info({
+                        return Dialogs.info({
                             headline: "Audio-Engine Error",
-                            message: String(safeRead(event, "message") ?? event),
+                            message: String(safeRead(event, "error", "message") ?? "Unknown error"),
                             okText: "Restart"
                         })
                     },

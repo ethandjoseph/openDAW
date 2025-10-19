@@ -1,6 +1,7 @@
 import {
     Arrays,
     ByteArrayOutput,
+    Func,
     Option,
     panic,
     Procedure,
@@ -52,7 +53,7 @@ import {EngineWorklet} from "../EngineWorklet"
 import {MIDILearning} from "../midi"
 import {ProjectValidation} from "./ProjectValidation"
 
-export type RestartWorklet = { unload: Procedure<unknown>, load: Procedure<EngineWorklet> }
+export type RestartWorklet = { unload: Func<unknown, Promise<unknown>>, load: Procedure<EngineWorklet> }
 
 // Main Entry Point for a Project
 export class Project implements BoxAdaptersContext, Terminable, TerminableOwner {
@@ -168,8 +169,8 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
             // we will only accept the first error
             engine.removeEventListener("error", handler)
             engine.removeEventListener("processorerror", handler)
-            safeExecute(restart?.unload, event)
             lifecycle.terminate()
+            await safeExecute(restart?.unload, event)
             safeExecute(restart?.load, this.startAudioWorklet(restart))
         }
         engine.addEventListener("error", handler)

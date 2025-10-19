@@ -115,6 +115,7 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
             this.#messenger.channel("engine-to-client"),
             dispatcher => new class implements EngineToClient {
                 log(message: string): void {dispatcher.dispatchAndForget(this.log, message)}
+                error(error: unknown): void {dispatcher.dispatchAndForget(this.error, error)}
                 fetchAudio(uuid: UUID.Bytes): Promise<AudioData> {
                     return dispatcher.dispatchAndReturn(this.fetchAudio, uuid)
                 }
@@ -303,10 +304,11 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
         if (!this.#running) {return false}
         try {
             return this.render(inputs, outputs)
-        } catch (error: any) {
+        } catch (reason: any) {
             this.#running = false
-            this.#engineToClient.log(error)
-            throw error
+            this.#engineToClient.error(reason)
+            this.terminate()
+            return false
         }
     }
 
