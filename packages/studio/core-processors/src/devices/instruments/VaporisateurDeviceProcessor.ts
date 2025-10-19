@@ -1,4 +1,4 @@
-import {asEnumValue, clamp, Id, int, Option, Terminable, UUID} from "@opendaw/lib-std"
+import {asEnumValue, clamp, clampUnit, Id, int, Option, Terminable, UUID} from "@opendaw/lib-std"
 import {
     AudioBuffer,
     BandLimitedOscillator,
@@ -176,7 +176,7 @@ class Voice {
         const r = output.getChannel(1)
         this.osc.generate(this.buffer, frequency / sampleRate, waveform, fromIndex, toIndex)
         for (let i = fromIndex; i < toIndex; i++) {
-            const env = Math.min(this.position / attack, 1.0 - (this.position - (this.decayPosition + attack)) / release, 1.0) ** 2.0
+            const env = clampUnit(Math.min(this.position / attack, 1.0 - (this.position - (this.decayPosition + attack)) / release, 1.0) ** 2.0)
             this.filterCoeff.setLowpassParams(cutoffMapping.y(clamp(cutoff + env * filterEnvelope, 0.0, 1.0)) / sampleRate, resonance)
             const amp = this.filterProcessor.processFrame(this.filterCoeff, this.buffer[i]) * gain * env
             l[i] += amp
