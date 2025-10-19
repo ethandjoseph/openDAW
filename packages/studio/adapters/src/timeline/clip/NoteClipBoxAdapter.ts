@@ -70,7 +70,10 @@ export class NoteClipBoxAdapter implements ClipBoxAdapter<NoteEventCollectionBox
     subscribeChange(observer: Observer<void>): Subscription {return this.#changeNotifier.subscribe(observer)}
     accept<R>(visitor: ClipBoxAdapterVisitor<R>): Maybe<R> {return safeExecute(visitor.visitNoteClipBoxAdapter, this)}
 
-    consolidate(): void {this.#box.events.refer(this.optCollection.unwrap().copy().box.owners)}
+    consolidate(): void {
+        if (this.isMirrowed) {this.#box.events.refer(this.optCollection.unwrap().copy().box.owners)}
+    }
+
     clone(consolidate: boolean): void {
         const events = consolidate ? this.optCollection.unwrap().copy().box.owners : this.#box.events.targetVertex.unwrap()
         NoteClipBox.create(this.#context.boxGraph, UUID.generate(), box => {
