@@ -141,7 +141,7 @@ export class ClipMoveModifier implements ClipModifier {
                 const newTrackIndex = trackIndex + trackDelta
                 const newTrack = asDefined(tracks[newTrackIndex], "moved outside valid area")
                 occupied[newTrackIndex][newClipIndex] = true
-                return {adapter, newClipIndex, newTrack}
+                return {adapter, newClipIndex, newTrack, isMirrowed: adapter.isMirrowed}
             })
         const toDelete: Array<AnyClipBox> = []
         moveTasks.forEach(({adapter: {box}, newClipIndex, newTrack}) => {
@@ -153,6 +153,7 @@ export class ClipMoveModifier implements ClipModifier {
                 }
             }
         })
+        console.debug("#copy", this.#copy, "#mirroredCopy", this.#mirroredCopy)
         editing.modify(() => {
             if (this.#copy) {
                 adapters.forEach((adapter) => {
@@ -166,10 +167,10 @@ export class ClipMoveModifier implements ClipModifier {
                 })
             }
             toDelete.forEach(box => box.delete())
-            moveTasks.forEach(({adapter, newClipIndex, newTrack}) => {
+            moveTasks.forEach(({adapter, newClipIndex, newTrack, isMirrowed}) => {
                 adapter.box.index.setValue(newClipIndex)
                 adapter.box.clips.refer(newTrack.trackBoxAdapter.box.clips)
-                if (this.#copy && (adapter.isMirrowed === this.#mirroredCopy)) {
+                if (this.#copy && (isMirrowed === this.#mirroredCopy)) {
                     adapter.consolidate()
                 }
             })
