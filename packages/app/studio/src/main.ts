@@ -1,5 +1,4 @@
 import "./main.sass"
-
 import workersUrl from "@opendaw/studio-core/workers-main.js?worker&url"
 import workletsUrl from "@opendaw/studio-core/processors.js?url"
 import {boot} from "@/boot"

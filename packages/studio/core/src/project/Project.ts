@@ -53,6 +53,7 @@ import {EngineFacade} from "../EngineFacade"
 import {EngineWorklet} from "../EngineWorklet"
 import {MIDILearning} from "../midi"
 import {ProjectValidation} from "./ProjectValidation"
+import {Preferences} from "../Preferences"
 
 export type RestartWorklet = { unload: Func<unknown, Promise<unknown>>, load: Procedure<EngineWorklet> }
 
@@ -83,8 +84,7 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
             box.output.refer(rootBox.outputDevice)
             box.index.setValue(0)
         })
-        const AutoCreateCompressor = false
-        if (AutoCreateCompressor) {
+        if (Preferences.Default["auto-create-output-compressor"]) {
             CompressorDeviceBox.create(boxGraph, UUID.generate(), box => {
                 box.label.setValue("Compressor")
                 box.index.setValue(0)

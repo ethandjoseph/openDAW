@@ -1,4 +1,4 @@
-import {EmptyExec, isAbsent, isDefined, panic, RuntimeNotifier, RuntimeSignal} from "@opendaw/lib-std"
+import {EmptyExec, isAbsent, isDefined, panic, RuntimeNotifier, RuntimeSignal, Terminator} from "@opendaw/lib-std"
 import {Browser, Files, ModfierKeys} from "@opendaw/lib-dom"
 import {RouteLocation} from "@opendaw/lib-jsx"
 import {Promises} from "@opendaw/lib-runtime"
@@ -8,6 +8,7 @@ import {StudioService} from "@/service/StudioService"
 import {MenuItem} from "@/ui/model/menu-item"
 import {Dialogs} from "@/ui/components/dialogs.tsx"
 import {SyncLogService} from "@/service/SyncLogService"
+import {PreferencePanel} from "@/ui/PreferencePanel"
 
 export const populateStudioMenu = (service: StudioService) => {
     const isBeta = Browser.isLocalHost() || location.hash === "#beta"
@@ -191,6 +192,15 @@ export const populateStudioMenu = (service: StudioService) => {
                                         }
                                     })
                             )
+                        }),
+                    MenuItem.default({label: "Preferences", separatorBefore: true})
+                        .setTriggerProcedure(async () => {
+                            const lifecycle = new Terminator()
+                            await Dialogs.show({
+                                headline: "Preferences",
+                                content: PreferencePanel({lifecycle})
+                            })
+                            lifecycle.terminate()
                         })
                 )
             }

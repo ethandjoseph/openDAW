@@ -1,5 +1,5 @@
 import css from "./Dashboard.sass?inline"
-import {Lifecycle, TimeSpan} from "@opendaw/lib-std"
+import {Lifecycle} from "@opendaw/lib-std"
 import {createElement, HTML} from "@opendaw/lib-jsx"
 import {StudioService} from "@/service/StudioService.ts"
 import {Html} from "@opendaw/lib-dom"
@@ -15,7 +15,6 @@ type Construct = {
 }
 
 export const Dashboard = ({lifecycle, service}: Construct) => {
-    const time = TimeSpan.millis(new Date(service.buildInfo.date).getTime() - new Date().getTime()).toUnitString()
     return (
         <div className={className}>
             <article>
@@ -69,11 +68,10 @@ export const Dashboard = ({lifecycle, service}: Construct) => {
                     </div>
                 </div>
                 <p style={{marginTop: "2em", fontSize: "0.625em", textAlign: "center"}}>
-                    Last built was <span style={{color: Colors.green}}>{time}</span>. Join our <a
-                    href="https://discord.opendaw.studio" target="discord" style={{color: Colors.blue}}>discord
-                    community</a> to stay updated! · <a href="https://github.com/andremichelle/opendaw"
+                    Join our <a href="https://discord.opendaw.studio" target="discord" style={{color: Colors.blue}}>discord
+                    community</a> to stay updated! · source-code available at <a href="https://github.com/andremichelle/opendaw"
                                                         target="github"
-                                                        style={{color: Colors.blue}}>sourcecode</a> · Built with ❤️
+                                                        style={{color: Colors.blue}}>github</a> · Built with ❤️
                 </p>
             </article>
         </div>
