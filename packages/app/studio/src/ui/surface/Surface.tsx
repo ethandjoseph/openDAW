@@ -317,11 +317,7 @@ export class Surface implements TerminableOwner {
                 AnimationFrame.once(() => CssUtils.setCursor("auto"))
             }, {capture: true}),
             Events.subscribe(document.body, "touchmove", Events.PreventDefault, {capture: true}),
-            Events.subscribeAny(document, "visibilitychange", () => {
-                if (!document.hidden) {
-                    AnimationFrame.start(this.#owner)
-                }
-            }, {capture: true})
+            Events.subscribeAny(document, "visibilitychange", () => this.#adoptAnimationFrame(), {capture: true})
         )
     }
 
@@ -329,6 +325,7 @@ export class Surface implements TerminableOwner {
         for (const owner of Surface.#surfacesByWindow.keys()) {
             if (!owner.document.hidden) {
                 AnimationFrame.start(owner)
+                return
             }
         }
     }

@@ -16,10 +16,10 @@ export namespace AnimationFrame {
     export const once = (exec: Exec): void => {nonrecurring.add(exec)}
 
     export const start = (owner: WindowProxy): void => {
+        if (driver === owner) {return}
+        driver?.cancelAnimationFrame(id)
+        driver = owner
         const exe = (): void => {
-            if (driver !== owner) {
-                return
-            }
             if (recurring.size > 0 || nonrecurring.size > 0) {
                 recurring.forEach((exec: Exec) => queue.push(exec))
                 nonrecurring.forEach((exec: Exec) => queue.push(exec))
@@ -30,8 +30,12 @@ export namespace AnimationFrame {
             id = owner.requestAnimationFrame(exe)
         }
         id = owner.requestAnimationFrame(exe)
-        driver = owner
-        exe()
+    }
+
+    export const stop = (): void => {
+        driver?.cancelAnimationFrame(id)
+        driver = null
+        id = -1
     }
 
     export const terminate = (): void => {
