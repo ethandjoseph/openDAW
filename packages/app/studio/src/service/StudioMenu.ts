@@ -196,10 +196,10 @@ export const populateStudioMenu = (service: StudioService) => {
                     MenuItem.default({label: "Preferences", separatorBefore: true})
                         .setTriggerProcedure(async () => {
                             const lifecycle = new Terminator()
-                            await Dialogs.show({
+                            await Promises.tryCatch(Dialogs.show({
                                 headline: "Preferences",
                                 content: PreferencePanel({lifecycle})
-                            })
+                            }))
                             lifecycle.terminate()
                         })
                 )
