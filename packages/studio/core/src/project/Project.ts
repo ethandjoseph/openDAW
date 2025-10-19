@@ -17,6 +17,7 @@ import {
     AudioUnitBox,
     BoxIO,
     BoxVisitor,
+    CompressorDeviceBox,
     GrooveShuffleBox,
     RootBox,
     TimelineBox,
@@ -82,6 +83,16 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
             box.output.refer(rootBox.outputDevice)
             box.index.setValue(0)
         })
+        const AutoCreateCompressor = false
+        if (AutoCreateCompressor) {
+            CompressorDeviceBox.create(boxGraph, UUID.generate(), box => {
+                box.label.setValue("Compressor")
+                box.index.setValue(0)
+                box.host.refer(masterAudioUnit.audioEffects)
+                box.threshold.setValue(0)
+                box.ratio.setValue(24)
+            })
+        }
         const timelineBox = TimelineBox.create(boxGraph, UUID.generate())
         rootBox.timeline.refer(timelineBox.root)
         userInterfaceBox.root.refer(rootBox.users)
