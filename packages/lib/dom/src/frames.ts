@@ -19,16 +19,6 @@ export namespace AnimationFrame {
         if (driver === owner) {return}
         driver?.cancelAnimationFrame(id)
         driver = owner
-        const exe = (): void => {
-            if (recurring.size > 0 || nonrecurring.size > 0) {
-                recurring.forEach((exec: Exec) => queue.push(exec))
-                nonrecurring.forEach((exec: Exec) => queue.push(exec))
-                nonrecurring.clear()
-                queue.forEach((exec: Exec) => exec())
-                queue.length = 0
-            }
-            id = owner.requestAnimationFrame(exe)
-        }
         id = owner.requestAnimationFrame(exe)
     }
 
@@ -39,11 +29,21 @@ export namespace AnimationFrame {
     }
 
     export const terminate = (): void => {
-        console.debug("AnimationFrame terminate")
-        nonrecurring.clear()
-        recurring.clear()
+        stop()
         queue.length = 0
-        cancelAnimationFrame(id)
+        recurring.clear()
+        nonrecurring.clear()
+    }
+
+    const exe = (): void => {
+        if (recurring.size > 0 || nonrecurring.size > 0) {
+            recurring.forEach((exec: Exec) => queue.push(exec))
+            nonrecurring.forEach((exec: Exec) => queue.push(exec))
+            nonrecurring.clear()
+            queue.forEach((exec: Exec) => exec())
+            queue.length = 0
+        }
+        id = driver?.requestAnimationFrame(exe) ?? -1
     }
 }
 
