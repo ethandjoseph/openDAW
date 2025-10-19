@@ -335,7 +335,7 @@ export class StudioService implements ProjectEnv {
                 const maxClipIndex: int = project.rootBoxAdapter.audioUnits.adapters()
                     .reduce((max, unit) => Math.max(max, unit.tracks.values()
                         .reduce((max, track) => Math.max(max, track.clips.collection.getMinFreeIndex()), 0)), 0)
-                if (maxClipIndex > 0 || Preferences.Default["auto-open-clips"]) {
+                if (maxClipIndex > 0 || Preferences.values["auto-open-clips"]) {
                     this.timeline.clips.count.setValue(Math.max(maxClipIndex + 1, 3))
                     this.timeline.clips.visible.setValue(true)
                 } else {

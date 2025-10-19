@@ -84,7 +84,7 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
             box.output.refer(rootBox.outputDevice)
             box.index.setValue(0)
         })
-        if (Preferences.Default["auto-create-output-compressor"]) {
+        if (Preferences.values["auto-create-output-compressor"]) {
             CompressorDeviceBox.create(boxGraph, UUID.generate(), box => {
                 box.label.setValue("Compressor")
                 box.index.setValue(0)

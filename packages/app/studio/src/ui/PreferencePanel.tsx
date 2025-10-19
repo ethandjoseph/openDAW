@@ -15,27 +15,33 @@ type Construct = {
 
 const Labels: Record<keyof Preferences, string> = {
     "auto-open-clips": "Always open clip view",
-    "auto-create-output-compressor": "Automatically add compressor to main output"
+    "auto-create-output-compressor": "Automatically add compressor to main output",
+    "footer-show-fps-meter": "🪲 Show FPS meter",
+    "footer-show-build-infos": "🪲 Show Build Informations"
 }
 
 export const PreferencePanel = ({lifecycle}: Construct) => {
     return (
         <div className={className}>
-            {Object.entries(Preferences.Default).map(([key, value]) => {
-                const pKey = key as keyof Preferences
-                const model = new DefaultObservableValue(value)
-                lifecycle.own(model.subscribe(owner => Preferences.Default[pKey] = owner.getValue()))
-                return (
-                    <Frag>
-                        <Checkbox lifecycle={lifecycle}
-                                  model={model}
-                                  appearance={{activeColor: Colors.purple, cursor: "pointer"}}>
-                            <span style={{color: Colors.dark}}>{Labels[pKey]}</span>
-                            <hr/>
-                            <Icon symbol={IconSymbol.Checkbox}/>
-                        </Checkbox>
-                    </Frag>
-                )
+            {Object.entries(Preferences.values).map(([key, value]) => {
+                switch (typeof value) {
+                    case "boolean": {
+                        const pKey = key as keyof Preferences
+                        const model = new DefaultObservableValue<boolean>(value)
+                        lifecycle.own(model.subscribe(owner => Preferences.values[pKey] = owner.getValue()))
+                        return (
+                            <Frag>
+                                <Checkbox lifecycle={lifecycle}
+                                          model={model}
+                                          appearance={{activeColor: Colors.purple, cursor: "pointer"}}>
+                                    <span style={{color: Colors.dark}}>{Labels[pKey]}</span>
+                                    <hr/>
+                                    <Icon symbol={IconSymbol.Checkbox}/>
+                                </Checkbox>
+                            </Frag>
+                        )
+                    }
+                }
             })}
         </div>
     )
