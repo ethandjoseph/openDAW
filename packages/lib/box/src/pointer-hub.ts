@@ -67,12 +67,14 @@ export class PointerHub {
     incoming(): ReadonlyArray<PointerField> {return this.#vertex.graph.edges().incomingEdgesOf(this.#vertex)}
 
     onAdded(pointerField: PointerField): void {
+        console.debug("onAdded", pointerField.box)
         const issue: Option<string> = PointerHub.validate(pointerField, this.#vertex)
         if (issue.nonEmpty()) {return panic(issue.unwrap())}
         this.#listeners.proxy.onAdd(pointerField)
     }
 
     onRemoved(pointerField: PointerField): void {
+        console.debug("onRemoved", pointerField.box)
         this.#listeners.proxy.onRemove(pointerField)
     }
 

@@ -210,7 +210,7 @@ export class BoxGraph<BoxMap = any> {
                 pointer: pointerField,
                 initial: oldAddress,
                 final: newAddress,
-                index: 0
+                index: this.#pointerTransactionState.size()
             }),
             some: state => state.final = newAddress
         })
