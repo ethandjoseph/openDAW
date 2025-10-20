@@ -3,8 +3,7 @@ import {PPQN} from "@opendaw/lib-dsp"
 import {AnimationFrame, Files} from "@opendaw/lib-dom"
 import {Promises, Wait} from "@opendaw/lib-runtime"
 import {ExportStemsConfiguration} from "@opendaw/studio-adapters"
-import {Project} from "./project/Project"
-import {ProjectMeta} from "./project/ProjectMeta"
+import {Project, ProjectMeta} from "./project"
 import {WavFile} from "./WavFile"
 import {AudioWorklets} from "./AudioWorklets"
 
@@ -76,12 +75,19 @@ export namespace AudioOfflineRenderer {
             })
             zip.file(`${trackNames[stemIndex]}.wav`, file, {binary: true})
         }
-        const arrayBuffer = await zip.generateAsync({
+        const {status, value: arrayBuffer, error} = await Promises.tryCatch(zip.generateAsync({
             type: "arraybuffer",
             compression: "DEFLATE",
             compressionOptions: {level: 6}
-        })
+        }))
         dialog.terminate()
+        if (status === "rejected") {
+            await RuntimeNotifier.info({
+                headline: "Error",
+                message: `Could not create zip file: ${String(error)}`
+            })
+            return
+        }
         const approved = await RuntimeNotifier.approve({
             headline: "Save Zip",
             message: `Size: ${arrayBuffer.byteLength >> 20}M`,
@@ -89,7 +95,7 @@ export namespace AudioOfflineRenderer {
         })
         if (!approved) {return}
         const saveResult = await Promises.tryCatch(Files.save(arrayBuffer, {suggestedName: `${meta.name}.zip`}))
-        if (saveResult.status === "rejected") {
+        if (saveResult.status === "rejected" && !Errors.isAbort(saveResult.error)) {
             panic(String(saveResult.error))
         }
     }
