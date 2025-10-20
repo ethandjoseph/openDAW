@@ -5,8 +5,11 @@ import {BiquadCoeff} from "./biquad-coeff"
 import {BiquadMono, BiquadProcessor} from "./biquad-processor"
 import {RenderQuantum} from "./constants"
 
+const DEFAULT_RAMP_DURATION_SECONDS = 0.020
+
 export class Crusher {
     readonly #sampleRate: number
+    readonly #rampLength: int
 
     readonly #filterCoeff: BiquadCoeff
     readonly #filters: [BiquadProcessor, BiquadProcessor]
@@ -14,13 +17,21 @@ export class Crusher {
     readonly #heldSample: Float32Array
 
     #crushedSampleRate: number = NaN
+    #targetCrushedSampleRate: number = NaN
+    #delta: number = 0.0
+    #remaining: int = 0
+
     #phase: number = 0.0
     #bitDepth: number = 8
     #boostDb: number = 0.0
     #mix: number = 1.0
 
+    #processed: boolean = false
+
     constructor(sampleRate: number) {
         this.#sampleRate = sampleRate
+        this.#rampLength = Math.ceil(sampleRate * DEFAULT_RAMP_DURATION_SECONDS) | 0
+
         this.#filterCoeff = new BiquadCoeff()
         this.#filterCoeff.setLowpassParams(0.5) // nyquist
         this.#filters = [new BiquadMono(), new BiquadMono()]
@@ -40,6 +51,14 @@ export class Crusher {
         const steps = Math.pow(2.0, this.#bitDepth) - 1.0
         const stepInv = 1.0 / steps
         for (let i = from; i < to; i++) {
+            if (this.#remaining > 0) {
+                this.#crushedSampleRate += this.#delta
+                if (0 === --this.#remaining) {
+                    this.#delta = 0.0
+                    this.#crushedSampleRate = this.#targetCrushedSampleRate
+                }
+                this.#filterCoeff.setLowpassParams(this.#crushedSampleRate / this.#sampleRate)
+            }
             this.#phase += 1.0
             if (this.#phase >= crushRatio) {
                 this.#phase -= crushRatio
@@ -49,11 +68,19 @@ export class Crusher {
             outL[i] = (inpL[i] * (1.0 - this.#mix) + this.#heldSample[0] * this.#mix) * postGain
             outR[i] = (inpR[i] * (1.0 - this.#mix) + this.#heldSample[1] * this.#mix) * postGain
         }
+        this.#processed = true
     }
 
     setCrush(value: number): void {
-        this.#crushedSampleRate = value * 0.5 * this.#sampleRate // max: nyquist
-        this.#filterCoeff.setLowpassParams(this.#crushedSampleRate / this.#sampleRate)
+        const target = value * 0.5 * this.#sampleRate // max: nyquist
+        if (this.#processed && isFinite(this.#crushedSampleRate)) {
+            this.#targetCrushedSampleRate = target
+            this.#delta = (target - this.#crushedSampleRate) / this.#rampLength
+            this.#remaining = this.#rampLength
+        } else {
+            this.#crushedSampleRate = target
+            this.#filterCoeff.setLowpassParams(this.#crushedSampleRate / this.#sampleRate)
+        }
     }
 
     setBitDepth(bits: int): void {this.#bitDepth = clamp(bits, 1, 16)}
@@ -63,6 +90,11 @@ export class Crusher {
     setMix(mix: number): void {this.#mix = clampUnit(mix)}
 
     reset(): void {
+        this.#processed = false
+        this.#crushedSampleRate = NaN
+        this.#targetCrushedSampleRate = NaN
+        this.#delta = 0.0
+        this.#remaining = 0
         this.#phase = 0.0
         this.#heldSample.fill(0.0)
         this.#filters[0].reset()
