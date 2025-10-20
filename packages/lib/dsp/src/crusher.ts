@@ -1,14 +1,15 @@
-import {RenderQuantum} from "./constants"
-import {clamp, clampUnit, int} from "@opendaw/lib-std"
-import {ButterworthCoeff, ButterworthProcessor} from "./butterworth"
-import {StereoMatrix} from "./stereo"
+import {clamp, clampUnit, int, linear} from "@opendaw/lib-std"
 import {dbToGain} from "./utils"
+import {StereoMatrix} from "./stereo"
+import {BiquadCoeff} from "./biquad-coeff"
+import {BiquadMono, BiquadProcessor} from "./biquad-processor"
+import {RenderQuantum} from "./constants"
 
 export class Crusher {
     readonly #sampleRate: number
 
-    readonly #filterCoeff: ButterworthCoeff
-    readonly #filters: [ButterworthProcessor, ButterworthProcessor]
+    readonly #filterCoeff: BiquadCoeff
+    readonly #filters: [BiquadProcessor, BiquadProcessor]
     readonly #filteredBuffer: StereoMatrix.Channels
     readonly #heldSample: Float32Array
 
@@ -20,12 +21,12 @@ export class Crusher {
 
     constructor(sampleRate: number) {
         this.#sampleRate = sampleRate
-        this.#filterCoeff = new ButterworthCoeff()
-        this.#filterCoeff.setLowpassFrequency(sampleRate / 2.0, sampleRate)
-        this.#filters = [new ButterworthProcessor(), new ButterworthProcessor()]
+        this.#filterCoeff = new BiquadCoeff()
+        this.#filterCoeff.setLowpassParams(0.5)
+        this.#filters = [new BiquadMono(), new BiquadMono()]
         this.#filteredBuffer = [new Float32Array(RenderQuantum), new Float32Array(RenderQuantum)]
         this.#heldSample = new Float32Array(2)
-        this.setSampleRate(sampleRate)
+        this.setCrush(sampleRate)
     }
 
     process(input: StereoMatrix.Channels, output: StereoMatrix.Channels, from: int, to: int): void {
@@ -51,9 +52,9 @@ export class Crusher {
         }
     }
 
-    setSampleRate(rate: number): void {
-        this.#crushedSampleRate = clamp(rate, 100.0, this.#sampleRate)
-        this.#filterCoeff.setLowpassFrequency(this.#crushedSampleRate / 2.0, this.#sampleRate)
+    setCrush(value: number): void {
+        this.#crushedSampleRate = linear(10.0, this.#sampleRate, value)
+        this.#filterCoeff.setLowpassParams(this.#crushedSampleRate / this.#sampleRate)
     }
 
     setBitDepth(bits: int): void {this.#bitDepth = clamp(bits, 1, 16)}

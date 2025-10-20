@@ -6,7 +6,7 @@ export namespace EffectParameterDefaults {
         box.label.setValue("Revamp")
         box.highPass.frequency.setInitValue(40.0)
         box.highPass.order.setInitValue(1)
-        box.highPass.q.setInitValue(INVERSE_SQRT_2)
+        box.highPass.q.setInitValue(Math.SQRT1_2)
         box.highPass.enabled.setInitValue(true)
         box.lowShelf.frequency.setInitValue(80.0)
         box.lowShelf.gain.setInitValue(6)
@@ -23,6 +23,6 @@ export namespace EffectParameterDefaults {
         box.highShelf.gain.setInitValue(6)
         box.lowPass.frequency.setInitValue(15000.0)
         box.lowPass.order.setInitValue(1)
-        box.lowPass.q.setInitValue(INVERSE_SQRT_2)
+        box.lowPass.q.setInitValue(Math.SQRT1_2)
     }
 }

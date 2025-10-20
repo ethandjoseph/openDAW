@@ -17,35 +17,33 @@ export class BiquadCoeff {
 
     identity(): void {this.setNormalizedCoefficients(1, 0, 0, 1, 0, 0)}
 
-    setLowpassParams(cutoff: unitValue, resonance: number): this {
+    setLowpassParams(cutoff: unitValue, resonance: number = Math.SQRT1_2): this {
         cutoff = clamp(cutoff, 0.0, 1.0)
-        if (cutoff === 1) {
-            this.setNormalizedCoefficients(1, 0, 0, 1, 0, 0)
+        if (cutoff === 1.0) {
+            this.setNormalizedCoefficients(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
         } else if (cutoff > 0) {
-            resonance = Math.pow(10.0, resonance / 20)
             const theta = TAU * cutoff
-            const alpha = Math.sin(theta) / (2 * resonance)
+            const alpha = Math.sin(theta) / (2.0 * resonance)
             const cosw = Math.cos(theta)
-            const beta = (1 - cosw) / 2
+            const beta = (1.0 - cosw) / 2.0
             const b0 = beta
-            const b1 = 2 * beta
+            const b1 = 2.0 * beta
             const b2 = beta
-            const a0 = 1 + alpha
-            const a1 = -2 * cosw
-            const a2 = 1 - alpha
+            const a0 = 1.0 + alpha
+            const a1 = -2.0 * cosw
+            const a2 = 1.0 - alpha
             this.setNormalizedCoefficients(b0, b1, b2, a0, a1, a2)
         } else {
-            this.setNormalizedCoefficients(0, 0, 0, 1, 0, 0)
+            this.setNormalizedCoefficients(0.0, 0.0, 0.0, 1.0, 0.0, 0.0)
         }
         return this
     }
 
-    setHighpassParams(cutoff: unitValue, resonance: number): this {
+    setHighpassParams(cutoff: unitValue, resonance: number = Math.SQRT1_2): this {
         cutoff = clamp(cutoff, 0.0, 1.0)
         if (cutoff === 1) {
             this.setNormalizedCoefficients(0, 0, 0, 1, 0, 0)
         } else if (cutoff > 0) {
-            resonance = Math.pow(10.0, resonance / 20)
             const theta = TAU * cutoff
             const alpha = Math.sin(theta) / (2 * resonance)
             const cosw = Math.cos(theta)

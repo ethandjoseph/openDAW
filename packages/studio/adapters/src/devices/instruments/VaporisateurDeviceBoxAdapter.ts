@@ -70,8 +70,8 @@ export class VaporisateurDeviceBoxAdapter implements InstrumentDeviceBoxAdapter 
                 StringMapping.numeric({unit: "Hz"}), "cutoff"),
             resonance: this.#parametric.createParameter(
                 box.resonance,
-                ValueMapping.exponential(0.1, 20.0),
-                StringMapping.numeric({unit: "q", fractionDigits: 1}), "resonance"),
+                ValueMapping.exponential(0.01, 10.0),
+                StringMapping.numeric({unit: "q", fractionDigits: 3}), "resonance"),
             attack: this.#parametric.createParameter(
                 box.attack,
                 ValueMapping.exponential(0.001, 1.0),

@@ -60,9 +60,9 @@ export class DelayDeviceDsp {
         if (value === 0.0) {
             this.#biquadCoeff.identity()
         } else if (value > 0.0) {
-            this.#biquadCoeff.setHighpassParams(DelayDeviceDsp.#FilterMapping.y(value), 0.001)
+            this.#biquadCoeff.setHighpassParams(DelayDeviceDsp.#FilterMapping.y(value))
         } else if (value < 0.0) {
-            this.#biquadCoeff.setLowpassParams(DelayDeviceDsp.#FilterMapping.y(1.0 + value), 0.001)
+            this.#biquadCoeff.setLowpassParams(DelayDeviceDsp.#FilterMapping.y(1.0 + value))
         }
     }
 

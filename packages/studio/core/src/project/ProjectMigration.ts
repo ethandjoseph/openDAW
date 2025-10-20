@@ -86,6 +86,10 @@ export class ProjectMigration {
                 boxGraph.beginTransaction()
                 box.lowPass.order.setValue(clamp(box.lowPass.order.getValue(), 0, 3))
                 box.highPass.order.setValue(clamp(box.highPass.order.getValue(), 0, 3))
+
+                // TODO Just for the templates
+                // box.lowPass.q.setValue(Math.pow(10.0, box.lowPass.q.getValue() / 20))
+                // box.highPass.q.setValue(Math.pow(10.0, box.highPass.q.getValue() / 20))
                 boxGraph.endTransaction()
             }
         }))

@@ -46,7 +46,7 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
     release: number = 1.0
     waveform: Waveform = Waveform.sine
     cutoff: number = 1.0
-    resonance: number = 1.0
+    resonance: number = Math.SQRT1_2
     filterEnvelope: number = 0.0
 
     constructor(context: EngineContext, adapter: VaporisateurDeviceBoxAdapter) {
@@ -177,6 +177,7 @@ class Voice {
         this.osc.generate(this.buffer, frequency / sampleRate, waveform, fromIndex, toIndex)
         for (let i = fromIndex; i < toIndex; i++) {
             const env = clampUnit(Math.min(this.position / attack, 1.0 - (this.position - (this.decayPosition + attack)) / release, 1.0) ** 2.0)
+            // FIXME
             this.filterCoeff.setLowpassParams(cutoffMapping.y(clamp(cutoff + env * filterEnvelope, 0.0, 1.0)) / sampleRate, resonance)
             const amp = this.filterProcessor.processFrame(this.filterCoeff, this.buffer[i]) * gain * env
             l[i] += amp

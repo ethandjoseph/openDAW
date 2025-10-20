@@ -81,7 +81,7 @@ export class CrusherDeviceProcessor extends AudioProcessor implements AudioEffec
 
     parameterChanged(parameter: AutomatableParameter): void {
         if (parameter === this.parameterCrusherRate) {
-            this.#dsp.setSampleRate((1.0 - this.parameterCrusherRate.getValue()) * sampleRate)
+            this.#dsp.setCrush(1.0 - this.parameterCrusherRate.getValue())
         } else if (parameter === this.parameterBitDepth) {
             this.#dsp.setBitDepth(this.parameterBitDepth.getValue())
         } else if (parameter === this.parameterBoost) {
