@@ -57,9 +57,13 @@ import {Preferences} from "../Preferences"
 
 export type RestartWorklet = { unload: Func<unknown, Promise<unknown>>, load: Procedure<EngineWorklet> }
 
+export type ProjectCreateOptions = {
+    noDefaultUser?: boolean
+}
+
 // Main Entry Point for a Project
 export class Project implements BoxAdaptersContext, Terminable, TerminableOwner {
-    static new(env: ProjectEnv): Project {
+    static new(env: ProjectEnv, options?: ProjectCreateOptions): Project {
         const boxGraph = new BoxGraph<BoxIO.TypeMap>(Option.wrap(BoxIO.create))
         const isoString = new Date().toISOString()
         console.debug(`New Project created on ${isoString}`)
@@ -71,14 +75,13 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
             box.groove.refer(grooveShuffleBox)
             box.created.setValue(isoString)
         })
-        const userInterfaceBox = UserInterfaceBox.create(boxGraph, UUID.generate())
-        const masterBusBox = AudioBusBox.create(boxGraph, UUID.generate(), box => {
+        const primaryAudioBus = AudioBusBox.create(boxGraph, UUID.generate(), box => {
             box.collection.refer(rootBox.audioBusses)
             box.label.setValue("Output")
             box.icon.setValue(IconSymbol.toName(IconSymbol.SpeakerHeadphone))
             box.color.setValue(/*Colors.blue*/ "hsl(189, 100%, 65%)") // TODO
         })
-        const masterAudioUnit = AudioUnitBox.create(boxGraph, UUID.generate(), box => {
+        const primaryAudioOutputUnit = AudioUnitBox.create(boxGraph, UUID.generate(), box => {
             box.type.setValue(AudioUnitType.Output)
             box.collection.refer(rootBox.audioUnits)
             box.output.refer(rootBox.outputDevice)
@@ -88,21 +91,26 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
             CompressorDeviceBox.create(boxGraph, UUID.generate(), box => {
                 box.label.setValue("Compressor")
                 box.index.setValue(0)
-                box.host.refer(masterAudioUnit.audioEffects)
+                box.host.refer(primaryAudioOutputUnit.audioEffects)
                 box.threshold.setValue(0)
                 box.ratio.setValue(24)
             })
         }
         const timelineBox = TimelineBox.create(boxGraph, UUID.generate())
         rootBox.timeline.refer(timelineBox.root)
-        userInterfaceBox.root.refer(rootBox.users)
-        masterBusBox.output.refer(masterAudioUnit.input)
+        primaryAudioBus.output.refer(primaryAudioOutputUnit.input)
+        const userInterfaceBoxes: Array<UserInterfaceBox> = []
+        if (options?.noDefaultUser !== true) {
+            const userInterfaceBox = UserInterfaceBox.create(boxGraph, UUID.generate())
+            userInterfaceBox.root.refer(rootBox.users)
+            userInterfaceBoxes.push(userInterfaceBox)
+        }
         boxGraph.endTransaction()
         return new Project(env, boxGraph, {
             rootBox,
-            userInterfaceBoxes: [userInterfaceBox],
-            primaryAudioBus: masterBusBox,
-            primaryAudioOutputUnit: masterAudioUnit,
+            primaryAudioBus,
+            primaryAudioOutputUnit,
+            userInterfaceBoxes,
             timelineBox
         })
     }
@@ -166,9 +174,10 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
         this.captureDevices = this.#terminator.own(new CaptureDevices(this))
         this.mixer = new Mixer(this.rootBoxAdapter.audioUnits)
 
-        // TODO
-        this.userEditingManager.follow(this.userInterfaceBoxes[0])
-        this.selection.switch(this.userInterfaceBoxes[0].selection)
+        // TODO We are probably doing that from the outside
+        if (this.userInterfaceBoxes.length > 0) {
+            this.follow(this.userInterfaceBoxes[0])
+        }
 
         console.debug(`Project was created on ${this.rootBoxAdapter.created.toString()}`)
     }
@@ -197,6 +206,11 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
         this.engine.assertWorklet()
         if (Recording.isRecording) {return}
         Recording.start(this, countIn).finally()
+    }
+
+    follow(box: UserInterfaceBox): void {
+        this.userEditingManager.follow(box)
+        this.selection.switch(box.selection)
     }
 
     own<T extends Terminable>(terminable: T): T {return this.#terminator.own<T>(terminable)}
@@ -231,16 +245,9 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
         const output = ByteArrayOutput.create()
         output.writeInt(ProjectDecoder.MAGIC_HEADER_OPEN)
         output.writeInt(ProjectDecoder.FORMAT_VERSION)
-        // store all boxes
         const boxGraphChunk = this.boxGraph.toArrayBuffer()
         output.writeInt(boxGraphChunk.byteLength)
         output.writeBytes(new Int8Array(boxGraphChunk))
-        // store mandatory boxes' addresses
-        UUID.toDataOutput(output, this.rootBox.address.uuid)
-        UUID.toDataOutput(output, this.userInterfaceBoxes[0].address.uuid)
-        UUID.toDataOutput(output, this.masterBusBox.address.uuid)
-        UUID.toDataOutput(output, this.masterAudioUnit.address.uuid)
-        UUID.toDataOutput(output, this.timelineBox.address.uuid)
         return output.toArrayBuffer()
     }
 
