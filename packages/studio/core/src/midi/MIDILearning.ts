@@ -3,6 +3,7 @@ import {
     Errors,
     isDefined,
     JSONValue,
+    Nullable,
     Observer,
     Provider,
     RuntimeNotifier,
@@ -14,8 +15,9 @@ import {Address, AddressJSON, PrimitiveField, PrimitiveValues} from "@opendaw/li
 import {MidiData} from "@opendaw/lib-midi"
 import {Pointers} from "@opendaw/studio-enums"
 import {AutomatableParameterFieldAdapter} from "@opendaw/studio-adapters"
-import {Project} from "../project/Project"
+import {Project} from "../project"
 import {MidiDevices} from "./MidiDevices"
+import {AnimationFrame} from "@opendaw/lib-dom"
 
 export type MIDIConnectionJSON = ({ type: "control", controlId: byte })
     & { address: AddressJSON, channel: byte }
@@ -106,15 +108,32 @@ export class MIDILearning implements Terminable {
 
     #createMidiControlObserver(project: Project, adapter: AutomatableParameterFieldAdapter, controlId: byte): MIDIObserver {
         const registration = adapter.registerMidiControl()
+        let pendingValue: Nullable<number> = null
+        const update = (value: number) => project.editing.modify(() => adapter.setValue(adapter.valueMapping.y(value)), false)
         return {
             observer: (event: MIDIMessageEvent) => {
                 const data = event.data
                 if (data === null) {return}
                 if (MidiData.isController(data) && MidiData.readParam1(data) === controlId) {
-                    project.editing.modify(() => adapter.setValue(adapter.valueMapping.y(MidiData.asValue(data))), false)
+                    const value = MidiData.asValue(data)
+                    if (pendingValue === null) {
+                        update(value)
+                        pendingValue = value
+                        AnimationFrame.once(() => {
+                            if (pendingValue !== null) {
+                                update(pendingValue)
+                                pendingValue = null
+                            }
+                        })
+                    } else {
+                        pendingValue = value
+                    }
                 }
             },
-            terminate: () => registration.terminate()
+            terminate: () => {
+                pendingValue = null
+                registration.terminate()
+            }
         }
     }
 }
