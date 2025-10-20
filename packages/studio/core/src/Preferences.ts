@@ -23,6 +23,10 @@ export const Preferences = (() => {
             notifier.notify(key)
             tryCatch(() => localStorage.setItem(STORAGE_KEY, JSON.stringify(target)))
             return true
+        },
+        preventExtensions() {
+            // Prevent the proxy target from being made non-extensible
+            return false
         }
     })
 
@@ -31,10 +35,10 @@ export const Preferences = (() => {
         if (isDefined(stored)) {
             const {status, value} = tryCatch(() => JSON.parse(stored))
             if (status === "success") {
-                return watch(PreferencesSchema.parse(value))
+                return watch({...PreferencesSchema.parse(value)})
             }
         }
-        return watch(PreferencesSchema.parse({}))
+        return watch({...PreferencesSchema.parse({})})
     }
 
     const preferences = getOrCreate()
