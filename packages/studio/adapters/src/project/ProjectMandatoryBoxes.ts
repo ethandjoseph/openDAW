@@ -3,7 +3,7 @@ import {AudioBusBox, AudioUnitBox, RootBox, TimelineBox, UserInterfaceBox} from 
 export type ProjectMandatoryBoxes = {
     rootBox: RootBox
     timelineBox: TimelineBox
-    masterBusBox: AudioBusBox
-    masterAudioUnit: AudioUnitBox
-    userInterfaceBox: UserInterfaceBox
+    primaryAudioBus: AudioBusBox
+    primaryAudioOutputUnit: AudioUnitBox
+    userInterfaceBoxes: ReadonlyArray<UserInterfaceBox>
 }

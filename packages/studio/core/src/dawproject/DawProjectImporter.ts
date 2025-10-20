@@ -458,13 +458,19 @@ export namespace DawProjectImport {
         }
         boxGraph.endTransaction()
         boxGraph.verifyPointers()
-        const {audioBusBox: masterBusBox, audioUnitBox: masterAudioUnit} =
+        const {audioBusBox: primaryAudioBus, audioUnitBox: primaryAudioOutputUnit} =
             primaryAudioBusUnitOption.unwrap("Did not find a primary output")
         return {
             audioIds: audioIdSet.values(),
             skeleton: {
                 boxGraph,
-                mandatoryBoxes: {rootBox, timelineBox, masterBusBox, masterAudioUnit, userInterfaceBox}
+                mandatoryBoxes: {
+                    rootBox,
+                    timelineBox,
+                    primaryAudioBus,
+                    primaryAudioOutputUnit,
+                    userInterfaceBoxes: [userInterfaceBox]
+                }
             }
         }
     }
@@ -477,7 +483,7 @@ export namespace DawProjectImport {
             visitTapeDeviceBox: () => TrackType.Audio,
             visitNanoDeviceBox: () => TrackType.Notes,
             visitPlayfieldDeviceBox: () => TrackType.Notes,
-            visitVaporisateurDeviceBox: () => TrackType.Notes
+            visitVaporisateurDeviceBox: () => TrackType.Notes,
         }) ?? TrackType.Undefined
     }
 }

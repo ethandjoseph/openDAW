@@ -11,7 +11,7 @@ import {
     Terminator,
     UUID
 } from "@opendaw/lib-std"
-import {BoxGraph, BoxEditing} from "@opendaw/lib-box"
+import {BoxEditing, BoxGraph} from "@opendaw/lib-box"
 import {
     AudioBusBox,
     AudioUnitBox,
@@ -100,9 +100,9 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
         boxGraph.endTransaction()
         return new Project(env, boxGraph, {
             rootBox,
-            userInterfaceBox,
-            masterBusBox,
-            masterAudioUnit,
+            userInterfaceBoxes: [userInterfaceBox],
+            primaryAudioBus: masterBusBox,
+            primaryAudioOutputUnit: masterAudioUnit,
             timelineBox
         })
     }
@@ -123,7 +123,7 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
     readonly boxGraph: BoxGraph<BoxIO.TypeMap>
 
     readonly rootBox: RootBox
-    readonly userInterfaceBox: UserInterfaceBox
+    readonly userInterfaceBoxes: ReadonlyArray<UserInterfaceBox>
     readonly masterBusBox: AudioBusBox
     readonly masterAudioUnit: AudioUnitBox
     readonly timelineBox: TimelineBox
@@ -142,17 +142,17 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
 
     private constructor(env: ProjectEnv, boxGraph: BoxGraph, {
         rootBox,
-        userInterfaceBox,
-        masterBusBox,
-        masterAudioUnit,
+        userInterfaceBoxes,
+        primaryAudioBus,
+        primaryAudioOutputUnit,
         timelineBox
     }: ProjectMandatoryBoxes) {
         this.#env = env
         this.boxGraph = boxGraph
         this.rootBox = rootBox
-        this.userInterfaceBox = userInterfaceBox
-        this.masterBusBox = masterBusBox
-        this.masterAudioUnit = masterAudioUnit
+        this.userInterfaceBoxes = userInterfaceBoxes
+        this.masterBusBox = primaryAudioBus
+        this.masterAudioUnit = primaryAudioOutputUnit
         this.timelineBox = timelineBox
 
         this.api = new ProjectApi(this)
@@ -161,12 +161,14 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
         this.parameterFieldAdapters = new ParameterFieldAdapters()
         this.boxAdapters = this.#terminator.own(new BoxAdapters(this))
         this.userEditingManager = new UserEditingManager(this.editing)
-        this.userEditingManager.follow(this.userInterfaceBox)
-        this.selection.switch(this.userInterfaceBox.selection)
         this.liveStreamReceiver = this.#terminator.own(new LiveStreamReceiver())
         this.midiLearning = this.#terminator.own(new MIDILearning(this))
         this.captureDevices = this.#terminator.own(new CaptureDevices(this))
         this.mixer = new Mixer(this.rootBoxAdapter.audioUnits)
+
+        // TODO
+        this.userEditingManager.follow(this.userInterfaceBoxes[0])
+        this.selection.switch(this.userInterfaceBoxes[0].selection)
 
         console.debug(`Project was created on ${this.rootBoxAdapter.created.toString()}`)
     }
@@ -218,9 +220,9 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
             mandatoryBoxes: {
                 rootBox: this.rootBox,
                 timelineBox: this.timelineBox,
-                masterBusBox: this.masterBusBox,
-                masterAudioUnit: this.masterAudioUnit,
-                userInterfaceBox: this.userInterfaceBox
+                primaryAudioBus: this.masterBusBox,
+                primaryAudioOutputUnit: this.masterAudioUnit,
+                userInterfaceBoxes: this.userInterfaceBoxes
             }
         }
     }
@@ -235,7 +237,7 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
         output.writeBytes(new Int8Array(boxGraphChunk))
         // store mandatory boxes' addresses
         UUID.toDataOutput(output, this.rootBox.address.uuid)
-        UUID.toDataOutput(output, this.userInterfaceBox.address.uuid)
+        UUID.toDataOutput(output, this.userInterfaceBoxes[0].address.uuid)
         UUID.toDataOutput(output, this.masterBusBox.address.uuid)
         UUID.toDataOutput(output, this.masterAudioUnit.address.uuid)
         UUID.toDataOutput(output, this.timelineBox.address.uuid)

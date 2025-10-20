@@ -1,6 +1,5 @@
 import {
     asInstanceOf,
-    assert,
     DefaultObservableValue,
     EmptyExec,
     Errors,
@@ -275,11 +274,7 @@ export class StudioService implements ProjectEnv {
 
     async verifyProject() {
         if (!this.hasProfile) {return}
-        const {boxGraph, rootBox, userInterfaceBox, masterBusBox, timelineBox} = this.project
-        assert(rootBox.isAttached(), "[verify] rootBox is not attached")
-        assert(userInterfaceBox.isAttached(), "[verify] userInterfaceBox is not attached")
-        assert(masterBusBox.isAttached(), "[verify] masterBusBox is not attached")
-        assert(timelineBox.isAttached(), "[verify] timelineBox is not attached")
+        const {boxGraph} = this.project
         const result = boxGraph.verifyPointers()
         await RuntimeNotifier.info({message: `Project is okay. All ${result.count} pointers are fine.`})
     }

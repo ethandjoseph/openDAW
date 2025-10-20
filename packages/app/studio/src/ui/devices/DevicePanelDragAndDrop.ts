@@ -13,11 +13,11 @@ export namespace DevicePanelDragAndDrop {
                             instrumentContainer: HTMLElement,
                             audioEffectsContainer: HTMLElement): Terminable => {
         const insertMarker: HTMLElement = InsertMarker()
-        const {editing, boxGraph, boxAdapters, userInterfaceBox} = project
+        const {editing, boxGraph, boxAdapters, userEditingManager} = project
         return DragAndDrop.installTarget(editors, {
             drag: (event: DragEvent, dragData: AnyDragData): boolean => {
                 instrumentContainer.style.opacity = "1.0"
-                const editingDeviceChain = userInterfaceBox.editingDeviceChain.targetVertex
+                const editingDeviceChain = userEditingManager.audioUnit.get()
                 if (editingDeviceChain.isEmpty()) {return false}
                 const deviceHost = boxAdapters.adapterFor(editingDeviceChain.unwrap().box, Devices.isHost)
                 const {type} = dragData
@@ -49,7 +49,7 @@ export namespace DevicePanelDragAndDrop {
                 if (insertMarker.isConnected) {insertMarker.remove()}
                 const {type} = dragData
                 if (type !== "midi-effect" && type !== "audio-effect" && type !== "instrument") {return}
-                const editingDeviceChain = userInterfaceBox.editingDeviceChain.targetVertex
+                const editingDeviceChain = userEditingManager.audioUnit.get()
                 if (editingDeviceChain.isEmpty()) {return}
                 const deviceHost = boxAdapters.adapterFor(editingDeviceChain.unwrap().box, Devices.isHost)
                 if (type === "instrument") {

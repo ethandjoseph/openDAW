@@ -91,7 +91,7 @@ export const DevicePanel = ({lifecycle, service}: Construct) => {
         const profile = service.projectProfileService.getValue()
         if (profile.isEmpty()) {return}
         const {project} = profile.unwrap()
-        const optEditing = project.userInterfaceBox.editingDeviceChain.targetVertex
+        const optEditing = project.userEditingManager.audioUnit.get()
         noAudioUnitSelectedPlaceholder.classList.toggle("hidden", optEditing.nonEmpty())
         noEffectPlaceholder.classList.toggle("hidden", optEditing.isEmpty())
         if (optEditing.isEmpty()) {return}
@@ -186,12 +186,11 @@ export const DevicePanel = ({lifecycle, service}: Construct) => {
     const chainLifeTime = lifecycle.own(new Terminator())
     lifecycle.own(service.projectProfileService.catchupAndSubscribe((owner: ObservableValue<Option<ProjectProfile>>) => {
         chainLifeTime.terminate()
-        owner.getValue().ifSome(({project: {userInterfaceBox}}) =>
-            userInterfaceBox?.editingDeviceChain.catchupAndSubscribe((pointer) => {
+        owner.getValue().ifSome(({project: {userEditingManager}}) =>
+            userEditingManager.audioUnit.catchupAndSubscribe((target) => {
                 chainLifeTime.terminate()
-                if (pointer.isEmpty()) {return}
-                const {project: {userInterfaceBox}} = service
-                const editingBox = userInterfaceBox.editingDeviceChain.targetVertex.unwrap().box
+                if (target.isEmpty()) {return}
+                const editingBox = target.unwrap().box
                 const {deviceHost, instrument} = getContext(service.project, editingBox)
                 chainLifeTime.own(subscribeChain({
                     midiEffects: deviceHost.midiEffects,

@@ -8,8 +8,7 @@ import {
     TimelineBox,
     UserInterfaceBox
 } from "@opendaw/studio-boxes"
-import {assert, ByteArrayInput, isInstanceOf, isNotUndefined, Option, UUID} from "@opendaw/lib-std"
-import {AudioUnitType} from "@opendaw/studio-enums"
+import {asInstanceOf, assert, ByteArrayInput, isDefined, Option, panic, UUID} from "@opendaw/lib-std"
 import {ProjectSkeleton} from "./ProjectSkeleton"
 import {ProjectMandatoryBoxes} from "./ProjectMandatoryBoxes"
 
@@ -30,36 +29,27 @@ export namespace ProjectDecoder {
     }
 
     export const findMandatoryBoxes = (boxGraph: BoxGraph): ProjectMandatoryBoxes => {
-        const required: Partial<ProjectMandatoryBoxes> = {}
         for (const box of boxGraph.boxes()) {
-            box.accept<BoxVisitor>({
-                visitRootBox: (box: RootBox) => required.rootBox = box,
-                visitTimelineBox: (box: TimelineBox) => required.timelineBox = box,
-                visitUserInterfaceBox: (box: UserInterfaceBox) => {
-                    const root = box.root.targetVertex.unwrapOrNull()?.box
-                    if (isInstanceOf(root, RootBox)) {
-                        required.userInterfaceBox = box
-                    }
-                },
-                visitAudioUnitBox: (box: AudioUnitBox) => {
-                    if (box.type.getValue() === AudioUnitType.Output) {
-                        required.masterAudioUnit = box
-                    }
-                },
-                visitAudioBusBox: (box: AudioBusBox) => {
-                    const output = box.output.targetVertex.unwrapOrNull()?.box
-                    if (isInstanceOf(output, AudioUnitBox) && output.type.getValue() === AudioUnitType.Output) {
-                        required.masterBusBox = box
+            const found = box.accept<BoxVisitor<ProjectMandatoryBoxes>>({
+                visitRootBox: (rootBox: RootBox) => {
+                    const primaryAudioOutputUnit = asInstanceOf(rootBox.outputDevice.pointerHub.incoming().at(0)?.box, AudioUnitBox)
+                    const primaryAudioBus = asInstanceOf(primaryAudioOutputUnit.input.pointerHub.incoming().at(0)?.box, AudioBusBox)
+                    const timelineBox = asInstanceOf(rootBox.timeline.targetVertex.unwrap("TimelineBox not found").box, TimelineBox)
+                    const userInterfaceBoxes = rootBox.users.pointerHub.incoming().map(({box}) => asInstanceOf(box, UserInterfaceBox))
+                    return {
+                        rootBox,
+                        primaryAudioBus,
+                        primaryAudioOutputUnit,
+                        timelineBox,
+                        userInterfaceBoxes
                     }
                 }
             })
+            if (isDefined(found)) {
+                return found
+            }
         }
-        assert(isNotUndefined(required.rootBox), "RootBox not found")
-        assert(isNotUndefined(required.timelineBox), "TimelineBox not found")
-        assert(isNotUndefined(required.userInterfaceBox), "UserInterfaceBox not found")
-        assert(isNotUndefined(required.masterAudioUnit), "MasterAudioUnit not found")
-        assert(isNotUndefined(required.masterBusBox), "MasterBusBox not found")
-        return required as ProjectMandatoryBoxes
+        return panic("Could not find mandatory boxes")
     }
 
     const readMandatoryBoxes = (boxGraph: BoxGraph, input: ByteArrayInput): ProjectMandatoryBoxes => {
@@ -68,6 +58,12 @@ export namespace ProjectDecoder {
         const masterBusBox = boxGraph.findBox(UUID.fromDataInput(input)).unwrap("AudioBusBox not found") as AudioBusBox
         const masterAudioUnit = boxGraph.findBox(UUID.fromDataInput(input)).unwrap("AudioUnitBox not found") as AudioUnitBox
         const timelineBox = boxGraph.findBox(UUID.fromDataInput(input)).unwrap("TimelineBox not found") as TimelineBox
-        return {rootBox, userInterfaceBox, masterBusBox, masterAudioUnit, timelineBox}
+        return {
+            rootBox,
+            userInterfaceBoxes: [userInterfaceBox],
+            primaryAudioBus: masterBusBox,
+            primaryAudioOutputUnit: masterAudioUnit,
+            timelineBox
+        }
     }
 }
