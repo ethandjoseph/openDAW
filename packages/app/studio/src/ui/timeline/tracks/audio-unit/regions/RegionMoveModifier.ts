@@ -2,7 +2,7 @@ import {Arrays, clamp, int, Option, Selection} from "@opendaw/lib-std"
 import {AnyLoopableRegionBoxAdapter, AnyRegionBoxAdapter, TrackBoxAdapter} from "@opendaw/studio-adapters"
 import {ppqn, RegionCollection} from "@opendaw/lib-dsp"
 import {Snapping} from "@/ui/timeline/Snapping.ts"
-import {Editing} from "@opendaw/lib-box"
+import {BoxEditing} from "@opendaw/lib-box"
 import {TracksManager} from "@/ui/timeline/tracks/audio-unit/TracksManager.ts"
 import {RegionClipResolver} from "@/ui/timeline/tracks/audio-unit/regions/RegionClipResolver.ts"
 import {RegionModifyStrategy} from "@/ui/timeline/tracks/audio-unit/regions/RegionModifyStrategies.ts"
@@ -134,7 +134,7 @@ export class RegionMoveModifier implements RegionModifier {
         if (change) {this.#dispatchChange()}
     }
 
-    approve(editing: Editing): void {
+    approve(editing: BoxEditing): void {
         if (this.#deltaIndex === 0 && this.#deltaPosition === 0) {
             if (this.#copy) {this.#dispatchChange()} // reset visuals
             return

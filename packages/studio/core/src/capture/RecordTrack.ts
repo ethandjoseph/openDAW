@@ -1,10 +1,10 @@
 import {AudioUnitBox, TrackBox} from "@opendaw/studio-boxes"
 import {asInstanceOf, int, UUID} from "@opendaw/lib-std"
 import {TrackType} from "@opendaw/studio-adapters"
-import {Editing} from "@opendaw/lib-box"
+import {BoxEditing} from "@opendaw/lib-box"
 
 export namespace RecordTrack {
-    export const findOrCreate = (editing: Editing, audioUnitBox: AudioUnitBox, type: TrackType): TrackBox => {
+    export const findOrCreate = (editing: BoxEditing, audioUnitBox: AudioUnitBox, type: TrackType): TrackBox => {
         let index: int = 0 | 0
         for (const trackBox of audioUnitBox.tracks.pointerHub.incoming()
             .map(({box}) => asInstanceOf(box, TrackBox))) {

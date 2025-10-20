@@ -1,6 +1,6 @@
 import {Generators, int, MakeMutable, Notifier, Observer, Option, Selection, Terminable} from "@opendaw/lib-std"
 import {Snapping} from "@/ui/timeline/Snapping.ts"
-import {Editing} from "@opendaw/lib-box"
+import {BoxEditing} from "@opendaw/lib-box"
 import {Line, NoteModifyStrategy} from "./NoteModifyStrategies"
 import {EventCollection, ppqn} from "@opendaw/lib-dsp"
 import {NoteModifier} from "@/ui/timeline/editors/notes/NoteModifier.ts"
@@ -87,7 +87,7 @@ export class NoteCreateModifier implements NoteModifier {
         }
     }
 
-    approve(editing: Editing): void {
+    approve(editing: BoxEditing): void {
         editing.modify(() => {
             this.#selection.deselectAll()
             this.#selection.select(this.#reference.content.createEvent(this.#creation))

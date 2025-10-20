@@ -7,7 +7,7 @@ import {NumberInput} from "@/ui/components/NumberInput.tsx"
 import {createElement, Inject} from "@opendaw/lib-jsx"
 import {MidiKeys} from "@opendaw/lib-dsp"
 import {IconSymbol, NoteEventBoxAdapter} from "@opendaw/studio-adapters"
-import {Editing} from "@opendaw/lib-box"
+import {BoxEditing} from "@opendaw/lib-box"
 import {ObservableModifyContext} from "@/ui/timeline/ObservableModifyContext.ts"
 import {NoteModifier} from "@/ui/timeline/editors/notes/NoteModifier.ts"
 import {NoteModifyStrategies} from "@/ui/timeline/editors/notes/NoteModifyStrategies.ts"
@@ -19,7 +19,7 @@ type Construct = {
     lifecycle: Lifecycle
     selection: Selection<NoteEventBoxAdapter>
     modifyContext: ObservableModifyContext<NoteModifier>
-    editing: Editing
+    editing: BoxEditing
 }
 
 export const PropertyTable = ({lifecycle, selection, modifyContext, editing}: Construct) => {

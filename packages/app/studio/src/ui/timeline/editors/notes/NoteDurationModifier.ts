@@ -1,6 +1,6 @@
 import {int, Notifier, Observer, Option, Selection, Terminable, unitValue} from "@opendaw/lib-std"
 import {Snapping} from "@/ui/timeline/Snapping.ts"
-import {Editing} from "@opendaw/lib-box"
+import {BoxEditing} from "@opendaw/lib-box"
 import {Line, NoteModifyStrategy} from "./NoteModifyStrategies"
 import {NoteEventBoxAdapter} from "@opendaw/studio-adapters"
 import {EventCollection, NoteEvent, ppqn} from "@opendaw/lib-dsp"
@@ -103,7 +103,7 @@ export class NoteDurationModifier implements NoteModifier {
         }
     }
 
-    approve(editing: Editing): void {
+    approve(editing: BoxEditing): void {
         if (this.#deltaDuration === 0) {return}
         const result = this.#selection.selected()
             .map<{ adapter: NoteEventBoxAdapter, duration: ppqn }>(adapter => ({

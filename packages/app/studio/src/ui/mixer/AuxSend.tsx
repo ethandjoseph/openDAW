@@ -8,7 +8,7 @@ import {MenuItem} from "@/ui/model/menu-item.ts"
 import {MenuButton} from "@/ui/components/MenuButton.tsx"
 import {IconCartridge} from "@/ui/components/Icon.tsx"
 import {SnapCenter} from "@/ui/configs.ts"
-import {Editing} from "@opendaw/lib-box"
+import {BoxEditing} from "@opendaw/lib-box"
 import {Html} from "@opendaw/lib-dom"
 import {Colors} from "@opendaw/studio-core"
 
@@ -16,7 +16,7 @@ const className = Html.adoptStyleSheet(css, "AuxSend")
 
 type Construct = {
     lifecycle: Lifecycle
-    editing: Editing
+    editing: BoxEditing
     adapter: AuxSendBoxAdapter
 }
 

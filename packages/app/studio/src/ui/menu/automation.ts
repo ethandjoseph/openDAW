@@ -1,10 +1,10 @@
 import {ContextMenu} from "@/ui/ContextMenu.ts"
 import {MenuItem} from "@/ui/model/menu-item.ts"
 import {AudioUnitTracks, AutomatableParameterFieldAdapter, TrackType} from "@opendaw/studio-adapters"
-import {Editing, PrimitiveValues} from "@opendaw/lib-box"
+import {BoxEditing, PrimitiveValues} from "@opendaw/lib-box"
 import {MIDILearning} from "@opendaw/studio-core"
 
-export const attachParameterContextMenu = <T extends PrimitiveValues>(editing: Editing,
+export const attachParameterContextMenu = <T extends PrimitiveValues>(editing: BoxEditing,
                                                                       midiDevices: MIDILearning,
                                                                       tracks: AudioUnitTracks,
                                                                       parameter: AutomatableParameterFieldAdapter<T>,

@@ -4,12 +4,12 @@ import {createElement} from "@opendaw/lib-jsx"
 import {LKR} from "@/ui/devices/constants.ts"
 import {ParameterLabelKnob} from "@/ui/devices/ParameterLabelKnob.tsx"
 import {TerminableOwner, ValueGuide} from "@opendaw/lib-std"
-import {Editing, PrimitiveValues} from "@opendaw/lib-box"
+import {BoxEditing, PrimitiveValues} from "@opendaw/lib-box"
 import {Colors, MIDILearning} from "@opendaw/studio-core"
 
 type Creation<T extends PrimitiveValues> = {
     lifecycle: TerminableOwner
-    editing: Editing
+    editing: BoxEditing
     midiLearning: MIDILearning
     adapter: DeviceBoxAdapter
     parameter: AutomatableParameterFieldAdapter<T>

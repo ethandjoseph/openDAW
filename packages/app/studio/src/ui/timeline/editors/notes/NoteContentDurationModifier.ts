@@ -1,6 +1,6 @@
 import {int, Notifier, Observer, Option, Terminable} from "@opendaw/lib-std"
 import {Snapping} from "@/ui/timeline/Snapping.ts"
-import {Editing} from "@opendaw/lib-box"
+import {BoxEditing} from "@opendaw/lib-box"
 import {Line, NoteModifyStrategy} from "./NoteModifyStrategies"
 import {NoteModifier} from "@/ui/timeline/editors/notes/NoteModifier.ts"
 import {NoteEventOwnerReader} from "@/ui/timeline/editors/EventOwnerReader.ts"
@@ -61,7 +61,7 @@ export class NoteContentDurationModifier implements NoteModifier {
         }
     }
 
-    approve(editing: Editing): void {
+    approve(editing: BoxEditing): void {
         if (this.#deltaLoopDuration === 0) {return}
         editing.modify(() =>
             this.#reference.contentDuration = this.readContentDuration(this.#reference))

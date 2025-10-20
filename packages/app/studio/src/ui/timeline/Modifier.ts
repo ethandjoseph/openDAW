@@ -1,8 +1,8 @@
 import {Dragging} from "@opendaw/lib-dom"
-import {Editing} from "@opendaw/lib-box"
+import {BoxEditing} from "@opendaw/lib-box"
 
 export interface Modifier {
     update(event: Dragging.Event): void
-    approve(editing: Editing): void
+    approve(editing: BoxEditing): void
     cancel(): void
 }

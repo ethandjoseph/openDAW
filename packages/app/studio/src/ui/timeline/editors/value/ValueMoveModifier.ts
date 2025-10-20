@@ -15,7 +15,7 @@ import {
     ValueAxis
 } from "@opendaw/lib-std"
 import {Snapping} from "@/ui/timeline/Snapping.ts"
-import {Editing} from "@opendaw/lib-box"
+import {BoxEditing} from "@opendaw/lib-box"
 import {
     AutomatableParameterFieldAdapter,
     ValueEventBoxAdapter,
@@ -168,7 +168,7 @@ export class ValueMoveModifier implements ValueModifier {
         if (change) {this.#dispatchChange()}
     }
 
-    approve(editing: Editing): void {
+    approve(editing: BoxEditing): void {
         if (this.#deltaValue === 0 && this.#deltaPosition === 0) {
             if (this.#copy) {this.#dispatchChange()} // reset visuals
             return

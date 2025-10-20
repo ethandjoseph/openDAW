@@ -3,13 +3,13 @@ import {Events, Html} from "@opendaw/lib-dom"
 import {Lifecycle} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {AutomatableParameterFieldAdapter} from "@opendaw/studio-adapters"
-import {Editing} from "@opendaw/lib-box"
+import {BoxEditing} from "@opendaw/lib-box"
 
 const className = Html.adoptStyleSheet(css, "ParameterToggleButton")
 
 type Construct = {
     lifecycle: Lifecycle
-    editing: Editing
+    editing: BoxEditing
     parameter: AutomatableParameterFieldAdapter<boolean>
 }
 

@@ -1,4 +1,5 @@
 import {
+    Editing,
     EmptyExec,
     Lifecycle,
     Nullable,
@@ -14,7 +15,6 @@ import {ValueDragging} from "@/ui/hooks/dragging"
 import {FloatingTextInput} from "@/ui/components/FloatingTextInput.tsx"
 import {ValueTooltip} from "@/ui/surface/ValueTooltip.tsx"
 import {Surface} from "../surface/Surface"
-import {Editing} from "@opendaw/lib-box"
 import {Events} from "@opendaw/lib-dom"
 
 type Construct = {

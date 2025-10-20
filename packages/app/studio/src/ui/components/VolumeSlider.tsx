@@ -3,7 +3,7 @@ import {createElement} from "@opendaw/lib-jsx"
 import {Lifecycle, Option, Parameter, Terminator, unitValue} from "@opendaw/lib-std"
 import {ValueDragging} from "@/ui/hooks/dragging.ts"
 import {ValueTooltip} from "@/ui/surface/ValueTooltip.tsx"
-import {Editing} from "@opendaw/lib-box"
+import {BoxEditing} from "@opendaw/lib-box"
 import {CssUtils, Html} from "@opendaw/lib-dom"
 import {Colors} from "@opendaw/studio-core"
 
@@ -54,7 +54,7 @@ const markers: ReadonlyArray<{ length: MarkerLength, decibel: number }> = [
 
 type Construct = {
     lifecycle: Lifecycle
-    editing: Editing
+    editing: BoxEditing
     parameter: Parameter<number>
 }
 

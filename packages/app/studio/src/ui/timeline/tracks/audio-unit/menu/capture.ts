@@ -3,14 +3,14 @@ import {Arrays, int, isInstanceOf, Option} from "@opendaw/lib-std"
 import {CaptureAudioBox} from "@opendaw/studio-boxes"
 import {AudioDevices, Capture, CaptureAudio, CaptureMidi, MidiDevices} from "@opendaw/studio-core"
 import {AudioUnitBoxAdapter, IconSymbol, TrackBoxAdapter} from "@opendaw/studio-adapters"
-import {Editing} from "@opendaw/lib-box"
+import {BoxEditing} from "@opendaw/lib-box"
 import {StudioService} from "@/service/StudioService"
 
 export namespace MenuCapture {
     export const createItem = (service: StudioService,
                                audioUnitBoxAdapter: AudioUnitBoxAdapter,
                                trackBoxAdapter: TrackBoxAdapter,
-                               editing: Editing,
+                               editing: BoxEditing,
                                captureOption: Option<Capture>) => MenuItem.default({
         label: audioUnitBoxAdapter.captureBox
             .mapOr(box => isInstanceOf(box, CaptureAudioBox) ? "Capture Audio" : "Capture MIDI", ""),

@@ -18,7 +18,7 @@ import {CanvasPainter} from "@/ui/canvas/painter"
 import {SlotUtils} from "@/ui/devices/instruments/PlayfieldDeviceEditor/SlotUtils"
 import {Icon} from "@/ui/components/Icon"
 import {Checkbox} from "@/ui/components/Checkbox"
-import {Editing} from "@opendaw/lib-box"
+import {BoxEditing} from "@opendaw/lib-box"
 import {ContextMenu} from "@/ui/ContextMenu"
 import {MenuItem} from "@/ui/model/menu-item"
 import {EditWrapper} from "@/ui/wrapper/EditWrapper.ts"
@@ -204,7 +204,7 @@ const connectBoolean = (value: MutableObservableValue<boolean>,
     )
 }
 
-const resetBooleanItem = (editing: Editing,
+const resetBooleanItem = (editing: BoxEditing,
                           adapter: PlayfieldDeviceBoxAdapter,
                           key: Extract<keyof PlayfieldSampleBoxAdapter["namedParameter"], "mute" | "solo" | "exclude">,
                           label: string) =>

@@ -82,7 +82,7 @@ export const boot = async ({workersUrl, workletsUrl}: { workersUrl: string, work
     })
     const service: StudioService = new StudioService(
         context, audioWorklets.value, audioDevices, sampleManager, soundfontManager, cloudAuthManager, buildInfo)
-    const errorHandler = new ErrorHandler(service)
+    const errorHandler = new ErrorHandler(buildInfo, () => service.recovery.createBackupCommand())
     const surface = Surface.main({
         config: (surface: Surface) => {
             surface.ownAll(

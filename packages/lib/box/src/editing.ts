@@ -1,5 +1,5 @@
 import {BoxGraph} from "./graph"
-import {Arrays, assert, int, Maybe, Option, Provider} from "@opendaw/lib-std"
+import {Arrays, assert, Editing, int, Maybe, Option, Provider} from "@opendaw/lib-std"
 import {Update} from "./updates"
 
 class Modification {
@@ -25,12 +25,7 @@ export interface ModificationProcess {
     revert(): void
 }
 
-export interface PureEditing {
-    modify<R>(modifier: Provider<Maybe<R>>, mark?: boolean): Option<R>
-    mark(): void
-}
-
-export class Editing implements PureEditing {
+export class BoxEditing implements Editing {
     readonly #graph: BoxGraph
     readonly #pending: Array<Modification> = []
     readonly #marked: Array<ReadonlyArray<Modification>> = []

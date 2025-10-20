@@ -1,15 +1,15 @@
 import {Notifier, Observer, Option, Subscription, Terminable} from "@opendaw/lib-std"
-import {Editing, PointerField, Vertex} from "@opendaw/lib-box"
+import {BoxEditing, PointerField, Vertex} from "@opendaw/lib-box"
 import {Pointers} from "@opendaw/studio-enums"
 
 export class UserEditing implements Terminable {
-    readonly #editing: Editing
+    readonly #editing: BoxEditing
     readonly #notifier: Notifier<Option<Vertex>>
 
     #subscription: Option<Subscription> = Option.None
     #pointer: Option<PointerField<Pointers.Editing>> = Option.None
 
-    constructor(editing: Editing) {
+    constructor(editing: BoxEditing) {
         this.#editing = editing
         this.#notifier = new Notifier()
     }

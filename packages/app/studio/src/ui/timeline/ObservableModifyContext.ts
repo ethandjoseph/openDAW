@@ -1,15 +1,15 @@
 import {Notifier, Observer, Option, Subscription, Terminator} from "@opendaw/lib-std"
-import {Editing} from "@opendaw/lib-box"
+import {BoxEditing} from "@opendaw/lib-box"
 import {ObservableModifier} from "@/ui/timeline/ObservableModifier.ts"
 import {Dragging} from "@opendaw/lib-dom"
 
 export class ObservableModifyContext<MODIFIER extends ObservableModifier> {
-    readonly #editing: Editing
+    readonly #editing: BoxEditing
     readonly #notifier: Notifier<void>
 
     #modifier: Option<MODIFIER> = Option.None
 
-    constructor(editing: Editing) {
+    constructor(editing: BoxEditing) {
         this.#editing = editing
         this.#notifier = new Notifier<void>()
     }

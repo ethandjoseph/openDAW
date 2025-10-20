@@ -25,7 +25,7 @@ import {installContextMenu} from "@/ui/timeline/editors/notes/pitch/PitchContext
 import {NoteEventBox} from "@opendaw/studio-boxes"
 import {NoteCreateModifier} from "@/ui/timeline/editors/notes/NoteCreateModifier.ts"
 import {CanvasPainter} from "@/ui/canvas/painter.ts"
-import {BoxGraph, Editing} from "@opendaw/lib-box"
+import {BoxGraph, BoxEditing} from "@opendaw/lib-box"
 import {NoteEventOwnerReader} from "@/ui/timeline/editors/EventOwnerReader.ts"
 import {CssUtils, Dragging, Events, Html, Keyboard} from "@opendaw/lib-dom"
 
@@ -42,7 +42,7 @@ type Construct = {
     graph: BoxGraph
     boxAdapters: BoxAdapters
     range: TimelineRange
-    editing: Editing
+    editing: BoxEditing
     snapping: Snapping
     positioner: PitchPositioner
     scale: ScaleConfig

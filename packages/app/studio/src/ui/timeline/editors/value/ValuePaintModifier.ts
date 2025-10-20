@@ -14,7 +14,7 @@ import {
     unitValue,
     ValueAxis
 } from "@opendaw/lib-std"
-import {Editing} from "@opendaw/lib-box"
+import {BoxEditing} from "@opendaw/lib-box"
 import {ValueEventBoxAdapter} from "@opendaw/studio-adapters"
 import {Interpolation, ppqn, ValueEvent} from "@opendaw/lib-dsp"
 import {ValueModifier} from "./ValueModifier"
@@ -136,7 +136,7 @@ export class ValuePaintModifier implements ValueModifier {
         this.#dispatchChange()
     }
 
-    approve(editing: Editing): void {
+    approve(editing: BoxEditing): void {
         this.#verifyStrokes()
         const offset = this.#reader.offset
         const min = Arrays.getFirst(this.#strokes, "Internal Error").position - offset

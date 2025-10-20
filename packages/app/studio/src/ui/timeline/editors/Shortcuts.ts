@@ -1,12 +1,12 @@
 import {Selection} from "@opendaw/lib-std"
 import {TimelineSelectableLocator} from "@/ui/timeline/TimelineSelectableLocator.ts"
-import {Editing} from "@opendaw/lib-box"
+import {BoxEditing} from "@opendaw/lib-box"
 import {Event} from "@opendaw/lib-dsp"
 import {Events, Keyboard} from "@opendaw/lib-dom"
 import {BoxAdapter} from "@opendaw/studio-adapters"
 
 export const attachShortcuts = <E extends Event & BoxAdapter>(element: Element,
-                                                              editing: Editing,
+                                                              editing: BoxEditing,
                                                               selection: Selection<E>,
                                                               locator: TimelineSelectableLocator<E>) =>
     Events.subscribe(element, "keydown", (event: KeyboardEvent) => {

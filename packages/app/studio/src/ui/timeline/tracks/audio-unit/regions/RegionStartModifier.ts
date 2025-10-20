@@ -1,5 +1,5 @@
 import {RegionModifier} from "@/ui/timeline/tracks/audio-unit/regions/RegionModifier.ts"
-import {Editing} from "@opendaw/lib-box"
+import {BoxEditing} from "@opendaw/lib-box"
 import {Arrays, int, isNotNull, mod, Option} from "@opendaw/lib-std"
 import {ppqn, RegionCollection} from "@opendaw/lib-dsp"
 import {
@@ -106,7 +106,7 @@ export class RegionStartModifier implements RegionModifier {
         if (change) {this.#dispatchChange()}
     }
 
-    approve(editing: Editing): void {
+    approve(editing: BoxEditing): void {
         const modifiedTracks: ReadonlyArray<TrackBoxAdapter> = Arrays.removeDuplicates(this.#adapters
             .map(adapter => adapter.trackBoxAdapter.unwrapOrNull()).filter(isNotNull))
         const solver = RegionClipResolver

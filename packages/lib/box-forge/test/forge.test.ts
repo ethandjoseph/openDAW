@@ -1,7 +1,7 @@
 import {beforeEach, describe, expect, it, vi} from "vitest"
 import {ByteArrayInput, ByteArrayOutput, Float, Option, UUID} from "@opendaw/lib-std"
 import {Compression} from "@opendaw/lib-dom"
-import {BoxGraph, Editing, PointerField} from "@opendaw/lib-box"
+import {BoxGraph, BoxEditing, PointerField} from "@opendaw/lib-box"
 import {PointerType} from "./Pointers"
 import {AudioConnectionBox, BoxIO, DelayBox, DrumBox, NetworkBox} from "./gen"
 
@@ -112,7 +112,7 @@ describe("running tests on forged source code", () => {
         scene.graph.endTransaction()
 
         // runtime
-        const editing = new Editing(scene.graph)
+        const editing = new BoxEditing(scene.graph)
         const connectionFinder = editing.modify(() => {
             const connectionBox = AudioConnectionBox.create(scene.graph, UUID.generate())
             connectionBox.output.refer(scene.drum.audioOutput)

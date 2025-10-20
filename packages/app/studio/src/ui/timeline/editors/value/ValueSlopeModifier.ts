@@ -10,7 +10,7 @@ import {
     unitValue,
     ValueAxis
 } from "@opendaw/lib-std"
-import {Editing} from "@opendaw/lib-box"
+import {BoxEditing} from "@opendaw/lib-box"
 import {ValueEventBoxAdapter, ValueEventCollectionBoxAdapter} from "@opendaw/studio-adapters"
 import {Interpolation, ppqn, ValueEvent} from "@opendaw/lib-dsp"
 import {ValueModifier} from "./ValueModifier"
@@ -96,7 +96,7 @@ export class ValueSlopeModifier implements ValueModifier {
         }
     }
 
-    approve(editing: Editing): void {
+    approve(editing: BoxEditing): void {
         if (this.#deltaSlope === 0.0) {return}
         type Subject = { event: ValueEventBoxAdapter, interpolation: Interpolation }
         const result: ReadonlyArray<Subject> = this.#selection.selected()

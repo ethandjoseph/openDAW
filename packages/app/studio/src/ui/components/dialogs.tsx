@@ -248,7 +248,7 @@ export namespace Dialogs {
         name: string,
         message: string,
         probablyHasExtension: boolean,
-        backupCommand?: Option<Provider<Promise<void>>>
+        backupCommand: Option<Provider<Promise<void>>>
     }): void => {
         console.debug(`Recovery enabled: ${backupCommand}`)
         const dialog: HTMLDialogElement = (

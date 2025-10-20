@@ -4,7 +4,7 @@ import {createElement} from "@opendaw/lib-jsx"
 import {RelativeUnitValueDragging} from "@/ui/wrapper/RelativeUnitValueDragging.tsx"
 import {LabelKnob} from "@/ui/composite/LabelKnob.tsx"
 import {AutomatableParameterFieldAdapter, DeviceBoxAdapter} from "@opendaw/studio-adapters"
-import {Editing} from "@opendaw/lib-box"
+import {BoxEditing} from "@opendaw/lib-box"
 import {attachParameterContextMenu} from "@/ui/menu/automation.ts"
 import {Html} from "@opendaw/lib-dom"
 import {MIDILearning} from "@opendaw/studio-core"
@@ -13,7 +13,7 @@ const className = Html.adoptStyleSheet(css, "ParameterLabelKnob")
 
 type Construct = {
     lifecycle: Lifecycle
-    editing: Editing
+    editing: BoxEditing
     midiLearning: MIDILearning
     adapter: DeviceBoxAdapter
     parameter: AutomatableParameterFieldAdapter

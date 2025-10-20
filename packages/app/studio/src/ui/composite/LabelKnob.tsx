@@ -3,12 +3,12 @@ import {Knob} from "@/ui/components/Knob.tsx"
 import {ParameterLabel} from "@/ui/components/ParameterLabel.tsx"
 import {createElement} from "@opendaw/lib-jsx"
 import {AutomatableParameterFieldAdapter, DeviceBoxAdapter} from "@opendaw/studio-adapters"
-import {Editing} from "@opendaw/lib-box"
+import {BoxEditing} from "@opendaw/lib-box"
 import {MIDILearning} from "@opendaw/studio-core"
 
 type Construct = {
     lifecycle: Lifecycle
-    editing: Editing
+    editing: BoxEditing
     midiDevices: MIDILearning,
     adapter: DeviceBoxAdapter
     parameter: AutomatableParameterFieldAdapter

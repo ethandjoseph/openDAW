@@ -1,6 +1,6 @@
 import {int, Notifier, Observer, Option, Terminable, unitValue} from "@opendaw/lib-std"
 import {Snapping} from "@/ui/timeline/Snapping.ts"
-import {Editing} from "@opendaw/lib-box"
+import {BoxEditing} from "@opendaw/lib-box"
 import {ValueEventOwnerReader} from "@/ui/timeline/editors/EventOwnerReader.ts"
 import {Interpolation, ppqn, ValueEvent} from "@opendaw/lib-dsp"
 import {ValueModifier} from "./ValueModifier"
@@ -64,7 +64,7 @@ export class ValueContentDurationModifier implements ValueModifier {
         }
     }
 
-    approve(editing: Editing): void {
+    approve(editing: BoxEditing): void {
         if (this.#deltaLoopDuration === 0) {return}
         editing.modify(() => this.#reference.contentDuration = this.readContentDuration(this.#reference))
     }

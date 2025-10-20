@@ -1,5 +1,5 @@
 import {clamp, Notifier, Observer, Option, Selection, Terminable, unitValue, ValueAxis} from "@opendaw/lib-std"
-import {Editing} from "@opendaw/lib-box"
+import {BoxEditing} from "@opendaw/lib-box"
 import {Line, NoteModifyStrategy, Point} from "../NoteModifyStrategies.ts"
 import {NoteEventBoxAdapter} from "@opendaw/studio-adapters"
 import {EventCollection, NoteEvent, ppqn} from "@opendaw/lib-dsp"
@@ -101,7 +101,7 @@ export class PropertyLineModifier implements NoteModifier, NoteModifyStrategy {
         this.#dispatchChange()
     }
 
-    approve(editing: Editing): void {
+    approve(editing: BoxEditing): void {
         const result: ReadonlyArray<{ adapter: NoteEventBoxAdapter, value: number }> =
             this.#reader.content.events.asArray()
                 .map(adapter => ({adapter, value: this.#modifyProperty(this.#property, adapter)}))

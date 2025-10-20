@@ -1,6 +1,6 @@
 import {DeviceHost, Devices, EffectDeviceBoxAdapter} from "@opendaw/studio-adapters"
 import {MenuItem} from "@/ui/model/menu-item.ts"
-import {Editing, PrimitiveField, PrimitiveValues, StringField} from "@opendaw/lib-box"
+import {BoxEditing, PrimitiveField, PrimitiveValues, StringField} from "@opendaw/lib-box"
 import {EmptyExec, isInstanceOf, panic} from "@opendaw/lib-std"
 import {Surface} from "@/ui/surface/Surface"
 import {FloatingTextInput} from "@/ui/components/FloatingTextInput"
@@ -45,7 +45,7 @@ export namespace MenuItems {
         )
     }
 
-    export const createForValue = <V extends PrimitiveValues>(editing: Editing,
+    export const createForValue = <V extends PrimitiveValues>(editing: BoxEditing,
                                                               label: string,
                                                               primitive: PrimitiveField<V, any>,
                                                               value: V) =>
@@ -65,7 +65,7 @@ export namespace MenuItems {
         )
     }
 
-    const createMenuItemToRenameDevice = (editing: Editing, labelField: StringField) =>
+    const createMenuItemToRenameDevice = (editing: BoxEditing, labelField: StringField) =>
         MenuItem.default({label: "Rename..."}).setTriggerProcedure(() => {
             const resolvers = Promise.withResolvers<string>()
             const surface = Surface.get()
@@ -77,18 +77,18 @@ export namespace MenuItems {
             resolvers.promise.then(newName => editing.modify(() => labelField.setValue(newName)), EmptyExec)
         })
 
-    const createMenuItemToToggleEnabled = (editing: Editing, {enabledField}: EffectDeviceBoxAdapter) =>
+    const createMenuItemToToggleEnabled = (editing: BoxEditing, {enabledField}: EffectDeviceBoxAdapter) =>
         MenuItem.default({label: "Enabled", checked: enabledField.getValue()})
             .setTriggerProcedure(() => editing.modify(() =>
                 enabledField.setValue(!enabledField.getValue())))
 
-    const createMenuItemToToggleMinimized = (editing: Editing, {minimizedField}: EffectDeviceBoxAdapter) =>
+    const createMenuItemToToggleMinimized = (editing: BoxEditing, {minimizedField}: EffectDeviceBoxAdapter) =>
         MenuItem.default({label: "Minimized", checked: minimizedField.getValue()})
             .setTriggerProcedure(() => editing.modify(() => {
                 minimizedField.setValue(!minimizedField.getValue())
             }))
 
-    const createMenuItemToDeleteDevice = (editing: Editing, ...devices: ReadonlyArray<EffectDeviceBoxAdapter>) => {
+    const createMenuItemToDeleteDevice = (editing: BoxEditing, ...devices: ReadonlyArray<EffectDeviceBoxAdapter>) => {
         const label = `Delete '${devices.map(device => device.labelField.getValue()).join(", ")}'`
         return MenuItem.default({label})
             .setTriggerProcedure(() => editing.modify(() => Devices.deleteEffectDevices(devices)))

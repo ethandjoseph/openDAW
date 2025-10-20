@@ -1,19 +1,24 @@
-import {EmptyExec, Errors, Terminable, Terminator} from "@opendaw/lib-std"
+import {EmptyExec, Errors, Option, Provider, Terminable, Terminator} from "@opendaw/lib-std"
 import {AnimationFrame, Browser, Events} from "@opendaw/lib-dom"
 import {LogBuffer} from "@/errors/LogBuffer.ts"
 import {ErrorLog} from "@/errors/ErrorLog.ts"
 import {ErrorInfo} from "@/errors/ErrorInfo.ts"
 import {Surface} from "@/ui/surface/Surface.tsx"
-import {StudioService} from "@/service/StudioService.ts"
 import {Dialogs} from "@/ui/components/dialogs.tsx"
+import {BuildInfo} from "@/BuildInfo"
 
 export class ErrorHandler {
-    readonly terminator = new Terminator()
-    readonly #service: StudioService
+    readonly #terminator = new Terminator()
+
+    readonly #buildInfo: BuildInfo
+    readonly #recover: Provider<Option<Provider<Promise<void>>>>
 
     #errorThrown: boolean = false
 
-    constructor(service: StudioService) {this.#service = service}
+    constructor(buildInfo: BuildInfo, recover: Provider<Option<Provider<Promise<void>>>>) {
+        this.#buildInfo = buildInfo
+        this.#recover = recover
+    }
 
     processError(scope: string, event: Event): boolean {
         const error = ErrorInfo.extract(event)
@@ -47,7 +52,7 @@ export class ErrorHandler {
         const body = JSON.stringify({
             date: new Date().toISOString(),
             agent: Browser.userAgent,
-            build: this.#service.buildInfo,
+            build: this.#buildInfo,
             scripts: document.scripts.length,
             error,
             logs: LogBuffer.get()
@@ -69,7 +74,7 @@ export class ErrorHandler {
                 name: error.name,
                 message: error.message ?? "no message",
                 probablyHasExtension,
-                backupCommand: this.#service.recovery.createBackupCommand()
+                backupCommand: this.#recover()
             })
         } else {
             alert(`Boot Error in '${scope}': ${error.name}`)
@@ -79,7 +84,7 @@ export class ErrorHandler {
 
     install(owner: WindowProxy | Worker | AudioWorkletNode, scope: string): Terminable {
         if (this.#errorThrown) {return Terminable.Empty}
-        const lifetime = this.terminator.own(new Terminator())
+        const lifetime = this.#terminator.own(new Terminator())
         lifetime.ownAll(
             Events.subscribe(owner, "error", event => {
                 if (this.processError(scope, event)) {lifetime.terminate()}

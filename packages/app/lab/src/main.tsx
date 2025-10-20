@@ -1,7 +1,10 @@
 import "./style.sass"
 import {assert, DefaultParameter, StringMapping, Terminator, ValueMapping} from "@opendaw/lib-std"
 import {createElement, replaceChildren} from "@opendaw/lib-jsx"
-import {Knob} from "@opendaw/app-studio/src/ui/components/Knob"
+import {Slider} from "./Slider"
+import {Communicator, Messenger} from "@opendaw/lib-runtime"
+import {Protocol} from "./protocol"
+import {Waveform} from "./waveform"
 
 (async () => {
     assert(crossOriginIsolated, "window must be crossOriginIsolated")
@@ -13,7 +16,8 @@ import {Knob} from "@opendaw/app-studio/src/ui/components/Knob"
     const oscillatorNode = new AudioWorkletNode(audioContext, "proc-osc-polyblip")
     oscillatorNode.connect(audioContext.destination)
 
-    window.addEventListener("click", () => {
+    window.addEventListener("click", (event) => {
+        if (!event.shiftKey) {return}
         if (audioContext.state === "suspended") {
             audioContext.resume()
         } else {
@@ -23,13 +27,32 @@ import {Knob} from "@opendaw/app-studio/src/ui/components/Knob"
 
     const lifeCycle = new Terminator()
 
+    const commands = Communicator.sender<Protocol>(Messenger.for(oscillatorNode.port), dispatcher => ({
+        setWaveform(value: number) {dispatcher.dispatchAndForget(this.setWaveform, value)},
+        setFrequency(value: number) {dispatcher.dispatchAndForget(this.setFrequency, value)}
+    }))
+
+    const waveforms: ReadonlyArray<Waveform> = Object.values(Waveform).filter(v => typeof v === "number")
+
+    const waveform = new DefaultParameter(
+        ValueMapping.values(waveforms),
+        StringMapping.values("", waveforms, Object.keys(Waveform)), "Frequency", Waveform.SINE)
+
     const frequency = new DefaultParameter(
-        ValueMapping.exponential(20, 2000),
-        StringMapping.numeric(), "Frequency", 2000.0)
+        ValueMapping.exponential(20, 20000),
+        StringMapping.numeric(), "Frequency", 200.0)
+
+    lifeCycle.ownAll(
+        waveform.catchupAndSubscribe(owner => commands.setWaveform(owner.getValue())),
+        frequency.catchupAndSubscribe(owner => commands.setFrequency(owner.getValue()))
+    )
+
     replaceChildren(document.body, (
         <div>
-            <span>Hello Oscillator</span>
-            <Knob lifecycle={lifeCycle} value={frequency} anchor={0.0}/>
+            <span>Waveform</span>
+            <Slider lifecycle={lifeCycle} parameter={waveform}/>
+            <span>Frequency</span>
+            <Slider lifecycle={lifeCycle} parameter={frequency}/>
         </div>
     ))
 })()

@@ -40,7 +40,6 @@ import {Browser, ConsoleCommands} from "@opendaw/lib-dom"
 import {Promises} from "@opendaw/lib-runtime"
 import {ExportStemsConfiguration} from "@opendaw/studio-adapters"
 import {Address} from "@opendaw/lib-box"
-import {Recovery} from "@/Recovery.ts"
 import {
     AudioOfflineRenderer,
     AudioWorklets,
@@ -56,6 +55,7 @@ import {
     ProjectMeta,
     ProjectProfile,
     ProjectStorage,
+    Recovery,
     RestartWorklet,
     SampleService,
     SoundfontService,
@@ -105,7 +105,7 @@ export class StudioService implements ProjectEnv {
     readonly samplePlayback: SamplePlayback
     // noinspection JSUnusedGlobalSymbols
     readonly _shortcuts = new Shortcuts(this) // TODO reference will be used later in a key-mapping configurator
-    readonly recovery = new Recovery(this)
+    readonly recovery = new Recovery(() => this.#projectProfileService.getValue(), this)
     readonly engine = new EngineFacade()
 
     readonly #softwareKeyboardLifeCycle = new Terminator()

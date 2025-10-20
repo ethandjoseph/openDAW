@@ -1,5 +1,5 @@
 import {ClipModifier} from "@/ui/timeline/tracks/audio-unit/clips/ClipModifier.ts"
-import {Editing} from "@opendaw/lib-box"
+import {BoxEditing} from "@opendaw/lib-box"
 import {Arrays, asDefined, clamp, int, Option, panic, Selection, ValueAxis} from "@opendaw/lib-std"
 import {AnyClipBox, AnyClipBoxAdapter} from "@opendaw/studio-adapters"
 import {TracksManager} from "@/ui/timeline/tracks/audio-unit/TracksManager.ts"
@@ -113,7 +113,7 @@ export class ClipMoveModifier implements ClipModifier {
         if (change) {this.#dispatchChange()}
     }
 
-    approve(editing: Editing): void {
+    approve(editing: BoxEditing): void {
         if (this.#trackDelta === 0 && this.#clipDelta === 0) {return}
         const tracks = this.#manager.tracks()
         const maxTrackIndex = tracks.length - 1

@@ -1,20 +1,11 @@
 import {RenderQuantum} from "@opendaw/lib-dsp"
-
-const TWOPI = Math.PI * 2
-
-export enum Waveform {
-    SIN,
-    TRI,
-    SAW,
-    RAMP,
-    SQUARE,
-    POLYBLEP_TRI,
-    POLYBLEP_SAW,
-    POLYBLEP_SQUARE
-}
+import {Communicator, Messenger} from "@opendaw/lib-runtime"
+import {Protocol} from "./protocol"
+import {TAU} from "@opendaw/lib-std"
+import {Waveform} from "./waveform"
 
 export class Oscillator {
-    waveform: Waveform = Waveform.SIN
+    waveform: Waveform = Waveform.SINE
     phase = 0.0
     phaseInc = 0.0
     lastOut = 0.0
@@ -33,20 +24,20 @@ export class Oscillator {
     }
 
     process(): number {
-        let out = 0.0
-        let t = 0.0
+        let out: number
+        let t: number = 0.0
 
         switch (this.waveform) {
-            case Waveform.SIN:
-                out = Math.sin(this.phase * TWOPI)
+            case Waveform.SINE:
+                out = Math.sin(this.phase * TAU)
                 break
 
-            case Waveform.TRI:
+            case Waveform.TRIANGLE:
                 t = -1.0 + 2.0 * this.phase
                 out = 2.0 * (Math.abs(t) - 0.5)
                 break
 
-            case Waveform.SAW:
+            case Waveform.SAWTOOTH:
                 out = -((this.phase * 2.0) - 1.0)
                 break
 
@@ -100,7 +91,6 @@ export class Oscillator {
             this.eoc = false
         }
         this.eor = this.phase - this.phaseInc < 0.5 && this.phase >= 0.5
-
         return out * this.amp
     }
 }
@@ -129,8 +119,12 @@ registerProcessor("proc-osc-polyblip", class ProcOscPolyblip extends AudioWorkle
         super()
 
         this.#oscillator = new Oscillator(sampleRate)
-        this.#oscillator.setFrequency(220.0)
         this.#oscillator.waveform = Waveform.POLYBLEP_SAW
+
+        Communicator.executor<Protocol>(Messenger.for(this.port), {
+            setWaveform: (value: Waveform) => this.#oscillator.waveform = value,
+            setFrequency: (value: number) => this.#oscillator.setFrequency(value)
+        })
     }
 
     process(_inputs: Float32Array[][], outputs: Float32Array[][]): boolean {

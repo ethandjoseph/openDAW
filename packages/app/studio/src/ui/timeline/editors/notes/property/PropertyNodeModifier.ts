@@ -1,5 +1,5 @@
 import {clamp, int, Notifier, Observer, Option, Selection, Terminable, unitValue, ValueAxis} from "@opendaw/lib-std"
-import {Editing} from "@opendaw/lib-box"
+import {BoxEditing} from "@opendaw/lib-box"
 import {Line, NoteModifyStrategy} from "../NoteModifyStrategies.ts"
 import {NoteEventBoxAdapter} from "@opendaw/studio-adapters"
 import {EventCollection, NoteEvent, ppqn} from "@opendaw/lib-dsp"
@@ -100,7 +100,7 @@ export class PropertyNodeModifier implements NoteModifier {
         }
     }
 
-    approve(editing: Editing): void {
+    approve(editing: BoxEditing): void {
         if (this.#deltaProperty === 0.0 || this.#selection.isEmpty()) {return}
         const result: ReadonlyArray<{ adapter: NoteEventBoxAdapter, value: number }> = this.#selection.selected()
             .map(adapter => ({adapter, value: this.#selectedModifyStrategy.modifyProperty(this.#property, adapter)}))

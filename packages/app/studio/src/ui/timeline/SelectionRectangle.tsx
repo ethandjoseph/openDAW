@@ -1,7 +1,7 @@
 import css from "./SelectionRectangle.sass?inline"
 import {createElement} from "@opendaw/lib-jsx"
 import {EmptyExec, Lifecycle, Option, Selection, SortedSet, UUID, ValueAxis} from "@opendaw/lib-std"
-import {Editing} from "@opendaw/lib-box"
+import {BoxEditing} from "@opendaw/lib-box"
 import {TimelineSelectableLocator} from "@/ui/timeline/TimelineSelectableLocator.ts"
 import {Dragging, Html, PointerCaptureTarget} from "@opendaw/lib-dom"
 import {BoxAdapter} from "@opendaw/studio-adapters"
@@ -12,7 +12,7 @@ const className = Html.adoptStyleSheet(css, "SelectionRectangle")
 type Construct<T extends BoxAdapter> = {
     lifecycle: Lifecycle
     target: PointerCaptureTarget
-    editing: Editing
+    editing: BoxEditing
     selection: Selection<T>
     locator: TimelineSelectableLocator<T>
     xAxis: ValueAxis

@@ -4,11 +4,6 @@ import {readFileSync} from "fs"
 import {resolve} from "path"
 
 export default defineConfig(({command}) => ({
-    resolve: {
-        alias: {
-            "@": resolve(__dirname, "../studio/src")
-        }
-    },
     server: {
         port: 8080,
         host: "localhost",

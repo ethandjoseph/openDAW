@@ -4,7 +4,7 @@ import {PointerField, UnreferenceableType} from "./pointer"
 import {Box, BoxConstruct} from "./box"
 import {NoPointers, VertexVisitor} from "./vertex"
 import {Maybe, Option, panic, Procedure, safeExecute, UUID} from "@opendaw/lib-std"
-import {Editing} from "./editing"
+import {BoxEditing} from "./editing"
 
 enum PointerType {A, B}
 
@@ -50,7 +50,7 @@ class BarBox extends Box<UnreferenceableType, BarBoxFields> {
 describe("editing", () => {
     interface TestScene {
         graph: BoxGraph
-        editing: Editing
+        editing: BoxEditing
     }
 
     beforeEach<TestScene>((scene: TestScene) => {
@@ -63,7 +63,7 @@ describe("editing", () => {
             }
         }))
         scene.graph = graph
-        scene.editing = new Editing(graph)
+        scene.editing = new BoxEditing(graph)
     })
 
     it("should be locked/unlocked", (scene: TestScene) => {

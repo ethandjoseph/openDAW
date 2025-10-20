@@ -11,7 +11,7 @@ import {
     Terminator,
     UUID
 } from "@opendaw/lib-std"
-import {BoxGraph, Editing} from "@opendaw/lib-box"
+import {BoxGraph, BoxEditing} from "@opendaw/lib-box"
 import {
     AudioBusBox,
     AudioUnitBox,
@@ -130,7 +130,7 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
 
     readonly api: ProjectApi
     readonly captureDevices: CaptureDevices
-    readonly editing: Editing
+    readonly editing: BoxEditing
     readonly selection: VertexSelection
     readonly boxAdapters: BoxAdapters
     readonly userEditingManager: UserEditingManager
@@ -156,7 +156,7 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
         this.timelineBox = timelineBox
 
         this.api = new ProjectApi(this)
-        this.editing = new Editing(this.boxGraph)
+        this.editing = new BoxEditing(this.boxGraph)
         this.selection = new VertexSelection(this.editing, this.boxGraph)
         this.parameterFieldAdapters = new ParameterFieldAdapters()
         this.boxAdapters = this.#terminator.own(new BoxAdapters(this))
