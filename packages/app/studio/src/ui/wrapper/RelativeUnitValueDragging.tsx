@@ -5,7 +5,6 @@ import {
     Option,
     panic,
     Parameter,
-    Primitive,
     Strings,
     unitValue,
     ValueGuide
@@ -21,7 +20,7 @@ import {Events} from "@opendaw/lib-dom"
 type Construct = {
     lifecycle: Lifecycle
     editing: Editing
-    parameter: Parameter<Primitive>
+    parameter: Parameter
     options?: ValueGuide.Options
 }
 
@@ -37,10 +36,7 @@ const lookForSolidElement = (element: Element): Element => {
 }
 
 export const RelativeUnitValueDragging = ({
-                                              lifecycle,
-                                              editing,
-                                              parameter,
-                                              options
+                                              lifecycle, editing, parameter, options
                                           }: Construct, children: JsxValue) => {
     const element: HTMLElement = (<Group>{children}</Group>)
     lifecycle.ownAll(

@@ -6,7 +6,7 @@ import {resolve} from "path"
 export default defineConfig(({command}) => ({
     resolve: {
         alias: {
-            "@": resolve(__dirname, "./src")
+            "@": resolve(__dirname, "../studio/src")
         }
     },
     server: {

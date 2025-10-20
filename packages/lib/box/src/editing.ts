@@ -25,7 +25,12 @@ export interface ModificationProcess {
     revert(): void
 }
 
-export class Editing {
+export interface PureEditing {
+    modify<R>(modifier: Provider<Maybe<R>>, mark?: boolean): Option<R>
+    mark(): void
+}
+
+export class Editing implements PureEditing {
     readonly #graph: BoxGraph
     readonly #pending: Array<Modification> = []
     readonly #marked: Array<ReadonlyArray<Modification>> = []
