@@ -33,7 +33,11 @@ export const PreferencePanel = ({lifecycle}: Construct) => {
                             <Frag>
                                 <Checkbox lifecycle={lifecycle}
                                           model={model}
-                                          appearance={{activeColor: Colors.purple, cursor: "pointer"}}>
+                                          appearance={{
+                                              color: Colors.shadow,
+                                              activeColor: Colors.bright,
+                                              cursor: "pointer"
+                                          }}>
                                     <span style={{color: Colors.dark}}>{Labels[pKey]}</span>
                                     <hr/>
                                     <Icon symbol={IconSymbol.Checkbox}/>
