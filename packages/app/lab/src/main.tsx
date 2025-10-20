@@ -5,6 +5,7 @@ import {Communicator, Messenger} from "@opendaw/lib-runtime"
 import {Slider} from "./Slider"
 import {Protocol} from "./protocol"
 import {Waveform} from "./waveform"
+import {Oscilloscope} from "./Oscilloscope"
 
 (async () => {
     assert(crossOriginIsolated, "window must be crossOriginIsolated")
@@ -15,6 +16,12 @@ import {Waveform} from "./waveform"
     await audioContext.audioWorklet.addModule(new URL("./processor.ts", import.meta.url))
     const oscillatorNode = new AudioWorkletNode(audioContext, "proc-osc-polyblip")
     oscillatorNode.connect(audioContext.destination)
+
+    const analyser = audioContext.createAnalyser()
+    analyser.fftSize = 4096
+    analyser.smoothingTimeConstant = 0
+    oscillatorNode.connect(analyser)
+    analyser.connect(audioContext.destination)
 
     const lifeCycle = new Terminator()
 
@@ -56,6 +63,9 @@ import {Waveform} from "./waveform"
             <Slider lifecycle={lifeCycle} parameter={waveform}/>
             <span>Frequency</span>
             <Slider lifecycle={lifeCycle} parameter={frequency}/>
+            <div style="margin-top: 30px;">
+                <Oscilloscope analyser={analyser} lifecycle={lifeCycle}/>
+            </div>
         </div>
     ))
 })()
