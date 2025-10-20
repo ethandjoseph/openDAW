@@ -58,7 +58,7 @@ export class CrusherDeviceBoxAdapter implements AudioEffectDeviceAdapter {
                 StringMapping.decible, "Boost"),
             mix: this.#parametric.createParameter(
                 box.mix,
-                ValueMapping.unipolar(),
+                ValueMapping.exponential(0.001, 1.0),
                 StringMapping.percent(), "Mix")
         } as const
     }

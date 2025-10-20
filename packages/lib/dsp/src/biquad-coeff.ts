@@ -21,7 +21,7 @@ export class BiquadCoeff {
         cutoff = clamp(cutoff, 0.0, 1.0)
         if (cutoff === 1.0) {
             this.setNormalizedCoefficients(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
-        } else if (cutoff > 0) {
+        } else if (cutoff > 0.0) {
             const theta = TAU * cutoff
             const alpha = Math.sin(theta) / (2.0 * resonance)
             const cosw = Math.cos(theta)

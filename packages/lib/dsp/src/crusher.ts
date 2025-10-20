@@ -1,4 +1,4 @@
-import {clamp, clampUnit, int, linear} from "@opendaw/lib-std"
+import {clamp, clampUnit, int} from "@opendaw/lib-std"
 import {dbToGain} from "./utils"
 import {StereoMatrix} from "./stereo"
 import {BiquadCoeff} from "./biquad-coeff"
@@ -22,11 +22,10 @@ export class Crusher {
     constructor(sampleRate: number) {
         this.#sampleRate = sampleRate
         this.#filterCoeff = new BiquadCoeff()
-        this.#filterCoeff.setLowpassParams(0.5)
+        this.#filterCoeff.setLowpassParams(0.5) // nyquist
         this.#filters = [new BiquadMono(), new BiquadMono()]
         this.#filteredBuffer = [new Float32Array(RenderQuantum), new Float32Array(RenderQuantum)]
         this.#heldSample = new Float32Array(2)
-        this.setCrush(sampleRate)
     }
 
     process(input: StereoMatrix.Channels, output: StereoMatrix.Channels, from: int, to: int): void {
@@ -53,7 +52,7 @@ export class Crusher {
     }
 
     setCrush(value: number): void {
-        this.#crushedSampleRate = linear(10.0, this.#sampleRate, value)
+        this.#crushedSampleRate = value * 0.5 * this.#sampleRate // max: nyquist
         this.#filterCoeff.setLowpassParams(this.#crushedSampleRate / this.#sampleRate)
     }
 
