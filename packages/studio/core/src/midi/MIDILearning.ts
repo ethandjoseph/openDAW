@@ -2,6 +2,7 @@ import {
     byte,
     Errors,
     isDefined,
+    isNotNull,
     JSONValue,
     Nullable,
     Observer,
@@ -120,7 +121,7 @@ export class MIDILearning implements Terminable {
                         update(value)
                         pendingValue = value
                         AnimationFrame.once(() => {
-                            if (pendingValue !== null) {
+                            if (isNotNull(pendingValue)) {
                                 update(pendingValue)
                                 pendingValue = null
                             }
