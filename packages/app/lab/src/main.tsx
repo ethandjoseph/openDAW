@@ -1,8 +1,8 @@
 import "./style.sass"
 import {assert, DefaultParameter, StringMapping, Terminator, ValueMapping} from "@opendaw/lib-std"
 import {createElement, replaceChildren} from "@opendaw/lib-jsx"
-import {Slider} from "./Slider"
 import {Communicator, Messenger} from "@opendaw/lib-runtime"
+import {Slider} from "./Slider"
 import {Protocol} from "./protocol"
 import {Waveform} from "./waveform"
 
@@ -12,18 +12,9 @@ import {Waveform} from "./waveform"
 
     const audioContext = new AudioContext()
     await audioContext.suspend()
-    await audioContext.audioWorklet.addModule(new URL("./proc-osc-polyblip.ts", import.meta.url))
+    await audioContext.audioWorklet.addModule(new URL("./processor.ts", import.meta.url))
     const oscillatorNode = new AudioWorkletNode(audioContext, "proc-osc-polyblip")
     oscillatorNode.connect(audioContext.destination)
-
-    window.addEventListener("click", (event) => {
-        if (!event.shiftKey) {return}
-        if (audioContext.state === "suspended") {
-            audioContext.resume()
-        } else {
-            audioContext.suspend()
-        }
-    }, {capture: true})
 
     const lifeCycle = new Terminator()
 
@@ -49,6 +40,18 @@ import {Waveform} from "./waveform"
 
     replaceChildren(document.body, (
         <div>
+            <span>Run</span>
+            <input type="checkbox" onInit={element => {
+                element.onchange = () => {
+                    if (audioContext.state === "suspended") {
+                        element.value = "true"
+                        audioContext.resume()
+                    } else {
+                        element.value = "false"
+                        audioContext.suspend()
+                    }
+                }
+            }}/>
             <span>Waveform</span>
             <Slider lifecycle={lifeCycle} parameter={waveform}/>
             <span>Frequency</span>
