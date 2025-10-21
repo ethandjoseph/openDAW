@@ -1,27 +1,27 @@
 {
-  "name": "@opendaw/studio-forge-boxes",
-  "version": "0.0.35",
-  "license": "LGPL-3.0-or-later",
-  "private": true,
-  "exports": {
-    ".": "./src/index.ts"
-  },
-  "scripts": {
-    "lint": "eslint \"**/*.ts\"",
-    "format": "prettier --write \"../boxes/src/**/*.ts\" --ignore-path /dev/null",
-    "clear": "rm -rf ../boxes/src/*",
-    "build": "npm run clear && npx tsx src/forge.ts && npm run format",
-    "test": "echo \"No tests to run\""
-  },
-  "dependencies": {
-    "@opendaw/lib-box": "^0.0.35",
-    "@opendaw/lib-dsp": "^0.0.35",
-    "@opendaw/lib-runtime": "^0.0.35",
-    "@opendaw/lib-std": "^0.0.35",
-    "@opendaw/studio-enums": "^0.0.26"
-  },
-  "devDependencies": {
-    "@opendaw/eslint-config": "^0.0.19",
-    "@opendaw/typescript-config": "^0.0.20"
-  }
+    "name": "@opendaw/studio-forge-boxes",
+    "version": "0.0.36",
+    "license": "LGPL-3.0-or-later",
+    "private": true,
+    "exports": {
+        ".": "./src/index.ts"
+    },
+    "scripts": {
+        "lint": "eslint \"**/*.ts\"",
+        "format": "prettier --write \"../boxes/src/**/*.ts\" --ignore-path /dev/null",
+        "clear": "rm -rf ../boxes/src/*",
+        "build": "npm run clear && npx tsx src/forge.ts && npm run format",
+        "test": "echo \"No tests to run\""
+    },
+    "dependencies": {
+        "@opendaw/lib-box": "^0.0.36",
+        "@opendaw/lib-dsp": "^0.0.36",
+        "@opendaw/lib-runtime": "^0.0.36",
+        "@opendaw/lib-std": "^0.0.36",
+        "@opendaw/studio-enums": "^0.0.27"
+    },
+    "devDependencies": {
+        "@opendaw/eslint-config": "^0.0.20",
+        "@opendaw/typescript-config": "^0.0.20"
+    }
 }

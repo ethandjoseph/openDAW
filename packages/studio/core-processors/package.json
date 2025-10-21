@@ -1,28 +1,28 @@
 {
-  "name": "@opendaw/studio-core-processors",
-  "version": "0.0.36",
-  "license": "LGPL-3.0-or-later",
-  "private": true,
-  "exports": {
-    ".": "./src/index.ts"
-  },
-  "scripts": {
-    "lint": "eslint \"**/*.ts\"",
-    "build": "esbuild src/register.ts --bundle --format=esm --platform=browser --minify --sourcemap --outfile=../core/dist/processors.js",
-    "test": "echo \"No tests to run\""
-  },
-  "dependencies": {
-    "@opendaw/lib-box": "^0.0.35",
-    "@opendaw/lib-dsp": "^0.0.35",
-    "@opendaw/lib-runtime": "^0.0.35",
-    "@opendaw/lib-std": "^0.0.35",
-    "@opendaw/studio-adapters": "^0.0.36",
-    "@opendaw/studio-boxes": "^0.0.35",
-    "@opendaw/studio-enums": "^0.0.26",
-    "@types/audioworklet": "^0.0.77"
-  },
-  "devDependencies": {
-    "@opendaw/eslint-config": "^0.0.19",
-    "@opendaw/typescript-config": "^0.0.20"
-  }
+    "name": "@opendaw/studio-core-processors",
+    "version": "0.0.37",
+    "license": "LGPL-3.0-or-later",
+    "private": true,
+    "exports": {
+        ".": "./src/index.ts"
+    },
+    "scripts": {
+        "lint": "eslint \"**/*.ts\"",
+        "build": "esbuild src/register.ts --bundle --format=esm --platform=browser --minify --sourcemap --outfile=../core/dist/processors.js",
+        "test": "echo \"No tests to run\""
+    },
+    "dependencies": {
+        "@opendaw/lib-box": "^0.0.36",
+        "@opendaw/lib-dsp": "^0.0.36",
+        "@opendaw/lib-runtime": "^0.0.36",
+        "@opendaw/lib-std": "^0.0.36",
+        "@opendaw/studio-adapters": "^0.0.37",
+        "@opendaw/studio-boxes": "^0.0.36",
+        "@opendaw/studio-enums": "^0.0.27",
+        "@types/audioworklet": "^0.0.77"
+    },
+    "devDependencies": {
+        "@opendaw/eslint-config": "^0.0.20",
+        "@opendaw/typescript-config": "^0.0.20"
+    }
 }

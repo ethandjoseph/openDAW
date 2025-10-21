@@ -1,33 +1,33 @@
 {
-  "name": "@opendaw/lib-jsx",
-  "version": "0.0.35",
-  "license": "LGPL-3.0-or-later",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "publishConfig": {
-    "access": "public"
-  },
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
-    }
-  },
-  "files": [
-    "dist/**/*"
-  ],
-  "scripts": {
-    "build": "tsc",
-    "lint": "eslint \"**/*.ts\"",
-    "test": "echo \"No tests to run\""
-  },
-  "dependencies": {
-    "@opendaw/lib-dom": "^0.0.35",
-    "@opendaw/lib-std": "^0.0.35"
-  },
-  "devDependencies": {
-    "@opendaw/eslint-config": "^0.0.19",
-    "@opendaw/typescript-config": "^0.0.20"
-  },
-  "gitHead": "7911c4037c03c3aa6d59cf6790dd86285d58dcf9"
+    "name": "@opendaw/lib-jsx",
+    "version": "0.0.36",
+    "license": "LGPL-3.0-or-later",
+    "main": "./dist/index.js",
+    "types": "./dist/index.d.ts",
+    "publishConfig": {
+        "access": "public"
+    },
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "default": "./dist/index.js"
+        }
+    },
+    "files": [
+        "dist/**/*"
+    ],
+    "scripts": {
+        "build": "tsc",
+        "lint": "eslint \"**/*.ts\"",
+        "test": "echo \"No tests to run\""
+    },
+    "dependencies": {
+        "@opendaw/lib-dom": "^0.0.36",
+        "@opendaw/lib-std": "^0.0.36"
+    },
+    "devDependencies": {
+        "@opendaw/eslint-config": "^0.0.20",
+        "@opendaw/typescript-config": "^0.0.20"
+    },
+    "gitHead": "7911c4037c03c3aa6d59cf6790dd86285d58dcf9"
 }
