@@ -1,6 +1,6 @@
 import css from "./CompressionCurve.sass?inline"
-import {Html} from "@opendaw/lib-dom"
-import {Lifecycle} from "@opendaw/lib-std"
+import {AnimationFrame, Html} from "@opendaw/lib-dom"
+import {Lifecycle, TAU} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {CompressorDeviceBoxAdapter} from "@opendaw/studio-adapters"
 import {CanvasPainter} from "@/ui/canvas/painter"
@@ -12,9 +12,10 @@ const className = Html.adoptStyleSheet(css, "CompressionCurve")
 type Construct = {
     lifecycle: Lifecycle
     adapter: CompressorDeviceBoxAdapter
+    values: Float32Array
 }
 
-export const CompressionCurve = ({lifecycle, adapter}: Construct) => {
+export const CompressionCurve = ({lifecycle, adapter, values}: Construct) => {
     const {padding, innerHeight: size, scale} = Vertical
     const {threshold, ratio, knee} = adapter.namedParameter
     const numSegments = 7
@@ -80,9 +81,18 @@ export const CompressionCurve = ({lifecycle, adapter}: Construct) => {
                             const x1 = (1.0 - scale.unitToNorm(-thresholdValue - kneeValue * 0.5)) * size
                             drawPath(Math.max(x0, 0), Math.min(x1, size), false)
                         }
+                        const input = values[0]
+                        const x = (1.0 - scale.unitToNorm(-input)) * size
+                        const cp = computer.applyCompression(input) + input
+                        const y = Math.min(scale.unitToNorm(-cp) * size, size)
+                        context.beginPath()
+                        context.arc(x, y, 3, 0.0, TAU)
+                        context.fillStyle = "hsla(200, 83%, 60%, 0.80)"
+                        context.fill()
                         context.restore()
                     }))
                     lifecycle.ownAll(
+                        AnimationFrame.add(() => canvasPainter.requestUpdate()),
                         threshold.catchupAndSubscribe(owner => {
                             computer.setThreshold(owner.getValue())
                             canvasPainter.requestUpdate()

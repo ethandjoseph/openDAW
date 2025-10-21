@@ -74,7 +74,7 @@ export const CompressorDeviceEditor = ({lifecycle, service, adapter, deviceHost}
                                           .map(parameter => createLabelControlFrag(parameter))}
                                   </div>
                               </div>
-                              <CompressionCurve lifecycle={lifecycle} adapter={adapter}/>
+                              <CompressionCurve lifecycle={lifecycle} adapter={adapter} values={values}/>
                               <Meters lifecycle={lifecycle} values={values}/>
                           </div>)}
                       populateMeter={() => (
