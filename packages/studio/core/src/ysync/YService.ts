@@ -1,7 +1,7 @@
-import {Errors, Option, panic, RuntimeNotifier, TimeSpan} from "@opendaw/lib-std"
+import {Errors, Option, panic, RuntimeNotifier, TimeSpan, UUID} from "@opendaw/lib-std"
 import {BoxGraph} from "@opendaw/lib-box"
 import {Promises} from "@opendaw/lib-runtime"
-import {BoxIO} from "@opendaw/studio-boxes"
+import {BoxIO, UserInterfaceBox} from "@opendaw/studio-boxes"
 import {ProjectDecoder} from "@opendaw/studio-adapters"
 import {YSync} from "./YSync"
 import * as Y from "yjs"
@@ -36,12 +36,13 @@ export namespace YService {
             await Promises.timeout(promise, TimeSpan.seconds(10), "Timeout 'synced'")
         }
         const boxesMap = doc.getMap("boxes")
-        if (boxesMap.size === 0) {
+        const isRoomEmpty = boxesMap.size === 0
+        if (isRoomEmpty) {
             const project = optProject.match({
                 none: () => Project.new(env),
                 some: project => project.copy()
             })
-            const sync = await YSync.populate({boxGraph: project.boxGraph, doc, conflict: () => project.invalid()})
+            const sync = await YSync.populateRoom({boxGraph: project.boxGraph, doc, conflict: () => project.invalid()})
             project.own(sync)
             project.editing.disable()
             return project
@@ -58,11 +59,18 @@ export namespace YService {
                 }
             }
             const boxGraph = new BoxGraph<BoxIO.TypeMap>(Option.wrap(BoxIO.create))
-            const sync = await YSync.join({boxGraph, doc, conflict: () => project.invalid()})
+            const sync = await YSync.joinRoom({boxGraph, doc, conflict: () => project.invalid()})
+            const mandatoryBoxes = ProjectDecoder.findMandatoryBoxes(boxGraph)
             const project = Project.skeleton(env, {
                 boxGraph,
-                mandatoryBoxes: ProjectDecoder.findMandatoryBoxes(boxGraph)
-            })
+                mandatoryBoxes
+            }, false)
+            boxGraph.beginTransaction()
+            // TODO How takes care to remove the user interface boxes?
+            const userInterfaceBox = UserInterfaceBox.create(boxGraph, UUID.generate(),
+                box => box.root.refer(mandatoryBoxes.rootBox.users))
+            boxGraph.endTransaction()
+            project.follow(userInterfaceBox)
             project.own(sync)
             project.editing.disable()
             return project

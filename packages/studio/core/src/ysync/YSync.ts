@@ -30,7 +30,7 @@ export class YSync<T> implements Terminable {
         return doc.getMap("boxes").size === 0
     }
 
-    static async populate<T>({boxGraph, doc}: Construct<T>): Promise<YSync<T>> {
+    static async populateRoom<T>({boxGraph, doc}: Construct<T>): Promise<YSync<T>> {
         console.debug("populate")
         const boxesMap = doc.getMap("boxes")
         assert(boxesMap.size === 0, "BoxesMap must be empty")
@@ -43,7 +43,7 @@ export class YSync<T> implements Terminable {
         return sync
     }
 
-    static async join<T>({boxGraph, doc}: Construct<T>): Promise<YSync<T>> {
+    static async joinRoom<T>({boxGraph, doc}: Construct<T>): Promise<YSync<T>> {
         console.debug("join")
         assert(boxGraph.boxes().length === 0, "BoxGraph must be empty")
         const sync = new YSync<T>({boxGraph, doc})
@@ -109,7 +109,8 @@ export class YSync<T> implements Terminable {
                 this.#ignoreUpdates = true
                 this.#boxGraph.endTransaction()
                 this.#ignoreUpdates = false
-                // TODO Only in DEV-MODE this.#boxGraph.verifyPointers()
+                // TODO Only in DEV-MODE
+                //  this.#boxGraph.verifyPointers()
             } catch (reason) {
                 this.terminate()
                 return panic(reason)

@@ -100,29 +100,34 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
         rootBox.timeline.refer(timelineBox.root)
         primaryAudioBus.output.refer(primaryAudioOutputUnit.input)
         const userInterfaceBoxes: Array<UserInterfaceBox> = []
-        if (options?.noDefaultUser !== true) {
+        const createDefaultUser = options?.noDefaultUser !== true
+        if (createDefaultUser) {
             const userInterfaceBox = UserInterfaceBox.create(boxGraph, UUID.generate())
             userInterfaceBox.root.refer(rootBox.users)
             userInterfaceBoxes.push(userInterfaceBox)
         }
         boxGraph.endTransaction()
-        return new Project(env, boxGraph, {
+        const project = new Project(env, boxGraph, {
             rootBox,
             primaryAudioBus,
             primaryAudioOutputUnit,
             userInterfaceBoxes,
             timelineBox
         })
+        if (createDefaultUser) {project.follow(userInterfaceBoxes[0])}
+        return project
     }
 
     static load(env: ProjectEnv, arrayBuffer: ArrayBuffer): Project {
         return this.skeleton(env, ProjectDecoder.decode(arrayBuffer))
     }
 
-    static skeleton(env: ProjectEnv, skeleton: ProjectSkeleton): Project {
+    static skeleton(env: ProjectEnv, skeleton: ProjectSkeleton, followFirstUser: boolean = true): Project {
         ProjectMigration.migrate(skeleton)
         ProjectValidation.validate(skeleton)
-        return new Project(env, skeleton.boxGraph, skeleton.mandatoryBoxes)
+        const project = new Project(env, skeleton.boxGraph, skeleton.mandatoryBoxes)
+        if (followFirstUser) {project.follow(project.userInterfaceBoxes[0])}
+        return project
     }
 
     readonly #terminator = new Terminator()
@@ -175,7 +180,7 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
         this.mixer = new Mixer(this.rootBoxAdapter.audioUnits)
 
         // TODO We are probably doing that from the outside
-        if (this.userInterfaceBoxes.length > 0) {
+        if (this.userInterfaceBoxes.length === 1) {
             this.follow(this.userInterfaceBoxes[0])
         }
 
