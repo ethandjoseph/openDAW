@@ -1,4 +1,4 @@
-import {Arrays, assert, Func, isDefined, isInstanceOf, panic, SortedSet, UUID} from "@opendaw/lib-std"
+import {Arrays, Func, isDefined, isInstanceOf, panic, SortedSet, UUID} from "@opendaw/lib-std"
 import {Address} from "./address"
 import {PointerField} from "./pointer"
 import {Vertex} from "./vertex"
@@ -84,8 +84,13 @@ export class GraphEdges {
     }
 
     validateRequirements(): void {
+        // TODO I removed the assertions because they were too slow in busy graphs.
+        //  I tried to use a Set<Box> in BoxGraph, but that wasn't faster than the SortedSet.
+        //  We could just use a boolean in Box, but it could be set from the outside world and break it.
+        //  Claude suggest to use dirty sets, but I am too lazy to implement it right now.
+        const now = performance.now()
         this.#requiresTarget.forEach(pointer => {
-            assert(pointer.isAttached(), `Pointer ${pointer.address.toString()} is not attached`)
+            // assert(pointer.isAttached(), `Pointer ${pointer.address.toString()} is not attached`)
             if (pointer.isEmpty()) {
                 if (pointer.mandatory) {
                     return panic(`Pointer ${pointer.toString()} requires an edge.`)
@@ -95,7 +100,7 @@ export class GraphEdges {
             }
         })
         this.#requiresPointer.forEach(target => {
-            assert(target.isAttached(), `Target ${target.address.toString()} is not attached`)
+            // assert(target.isAttached(), `Target ${target.address.toString()} is not attached`)
             if (target.pointerHub.isEmpty()) {
                 if (target.pointerRules.mandatory) {
                     return panic(`Target ${target.toString()} requires an edge.`)
@@ -104,6 +109,7 @@ export class GraphEdges {
                 }
             }
         })
+        console.debug(`GraphEdges validation took ${performance.now() - now} ms.`)
     }
 
     #collectSameBox<T>(set: SortedSet<Address, T>, id: UUID.Bytes, map: Func<T, UUID.Bytes>): ReadonlyArray<T> {

@@ -6,17 +6,17 @@ import {Wait} from "./wait"
 
 type DetailedType = { amount: number, numbers: Uint8Array, nested: { key: { value: "xyz" } } };
 
-interface RemoteInterface {
+interface Protocol {
     sendNotification(num: number): void;
     fetchAndTransformData(data: DetailedType): Promise<DetailedType>;
     runTask(init: Exec, progress: Procedure<number>): Promise<void>;
 }
 
-export const setupRemoteCaller = (messenger: Messenger): RemoteInterface =>
+export const setupRemoteCaller = (messenger: Messenger): Protocol =>
     Communicator.sender(messenger, ({
                                         dispatchAndForget,
                                         dispatchAndReturn
-                                    }) => new class implements RemoteInterface {
+                                    }) => new class implements Protocol {
         sendNotification(num: number): void {
             dispatchAndForget(this.sendNotification, num)
         }
@@ -32,7 +32,7 @@ export const setupRemoteCaller = (messenger: Messenger): RemoteInterface =>
 
 const notificationTracker = new DefaultObservableValue(0)
 
-const remoteImplementation = new class implements RemoteInterface {
+const remoteImplementation = new class implements Protocol {
     sendNotification(num: number): void {
         notificationTracker.setValue(num)
     }
@@ -65,8 +65,8 @@ const remoteImplementation = new class implements RemoteInterface {
 interface TestingContext {
     inputChannel: BroadcastChannel;
     outputChannel: BroadcastChannel;
-    remoteCaller: RemoteInterface;
-    executor: Communicator.Executor<RemoteInterface>;
+    remoteCaller: Protocol;
+    executor: Communicator.Executor<Protocol>;
 }
 
 describe("RemoteInterface Protocol", async () => {
