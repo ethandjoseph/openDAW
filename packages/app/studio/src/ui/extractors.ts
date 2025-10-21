@@ -70,8 +70,8 @@ export namespace Extractors {
             watch(catchup.box)
         }
         lifecycle.own(pointerHub.subscribe({
-            onAdd: (pointer: PointerField) => watch(pointer.box),
-            onRemove: (_pointer: PointerField) => {
+            onAdded: (pointer: PointerField) => watch(pointer.box),
+            onRemoved: (_pointer: PointerField) => {
                 subscriptor.terminate()
                 target = Option.None
             }

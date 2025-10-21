@@ -17,13 +17,13 @@ export class BoxAdapterCollection<ADAPTER extends BoxAdapter> implements Termina
         this.#entries = UUID.newSet(adapter => adapter.uuid)
         this.#listeners = new Listeners<AdapterCollectionListener<ADAPTER>>()
         this.#subscription = pointerHub.catchupAndSubscribe({
-            onAdd: (pointer: PointerField) => {
+            onAdded: (pointer: PointerField) => {
                 const adapter: ADAPTER = provider(pointer.box)
                 const added = this.#entries.add(adapter)
                 assert(added, `Could not add ${adapter}`)
                 this.#listeners.proxy.onAdd(adapter)
             },
-            onRemove: (pointer: PointerField) => {
+            onRemoved: (pointer: PointerField) => {
                 const uuid = pointer.box.address.uuid
                 this.#listeners.proxy.onRemove(this.#entries.removeByKey(uuid))
             }

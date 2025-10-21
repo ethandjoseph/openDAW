@@ -54,9 +54,9 @@ export const Modular = ({lifecycle, service}: Construct) => {
         addModularSystem(modularSystemAdapter)
     }
     lifecycle.own(pointerHub.subscribe({
-        onAdd: (pointer: PointerField) =>
+        onAdded: (pointer: PointerField) =>
             addModularSystem(boxAdapters.adapterFor(pointer.box as ModularBox, ModularAdapter)),
-        onRemove: (pointer: PointerField) => removeModularSystem(pointer.address.uuid)
+        onRemoved: (pointer: PointerField) => removeModularSystem(pointer.address.uuid)
     }))
     const modularViewLifecycle = lifecycle.own(new Terminator())
     lifecycle.own(project.userEditingManager.modularSystem.catchupAndSubscribe(subject => subject.match({

@@ -109,8 +109,8 @@ export const BusySlot = ({
         connectBoolean(excludeValue, excludeWrapper),
         TextTooltip.default(iconEdit, () => "Edit Sample"),
         audioEffectsField.catchupAndSubscribe({
-            onAdd: () => iconEdit.classList.toggle("has-effects", audioEffectsField.nonEmpty()),
-            onRemove: () => iconEdit.classList.toggle("has-effects", audioEffectsField.nonEmpty())
+            onAdded: () => iconEdit.classList.toggle("has-effects", audioEffectsField.nonEmpty()),
+            onRemoved: () => iconEdit.classList.toggle("has-effects", audioEffectsField.nonEmpty())
         }),
         sample.box.file.catchupAndSubscribe((pointer) => {
             fileHandlerSubscription.terminate()

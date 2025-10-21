@@ -119,7 +119,7 @@ export class VertexSelection implements Selection<SelectableVertex> {
 
     #watch(target: Field): Subscription {
         return target.pointerHub.catchupAndSubscribe({
-            onAdd: (pointer: PointerField) => {
+            onAdded: (pointer: PointerField) => {
                 const box = asInstanceOf(pointer.box, SelectionBox)
                 assert(box.isAttached(), "SelectionBox is not attached")
                 const selectable = box.selectable.targetVertex
@@ -130,7 +130,7 @@ export class VertexSelection implements Selection<SelectableVertex> {
                 assert(this.#entityMap.add(entry), "Could not add to entityMap")
                 assert(this.#selectableMap.add(entry), "Could not add to selectableMap")
             },
-            onRemove: (pointer: PointerField) => {
+            onRemoved: (pointer: PointerField) => {
                 const box = asInstanceOf(pointer.box, SelectionBox)
                 const entry = this.#entityMap.removeByKey(box.address.uuid)
                 assert(entry.box === box, "Broken selection")

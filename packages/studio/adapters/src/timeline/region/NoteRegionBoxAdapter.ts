@@ -52,8 +52,8 @@ export class NoteRegionBoxAdapter implements LoopableRegionBoxAdapter<NoteEventC
         this.#isConstructing = true
         this.#terminator.ownAll(
             this.#box.pointerHub.subscribe({
-                onAdd: () => this.#dispatchChange(),
-                onRemove: () => this.#dispatchChange()
+                onAdded: () => this.#dispatchChange(),
+                onRemoved: () => this.#dispatchChange()
             }),
             this.#box.subscribe(Propagation.Children, (update: Update) => {
                 if (this.trackBoxAdapter.isEmpty()) {return}

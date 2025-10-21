@@ -4,8 +4,8 @@ import {int, Iterables, Listeners, Option, panic, SortedSet, Subscription} from 
 import {Address} from "./address"
 
 export interface PointerListener {
-    onAdd(pointer: PointerField): void
-    onRemove(pointer: PointerField): void
+    onAdded(pointer: PointerField): void
+    onRemoved(pointer: PointerField): void
 }
 
 export class PointerHub {
@@ -37,19 +37,19 @@ export class PointerHub {
     catchupAndSubscribe(listener: PointerListener, ...filter: ReadonlyArray<PointerTypes>): Subscription {
         const added: SortedSet<Address, PointerField> = Address.newSet(pointer => pointer.address)
         added.addMany(this.filter(...filter))
-        added.forEach(pointer => listener.onAdd(pointer))
+        added.forEach(pointer => listener.onAdded(pointer))
         // This takes track of the listener notification state.
         // It is possible that the pointer has been added, but it has not been notified yet.
         // That would cause the listener.onAdd method to be invoked twice.
         return this.subscribe({
-            onAdd: (pointer: PointerField) => {
+            onAdded: (pointer: PointerField) => {
                 if (added.add(pointer)) {
-                    listener.onAdd(pointer)
+                    listener.onAdded(pointer)
                 }
             },
-            onRemove: (pointer: PointerField) => {
+            onRemoved: (pointer: PointerField) => {
                 added.removeByKey(pointer.address)
-                listener.onRemove(pointer)
+                listener.onRemoved(pointer)
             }
         }, ...filter)
     }
@@ -69,11 +69,11 @@ export class PointerHub {
     onAdded(pointerField: PointerField): void {
         const issue: Option<string> = PointerHub.validate(pointerField, this.#vertex)
         if (issue.nonEmpty()) {return panic(issue.unwrap())}
-        this.#listeners.proxy.onAdd(pointerField)
+        this.#listeners.proxy.onAdded(pointerField)
     }
 
     onRemoved(pointerField: PointerField): void {
-        this.#listeners.proxy.onRemove(pointerField)
+        this.#listeners.proxy.onRemoved(pointerField)
     }
 
     toString(): string {
@@ -85,14 +85,14 @@ export class PointerHub {
                          listener: PointerListener,
                          filter: ReadonlyArray<PointerTypes>): Subscription {
         return listeners.subscribe({
-            onAdd: (pointer: PointerField) => {
+            onAdded: (pointer: PointerField) => {
                 if (filter.length === 0 || filter.some((type: PointerTypes): boolean => type === pointer.pointerType)) {
-                    listener.onAdd(pointer)
+                    listener.onAdded(pointer)
                 }
             },
-            onRemove: (pointer: PointerField) => {
+            onRemoved: (pointer: PointerField) => {
                 if (filter.length === 0 || filter.some((type: PointerTypes): boolean => type === pointer.pointerType)) {
-                    listener.onRemove(pointer)
+                    listener.onRemoved(pointer)
                 }
             }
         })

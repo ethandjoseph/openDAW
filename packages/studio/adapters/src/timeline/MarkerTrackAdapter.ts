@@ -22,7 +22,7 @@ export class MarkerTrackAdapter implements Terminable {
         this.#events = EventCollection.create(MarkerBoxAdapter.Comparator)
 
         this.#subscription = this.#object.markers.pointerHub.catchupAndSubscribe({
-            onAdd: ({box}) => {
+            onAdded: ({box}) => {
                 if (box instanceof MarkerBox) {
                     const adapter = this.#context.boxAdapters.adapterFor(box, MarkerBoxAdapter)
                     const added = this.#adapters.add(adapter)
@@ -31,7 +31,7 @@ export class MarkerTrackAdapter implements Terminable {
                     this.dispatchChange()
                 }
             },
-            onRemove: ({box: {address: {uuid}}}) => {
+            onRemoved: ({box: {address: {uuid}}}) => {
                 this.#events.remove(this.#adapters.removeByKey(uuid))
                 this.dispatchChange()
             }

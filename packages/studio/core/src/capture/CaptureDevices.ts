@@ -14,7 +14,7 @@ export class CaptureDevices implements Terminable {
         this.#project = project
         this.#captures = UUID.newSet<Capture>(unit => unit.uuid)
         this.#subscription = this.#project.rootBox.audioUnits.pointerHub.catchupAndSubscribe({
-            onAdd: ({box}) => {
+            onAdded: ({box}) => {
                 const audioUnitBox = asInstanceOf(box, AudioUnitBox)
                 const capture: Maybe<Capture> = audioUnitBox.capture.targetVertex
                     .ifSome(({box}) => box.accept<BoxVisitor<Capture>>({
@@ -23,7 +23,7 @@ export class CaptureDevices implements Terminable {
                     }))
                 if (isDefined(capture)) {this.#captures.add(capture)}
             },
-            onRemove: ({box: {address: {uuid}}}) => this.#captures.removeByKeyIfExist(uuid)?.terminate()
+            onRemoved: ({box: {address: {uuid}}}) => this.#captures.removeByKeyIfExist(uuid)?.terminate()
         })
     }
 

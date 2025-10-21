@@ -45,7 +45,7 @@ export class IndexedBoxAdapterCollection<A extends IndexedBoxAdapter, P extends 
         this.#entries = UUID.newSet(entry => entry.adapter.uuid)
         this.#listeners = new Listeners<IndexedAdapterCollectionListener<A>>()
         this.#subscription = field.pointerHub.catchupAndSubscribe({
-            onAdd: (pointer: PointerField) => {
+            onAdded: (pointer: PointerField) => {
                 this.#sorted = null
                 const adapter: A = provider(pointer.box)
                 const subscription = adapter.indexField.subscribe(() => {
@@ -56,7 +56,7 @@ export class IndexedBoxAdapterCollection<A extends IndexedBoxAdapter, P extends 
                 assert(added, `Could not add ${adapter}`)
                 this.#listeners.proxy.onAdd(adapter)
             },
-            onRemove: (pointer: PointerField) => {
+            onRemoved: (pointer: PointerField) => {
                 this.#sorted = null
                 const uuid = pointer.box.address.uuid
                 const {adapter, subscription} = this.#entries.removeByKey(uuid)

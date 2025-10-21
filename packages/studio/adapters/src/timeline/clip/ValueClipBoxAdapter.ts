@@ -45,8 +45,8 @@ export class ValueClipBoxAdapter implements ClipBoxAdapter<ValueEventCollectionB
         this.#changeNotifier = this.#terminator.own(new Notifier<void>())
 
         this.#terminator.own(this.#box.pointerHub.subscribe({
-            onAdd: () => this.#dispatchChange(),
-            onRemove: () => this.#dispatchChange()
+            onAdded: () => this.#dispatchChange(),
+            onRemoved: () => this.#dispatchChange()
         }))
 
         this.#terminator.own(this.#box.subscribe(Propagation.Children, (_update: Update) => this.#dispatchChange()))

@@ -54,8 +54,8 @@ export class ValueRegionBoxAdapter implements LoopableRegionBoxAdapter<ValueEven
         this.#isSelected = false
 
         this.#terminator.own(this.#box.pointerHub.subscribe({
-            onAdd: () => this.#dispatchChange(),
-            onRemove: () => this.#dispatchChange()
+            onAdded: () => this.#dispatchChange(),
+            onRemoved: () => this.#dispatchChange()
         }))
 
         this.#terminator.own(this.#box.subscribe(Propagation.Children, (update: Update) => {

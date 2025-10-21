@@ -47,8 +47,8 @@ export class AudioRegionBoxAdapter implements LoopableRegionBoxAdapter<never> {
 
         this.#terminator.ownAll(
             this.#box.pointerHub.subscribe({
-                onAdd: () => this.#dispatchChange(),
-                onRemove: () => this.#dispatchChange()
+                onAdded: () => this.#dispatchChange(),
+                onRemoved: () => this.#dispatchChange()
             }),
             this.#box.file.catchupAndSubscribe((pointerField: PointerField<Pointers.AudioFile>) => {
                 this.#fileAdapter = pointerField.targetVertex.map(vertex =>

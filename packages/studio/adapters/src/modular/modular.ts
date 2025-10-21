@@ -64,9 +64,9 @@ export class ModularAdapter implements BoxAdapter {
         this.#box.connections.pointerHub.filter(Pointers.ConnectionCollection).forEach(addConnection)
 
         this.#terminator.own(this.#box.modules.pointerHub
-            .subscribe({onAdd: addModule, onRemove: removeModule}, Pointers.ModuleCollection))
+            .subscribe({onAdded: addModule, onRemoved: removeModule}, Pointers.ModuleCollection))
         this.#terminator.own(this.#box.connections.pointerHub
-            .subscribe({onAdd: addConnection, onRemove: removeConnection}, Pointers.ConnectionCollection))
+            .subscribe({onAdded: addConnection, onRemoved: removeConnection}, Pointers.ConnectionCollection))
     }
 
     catchupAndSubscribe(listener: ModularSystemListener): Subscription {

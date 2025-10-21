@@ -45,8 +45,8 @@ export class NoteClipBoxAdapter implements ClipBoxAdapter<NoteEventCollectionBox
         this.#changeNotifier = this.#terminator.own(new Notifier<void>())
         this.#terminator.ownAll(
             this.#box.pointerHub.subscribe({
-                onAdd: () => this.#dispatchChange(),
-                onRemove: () => this.#dispatchChange()
+                onAdded: () => this.#dispatchChange(),
+                onRemoved: () => this.#dispatchChange()
             }),
             this.#box.subscribe(Propagation.Children, (_update: Update) => this.#dispatchChange()),
             this.#box.events.catchupAndSubscribe(({targetVertex}) => {

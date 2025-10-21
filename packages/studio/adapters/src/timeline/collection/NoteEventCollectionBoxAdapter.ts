@@ -65,15 +65,15 @@ export class NoteEventCollectionBoxAdapter implements BoxAdapter, SelectableLoca
         }
         this.#box.events.pointerHub.incoming().forEach(({box}) => addNoteProcedure(box))
         this.#terminator.own(this.#box.events.pointerHub.subscribe({
-            onAdd: ({box}) => addNoteProcedure(box),
-            onRemove: ({box: {address: {uuid}}}) => {
+            onAdded: ({box}) => addNoteProcedure(box),
+            onRemoved: ({box: {address: {uuid}}}) => {
                 this.#events.remove(this.#adapters.removeByKey(uuid))
                 this.#onEventsChanged()
             }
         }))
         this.#terminator.own(this.#box.owners.pointerHub.subscribe({
-            onAdd: () => this.#changeNotifier.notify(this),
-            onRemove: () => this.#changeNotifier.notify(this)
+            onAdded: () => this.#changeNotifier.notify(this),
+            onRemoved: () => this.#changeNotifier.notify(this)
         }))
     }
 

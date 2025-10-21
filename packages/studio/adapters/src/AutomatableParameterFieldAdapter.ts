@@ -65,7 +65,7 @@ export class AutomatableParameterFieldAdapter<T extends PrimitiveValues = any> i
         this.#controlSource = new Listeners<ControlSourceListener>()
         this.#terminator.own(this.#field.subscribe(() => this.#valueChangeNotifier.notify(this)))
         this.#terminator.own(this.#field.pointerHub.catchupAndSubscribe({
-            onAdd: (pointer: PointerField) => {
+            onAdded: (pointer: PointerField) => {
                 this.#controlSource.proxy.onControlSourceAdd(mapPointerToControlSource(pointer.pointerType))
                 pointer.box.accept<BoxVisitor>({
                     visitTrackBox: (box: TrackBox) => {
@@ -83,7 +83,7 @@ export class AutomatableParameterFieldAdapter<T extends PrimitiveValues = any> i
                     }
                 })
             },
-            onRemove: (pointer: PointerField) => {
+            onRemoved: (pointer: PointerField) => {
                 this.#controlSource.proxy.onControlSourceRemove(mapPointerToControlSource(pointer.pointerType))
                 pointer.box.accept<BoxVisitor>({
                     visitTrackBox: (box: TrackBox) => {
