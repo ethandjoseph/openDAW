@@ -56,7 +56,10 @@ export const renderRegions = (context: CanvasRenderingContext2D,
 
             const actualComplete = strategy.readComplete(region)
             const position = strategy.readPosition(region)
-            const complete = Math.min(actualComplete, next?.position ?? Number.POSITIVE_INFINITY) - unitsPerPixel
+            const complete = region.isSelected
+                ? actualComplete
+                // for audio region with playback auto-fit
+                : Math.min(actualComplete, next?.position ?? Number.POSITIVE_INFINITY) - unitsPerPixel
 
             const x0Int = Math.floor(range.unitToX(Math.max(position, unitMin)) * dpr)
             const x1Int = Math.max(Math.floor(range.unitToX(Math.min(complete, unitMax)) * dpr), x0Int + dpr)
