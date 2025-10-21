@@ -88,7 +88,7 @@ export class GraphEdges {
         //  I tried to use a Set<Box> in BoxGraph, but that wasn't faster than the SortedSet.
         //  We could just use a boolean in Box, but it could be set from the outside world and break it.
         //  Claude suggest to use dirty sets, but I am too lazy to implement it right now.
-        const now = performance.now()
+        // const now = performance.now()
         this.#requiresTarget.forEach(pointer => {
             // assert(pointer.isAttached(), `Pointer ${pointer.address.toString()} is not attached`)
             if (pointer.isEmpty()) {
@@ -109,7 +109,7 @@ export class GraphEdges {
                 }
             }
         })
-        console.debug(`GraphEdges validation took ${performance.now() - now} ms.`)
+        // console.debug(`GraphEdges validation took ${performance.now() - now} ms.`)
     }
 
     #collectSameBox<T>(set: SortedSet<Address, T>, id: UUID.Bytes, map: Func<T, UUID.Bytes>): ReadonlyArray<T> {

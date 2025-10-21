@@ -62,14 +62,14 @@ export const ChannelOutputSelector = ({lifecycle, project, adapter}: Construct) 
                                     label: "New Output Bus...",
                                     icon: IconSymbol.New,
                                     separatorBefore: true
-                                }).setTriggerProcedure(() => showNewAudioBusOrAuxDialog("Bus", ({name, icon}) => {
-                                    project.boxGraph.verifyPointers()
-                                    project.editing.modify(() => {
-                                        assert(project.masterBusBox.isAttached(), "master not attached")
-                                        const audioBusBox = project.api.createAudioBus(name, icon, AudioUnitType.Bus, Colors.orange)
-                                        adapter.box.output.refer(audioBusBox.input)
-                                    })
-                                }, IconSymbol.AudioBus)),
+                                }).setTriggerProcedure(() =>
+                                    showNewAudioBusOrAuxDialog("Bus", ({name, icon}) =>
+                                        project.editing.modify(() => {
+                                            assert(project.masterBusBox.isAttached(), "master not attached")
+                                            const audioBusBox = project.api.createAudioBus(
+                                                name, icon, AudioUnitType.Bus, Colors.orange)
+                                            adapter.box.output.refer(audioBusBox.input)
+                                        }), IconSymbol.AudioBus)),
                                 MenuItem.default({
                                     label: "No Output",
                                     selectable: adapter.box.output.nonEmpty()

@@ -109,7 +109,7 @@ export class YSync<T> implements Terminable {
                 this.#ignoreUpdates = true
                 this.#boxGraph.endTransaction()
                 this.#ignoreUpdates = false
-                this.#boxGraph.verifyPointers()
+                // TODO Only in DEV-MODE this.#boxGraph.verifyPointers()
             } catch (reason) {
                 this.terminate()
                 return panic(reason)
