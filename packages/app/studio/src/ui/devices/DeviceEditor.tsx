@@ -55,6 +55,7 @@ export const DeviceEditor =
         const color = getColorFor(type)
         return (
             <div className={Html.buildClassList(className, minimizedField.getValue() && "minimized")}
+                 tabIndex={0}
                  onInit={element => {
                      lifecycle.ownAll(
                          enabledField.catchupAndSubscribe((owner: ObservableValue<boolean>) =>
