@@ -53,17 +53,30 @@ export const DeviceEditor =
         const {editing} = project
         const {box, type, enabledField, minimizedField, labelField} = adapter
         const color = getColorFor(type)
-        const header: HTMLElement = (
-            <header style={{color}}>
-                <div className="icon">
-                    <Icon symbol={icon}/>
-                </div>
-                {(createLabel ?? defaultLabelFactory(lifecycle, labelField))()}
-            </header>
-        )
-        const element: HTMLElement = (
-            <div className={Html.buildClassList(className, minimizedField.getValue() && "minimized")} data-drag>
-                {header}
+        return (
+            <div className={Html.buildClassList(className, minimizedField.getValue() && "minimized")}
+                 onInit={element => {
+                     lifecycle.ownAll(
+                         enabledField.catchupAndSubscribe((owner: ObservableValue<boolean>) =>
+                             element.classList.toggle("enabled", owner.getValue()))
+                     )
+                 }} data-drag>
+                <header onInit={element => {
+                    lifecycle.own(Events.subscribe(element, "dblclick", () =>
+                        editing.modify(() => minimizedField.toggle())))
+                    if (type === "midi-effect" || type === "audio-effect") {
+                        const effect = adapter as EffectDeviceBoxAdapter
+                        lifecycle.own(DragAndDrop.installSource(element, () => ({
+                            type: effect.type,
+                            start_index: effect.indexField.getValue()
+                        } satisfies DragDevice), element))
+                    }
+                }} style={{color}}>
+                    <div className="icon">
+                        <Icon symbol={icon}/>
+                    </div>
+                    {(createLabel ?? defaultLabelFactory(lifecycle, labelField))()}
+                </header>
                 <MenuButton root={MenuItem.root()
                     .setRuntimeChildrenProcedure(parent => {
                         populateMenu(parent)
@@ -76,17 +89,4 @@ export const DeviceEditor =
                 <div/>
             </div>
         )
-        if (type === "midi-effect" || type === "audio-effect") {
-            const effect = adapter as EffectDeviceBoxAdapter
-            lifecycle.own(DragAndDrop.installSource(header, () => ({
-                type: effect.type,
-                start_index: effect.indexField.getValue()
-            } satisfies DragDevice), element))
-        }
-        lifecycle.ownAll(
-            enabledField.catchupAndSubscribe((owner: ObservableValue<boolean>) =>
-                element.classList.toggle("enabled", owner.getValue())),
-            Events.subscribe(header, "dblclick", () => editing.modify(() => minimizedField.toggle()))
-        )
-        return element
     }
