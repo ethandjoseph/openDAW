@@ -10,11 +10,13 @@ import {MenuItem} from "@/ui/model/menu-item"
 import {Html} from "@opendaw/lib-dom"
 import {DragAndDrop} from "@/ui/DragAndDrop"
 import {SoundfontSelection} from "@/ui/browse/SoundfontSelection"
+import {StudioService} from "@/service/StudioService"
 
 const className = Html.adoptStyleSheet(css, "Soundfont")
 
 type Construct = {
     lifecycle: Lifecycle
+    service: StudioService
     soundfontSelection: SoundfontSelection
     soundfont: Soundfont
     location: AssetLocation
@@ -31,7 +33,7 @@ const formatBytes = (bytes: number, decimals = 1): string => {
 }
 
 export const SoundfontView = ({
-                                  lifecycle, soundfontSelection, soundfont, location, refresh
+                                  lifecycle, service, soundfontSelection, soundfont, location, refresh
                               }: Construct) => {
     const {name, size} = soundfont
     const deleteButton: Element = (
@@ -62,7 +64,7 @@ export const SoundfontView = ({
     lifecycle.ownAll(
         DragAndDrop.installSource(element, () => ({type: "soundfont", soundfont})),
         ContextMenu.subscribe(element, collector => collector.addItems(
-            MenuItem.default({label: "Create Soundfont Device"})
+            MenuItem.default({label: "Create Soundfont Device", selectable: service.hasProfile})
                 .setTriggerProcedure(() => soundfontSelection.requestDevice()),
             MenuItem.default({label: "Delete Soundfont(s)", selectable: location === AssetLocation.Local})
                 .setTriggerProcedure(async () => {

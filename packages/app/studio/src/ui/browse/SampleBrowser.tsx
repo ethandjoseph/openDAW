@@ -82,6 +82,7 @@ export const SampleBrowser = ({lifecycle, service}: Construct) => {
                                     .toSorted((a, b) => StringComparator(a.name.toLowerCase(), b.name.toLowerCase()))
                                     .map(sample => (
                                         <SampleView lifecycle={entriesLifeSpan}
+                                                    service={service}
                                                     sampleSelection={sampleSelection}
                                                     playback={service.samplePlayback}
                                                     sample={sample}

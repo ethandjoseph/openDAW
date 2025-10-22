@@ -14,11 +14,13 @@ import {Html} from "@opendaw/lib-dom"
 import {Promises} from "@opendaw/lib-runtime"
 import {DragAndDrop} from "@/ui/DragAndDrop"
 import {SampleStorage} from "@opendaw/studio-core"
+import {StudioService} from "@/service/StudioService"
 
 const className = Html.adoptStyleSheet(css, "Sample")
 
 type Construct = {
     lifecycle: Lifecycle
+    service: StudioService
     sampleSelection: SampleSelection
     sample: Sample
     playback: SamplePlayback
@@ -26,14 +28,14 @@ type Construct = {
     refresh: Exec
 }
 
-export const SampleView = ({lifecycle, sampleSelection, sample, playback, location, refresh}: Construct) => {
+export const SampleView = ({lifecycle, service, sampleSelection, sample, playback, location, refresh}: Construct) => {
     const {name, duration, bpm} = sample
     return (
         <div className={className}
              onInit={element => lifecycle.ownAll(
                  DragAndDrop.installSource(element, () => ({type: "sample", sample})),
                  ContextMenu.subscribe(element, collector => collector.addItems(
-                     MenuItem.default({label: "Create Audio Track(s)"})
+                     MenuItem.default({label: "Create Audio Track(s)", selectable: service.hasProfile})
                          .setTriggerProcedure(() => sampleSelection.requestDevice()),
                      MenuItem.default({label: "Delete Sample(s)", selectable: location === AssetLocation.Local})
                          .setTriggerProcedure(async () => {

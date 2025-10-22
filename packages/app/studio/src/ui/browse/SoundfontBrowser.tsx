@@ -81,6 +81,7 @@ export const SoundfontBrowser = ({lifecycle, service}: Construct) => {
                                     .toSorted((a, b) => StringComparator(a.name.toLowerCase(), b.name.toLowerCase()))
                                     .map(soundfont => (
                                         <SoundfontView lifecycle={entriesLifeSpan}
+                                                       service={service}
                                                        soundfontSelection={soundfontSelection}
                                                        soundfont={soundfont}
                                                        location={location.getValue()}
