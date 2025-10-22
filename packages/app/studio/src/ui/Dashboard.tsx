@@ -103,7 +103,7 @@ export const Dashboard = ({lifecycle, service}: Construct) => {
                         </div>
                     </div>
                 </div>
-                <p style={{marginTop: "2em", fontSize: "0.625em", textAlign: "center"}}>
+                <p style={{marginTop: "2em", fontSize: "12px", textAlign: "center"}}>
                     Join our <a href="https://discord.opendaw.studio" target="discord" style={{color: Colors.blue}}>discord
                     community</a> to stay updated! · source-code available at <a
                     href="https://github.com/andremichelle/opendaw"
