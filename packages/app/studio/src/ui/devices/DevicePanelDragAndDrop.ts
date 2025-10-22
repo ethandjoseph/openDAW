@@ -1,10 +1,11 @@
-import {asDefined, panic, Terminable} from "@opendaw/lib-std"
+import {asDefined, panic, Terminable, UUID} from "@opendaw/lib-std"
 import {DragAndDrop} from "@/ui/DragAndDrop"
 import {AnyDragData} from "@/ui/AnyDragData"
-import {Devices} from "@opendaw/studio-adapters"
+import {AudioUnitBoxAdapter, Devices} from "@opendaw/studio-adapters"
 import {InsertMarker} from "@/ui/components/InsertMarker"
-import {EffectFactories, InstrumentFactories, InstrumentFactory, Project} from "@opendaw/studio-core"
+import {EffectFactories, InstrumentBox, InstrumentFactories, InstrumentFactory, Project} from "@opendaw/studio-core"
 import {IndexedBox} from "@opendaw/lib-box"
+import {BoxVisitor, CaptureAudioBox, CaptureMidiBox} from "@opendaw/studio-boxes"
 
 export namespace DevicePanelDragAndDrop {
     export const install = (project: Project,
@@ -52,14 +53,22 @@ export namespace DevicePanelDragAndDrop {
                 const editingDeviceChain = userEditingManager.audioUnit.get()
                 if (editingDeviceChain.isEmpty()) {return}
                 const deviceHost = boxAdapters.adapterFor(editingDeviceChain.unwrap().box, Devices.isHost)
-                if (type === "instrument") {
+                if (type === "instrument" && deviceHost instanceof AudioUnitBoxAdapter) {
                     const inputField = deviceHost.inputField
                     console.debug(`Replace '${inputField.pointerHub.incoming().at(0)?.box.name ?? "no input"} with '${dragData.device}'`)
                     editing.modify(() => {
                         inputField.pointerHub.incoming().forEach(pointer => pointer.box.delete())
                         const {create, defaultIcon, defaultName}: InstrumentFactory =
                             asDefined(InstrumentFactories.Named[dragData.device], `Unknown: '${dragData.device}'`)
-                        create(boxGraph, inputField, defaultName, defaultIcon)
+                        const instrumentBox: InstrumentBox = create(boxGraph, inputField, defaultName, defaultIcon)
+                        const captureBox = asDefined(instrumentBox.box.accept<BoxVisitor<CaptureAudioBox | CaptureMidiBox>>({
+                            visitVaporisateurDeviceBox: () => CaptureMidiBox.create(boxGraph, UUID.generate()),
+                            visitNanoDeviceBox: () => CaptureMidiBox.create(boxGraph, UUID.generate()),
+                            visitPlayfieldDeviceBox: () => CaptureMidiBox.create(boxGraph, UUID.generate()),
+                            visitTapeDeviceBox: () => CaptureAudioBox.create(boxGraph, UUID.generate())
+                        }))
+                        deviceHost.box.capture.targetVertex.unwrap().box.delete()
+                        deviceHost.box.capture.refer(captureBox)
                     })
                     return
                 }

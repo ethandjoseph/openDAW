@@ -1,29 +1,44 @@
 import {asInstanceOf, isDefined, Maybe, Option, SortedSet, Subscription, Terminable, UUID} from "@opendaw/lib-std"
 import {AudioUnitBox, BoxVisitor, CaptureAudioBox, CaptureMidiBox} from "@opendaw/studio-boxes"
-import {Project} from "../project/Project"
+import {Project} from "../project"
 import {Capture} from "./Capture"
 import {CaptureMidi} from "./CaptureMidi"
 import {CaptureAudio} from "./CaptureAudio"
+
+type CaptureSubscription = { uuid: UUID.Bytes, subscription: Subscription }
 
 export class CaptureDevices implements Terminable {
     readonly #project: Project
     readonly #subscription: Subscription
     readonly #captures: SortedSet<UUID.Bytes, Capture>
+    readonly #captureSubscriptions: SortedSet<UUID.Bytes, CaptureSubscription>
 
     constructor(project: Project) {
         this.#project = project
-        this.#captures = UUID.newSet<Capture>(unit => unit.uuid)
+        this.#captures = UUID.newSet<Capture>(({uuid}) => uuid)
+        this.#captureSubscriptions = UUID.newSet<CaptureSubscription>(({uuid}) => uuid)
         this.#subscription = this.#project.rootBox.audioUnits.pointerHub.catchupAndSubscribe({
             onAdded: ({box}) => {
+                const uuid = box.address.uuid
                 const audioUnitBox = asInstanceOf(box, AudioUnitBox)
-                const capture: Maybe<Capture> = audioUnitBox.capture.targetVertex
-                    .ifSome(({box}) => box.accept<BoxVisitor<Capture>>({
-                        visitCaptureMidiBox: (box: CaptureMidiBox) => new CaptureMidi(this, audioUnitBox, box),
-                        visitCaptureAudioBox: (box: CaptureAudioBox) => new CaptureAudio(this, audioUnitBox, box)
-                    }))
-                if (isDefined(capture)) {this.#captures.add(capture)}
+                const subscription = audioUnitBox.capture.catchupAndSubscribe(pointer => {
+                    this.#captures.removeByKeyIfExist(uuid)?.terminate()
+                    pointer.targetVertex.ifSome(({box}) => {
+                        const capture: Maybe<Capture> = box.accept<BoxVisitor<Capture>>({
+                            visitCaptureMidiBox: (box: CaptureMidiBox) => new CaptureMidi(this, audioUnitBox, box),
+                            visitCaptureAudioBox: (box: CaptureAudioBox) => new CaptureAudio(this, audioUnitBox, box)
+                        })
+                        if (isDefined(capture)) {
+                            this.#captures.add(capture)
+                        }
+                    })
+                })
+                this.#captureSubscriptions.add({uuid, subscription})
             },
-            onRemoved: ({box: {address: {uuid}}}) => this.#captures.removeByKeyIfExist(uuid)?.terminate()
+            onRemoved: ({box: {address: {uuid}}}) => {
+                this.#captures.removeByKeyIfExist(uuid)?.terminate()
+                this.#captureSubscriptions.get(uuid).subscription.terminate()
+            }
         })
     }
 
