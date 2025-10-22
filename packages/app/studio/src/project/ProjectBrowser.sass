@@ -8,6 +8,7 @@ component
   overflow: hidden
 
   header
+    font-size: 11px
     color: var(--color-blue)
     display: contents
 
@@ -21,6 +22,15 @@ component
     row-gap: 0.25em
     overflow-y: scroll
     color: var(--color-dark)
+    position: relative
+
+    &:after
+      content: ""
+      width: 100%
+      height: 0.5em
+      bottom: 0
+      position: sticky
+      background: linear-gradient(to bottom, transparent, var(--panel-background))
 
     &:empty:after
       font-size: 0.875em

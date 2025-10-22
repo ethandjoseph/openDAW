@@ -31,7 +31,7 @@ export const Dashboard = ({lifecycle, service}: Construct) => {
                 </p>
                 <div className="columns">
                     <div>
-                        <h3>Templates</h3>
+                        <h3 style={{color: Colors.orange}}>Templates</h3>
                         <div className="starters">
                             {[
                                 {name: "New", click: () => service.newProject()},
@@ -62,7 +62,7 @@ export const Dashboard = ({lifecycle, service}: Construct) => {
                     </div>
                     <div className="resources">
                         <RadioGroup lifecycle={lifecycle}
-                                    style={{columnGap: "0.5em"}}
+                                    style={{columnGap: "0.75em"}}
                                     appearance={{activeColor: Colors.orange}}
                                     model={scope}
                                     elements={[
