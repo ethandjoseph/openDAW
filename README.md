@@ -117,7 +117,7 @@ Huge thanks to our [ambassadors](https://opendaw.org/ambassadors), whose dedicat
 * Crusher (degenerates audio signal)
 * Reverb (FreeVerb variation)
 * Revamp (Graphical Equalizer)
-* Arpreggio (midi effect)
+* Arpeggio (midi effect)
 * Pitch (offsets midi note pitches)
 * Zeitgeist (transforms time)
 
