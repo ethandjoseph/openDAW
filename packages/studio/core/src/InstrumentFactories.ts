@@ -1,6 +1,7 @@
 import {
     AudioFileBox,
     BoxIO,
+    MIDIOutputDeviceBox,
     NanoDeviceBox,
     PlayfieldDeviceBox,
     PlayfieldSampleBox,
@@ -128,6 +129,23 @@ export namespace InstrumentFactories {
             })
     }
 
+    export const MIDIOutput: InstrumentFactory = {
+        defaultName: "MIDIOutput",
+        defaultIcon: IconSymbol.Midi,
+        description: "MIDI Output",
+        trackType: TrackType.Notes,
+        create: (boxGraph: BoxGraph<BoxIO.TypeMap>,
+                 host: Field<Pointers.InstrumentHost | Pointers.AudioOutput>,
+                 name: string,
+                 icon: IconSymbol,
+                 _attachment?: never): MIDIOutputDeviceBox =>
+            MIDIOutputDeviceBox.create(boxGraph, UUID.generate(), box => {
+                box.label.setValue(name)
+                box.icon.setValue(IconSymbol.toName(icon))
+                box.host.refer(host)
+            })
+    }
+
     export const Soundfont: InstrumentFactory<{ uuid: UUID.String, name: string }> = {
         defaultName: "Soundfont",
         defaultIcon: IconSymbol.Book,
@@ -151,7 +169,7 @@ export namespace InstrumentFactories {
         }
     }
 
-    export const Named = {Vaporisateur, Playfield, Nano, Tape, Soundfont}
+    export const Named = {Vaporisateur, Playfield, Nano, Tape, Soundfont, MIDIOutput}
     export type Keys = keyof typeof Named
 
     const useAudioFile = (boxGraph: BoxGraph, fileUUID: UUID.Bytes, name: string, duration: number) =>

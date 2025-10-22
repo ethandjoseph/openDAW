@@ -6,6 +6,7 @@ import {
     CrusherDeviceBox,
     DelayDeviceBox,
     FoldDeviceBox,
+    MIDIOutputDeviceBox,
     ModularDeviceBox,
     NanoDeviceBox,
     PitchDeviceBox,
@@ -28,6 +29,7 @@ import {
     CrusherDeviceBoxAdapter,
     DelayDeviceBoxAdapter,
     FoldDeviceBoxAdapter,
+    MIDIOutputDeviceBoxAdapter,
     ModularDeviceBoxAdapter,
     NanoDeviceBoxAdapter,
     PitchDeviceBoxAdapter,
@@ -65,6 +67,7 @@ import {SoundfontDeviceProcessor} from "./devices/instruments/SoundfontDevicePro
 import {CompressorDeviceProcessor} from "./devices/audio-effects/CompressorDeviceProcessor"
 import {CrusherDeviceProcessor} from "./devices/audio-effects/CrusherDeviceProcessor"
 import {FoldDeviceProcessor} from "./devices/audio-effects/FoldDeviceProcessor"
+import {MIDIOutputDeviceProcessor} from "./devices/instruments/MIDIOutputDeviceProcessor"
 
 export namespace InstrumentDeviceProcessorFactory {
     export const create = (context: EngineContext,
@@ -81,7 +84,9 @@ export namespace InstrumentDeviceProcessorFactory {
             visitPlayfieldDeviceBox: (box: PlayfieldDeviceBox) =>
                 new PlayfieldDeviceProcessor(context, context.boxAdapters.adapterFor(box, PlayfieldDeviceBoxAdapter)),
             visitSoundfontDeviceBox: (box: SoundfontDeviceBox) =>
-                new SoundfontDeviceProcessor(context, context.boxAdapters.adapterFor(box, SoundfontDeviceBoxAdapter))
+                new SoundfontDeviceProcessor(context, context.boxAdapters.adapterFor(box, SoundfontDeviceBoxAdapter)),
+            visitMIDIOutputDeviceBox: (box: MIDIOutputDeviceBox) =>
+                new MIDIOutputDeviceProcessor(context, context.boxAdapters.adapterFor(box, MIDIOutputDeviceBoxAdapter))
         })
 }
 

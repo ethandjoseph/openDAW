@@ -2,7 +2,7 @@ import {byte, isNull, Nullable, safeExecute} from "@opendaw/lib-std"
 import {MidiEventVisitor} from "./MidiEventVisitor"
 
 export namespace MidiData {
-    export const enum Command {NoteOn = 0x90, NoteOff = 0x80, PitchBend = 0xE0, Controller = 0xB0}
+    export enum Command {NoteOn = 0x90, NoteOff = 0x80, PitchBend = 0xE0, Controller = 0xB0}
 
     export const readCommand = (data: Uint8Array) => data[0] & 0xF0
     export const readChannel = (data: Uint8Array) => data[0] & 0x0F

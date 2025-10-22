@@ -7,6 +7,7 @@ import {
     CrusherDeviceBox,
     DelayDeviceBox,
     FoldDeviceBox,
+    MIDIOutputDeviceBox,
     ModularDeviceBox,
     NanoDeviceBox,
     PitchDeviceBox,
@@ -31,6 +32,7 @@ import {
     DelayDeviceBoxAdapter,
     DeviceHost,
     FoldDeviceBoxAdapter,
+    MIDIOutputDeviceBoxAdapter,
     ModularDeviceBoxAdapter,
     NanoDeviceBoxAdapter,
     PitchDeviceBoxAdapter,
@@ -67,6 +69,7 @@ import {SoundfontDeviceEditor} from "@/ui/devices/instruments/SoundfontDeviceEdi
 import {CompressorDeviceEditor} from "@/ui/devices/audio-effects/CompressorDeviceEditor"
 import {CrusherDeviceEditor} from "@/ui/devices/audio-effects/CrusherDeviceEditor"
 import {FoldDeviceEditor} from "@/ui/devices/audio-effects/FoldDeviceEditor"
+import {MIDIOutputDeviceEditor} from "@/ui/devices/instruments/MIDIOutputDeviceEditor"
 
 export namespace DeviceEditorFactory {
     export const toMidiEffectDeviceEditor = (service: StudioService, lifecycle: Lifecycle, box: Box, deviceHost: DeviceHost) =>
@@ -114,6 +117,12 @@ export namespace DeviceEditorFactory {
                                           service={service}
                                           adapter={service.project.boxAdapters.adapterFor(box, VaporisateurDeviceBoxAdapter)}
                                           deviceHost={deviceHost}/>
+            ),
+            visitMIDIOutputDeviceBox: (box: MIDIOutputDeviceBox): JsxValue => (
+                <MIDIOutputDeviceEditor lifecycle={lifecycle}
+                                      service={service}
+                                      adapter={service.project.boxAdapters.adapterFor(box, MIDIOutputDeviceBoxAdapter)}
+                                      deviceHost={deviceHost}/>
             ),
             visitSoundfontDeviceBox: (box: SoundfontDeviceBox): JsxValue => (
                 <SoundfontDeviceEditor lifecycle={lifecycle}
