@@ -6,6 +6,7 @@ import {
     CompressorDeviceBox,
     CrusherDeviceBox,
     DelayDeviceBox,
+    FoldDeviceBox,
     ModularDeviceBox,
     NanoDeviceBox,
     PitchDeviceBox,
@@ -29,6 +30,7 @@ import {
     CrusherDeviceBoxAdapter,
     DelayDeviceBoxAdapter,
     DeviceHost,
+    FoldDeviceBoxAdapter,
     ModularDeviceBoxAdapter,
     NanoDeviceBoxAdapter,
     PitchDeviceBoxAdapter,
@@ -64,6 +66,7 @@ import {StudioService} from "@/service/StudioService"
 import {SoundfontDeviceEditor} from "@/ui/devices/instruments/SoundfontDeviceEditor"
 import {CompressorDeviceEditor} from "@/ui/devices/audio-effects/CompressorDeviceEditor"
 import {CrusherDeviceEditor} from "@/ui/devices/audio-effects/CrusherDeviceEditor"
+import {FoldDeviceEditor} from "@/ui/devices/audio-effects/FoldDeviceEditor"
 
 export namespace DeviceEditorFactory {
     export const toMidiEffectDeviceEditor = (service: StudioService, lifecycle: Lifecycle, box: Box, deviceHost: DeviceHost) =>
@@ -169,6 +172,12 @@ export namespace DeviceEditorFactory {
                                      service={service}
                                      adapter={service.project.boxAdapters.adapterFor(box, CrusherDeviceBoxAdapter)}
                                      deviceHost={deviceHost}/>
+            ),
+            visitFoldDeviceBox: (box: FoldDeviceBox) => (
+                <FoldDeviceEditor lifecycle={lifecycle}
+                                  service={service}
+                                  adapter={service.project.boxAdapters.adapterFor(box, FoldDeviceBoxAdapter)}
+                                  deviceHost={deviceHost}/>
             ),
             visitCompressorDeviceBox: (box: CompressorDeviceBox) => (
                 <CompressorDeviceEditor lifecycle={lifecycle}

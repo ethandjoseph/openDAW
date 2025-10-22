@@ -4,6 +4,7 @@ import {
     CompressorDeviceBox,
     CrusherDeviceBox,
     DelayDeviceBox,
+    FoldDeviceBox,
     GrooveShuffleBox,
     ModularAudioInputBox,
     ModularAudioOutputBox,
@@ -141,6 +142,20 @@ export namespace EffectFactories {
             })
     }
 
+    export const Fold: EffectFactory = {
+        defaultName: "Fold",
+        defaultIcon: IconSymbol.Waveform,
+        description: "Folds the signal back into audio-range",
+        separatorBefore: false,
+        type: "audio",
+        create: ({boxGraph}, unit, index): FoldDeviceBox =>
+            FoldDeviceBox.create(boxGraph, UUID.generate(), box => {
+                box.label.setValue("Fold")
+                box.index.setValue(index)
+                box.host.refer(unit)
+            })
+    }
+
     export const Revamp: EffectFactory = {
         defaultName: "Revamp",
         defaultIcon: IconSymbol.EQ,
@@ -194,7 +209,7 @@ export namespace EffectFactories {
     }
 
     export const MidiNamed = {Arpeggio, Pitch, Zeitgeist}
-    export const AudioNamed = {StereoTool, Compressor, Delay, Reverb, Revamp, Crusher, Modular}
+    export const AudioNamed = {StereoTool, Compressor, Delay, Reverb, Revamp, Crusher, Fold, Modular}
     export const MidiList: ReadonlyArray<Readonly<EffectFactory>> = Object.values(MidiNamed)
     export const AudioList: ReadonlyArray<Readonly<EffectFactory>> = Object.values(AudioNamed)
     export const MergedNamed = {...MidiNamed, ...AudioNamed}

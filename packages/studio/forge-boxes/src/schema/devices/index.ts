@@ -16,6 +16,7 @@ import {UnknownMidiEffectDevice} from "./midi-effects/UnknownMidiEffectDevice"
 import {SoundfontDeviceBox} from "./instruments/SoundfontDeviceBox"
 import {CompressorDeviceBox} from "./audio-effects/CompressorDeviceBox"
 import {CrusherDeviceBox} from "./audio-effects/CrusherDeviceBox"
+import {FoldDeviceBox} from "./audio-effects/FoldDeviceBox"
 
 export const DeviceDefinitions = [
     UnknownAudioEffectDevice,
@@ -27,6 +28,7 @@ export const DeviceDefinitions = [
     CompressorDeviceBox,
     DelayDeviceBox,
     CrusherDeviceBox,
+    FoldDeviceBox,
     RevampDeviceBox,
     ReverbDeviceBox,
     VaporisateurDeviceBox,
