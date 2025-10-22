@@ -25,7 +25,7 @@ export class MIDIOutputDeviceProcessor extends AudioProcessor implements Instrum
 
         this.#adapter = adapter
         this.#audioOutput = new AudioBuffer()
-        this.#data = new Int32Array(256) // TODO How large should this be?
+        this.#data = new Int32Array(1024) // TODO How large should this be?
 
         this.ownAll(
             context.liveStreamBroadcaster.broadcastIntegers(adapter.address, this.#data, () => {
