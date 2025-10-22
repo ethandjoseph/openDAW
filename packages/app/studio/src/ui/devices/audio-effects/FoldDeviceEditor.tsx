@@ -47,7 +47,7 @@ export const FoldDeviceEditor = ({lifecycle, service, adapter, deviceHost}: Cons
                               </div>
                               <canvas onInit={canvas => {
                                   const painter = lifecycle.own(new CanvasPainter(canvas, painter => {
-                                      const scale = 4
+                                      const scale = 16 // oversampling
                                       const {devicePixelRatio, context, actualWidth, actualHeight} = painter
                                       const w = actualWidth * scale
                                       const h2 = actualHeight * scale * 0.5
