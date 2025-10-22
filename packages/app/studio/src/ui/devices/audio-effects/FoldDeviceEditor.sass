@@ -1,7 +1,15 @@
 @use "@/mixins"
 
 component
-  display: grid
-  grid-template: repeat(3, 3.5em) / repeat(2, 3.5em)
-  row-gap: 0.25em
+  display: flex
+  flex-direction: column
+  min-width: 120px
   @include mixins.Control
+  position: relative
+
+  > canvas
+    top: 0
+    left: 0
+    width: 100%
+    aspect-ratio: 7 / 4
+    position: relative
