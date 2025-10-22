@@ -44,10 +44,10 @@ export class FoldDeviceBoxAdapter implements AudioEffectDeviceAdapter {
 
     #wrapParameters(box: FoldDeviceBox) {
         return {
-            amount: this.#parametric.createParameter(
-                box.amount,
-                ValueMapping.linear(1.0, 8.0),
-                StringMapping.percent(), "Amount")
+            drive: this.#parametric.createParameter(
+                box.drive,
+                ValueMapping.linear(0.0, 30.0),
+                StringMapping.decible, "Drive")
         } as const
     }
 }

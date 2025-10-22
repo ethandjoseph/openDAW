@@ -23,13 +23,13 @@ export namespace ValueDragging {
             const guide = ValueGuide.create(options)
             if (event.shiftKey) {guide.disable()} else {guide.enable()}
             guide.begin(startValue)
-            guide.ratio(event.altKey ? 0.25 : options?.ratio ?? 1.0)
+            guide.ratio(event.altKey ? 0.25 : options?.ratio ?? 1.5)
             let pointer = horizontal ? event.clientX : -event.clientY
             return Option.wrap({
                 abortSignal: process.abortSignal,
                 update: (event: Dragging.Event): void => {
                     if (event.shiftKey) {guide.disable()} else {guide.enable()}
-                    guide.ratio(event.altKey ? 0.25 : options?.ratio ?? 1.0)
+                    guide.ratio(event.altKey ? 0.25 : options?.ratio ?? 1.5)
                     const newPointer = horizontal ? event.clientX : -event.clientY
                     guide.moveBy(newPointer - pointer)
                     pointer = newPointer

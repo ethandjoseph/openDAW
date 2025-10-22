@@ -5,15 +5,10 @@ import {Block, Processor} from "../../processing"
 import {PeakBroadcaster} from "../../PeakBroadcaster"
 import {AutomatableParameter} from "../../AutomatableParameter"
 import {AudioEffectDeviceProcessor} from "../../AudioEffectDeviceProcessor"
-import {AudioBuffer, Ramp, RenderQuantum, ResamplerStereo, StereoMatrix} from "@opendaw/lib-dsp"
+import {AudioBuffer, dbToGain, Ramp, RenderQuantum, ResamplerStereo, StereoMatrix, wavefold} from "@opendaw/lib-dsp"
 import {AudioProcessor} from "../../AudioProcessor"
 
-const oversampleFactor = 8
-
-const wavefold = (x: number, t: number): number => {
-    const scaled = 0.25 * t * x + 0.25
-    return 4.0 * (Math.abs(scaled - Math.round(scaled)) - 0.25)
-}
+const maxOversampleFactor = 8
 
 export class FoldDeviceProcessor extends AudioProcessor implements AudioEffectDeviceProcessor {
     static ID: int = 0 | 0
@@ -24,10 +19,10 @@ export class FoldDeviceProcessor extends AudioProcessor implements AudioEffectDe
     readonly #output: AudioBuffer
     readonly #buffer: StereoMatrix.Channels
     readonly #peaks: PeakBroadcaster
-    readonly #smoothAmount: Ramp<number>
+    readonly #smoothGain: Ramp<number>
     readonly #resampler: ResamplerStereo
 
-    readonly parameterAmount: AutomatableParameter<number>
+    readonly parameterDrive: AutomatableParameter<number>
 
     #source: Option<AudioBuffer> = Option.None
     #processed: boolean = false
@@ -38,16 +33,21 @@ export class FoldDeviceProcessor extends AudioProcessor implements AudioEffectDe
         this.#adapter = adapter
         this.#output = new AudioBuffer()
         this.#buffer = [
-            new Float32Array(RenderQuantum * oversampleFactor),
-            new Float32Array(RenderQuantum * oversampleFactor)]
+            new Float32Array(RenderQuantum * maxOversampleFactor),
+            new Float32Array(RenderQuantum * maxOversampleFactor)]
         this.#peaks = this.own(new PeakBroadcaster(context.broadcaster, adapter.address))
-        this.#smoothAmount = Ramp.linear(sampleRate)
-        this.#resampler = new ResamplerStereo(oversampleFactor)
+        this.#smoothGain = Ramp.linear(sampleRate)
+        this.#resampler = new ResamplerStereo()
 
-        const {amount} = adapter.namedParameter
-        this.parameterAmount = this.own(this.bindParameter(amount))
+        const {drive} = adapter.namedParameter
+        this.parameterDrive = this.own(this.bindParameter(drive))
 
-        this.own(context.registerProcessor(this))
+        const oversamplingValues = [2, 4, 8] as const
+        this.ownAll(
+            context.registerProcessor(this),
+            adapter.box.overSampling.catchupAndSubscribe(owner =>
+                this.#resampler.setFactor(oversamplingValues[owner.getValue()]))
+        )
         this.readAllParameters()
     }
 
@@ -88,7 +88,7 @@ export class FoldDeviceProcessor extends AudioProcessor implements AudioEffectDe
         const oversampledLength = (toIndex - fromIndex) * 8
         const [oversampledL, oversampledR] = this.#buffer
         for (let i = 0; i < oversampledLength; i++) {
-            const amount = this.#smoothAmount.moveAndGet()
+            const amount = this.#smoothGain.moveAndGet()
             oversampledL[i] = wavefold(oversampledL[i], amount)
             oversampledR[i] = wavefold(oversampledR[i], amount)
         }
@@ -98,8 +98,8 @@ export class FoldDeviceProcessor extends AudioProcessor implements AudioEffectDe
     }
 
     parameterChanged(parameter: AutomatableParameter): void {
-        if (parameter === this.parameterAmount) {
-            this.#smoothAmount.set(this.parameterAmount.getValue(), this.#processed)
+        if (parameter === this.parameterDrive) {
+            this.#smoothGain.set(dbToGain(this.parameterDrive.getValue()), this.#processed)
         }
     }
 

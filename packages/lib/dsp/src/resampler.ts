@@ -1,4 +1,4 @@
-import {Arrays, int} from "@opendaw/lib-std"
+import {Arrays, int, isDefined} from "@opendaw/lib-std"
 import {RenderQuantum} from "./constants"
 import {StereoMatrix} from "./stereo"
 
@@ -98,16 +98,23 @@ class Resampler2xMono {
 }
 
 export class ResamplerMono {
-    readonly #factor: 2 | 4 | 8
-    readonly #stages: Resampler2xMono[]
-    readonly #buffers: Float32Array[]
+    #stages: Resampler2xMono[] = []
+    #buffers: Float32Array[] = []
 
-    constructor(factor: 2 | 4 | 8) {
+    #numStages: int = 0
+    #factor: 2 | 4 | 8 = 2
+
+    constructor(factor?: 2 | 4 | 8) {
+        if (isDefined(factor)) {
+            this.setFactor(factor)
+        }
+    }
+
+    setFactor(factor: 2 | 4 | 8): void {
         this.#factor = factor
-
-        const numStages = factor === 2 ? 1 : factor === 4 ? 2 : 3
-        this.#stages = Arrays.create(() => new Resampler2xMono(), numStages)
-        this.#buffers = Arrays.create((i) => new Float32Array(RenderQuantum * (2 << i)), numStages - 1)
+        this.#numStages = factor === 2 ? 1 : factor === 4 ? 2 : 3
+        this.#stages = Arrays.create(() => new Resampler2xMono(), this.#numStages)
+        this.#buffers = Arrays.create((i) => new Float32Array(RenderQuantum * (2 << i)), this.#numStages - 1)
     }
 
     reset(): void {this.#stages.forEach(stage => stage.reset())}
@@ -117,8 +124,8 @@ export class ResamplerMono {
         let inBuffer = input
         let inFrom = fromIndex
         let inTo = toIndex
-        for (let i = 0; i < this.#stages.length; i++) {
-            const isLast = i === this.#stages.length - 1
+        for (let i = 0; i < this.#numStages; i++) {
+            const isLast = i === this.#numStages - 1
             const outBuffer = isLast ? output : this.#buffers[i]
             this.#stages[i].upsample(inBuffer, outBuffer, inFrom, inTo)
             inBuffer = outBuffer
@@ -131,7 +138,7 @@ export class ResamplerMono {
         const count = toIndex - fromIndex
         let inBuffer = input
         let inTo = count * this.#factor
-        for (let i = this.#stages.length - 1; i >= 0; i--) {
+        for (let i = this.#numStages - 1; i >= 0; i--) {
             const isLast = i === 0
             const outBuffer = isLast ? output : this.#buffers[i - 1]
             const outFrom = isLast ? fromIndex : 0
@@ -147,9 +154,14 @@ export class ResamplerStereo {
     readonly #left: ResamplerMono
     readonly #right: ResamplerMono
 
-    constructor(factor: 2 | 4 | 8) {
+    constructor(factor?: 2 | 4 | 8) {
         this.#left = new ResamplerMono(factor)
         this.#right = new ResamplerMono(factor)
+    }
+
+    setFactor(factor: 2 | 4 | 8): void {
+        this.#left.setFactor(factor)
+        this.#right.setFactor(factor)
     }
 
     reset(): void {
