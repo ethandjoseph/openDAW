@@ -42,21 +42,25 @@ component
     > div.columns
       margin: 1em 0 0 0
       display: grid
-      column-gap: 2.5em
+      column-gap: 1.5em
       grid-template-columns: auto 1fr
+      height: 300px
 
       > div
         display: flex
         flex-direction: column
         row-gap: 0.5em
 
-        > h3
+        h3
           font-size: 0.875em
-          color: var(--color-orange)
-          padding: 0.25em 0.375em
           border-radius: 0.25em
-          background-color: rgba(black, 0.2)
+          background-color: rgba(black, 0.12)
           width: fit-content
+          white-space: nowrap
+
+        label
+          padding: 0
+          cursor: pointer
 
         > div.starters
           display: grid
@@ -84,12 +88,12 @@ component
               background-color: color-mix(in srgb, var(--color-green) 3%, transparent)
 
               > .icon
-                scale: 0.96
+                scale: 0.9
 
             > .icon
               width: 64px
               height: 64px
-              scale: 0.8
+              scale: 0.7
               transition: scale 0.2s ease-out
 
             > label
