@@ -4,9 +4,6 @@ import {defineConfig} from "vite"
 import crossOriginIsolation from "vite-plugin-cross-origin-isolation"
 import viteCompression from "vite-plugin-compression"
 import {BuildInfo} from "./src/BuildInfo"
-import {config as loadEnv} from "dotenv"
-
-loadEnv({path: resolve(__dirname, "../../../opendaw.env")})
 
 export default defineConfig(({command}) => {
     const uuid = generateUUID()
@@ -40,8 +37,8 @@ export default defineConfig(({command}) => {
             port: 8080,
             host: "localhost",
             https: command === "serve" ? {
-            key: readFileSync(resolve(__dirname, "../localhost-key.pem")),
-            cert: readFileSync(resolve(__dirname, "../localhost.pem"))
+                key: readFileSync(resolve(__dirname, "../../../certs/localhost-key.pem")),
+                cert: readFileSync(resolve(__dirname, "../../../certs/localhost.pem"))
             } : undefined,
             headers: {
                 "Cross-Origin-Opener-Policy": "same-origin",

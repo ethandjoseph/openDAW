@@ -2,9 +2,6 @@ import {defineConfig} from "vite"
 import crossOriginIsolation from "vite-plugin-cross-origin-isolation"
 import {readFileSync} from "fs"
 import {resolve} from "path"
-import {config as loadEnv} from "dotenv"
-
-loadEnv({path: resolve(__dirname, "../../../opendaw.env")})
 
 export default defineConfig(({command}) => ({
     resolve: {
@@ -17,8 +14,8 @@ export default defineConfig(({command}) => ({
         port: 8080,
         host: "localhost",
         https: command === "serve" ? {
-            key: readFileSync("../../../certs/localhost-key.pem"),
-            cert: readFileSync("../../../certs/localhost.pem")
+            key: readFileSync(resolve(__dirname, "../../../certs/localhost-key.pem")),
+            cert: readFileSync(resolve(__dirname, "../../../certs/localhost.pem"))
         } : undefined,
         headers: {
             "Cross-Origin-Opener-Policy": "same-origin",
