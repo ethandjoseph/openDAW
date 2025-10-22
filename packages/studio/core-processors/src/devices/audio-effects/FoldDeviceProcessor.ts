@@ -89,11 +89,11 @@ export class FoldDeviceProcessor extends AudioProcessor implements AudioEffectDe
 
         this.#resampler.upsample(input.channels() as StereoMatrix.Channels, this.#buffer, fromIndex, toIndex)
 
-        const oversampledLength = (toIndex - fromIndex) * 8
+        const oversampledLength = (toIndex - fromIndex) * this.#resampler.getFactor()
         const [oversampledL, oversampledR] = this.#buffer
         for (let i = 0; i < oversampledLength; i++) {
-            const amount = this.#smoothInputGain.moveAndGet()
             const gain = this.#smoothOutputGain.moveAndGet()
+            const amount = this.#smoothInputGain.moveAndGet()
             oversampledL[i] = wavefold(oversampledL[i], amount) * gain
             oversampledR[i] = wavefold(oversampledR[i], amount) * gain
         }

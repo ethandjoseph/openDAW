@@ -117,6 +117,8 @@ export class ResamplerMono {
         this.#buffers = Arrays.create((i) => new Float32Array(RenderQuantum * (2 << i)), this.#numStages - 1)
     }
 
+    getFactor(): int {return this.#factor}
+
     reset(): void {this.#stages.forEach(stage => stage.reset())}
 
     upsample(input: Float32Array, output: Float32Array, fromIndex: int, toIndex: int): void {
@@ -163,6 +165,8 @@ export class ResamplerStereo {
         this.#left.setFactor(factor)
         this.#right.setFactor(factor)
     }
+
+    getFactor(): int {return this.#left.getFactor()}
 
     reset(): void {
         this.#left.reset()
