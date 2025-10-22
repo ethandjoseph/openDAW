@@ -19,10 +19,12 @@ export class FoldDeviceProcessor extends AudioProcessor implements AudioEffectDe
     readonly #output: AudioBuffer
     readonly #buffer: StereoMatrix.Channels
     readonly #peaks: PeakBroadcaster
-    readonly #smoothGain: Ramp<number>
+    readonly #smoothInputGain: Ramp<number>
+    readonly #smoothOutputGain: Ramp<number>
     readonly #resampler: ResamplerStereo
 
     readonly parameterDrive: AutomatableParameter<number>
+    readonly parameterVolume: AutomatableParameter<number>
 
     #source: Option<AudioBuffer> = Option.None
     #processed: boolean = false
@@ -36,11 +38,13 @@ export class FoldDeviceProcessor extends AudioProcessor implements AudioEffectDe
             new Float32Array(RenderQuantum * maxOversampleFactor),
             new Float32Array(RenderQuantum * maxOversampleFactor)]
         this.#peaks = this.own(new PeakBroadcaster(context.broadcaster, adapter.address))
-        this.#smoothGain = Ramp.linear(sampleRate)
+        this.#smoothInputGain = Ramp.linear(sampleRate)
+        this.#smoothOutputGain = Ramp.linear(sampleRate)
         this.#resampler = new ResamplerStereo()
 
-        const {drive} = adapter.namedParameter
+        const {drive, volume} = adapter.namedParameter
         this.parameterDrive = this.own(this.bindParameter(drive))
+        this.parameterVolume = this.own(this.bindParameter(volume))
 
         const oversamplingValues = [2, 4, 8] as const
         this.ownAll(
@@ -88,9 +92,10 @@ export class FoldDeviceProcessor extends AudioProcessor implements AudioEffectDe
         const oversampledLength = (toIndex - fromIndex) * 8
         const [oversampledL, oversampledR] = this.#buffer
         for (let i = 0; i < oversampledLength; i++) {
-            const amount = this.#smoothGain.moveAndGet()
-            oversampledL[i] = wavefold(oversampledL[i], amount)
-            oversampledR[i] = wavefold(oversampledR[i], amount)
+            const amount = this.#smoothInputGain.moveAndGet()
+            const gain = this.#smoothOutputGain.moveAndGet()
+            oversampledL[i] = wavefold(oversampledL[i], amount) * gain
+            oversampledR[i] = wavefold(oversampledR[i], amount) * gain
         }
 
         this.#resampler.downsample(this.#buffer, this.#output.channels() as StereoMatrix.Channels, fromIndex, toIndex)
@@ -99,7 +104,9 @@ export class FoldDeviceProcessor extends AudioProcessor implements AudioEffectDe
 
     parameterChanged(parameter: AutomatableParameter): void {
         if (parameter === this.parameterDrive) {
-            this.#smoothGain.set(dbToGain(this.parameterDrive.getValue()), this.#processed)
+            this.#smoothInputGain.set(dbToGain(this.parameterDrive.getValue()), this.#processed)
+        } else if (parameter === this.parameterVolume) {
+            this.#smoothOutputGain.set(dbToGain(this.parameterVolume.getValue()), this.#processed)
         }
     }
 

@@ -26,7 +26,7 @@ type Construct = {
 export const FoldDeviceEditor = ({lifecycle, service, adapter, deviceHost}: Construct) => {
     const {project} = service
     const {editing, midiLearning} = project
-    const {drive} = adapter.namedParameter
+    const {drive, volume} = adapter.namedParameter
     return (
         <DeviceEditor lifecycle={lifecycle}
                       project={project}
@@ -72,10 +72,16 @@ export const FoldDeviceEditor = ({lifecycle, service, adapter, deviceHost}: Cons
                                   }))
                                   lifecycle.own(drive.catchupAndSubscribe(() => painter.requestUpdate()))
                               }}/>
-                              {ControlBuilder.createKnob({
-                                  lifecycle, editing, midiLearning, adapter, parameter: drive, anchor: 0.0,
-                                  style: {fontSize: "18px"}
-                              })}
+                              <div className="controls">
+                                  {ControlBuilder.createKnob({
+                                      lifecycle, editing, midiLearning, adapter, parameter: drive, anchor: 0.0,
+                                      style: {gridColumn: "2"}
+                                  })}
+                                  {ControlBuilder.createKnob({
+                                      lifecycle, editing, midiLearning, adapter, parameter: volume, anchor: 1.0,
+                                      style: {gridColumn: "4"}
+                                  })}
+                              </div>
                           </div>
                       )}
                       populateMeter={() => (

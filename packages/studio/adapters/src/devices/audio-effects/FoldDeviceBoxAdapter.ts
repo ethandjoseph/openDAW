@@ -47,7 +47,11 @@ export class FoldDeviceBoxAdapter implements AudioEffectDeviceAdapter {
             drive: this.#parametric.createParameter(
                 box.drive,
                 ValueMapping.linear(0.0, 30.0),
-                StringMapping.decible, "Drive")
+                StringMapping.decible, "Drive"),
+            volume: this.#parametric.createParameter(
+                box.volume,
+                ValueMapping.linear(-18.0, 0.0),
+                StringMapping.decible, "Volume")
         } as const
     }
 }
