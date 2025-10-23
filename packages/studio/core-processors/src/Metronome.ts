@@ -2,21 +2,28 @@ import {BlockFlag, ProcessInfo} from "./processing"
 import {AudioBuffer, Fragmentor, PPQN, RenderQuantum} from "@opendaw/lib-dsp"
 import {assert, Bits, int, TAU} from "@opendaw/lib-std"
 import {TimeInfo} from "./TimeInfo"
+import {TimelineBoxAdapter} from "@opendaw/studio-adapters"
 
 export class Metronome {
+    readonly #timelineBoxAdapter: TimelineBoxAdapter
     readonly #timeInfo: TimeInfo
     readonly #output = new AudioBuffer()
     readonly #clicks: Click[] = []
 
-    constructor(timeInfo: TimeInfo) {this.#timeInfo = timeInfo}
+    constructor(timelineBoxAdapter: TimelineBoxAdapter, timeInfo: TimeInfo) {
+        this.#timelineBoxAdapter = timelineBoxAdapter
+        this.#timeInfo = timeInfo
+    }
 
     process({blocks}: ProcessInfo): void {
         blocks.forEach(({p0, p1, bpm, s0, s1, flags}) => {
             if (this.#timeInfo.metronomeEnabled && Bits.every(flags, BlockFlag.transporting)) {
-                for (const position of Fragmentor.iterate(p0, p1, PPQN.Quarter)) {
+                const [nominator, denominator] = this.#timelineBoxAdapter.signature
+                const stepSize = PPQN.fromSignature(1, denominator)
+                for (const position of Fragmentor.iterate(p0, p1, stepSize)) {
                     assert(p0 <= position && position < p1, `${position} out of bounds (${p0}, ${p1})`)
                     const distanceToEvent = Math.floor(PPQN.pulsesToSamples(position - p0, bpm, sampleRate))
-                    this.#clicks.push(new Click(position, s0 + distanceToEvent))
+                    this.#clicks.push(new Click(position, s0 + distanceToEvent, nominator, denominator))
                 }
             }
             this.#output.clear(s0, s1)
@@ -38,9 +45,9 @@ class Click {
     #position: int = 0 | 0
     #startIndex: int = 0 | 0
 
-    constructor(timeCode: number, startIndex: int) {
+    constructor(timeCode: number, startIndex: int, nominator: int, denominator: int) {
         assert(startIndex >= 0 && startIndex < RenderQuantum, `${startIndex} out of bounds`)
-        this.#frequency = PPQN.toParts(timeCode).beats === 0 ? 880.0 : 440.0
+        this.#frequency = PPQN.toParts(timeCode, nominator, denominator).beats === 0 ? 880.0 : 440.0
         this.#startIndex = startIndex
     }
 

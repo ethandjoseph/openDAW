@@ -144,7 +144,7 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
         this.#audioGraphSorting = new TopologicalSort<Processor>(this.#audioGraph)
         this.#notifier = new Notifier<ProcessPhase>()
         this.#mixer = new Mixer()
-        this.#metronome = new Metronome(this.#timeInfo)
+        this.#metronome = new Metronome(this.#timelineBoxAdapter, this.#timeInfo)
         this.#renderer = new BlockRenderer(this, options)
         this.#ignoredRegions = UUID.newSet<UUID.Bytes>(uuid => uuid)
         this.#stateSender = SyncStream.writer(EngineStateSchema(), sab, x => {
