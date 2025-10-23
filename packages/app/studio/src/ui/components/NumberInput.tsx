@@ -1,6 +1,14 @@
 import css from "./NumberInput.sass?inline"
 import {Events, Html} from "@opendaw/lib-dom"
-import {int, isDefined, isInstanceOf, Lifecycle, MutableObservableValue, StringMapping} from "@opendaw/lib-std"
+import {
+    int,
+    isDefined,
+    isInstanceOf,
+    Lifecycle,
+    MutableObservableValue,
+    StringMapping,
+    ValueGuard
+} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 
 const defaultClassName = Html.adoptStyleSheet(css, "NumberInput")
@@ -13,9 +21,12 @@ type Construct = {
     className?: string
     maxChars?: int
     step?: number
+    guard?: ValueGuard<number>
 }
 
-export const NumberInput = ({lifecycle, model, negativeWarning, className, maxChars, mapper, step}: Construct) => {
+export const NumberInput = ({
+                                lifecycle, model, negativeWarning, className, maxChars, mapper, step, guard
+                            }: Construct) => {
     step ??= 1.0
     maxChars ??= 3
     mapper ??= StringMapping.numeric({})
@@ -55,7 +66,7 @@ export const NumberInput = ({lifecycle, model, negativeWarning, className, maxCh
                 const json = JSON.parse(data)
                 if (json.app === "openDAW" && json.content === "number") {
                     event.preventDefault()
-                    model.setValue(json.value)
+                    model.setValue(isDefined(guard) ? guard.guard(json.value) : json.value)
                 }
             }
         }),
@@ -68,8 +79,8 @@ export const NumberInput = ({lifecycle, model, negativeWarning, className, maxCh
                     event.preventDefault()
                     const result = mapper.y(target.textContent ?? "")
                     if (result.type !== "explicit") {return}
-                    const nextValue: int = result.value
-                    model.setValue(nextValue + step)
+                    const nextValue: int = result.value + step
+                    model.setValue(isDefined(guard) ? guard.guard(nextValue) : nextValue)
                     Html.selectContent(target)
                     break
                 }
@@ -77,8 +88,8 @@ export const NumberInput = ({lifecycle, model, negativeWarning, className, maxCh
                     event.preventDefault()
                     const result = mapper.y(target.textContent ?? "")
                     if (result.type !== "explicit") {return}
-                    const nextValue: int = result.value
-                    model.setValue(nextValue - step)
+                    const nextValue: int = result.value - step
+                    model.setValue(isDefined(guard) ? guard.guard(nextValue) : nextValue)
                     Html.selectContent(target)
                     break
                 }
@@ -87,7 +98,7 @@ export const NumberInput = ({lifecycle, model, negativeWarning, className, maxCh
                     const result = mapper.y(target.textContent ?? "")
                     if (result.type !== "explicit") {return}
                     const nextValue: int = result.value
-                    model.setValue(nextValue)
+                    model.setValue(isDefined(guard) ? guard.guard(nextValue) : nextValue)
                     updateDigits()
                     Html.selectContent(target)
                     break

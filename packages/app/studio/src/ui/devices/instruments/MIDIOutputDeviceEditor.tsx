@@ -1,14 +1,17 @@
 import css from "./MIDIOutputDeviceEditor.sass?inline"
-import {Lifecycle} from "@opendaw/lib-std"
+import {clamp, int, Lifecycle, ParseResult, StringResult, Strings} from "@opendaw/lib-std"
 import {createElement, replaceChildren} from "@opendaw/lib-jsx"
 import {DeviceEditor} from "@/ui/devices/DeviceEditor.tsx"
 import {MenuItems} from "@/ui/devices/menu-items.ts"
-import {DeviceHost, MIDIOutputDeviceBoxAdapter} from "@opendaw/studio-adapters"
+import {DeviceHost, IconSymbol, MIDIOutputDeviceBoxAdapter} from "@opendaw/studio-adapters"
 import {Html} from "@opendaw/lib-dom"
 import {StudioService} from "@/service/StudioService"
-import {InstrumentFactories, MidiDevices} from "@opendaw/studio-core"
+import {Colors, InstrumentFactories, MidiDevices} from "@opendaw/studio-core"
 import {MenuButton} from "@/ui/components/MenuButton"
 import {MenuItem} from "@/ui/model/menu-item"
+import {Icon} from "@/ui/components/Icon"
+import {NumberInput} from "@/ui/components/NumberInput"
+import {EditWrapper} from "@/ui/wrapper/EditWrapper"
 
 const className = Html.adoptStyleSheet(css, "editor")
 
@@ -21,6 +24,7 @@ type Construct = {
 
 export const MIDIOutputDeviceEditor = ({lifecycle, service, adapter, deviceHost}: Construct) => {
     const {project} = service
+    const {editing} = project
     return (
         <DeviceEditor lifecycle={lifecycle}
                       project={project}
@@ -29,24 +33,74 @@ export const MIDIOutputDeviceEditor = ({lifecycle, service, adapter, deviceHost}
                       populateControls={() => (
                           <div className={className} onInit={element => {
                               MidiDevices.get().catchupAndSubscribe(option => option.match({
-                                  none: () => replaceChildren(element, (<span>Request MIDI</span>)),
+                                  none: () => replaceChildren(element,
+                                      MidiDevices.canRequestMidiAccess() ? (
+                                          <div className="request-midi" onclick={() => MidiDevices.requestPermission()}>
+                                              <span>Request </span>
+                                              <Icon symbol={IconSymbol.Midi}/>
+                                          </div>
+                                      ) : (
+                                          <div className="no-midi-support">
+                                              <div>You browser does not support MIDI</div>
+                                              <div>Tip: Chrome and Firefox do</div>
+                                          </div>
+                                      )),
                                   some: () => replaceChildren(element, (
-                                      <MenuButton root={MenuItem.root().setRuntimeChildrenProcedure(parent => {
-                                          parent.addMenuItem(...MidiDevices.externalOutputDevices().match({
-                                              none: () => [MenuItem.default({label: "No device found."})],
-                                              some: outputs => outputs.map(output => MenuItem.default({
-                                                  label: output.name ?? "Unknown device"
-                                              }).setTriggerProcedure(() => {
-                                                  project.connectMIDIOutput(adapter.address.uuid, output)
+                                      <div className="selector">
+                                          <MenuButton root={MenuItem.root().setRuntimeChildrenProcedure(parent => {
+                                              parent.addMenuItem(...MidiDevices.externalOutputDevices().match({
+                                                  none: () => [MenuItem.default({label: "No MIDI requested."})],
+                                                  some: outputs => outputs.length === 0
+                                                      ? [MenuItem.default({label: "No device found."})]
+                                                      : outputs.map(output => MenuItem.default({
+                                                          label: output.name ?? "Unnamed device"
+                                                      }).setTriggerProcedure(() => {
+                                                          editing.modify(() => {
+                                                              adapter.box.device.id.setValue(output.id)
+                                                              adapter.box.device.label.setValue(output.name ?? "Unnamed device")
+                                                          })
+                                                          // project.connectMIDIOutput(adapter.address.uuid, output)
+                                                      }))
                                               }))
-                                          }))
-                                      })}><span className="label"
-                                                onInit={element => {
-                                                    lifecycle.own(MidiDevices.get().catchupAndSubscribe(option => option.match({
-                                                        none: () => element.textContent = "Request MIDI access",
-                                                        some: () => element.textContent = "Has MIDI access"
-                                                    })))
-                                                }}>Select MIDI device...</span></MenuButton>
+                                          })} appearance={{color: Colors.dark, activeColor: Colors.gray}}>
+                                              <div className="device-label"
+                                                   onInit={element => {
+                                                       lifecycle.own(adapter.box.device.label.catchupAndSubscribe(owner =>
+                                                           element.textContent = Strings.nonEmpty(
+                                                               owner.getValue(), "No device selected")))
+                                                   }}/>
+                                          </MenuButton>
+                                          <div className="number-inputs">
+                                              <span>Channel:</span>
+                                              <NumberInput lifecycle={lifecycle}
+                                                           model={EditWrapper.forValue(editing, adapter.box.channel)}
+                                                           mapper={{
+                                                               y: (x: string): ParseResult<number> => {
+                                                                   const int = parseInt(x)
+                                                                   return Number.isFinite(int)
+                                                                       ? {type: "explicit", value: int - 1}
+                                                                       : {type: "unknown", value: x}
+                                                               },
+                                                               x: (y: number): StringResult => ({
+                                                                   unit: "#",
+                                                                   value: String(y + 1)
+                                                               })
+                                                           }}
+                                                           guard={{
+                                                               guard: (value: int): int => clamp(value, 0, 15)
+                                                           }}
+                                              />
+                                          </div>
+                                          <div className="number-inputs">
+                                              <span>Delay (ms):</span>
+                                              <NumberInput lifecycle={lifecycle}
+                                                           model={EditWrapper.forValue(editing, adapter.box.delay)}
+                                                           guard={{
+                                                               guard: (value: int): int => clamp(value, 0, 500)
+                                                           }}
+                                              />
+                                          </div>
+                                      </div>
                                   ))
                               }))
                           }}>

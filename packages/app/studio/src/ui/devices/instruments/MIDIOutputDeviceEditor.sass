@@ -1,9 +1,63 @@
 @use "@/mixins"
 
 component
-  min-width: 160px
+  min-width: 240px
+  display: flex
+  flex-direction: column
+  align-items: start
   @include mixins.Control
-  font-size: 10px
 
-  span.label
-    white-space: nowrap
+  div.request-midi
+    margin: auto
+    display: flex
+    place-items: center
+    column-gap: 0.5em
+    padding: 0 0.5em
+    color: var(--color-blue)
+    background-color: rgba(black, 0.2)
+    border-radius: 0.25em
+    cursor: pointer
+    height: min-content
+
+    &:hover
+      color: rgba(black, 0.8)
+      background-color: var(--color-blue)
+
+    > span
+      font-size: 9px
+
+    > svg
+      font-size: 18px
+
+  div.no-midi-support
+    margin: auto
+    display: flex
+    flex-direction: column
+    row-gap: 0.5em
+    color: var(--color-dark)
+
+    > div
+      text-align: center
+
+  div.selector
+    margin-top: 1em
+    display: flex
+    flex-direction: column
+    align-items: start
+    row-gap: 0.5em
+
+    div.device-label
+      font-size: 13px
+      padding: 0.5em 1em
+      border-radius: 0.25em
+      background-color: rgba(black, 0.3)
+
+    > div.number-inputs
+      margin: 0 0 0 0.5em
+      display: grid
+      grid-template-columns: 10em 1fr
+      column-gap: 0.5em
+      align-items: center
+
+      > span
+        font-size: 11px

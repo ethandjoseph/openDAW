@@ -297,6 +297,10 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
         this.#midiOutputs.removeByKey(uuid)
     }
 
+    optConnectedMIDIOutput(uuid: UUID.Bytes): Option<MIDIOutput> {
+        return this.#midiOutputs.opt(uuid).map(({device}) => device)
+    }
+
     receivedMIDIFromEngine(target: UUID.Bytes, data: Uint8Array, relativeTimeInMs: number): void {
         this.#midiOutputs.opt(target).match({
             none: () => console.warn("No MIDIOutput registered."),

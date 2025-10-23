@@ -239,10 +239,11 @@ class ClassWriter<E extends PointerTypes> {
             [STD_LIBRARY, option.import_std_lib],
             [BOX_LIBRARY, option.import_box_lib]
         ])
-        assert(!Arrays.hasDuplicates(Object.keys(schema.fields)),
-            `${schema.name} has duplicate field keys.`)
-        assert(!Arrays.hasDuplicates(Object.values(schema.fields).map(field => field.name)),
-            `${schema.name} has duplicate field names.`)
+        const keys = Object.keys(schema.fields)
+        assert(!Arrays.hasDuplicates(keys),
+            `${schema.name} has duplicate field keys (${keys}).`)
+        const names = Object.values(schema.fields).map(field => field.name)
+        assert(!Arrays.hasDuplicates(names), `${schema.name} has duplicate field names (${names}).`)
         this.#fieldPrinter = Object.entries(schema.fields)
             .map(([key, value]) => this.#printField(Number(key), value)!)
             .filter(field => isDefined(field))
