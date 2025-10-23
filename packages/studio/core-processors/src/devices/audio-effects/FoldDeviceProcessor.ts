@@ -8,6 +8,7 @@ import {AudioEffectDeviceProcessor} from "../../AudioEffectDeviceProcessor"
 import {AudioBuffer, dbToGain, Ramp, RenderQuantum, ResamplerStereo, StereoMatrix, wavefold} from "@opendaw/lib-dsp"
 import {AudioProcessor} from "../../AudioProcessor"
 
+const oversamplingValues = [2, 4, 8] as const
 const maxOversampleFactor = 8 as const
 
 export class FoldDeviceProcessor extends AudioProcessor implements AudioEffectDeviceProcessor {
@@ -24,11 +25,13 @@ export class FoldDeviceProcessor extends AudioProcessor implements AudioEffectDe
     readonly parameterVolume: AutomatableParameter<number>
 
     #source: Option<AudioBuffer> = Option.None
+    #processed: boolean = false
+
+    // will be set in contructor callback: 'catchupAndSubscribe'
     #resampler!: ResamplerStereo
     #oversamplingFactor!: int
     #smoothInputGain!: Ramp<number>
     #smoothOutputGain!: Ramp<number>
-    #processed: boolean = false
 
     constructor(context: EngineContext, adapter: FoldDeviceBoxAdapter) {
         super(context)
@@ -39,14 +42,11 @@ export class FoldDeviceProcessor extends AudioProcessor implements AudioEffectDe
             new Float32Array(RenderQuantum * maxOversampleFactor),
             new Float32Array(RenderQuantum * maxOversampleFactor)]
         this.#peaks = this.own(new PeakBroadcaster(context.broadcaster, adapter.address))
-        this.#smoothInputGain = Ramp.linear(sampleRate)
-        this.#smoothOutputGain = Ramp.linear(sampleRate)
 
         const {drive, volume} = adapter.namedParameter
         this.parameterDrive = this.own(this.bindParameter(drive))
         this.parameterVolume = this.own(this.bindParameter(volume))
 
-        const oversamplingValues = [2, 4, 8] as const
         this.ownAll(
             context.registerProcessor(this),
             adapter.box.overSampling.catchupAndSubscribe(owner => {
@@ -66,6 +66,7 @@ export class FoldDeviceProcessor extends AudioProcessor implements AudioEffectDe
     get outgoing(): Processor {return this}
 
     reset(): void {
+        console.debug("reset")
         this.#processed = false
         this.#peaks.clear()
         this.#output.clear()
@@ -87,20 +88,19 @@ export class FoldDeviceProcessor extends AudioProcessor implements AudioEffectDe
 
     processAudio(_block: Block, fromIndex: int, toIndex: int): void {
         if (this.#source.isEmpty()) {return}
-        const input = this.#source.unwrap()
 
-        this.#resampler.upsample(input.channels() as StereoMatrix.Channels, this.#buffer, fromIndex, toIndex)
-
+        this.#resampler.upsample(this.#source.unwrap().channels() as StereoMatrix.Channels, this.#buffer, fromIndex, toIndex)
         const oversampledLength = (toIndex - fromIndex) * this.#oversamplingFactor
         const [oversampledL, oversampledR] = this.#buffer
+
         for (let i = 0; i < oversampledLength; i++) {
             const gain = this.#smoothOutputGain.moveAndGet()
             const amount = this.#smoothInputGain.moveAndGet()
-            oversampledL[i] = wavefold(oversampledL[i], amount) * gain
-            oversampledR[i] = wavefold(oversampledR[i], amount) * gain
+            oversampledL[i] = wavefold(oversampledL[i] * amount) * gain
+            oversampledR[i] = wavefold(oversampledR[i] * amount) * gain
         }
-
         this.#resampler.downsample(this.#buffer, this.#output.channels() as StereoMatrix.Channels, fromIndex, toIndex)
+
         this.#peaks.process(
             this.#output.getChannel(0), this.#output.getChannel(1), fromIndex, toIndex)
         this.#processed = true
@@ -108,6 +108,7 @@ export class FoldDeviceProcessor extends AudioProcessor implements AudioEffectDe
 
     parameterChanged(parameter: AutomatableParameter): void {
         if (parameter === this.parameterDrive) {
+            console.debug("drive changed", this.parameterDrive.getValue())
             this.#smoothInputGain.set(dbToGain(this.parameterDrive.getValue()), this.#processed)
         } else if (parameter === this.parameterVolume) {
             this.#smoothOutputGain.set(dbToGain(this.parameterVolume.getValue()), this.#processed)

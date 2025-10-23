@@ -64,7 +64,7 @@ export const FoldDeviceEditor = ({lifecycle, service, adapter, deviceHost}: Cons
                                       context.beginPath()
                                       context.moveTo(0, toY(0.0))
                                       for (let x = 1; x <= w; x++) {
-                                          context.lineTo(x, toY(wavefold(Math.sin(x / w * TAU), amountGain)))
+                                          context.lineTo(x, toY(wavefold(Math.sin(x / w * TAU) * amountGain)))
                                       }
                                       context.strokeStyle = Colors.blue
                                       context.stroke()
