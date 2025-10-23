@@ -39,7 +39,7 @@ export namespace TimeGrid {
                 if (interval < beatPulses) {
                     // Below beat level: multiply by 2
                     const nextInterval = interval * 2
-                    // If doubling would exceed beat level, jump to beat level instead
+                    // If doubling exceeds beat level, jump to beat level instead
                     if (nextInterval > beatPulses) {
                         interval = beatPulses
                     } else {
@@ -48,7 +48,7 @@ export namespace TimeGrid {
                 } else if (interval < barPulses) {
                     // Between beat and bar level: multiply by nominator
                     const nextInterval = interval * nominator
-                    // If multiplying would exceed bar level, jump to bar level instead
+                    // If multiplying exceeds bar level, jump to bar level instead
                     if (nextInterval > barPulses) {
                         interval = barPulses
                     } else {
