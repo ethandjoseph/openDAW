@@ -6,6 +6,7 @@ import {
     panic,
     Procedure,
     safeExecute,
+    SortedSet,
     Terminable,
     TerminableOwner,
     Terminator,
@@ -274,6 +275,26 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
                 return false
             }
         }) ?? false)
+    }
+
+    readonly #midiOutputs: SortedSet<UUID.Bytes, {
+        uuid: UUID.Bytes,
+        device: MIDIOutput
+    }> = UUID.newSet(({uuid}) => uuid)
+
+    connectMIDIOutput(uuid: UUID.Bytes, device: MIDIOutput): void {
+        this.#midiOutputs.add({uuid, device})
+    }
+
+    disconnectMIDIOutput(uuid: UUID.Bytes): void {
+        this.#midiOutputs.removeByKey(uuid)
+    }
+
+    receivedMIDIFromEngine(target: UUID.Bytes, data: Uint8Array, relativeTimeInMs: number): void {
+        this.#midiOutputs.opt(target).match({
+            none: () => console.warn("No MIDIOutput registered."),
+            some: ({device}) => device.send(data, performance.now() + relativeTimeInMs)
+        })
     }
 
     terminate(): void {

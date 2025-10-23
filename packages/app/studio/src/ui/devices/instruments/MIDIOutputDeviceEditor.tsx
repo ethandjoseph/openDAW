@@ -6,8 +6,9 @@ import {MenuItems} from "@/ui/devices/menu-items.ts"
 import {DeviceHost, MIDIOutputDeviceBoxAdapter} from "@opendaw/studio-adapters"
 import {Html} from "@opendaw/lib-dom"
 import {StudioService} from "@/service/StudioService"
-import {InstrumentFactories} from "@opendaw/studio-core"
-import {MidiData} from "@opendaw/lib-midi"
+import {InstrumentFactories, MidiDevices} from "@opendaw/studio-core"
+import {MenuButton} from "@/ui/components/MenuButton"
+import {MenuItem} from "@/ui/model/menu-item"
 
 const className = Html.adoptStyleSheet(css, "editor")
 
@@ -20,7 +21,6 @@ type Construct = {
 
 export const MIDIOutputDeviceEditor = ({lifecycle, service, adapter, deviceHost}: Construct) => {
     const {project} = service
-    const {liveStreamReceiver} = project
     return (
         <DeviceEditor lifecycle={lifecycle}
                       project={project}
@@ -28,24 +28,22 @@ export const MIDIOutputDeviceEditor = ({lifecycle, service, adapter, deviceHost}
                       populateMenu={parent => MenuItems.forAudioUnitInput(parent, service, deviceHost)}
                       populateControls={() => (
                           <div className={className}>
-                              {(() => {
-                                  lifecycle.own(liveStreamReceiver.subscribeIntegers(adapter.address, stream => {
-                                      let index = 0
-                                      while (true) {
-                                          const header = stream[index++]
-                                          if (header === -1) {return}
-                                          if (header === MidiData.Command.NoteOn) {
-                                              const pitch = stream[index++]
-                                              const velocity = stream[index++]
-                                              console.debug("start", pitch, velocity)
-                                          } else if (header === MidiData.Command.NoteOff) {
-                                              const pitch = stream[index++]
-                                              console.debug("stop", pitch)
-                                          }
-                                      }
+                              <MenuButton root={MenuItem.root().setRuntimeChildrenProcedure(parent => {
+                                  parent.addMenuItem(...MidiDevices.externalOutputDevices().match({
+                                      none: () => [MenuItem.default({label: "No device found."})],
+                                      some: outputs => outputs.map(output => MenuItem.default({
+                                          label: output.name ?? "Unknown device"
+                                      }).setTriggerProcedure(() => {
+                                          project.connectMIDIOutput(adapter.address.uuid, output)
+                                      }))
                                   }))
-                                  return "MIDIOutput"
-                              })()}
+                              })}><span className="label"
+                                        onInit={element => {
+                                            lifecycle.own(MidiDevices.get().catchupAndSubscribe(option => option.match({
+                                                none: () => element.textContent = "Request MIDI access",
+                                                some: () => element.textContent = "Has MIDI access"
+                                            })))
+                                        }}>Select MIDI device...</span></MenuButton>
                           </div>
                       )}
                       populateMeter={() => false}

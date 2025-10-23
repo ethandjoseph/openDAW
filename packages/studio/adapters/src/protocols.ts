@@ -32,5 +32,6 @@ export interface EngineToClient {
     fetchSoundfont(uuid: UUID.Bytes): Promise<SoundFont2>
     notifyClipSequenceChanges(changes: ClipSequencingUpdates): void
     switchMarkerState(state: Nullable<[UUID.Bytes, int]>): void
+    sendMIDIData(target: UUID.Bytes, data: Uint8Array, relativeTimeInMs: number): void
     ready(): void
 }

@@ -1,5 +1,5 @@
 import {int, Option, Terminable, UUID} from "@opendaw/lib-std"
-import {AudioBuffer, Event} from "@opendaw/lib-dsp"
+import {AudioBuffer, Event, PPQN} from "@opendaw/lib-dsp"
 import {MIDIOutputDeviceBoxAdapter} from "@opendaw/studio-adapters"
 import {EngineContext} from "../../EngineContext"
 import {AudioProcessor} from "../../AudioProcessor"
@@ -39,17 +39,19 @@ export class MIDIOutputDeviceProcessor extends AudioProcessor implements Instrum
 
     get noteEventTarget(): Option<NoteEventTarget & DeviceProcessor> {return Option.wrap(this)}
 
-    introduceBlock({p0, p1, flags}: Block): void {
+    introduceBlock({p0, p1, s0, flags, bpm}: Block): void {
         if (this.#source.isEmpty()) {return}
         for (const event of this.#source.unwrap().processNotes(p0, p1, flags)) {
             if (event.pitch >= 0 && event.pitch <= 127) {
+                const relativeTimeInMs = (s0 / sampleRate + PPQN.pulsesToSeconds(event.position - p0, bpm)) * 1000.0
                 if (NoteLifecycleEvent.isStart(event)) {
-                    this.#data[this.#index++] = MidiData.Command.NoteOn
-                    this.#data[this.#index++] = event.pitch
-                    this.#data[this.#index++] = Math.round(event.velocity * 127)
+                    this.context.engineToClient
+                        .sendMIDIData(this.#adapter.uuid,
+                            MidiData.noteOn(1, event.pitch, Math.round(event.velocity * 127)), relativeTimeInMs)
                 } else if (NoteLifecycleEvent.isStop(event)) {
-                    this.#data[this.#index++] = MidiData.Command.NoteOff
-                    this.#data[this.#index++] = event.pitch
+                    this.context.engineToClient
+                        .sendMIDIData(this.#adapter.uuid,
+                            MidiData.noteOff(1, event.pitch), relativeTimeInMs)
                 }
             }
         }

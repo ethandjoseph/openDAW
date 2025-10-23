@@ -1,4 +1,9 @@
 @use "@/mixins"
 
 component
-  @include mixins.ControlLayout(2)
+  min-width: 160px
+  @include mixins.Control
+  font-size: 10px
+
+  span.label
+    white-space: nowrap
