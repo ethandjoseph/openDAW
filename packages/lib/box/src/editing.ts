@@ -88,12 +88,17 @@ export class BoxEditing implements Editing {
     }
 
     beginModification(): ModificationProcess {
-        this.#graph.beginTransaction()
+        const alreadyIntransaction = this.#graph.inTransaction()
+        if (!alreadyIntransaction) {
+            this.#graph.beginTransaction()
+        }
         this.#modifying = true
         const complete = () => {
             this.#modifying = false
-            this.#graph.endTransaction()
-            this.#graph.edges().validateRequirements()
+            if (!alreadyIntransaction) {
+                this.#graph.endTransaction()
+                this.#graph.edges().validateRequirements()
+            }
         }
         return {
             approve: complete,
