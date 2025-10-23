@@ -21,7 +21,7 @@ type EventHandler = (events: Array<Y.YEvent<any>>, transaction: Y.Transaction) =
 
 export type Construct<T> = {
     boxGraph: BoxGraph<T>,
-    doc: Y.Doc
+    boxes: Y.Map<unknown>
     conflict?: Provider<boolean>
 }
 
@@ -30,27 +30,27 @@ export class YSync<T> implements Terminable {
         return doc.getMap("boxes").size === 0
     }
 
-    static async populateRoom<T>({boxGraph, doc}: Construct<T>): Promise<YSync<T>> {
+    static async populateRoom<T>({boxGraph, boxes}: Construct<T>): Promise<YSync<T>> {
         console.debug("populate")
-        const boxesMap = doc.getMap("boxes")
-        assert(boxesMap.size === 0, "BoxesMap must be empty")
-        const sync = new YSync<T>({boxGraph, doc})
-        doc.transact(() => boxGraph.boxes().forEach(box => {
-            const key = UUID.toString(box.address.uuid)
-            const map = YMapper.createBoxMap(box)
-            boxesMap.set(key, map)
-        }), "[openDAW] populate")
+        assert(boxes.size === 0, "boxes must be empty")
+        const sync = new YSync<T>({boxGraph, boxes})
+        asDefined(boxes.doc, "Y.Map is not connect to Y.Doc")
+            .transact(() => boxGraph.boxes()
+                .forEach(box => {
+                    const key = UUID.toString(box.address.uuid)
+                    const map = YMapper.createBoxMap(box)
+                    boxes.set(key, map)
+                }), "[openDAW] populate")
         return sync
     }
 
-    static async joinRoom<T>({boxGraph, doc}: Construct<T>): Promise<YSync<T>> {
+    static async joinRoom<T>({boxGraph, boxes}: Construct<T>): Promise<YSync<T>> {
         console.debug("join")
         assert(boxGraph.boxes().length === 0, "BoxGraph must be empty")
-        const sync = new YSync<T>({boxGraph, doc})
+        const sync = new YSync<T>({boxGraph, boxes})
         boxGraph.beginTransaction()
-        const boxesMap: Y.Map<unknown> = doc.getMap("boxes")
-        boxesMap.forEach((value, key) => {
-            const boxMap = value as Y.Map<any>
+        boxes.forEach((value, key) => {
+            const boxMap = value as Y.Map<unknown>
             const uuid = UUID.parse(key)
             const name = boxMap.get("name") as keyof T
             const fields = boxMap.get("fields") as Y.Map<unknown>
@@ -64,18 +64,16 @@ export class YSync<T> implements Terminable {
     readonly #terminator = new Terminator()
 
     readonly #boxGraph: BoxGraph<T>
-    readonly #doc: Y.Doc
     readonly #conflict: Option<Provider<boolean>>
-    readonly #boxesMap: Y.Map<unknown>
+    readonly #boxes: Y.Map<unknown>
     readonly #updates: Array<Update>
 
     #ignoreUpdates: boolean = false
 
-    constructor({boxGraph, doc, conflict}: Construct<T>) {
+    constructor({boxGraph, boxes, conflict}: Construct<T>) {
         this.#boxGraph = boxGraph
-        this.#doc = doc
         this.#conflict = Option.wrap(conflict)
-        this.#boxesMap = doc.getMap("boxes")
+        this.#boxes = boxes
         this.#updates = []
         this.#terminator.ownAll(this.#setupYjs(), this.#setupOpenDAW())
     }
@@ -120,12 +118,12 @@ export class YSync<T> implements Terminable {
                 this.#rollbackTransaction(events)
             }
         }
-        this.#boxesMap.observeDeep(eventHandler)
-        return {terminate: () => {this.#boxesMap.unobserveDeep(eventHandler)}}
+        this.#boxes.observeDeep(eventHandler)
+        return {terminate: () => {this.#boxes.unobserveDeep(eventHandler)}}
     }
 
     #createBox(key: string): void {
-        const map = this.#boxesMap.get(key) as Y.Map<unknown>
+        const map = this.#boxes.get(key) as Y.Map<unknown>
         const name = map.get("name") as keyof T
         const fields = map.get("fields") as Y.Map<unknown>
         const uuid = UUID.parse(key)
@@ -146,7 +144,7 @@ export class YSync<T> implements Terminable {
         }
         const vertex = vertexOption.unwrap("Could not find field")
         const [uuidAsString, fieldsKey, ...fieldKeys] = path
-        const targetMap = YMapper.findMap((this.#boxesMap
+        const targetMap = YMapper.findMap((this.#boxes
             .get(String(uuidAsString)) as Y.Map<unknown>)
             .get(String(fieldsKey)) as Y.Map<unknown>, fieldKeys)
         assert(vertex.isField(), "Vertex must be either Primitive or Pointer")
@@ -174,28 +172,29 @@ export class YSync<T> implements Terminable {
 
     #rollbackTransaction(events: ReadonlyArray<Y.YEvent<any>>): void {
         console.debug(`rollback ${events.length} events...`)
-        this.#doc.transact(() => {
-            for (let i = events.length - 1; i >= 0; i--) {
-                const event = events[i]
-                const target = asInstanceOf(event.target, Y.Map)
-                Array.from(event.changes.keys.entries())
-                    .toReversed()
-                    .forEach(([key, change]) => {
-                        if (change.action === "add") {
-                            target.delete(key)
-                        } else if (change.action === "update") {
-                            if (isUndefined(change.oldValue)) {
-                                console.warn(`oldValue of ${change} is undefined`)
+        this.#getDoc()
+            .transact(() => {
+                for (let i = events.length - 1; i >= 0; i--) {
+                    const event = events[i]
+                    const target = asInstanceOf(event.target, Y.Map)
+                    Array.from(event.changes.keys.entries())
+                        .toReversed()
+                        .forEach(([key, change]) => {
+                            if (change.action === "add") {
                                 target.delete(key)
-                            } else {
+                            } else if (change.action === "update") {
+                                if (isUndefined(change.oldValue)) {
+                                    console.warn(`oldValue of ${change} is undefined`)
+                                    target.delete(key)
+                                } else {
+                                    target.set(key, change.oldValue)
+                                }
+                            } else if (change.action === "delete") {
                                 target.set(key, change.oldValue)
                             }
-                        } else if (change.action === "delete") {
-                            target.set(key, change.oldValue)
-                        }
-                    })
-            }
-        }, "[openDAW] rollback")
+                        })
+                }
+            }, "[openDAW] rollback")
     }
 
     #setupOpenDAW(): Terminable {
@@ -207,7 +206,7 @@ export class YSync<T> implements Terminable {
                         this.#updates.length = 0
                         return
                     }
-                    this.#doc.transact(() => this.#updates.forEach(update => {
+                    this.#getDoc().transact(() => this.#updates.forEach(update => {
                         /**
                          * TRANSFER CHANGES FROM OPENDAW TO YJS
                          */
@@ -215,10 +214,10 @@ export class YSync<T> implements Terminable {
                             const uuid = update.uuid
                             const key = UUID.toString(uuid)
                             const box = this.#boxGraph.findBox(uuid).unwrap()
-                            this.#boxesMap.set(key, YMapper.createBoxMap(box))
+                            this.#boxes.set(key, YMapper.createBoxMap(box))
                         } else if (update.type === "primitive") {
                             const key = UUID.toString(update.address.uuid)
-                            const boxObject = asDefined(this.#boxesMap.get(key),
+                            const boxObject = asDefined(this.#boxes.get(key),
                                 "Could not find box") as Y.Map<unknown>
                             const {address: {fieldKeys}, newValue} = update
                             let field = boxObject.get("fields") as Y.Map<unknown>
@@ -229,7 +228,7 @@ export class YSync<T> implements Terminable {
                             field.set(String(fieldKeys[fieldKeys.length - 1]), newValue)
                         } else if (update.type === "pointer") {
                             const key = UUID.toString(update.address.uuid)
-                            const boxObject = asDefined(this.#boxesMap.get(key),
+                            const boxObject = asDefined(this.#boxes.get(key),
                                 "Could not find box") as Y.Map<unknown>
                             const {address: {fieldKeys}, newAddress} = update
                             let field = boxObject.get("fields") as Y.Map<unknown>
@@ -240,7 +239,7 @@ export class YSync<T> implements Terminable {
                             field.set(String(fieldKeys[fieldKeys.length - 1]),
                                 newAddress.mapOr(address => address.toString(), null))
                         } else if (update.type === "delete") {
-                            this.#boxesMap.delete(UUID.toString(update.uuid))
+                            this.#boxes.delete(UUID.toString(update.uuid))
                         }
                     }), "[openDAW] updates")
                     this.#updates.length = 0
@@ -250,5 +249,9 @@ export class YSync<T> implements Terminable {
                 onUpdate: (update: Update): unknown => this.#updates.push(update)
             })
         )
+    }
+
+    #getDoc(): Y.Doc {
+        return asDefined(this.#boxes.doc, "Y.Map is not connect to Y.Doc")
     }
 }
