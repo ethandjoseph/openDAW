@@ -1,8 +1,7 @@
 import {clamp, int, Notifier, Observable, Observer, Subscription} from "@opendaw/lib-std"
 import {ppqn, PPQN} from "@opendaw/lib-dsp"
-
-import {MenuItem, MenuRootData} from "@/ui/model/menu-item"
 import {TimelineRange} from "@opendaw/studio-core"
+import {MenuItem, MenuRootData} from "@/ui/model/menu-item"
 
 export interface SnapUnit {
     get name(): string
@@ -20,6 +19,8 @@ export class Snapping implements Observable<Snapping> {
     readonly #range: TimelineRange
     readonly #units: ReadonlyArray<SnapUnit>
     readonly #notifier: Notifier<Snapping>
+
+    readonly #signature: [int, int] = [4, 4]
 
     #enabled: boolean = true
     #index: int = 0 | 0
@@ -48,6 +49,14 @@ export class Snapping implements Observable<Snapping> {
     }
     get units(): ReadonlyArray<SnapUnit> {return this.#units}
     get value(): ppqn {return this.#enabled ? this.#units[this.#index].ppqn : 1}
+
+    get signature(): Readonly<[int, int]> {return this.#signature}
+    set signature([nominator, denominator]: Readonly<[int, int]>) {
+        if (this.#signature[0] === nominator && this.#signature[1] === denominator) {return}
+        console.debug(`set signature: ${nominator}/${denominator}`)
+        this.#signature[0] = nominator
+        this.#signature[1] = denominator
+    }
 
     xToUnitFloor(x: number): ppqn {return this.floor(this.#range.xToUnit(x))}
     xToUnitCeil(x: number): ppqn {return this.ceil(this.#range.xToUnit(x))}
@@ -79,12 +88,14 @@ export class Snapping implements Observable<Snapping> {
 
     #initUnits() {
         const range: TimelineRange = this.#range
+        const scope = this
         return [
             {
                 name: "Smart",
                 get ppqn(): int {
+                    const [nominator, denominator] = scope.signature
                     const minUnits = SMART_MIN_PIXEL * range.unitsPerPixel
-                    const stepExp = Math.ceil((Math.log(minUnits / PPQN.Bar) / Math.log(2.0)))
+                    const stepExp = Math.ceil((Math.log(minUnits / PPQN.fromSignature(nominator, denominator)) / Math.log(2.0)))
                     const clampSmartSnapping = true
                     let min
                     if (clampSmartSnapping) {

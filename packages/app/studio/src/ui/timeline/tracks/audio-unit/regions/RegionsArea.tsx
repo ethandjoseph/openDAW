@@ -11,7 +11,7 @@ import {
 } from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {CutCursor} from "@/ui/timeline/CutCursor.tsx"
-import {PPQN, ppqn} from "@opendaw/lib-dsp"
+import {ppqn} from "@opendaw/lib-dsp"
 import {installAutoScroll} from "@/ui/AutoScroll.ts"
 import {Config} from "@/ui/timeline/Config.ts"
 import {TracksManager} from "@/ui/timeline/tracks/audio-unit/TracksManager.ts"
@@ -116,7 +116,7 @@ export const RegionsArea = ({lifecycle, service, manager, scrollModel, scrollCon
                 const {audioUnitBoxAdapter, trackBoxAdapter} = target.track
                 const name = audioUnitBoxAdapter.input.label.unwrapOrElse("")
                 const position = snapping.xToUnitFloor(event.clientX - element.getBoundingClientRect().left)
-                const duration = Math.min(PPQN.Bar,
+                const duration = Math.min(project.signatureDuration,
                     (trackBoxAdapter.regions.collection
                         .greaterEqual(position + 1)?.position ?? Number.POSITIVE_INFINITY) - position)
                 editing.modify(() => project.api.createTrackRegion(trackBoxAdapter.box, position, duration, {name}))

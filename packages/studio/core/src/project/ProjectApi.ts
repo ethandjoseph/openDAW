@@ -234,7 +234,7 @@ export class ProjectApi {
                     box.hue.setValue(hue ?? ColorCodes.forTrackType(type))
                     box.mute.setValue(false)
                     box.duration.setValue(duration)
-                    box.loopDuration.setValue(PPQN.Bar)
+                    box.loopDuration.setValue(this.#project.signatureDuration)
                     box.events.refer(events.owners)
                     box.regions.refer(trackBox.regions)
                 }))

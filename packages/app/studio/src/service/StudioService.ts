@@ -314,7 +314,8 @@ export class StudioService implements ProjectEnv {
                     loopState.subscribe(value => editing.modify(() => loopEnabled.setValue(value.getValue()))),
                     userEditingManager.timeline.catchupAndSubscribe(option => option
                         .ifSome(() => this.panelLayout.showIfAvailable(PanelType.ContentEditor))),
-                    timelineBox.durationInPulses.catchupAndSubscribe(owner => range.maxUnits = owner.getValue() + PPQN.Bar)
+                    timelineBox.durationInPulses.catchupAndSubscribe(owner => range.maxUnits = owner.getValue() + PPQN.Bar),
+                    project.timelineBoxAdapter.catchupAndSubscribeSignature(signature => snapping.signature = signature)
                 )
                 range.showUnitInterval(0, PPQN.fromSignature(16, 1))
 
