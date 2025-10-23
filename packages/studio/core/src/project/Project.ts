@@ -14,6 +14,7 @@ import {
 import {BoxEditing, BoxGraph} from "@opendaw/lib-box"
 import {
     AudioBusBox,
+    AudioFileBox,
     AudioUnitBox,
     BoxIO,
     BoxVisitor,
@@ -244,6 +245,12 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
                 userInterfaceBoxes: this.userInterfaceBoxes
             }
         }
+    }
+
+    collectSampleUUIDs(): ReadonlyArray<UUID.Bytes> {
+        return this.boxGraph.boxes()
+            .filter(box => box.accept<BoxVisitor<boolean>>({visitAudioFileBox: (_box: AudioFileBox): boolean => true}))
+            .map(box => box.address.uuid)
     }
 
     toArrayBuffer(): ArrayBufferLike {
