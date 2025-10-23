@@ -67,10 +67,9 @@ export const boot = async ({workersUrl, workletsUrl}: { workersUrl: string, work
                 console.debug(`AudioContext resumed (${context.state})`)), {capture: true, once: true})
     }
     const audioDevices = await AudioOutputDevice.create(context)
-    const sampleAPI = OpenSampleAPI.get()
     const sampleManager = new DefaultSampleLoaderManager({
         fetch: async (uuid: UUID.Bytes, progress: Progress.Handler): Promise<[AudioData, SampleMetaData]> =>
-            sampleAPI.load(context, uuid, progress)
+            OpenSampleAPI.get().load(context, uuid, progress)
     })
     const soundfontManager = new DefaultSoundfontLoaderManager({
         fetch: async (uuid: UUID.Bytes, progress: Progress.Handler): Promise<[ArrayBuffer, SoundfontMetaData]> =>

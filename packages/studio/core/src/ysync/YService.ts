@@ -35,14 +35,18 @@ export namespace YService {
             provider.on("sync", onSync)
             await Promises.timeout(promise, TimeSpan.seconds(10), "Timeout 'synced'")
         }
-        const boxesMap = doc.getMap("boxes")
-        const isRoomEmpty = boxesMap.size === 0
+        const boxes = doc.getMap("boxes")
+        const isRoomEmpty = boxes.size === 0
         if (isRoomEmpty) {
             const project = optProject.match({
                 none: () => Project.new(env),
                 some: project => project.copy()
             })
-            const sync = await YSync.populateRoom({boxGraph: project.boxGraph, doc, conflict: () => project.invalid()})
+            const sync = await YSync.populateRoom({
+                boxGraph: project.boxGraph,
+                boxes,
+                conflict: () => project.invalid()
+            })
             project.own(sync)
             project.editing.disable()
             return project
@@ -59,7 +63,7 @@ export namespace YService {
                 }
             }
             const boxGraph = new BoxGraph<BoxIO.TypeMap>(Option.wrap(BoxIO.create))
-            const sync = await YSync.joinRoom({boxGraph, doc, conflict: () => project.invalid()})
+            const sync = await YSync.joinRoom({boxGraph, boxes, conflict: () => project.invalid()})
             const mandatoryBoxes = ProjectDecoder.findMandatoryBoxes(boxGraph)
             const project = Project.skeleton(env, {
                 boxGraph,
