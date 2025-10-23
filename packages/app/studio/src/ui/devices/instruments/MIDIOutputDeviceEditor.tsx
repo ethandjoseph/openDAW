@@ -1,6 +1,6 @@
 import css from "./MIDIOutputDeviceEditor.sass?inline"
 import {Lifecycle} from "@opendaw/lib-std"
-import {createElement} from "@opendaw/lib-jsx"
+import {createElement, replaceChildren} from "@opendaw/lib-jsx"
 import {DeviceEditor} from "@/ui/devices/DeviceEditor.tsx"
 import {MenuItems} from "@/ui/devices/menu-items.ts"
 import {DeviceHost, MIDIOutputDeviceBoxAdapter} from "@opendaw/studio-adapters"
@@ -27,23 +27,29 @@ export const MIDIOutputDeviceEditor = ({lifecycle, service, adapter, deviceHost}
                       adapter={adapter}
                       populateMenu={parent => MenuItems.forAudioUnitInput(parent, service, deviceHost)}
                       populateControls={() => (
-                          <div className={className}>
-                              <MenuButton root={MenuItem.root().setRuntimeChildrenProcedure(parent => {
-                                  parent.addMenuItem(...MidiDevices.externalOutputDevices().match({
-                                      none: () => [MenuItem.default({label: "No device found."})],
-                                      some: outputs => outputs.map(output => MenuItem.default({
-                                          label: output.name ?? "Unknown device"
-                                      }).setTriggerProcedure(() => {
-                                          project.connectMIDIOutput(adapter.address.uuid, output)
-                                      }))
-                                  }))
-                              })}><span className="label"
-                                        onInit={element => {
-                                            lifecycle.own(MidiDevices.get().catchupAndSubscribe(option => option.match({
-                                                none: () => element.textContent = "Request MIDI access",
-                                                some: () => element.textContent = "Has MIDI access"
-                                            })))
-                                        }}>Select MIDI device...</span></MenuButton>
+                          <div className={className} onInit={element => {
+                              MidiDevices.get().catchupAndSubscribe(option => option.match({
+                                  none: () => replaceChildren(element, (<span>Request MIDI</span>)),
+                                  some: () => replaceChildren(element, (
+                                      <MenuButton root={MenuItem.root().setRuntimeChildrenProcedure(parent => {
+                                          parent.addMenuItem(...MidiDevices.externalOutputDevices().match({
+                                              none: () => [MenuItem.default({label: "No device found."})],
+                                              some: outputs => outputs.map(output => MenuItem.default({
+                                                  label: output.name ?? "Unknown device"
+                                              }).setTriggerProcedure(() => {
+                                                  project.connectMIDIOutput(adapter.address.uuid, output)
+                                              }))
+                                          }))
+                                      })}><span className="label"
+                                                onInit={element => {
+                                                    lifecycle.own(MidiDevices.get().catchupAndSubscribe(option => option.match({
+                                                        none: () => element.textContent = "Request MIDI access",
+                                                        some: () => element.textContent = "Has MIDI access"
+                                                    })))
+                                                }}>Select MIDI device...</span></MenuButton>
+                                  ))
+                              }))
+                          }}>
                           </div>
                       )}
                       populateMeter={() => false}
