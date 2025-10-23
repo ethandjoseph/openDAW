@@ -4,6 +4,7 @@ import {Address} from "@opendaw/lib-box"
 import {BoxAdapter} from "../BoxAdapter"
 import {MarkerTrackAdapter} from "./MarkerTrackAdapter"
 import {BoxAdaptersContext} from "../BoxAdaptersContext"
+import {PPQN, ppqn} from "@opendaw/lib-dsp"
 
 export class TimelineBoxAdapter implements BoxAdapter {
     readonly #box: TimelineBox
@@ -20,4 +21,8 @@ export class TimelineBoxAdapter implements BoxAdapter {
     get uuid(): UUID.Bytes {return this.#box.address.uuid}
     get address(): Address {return this.#box.address}
     get markerTrack(): MarkerTrackAdapter {return this.#markerTrack}
+    get signatureDuration(): ppqn {
+        const {nominator, denominator} = this.#box.signature
+        return PPQN.fromSignature(nominator.getValue(), denominator.getValue())
+    }
 }

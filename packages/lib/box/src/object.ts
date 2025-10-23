@@ -8,13 +8,16 @@ import {
     isRecord,
     JSONValue,
     Maybe,
+    Observer,
     Option,
     Optional,
     panic,
-    safeExecute
+    safeExecute,
+    Subscription
 } from "@opendaw/lib-std"
 import {Serializer} from "./serializer"
 import {VertexVisitor} from "./vertex"
+import {Propagation} from "./dispatchers"
 
 export abstract class ObjectField<FIELDS extends Fields> extends Field<UnreferenceableType, FIELDS> {
     readonly #fields: FIELDS
@@ -35,6 +38,11 @@ export abstract class ObjectField<FIELDS extends Fields> extends Field<Unreferen
     record(): Readonly<Record<string, Field>> {return this.#fields}
     getField<K extends keyof FIELDS>(key: K): FIELDS[K] {return asDefined(this.#fields[key])}
     optField<K extends keyof FIELDS>(key: K): Option<FIELDS[K]> {return Option.wrap(this.#fields[key])}
+
+    subscribe(observer: Observer<this>): Subscription {
+        return this.graph.subscribeVertexUpdates(Propagation.Children, this.address,
+            () => this.graph.subscribeEndTransaction(() => observer(this)))
+    }
 
     read(input: DataInput): void {Serializer.readFields(input, this.#fields)}
     write(output: DataOutput): void {Serializer.writeFields(output, this.#fields)}

@@ -1,6 +1,6 @@
 import {PPQN} from "@opendaw/lib-dsp"
 import {int, quantizeFloor} from "@opendaw/lib-std"
-import {TimelineRange} from "@opendaw/studio-core"
+import {TimelineRange} from "./TimelineRange"
 
 export namespace TimeGrid {
     export type Signature = [int, int]
@@ -13,20 +13,51 @@ export namespace TimeGrid {
         const unitsPerPixel = range.unitsPerPixel
         if (unitsPerPixel <= 0) {return}
         const barPulses = PPQN.fromSignature(nominator, denominator)
+        const beatPulses = PPQN.fromSignature(1, denominator)
         const minLength = options?.minLength ?? 48
         let interval = barPulses
         let pixel = interval / unitsPerPixel
         if (pixel > minLength) {
             // scaling down the interval until we hit the minimum length
             while (pixel > minLength) {
-                interval *= 0.5
+                if (interval > barPulses) {
+                    // Above bar level: divide by 2
+                    interval /= 2
+                } else if (interval > beatPulses) {
+                    // Between beat and bar level: divide by nominator
+                    interval /= nominator
+                } else {
+                    // Below beat level: divide by 2
+                    interval /= 2
+                }
                 pixel = interval / unitsPerPixel
             }
         }
         if (pixel < minLength) {
             // scaling up the interval until we hit the minimum length
             while (pixel < minLength) {
-                interval *= 2.0
+                if (interval < beatPulses) {
+                    // Below beat level: multiply by 2
+                    const nextInterval = interval * 2
+                    // If doubling would exceed beat level, jump to beat level instead
+                    if (nextInterval > beatPulses) {
+                        interval = beatPulses
+                    } else {
+                        interval = nextInterval
+                    }
+                } else if (interval < barPulses) {
+                    // Between beat and bar level: multiply by nominator
+                    const nextInterval = interval * nominator
+                    // If multiplying would exceed bar level, jump to bar level instead
+                    if (nextInterval > barPulses) {
+                        interval = barPulses
+                    } else {
+                        interval = nextInterval
+                    }
+                } else {
+                    // At or above bar level: multiply by 2
+                    interval *= 2
+                }
                 pixel = interval / unitsPerPixel
             }
         }

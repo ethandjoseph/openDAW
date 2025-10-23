@@ -38,6 +38,7 @@ export const RegionLane = ({lifecycle, trackManager, range, adapter}: Construct)
     lifecycle.ownAll(
         range.subscribe(requestUpdate),
         adapter.regions.subscribeChanges(requestUpdate),
+        trackManager.service.project.timelineBox.signature.subscribe(requestUpdate),
         Html.watchIntersection(element, entries => entries
                 .forEach(({isIntersecting}) => {
                     visible = isIntersecting

@@ -1,6 +1,5 @@
-import {TimeGrid} from "@/ui/timeline/TimeGrid.ts"
 import {Snapping} from "@/ui/timeline/Snapping.ts"
-import {TimelineRange} from "@opendaw/studio-core"
+import {TimeGrid, TimelineRange} from "@opendaw/studio-core"
 
 const SnapColor = "rgba(0, 0, 0, 0.20)"
 const SubSnapColor = "rgba(0, 0, 0, 0.06)"

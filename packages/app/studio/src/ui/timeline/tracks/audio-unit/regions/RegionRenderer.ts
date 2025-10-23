@@ -1,5 +1,5 @@
 import {int, Iterables, Option, quantizeFloor, unitValue} from "@opendaw/lib-std"
-import {LoopableRegion, PPQN, ValueEvent} from "@opendaw/lib-dsp"
+import {LoopableRegion, ValueEvent} from "@opendaw/lib-dsp"
 import {AudioRegionBoxAdapter, NoteRegionBoxAdapter, ValueRegionBoxAdapter} from "@opendaw/studio-adapters"
 import {
     RegionModifyStrategies,
@@ -35,13 +35,13 @@ export const renderRegions = (context: CanvasRenderingContext2D,
     context.textBaseline = "middle"
     context.font = `${em}px ${fontFamily}`
 
-    const grid = false
+    const grid = true
     if (grid) {
-        context.fillStyle = "rgba(255, 255, 255, 0.01)"
-        for (let p = quantizeFloor(unitMin, PPQN.Bar); p < unitMax; p += PPQN.Bar) {
+        const {signatureDuration} = tracks.service.project
+        context.fillStyle = "rgba(0, 0, 0, 0.3)"
+        for (let p = quantizeFloor(unitMin, signatureDuration); p < unitMax; p += signatureDuration) {
             const x0 = Math.floor(range.unitToX(p) * devicePixelRatio)
-            const x1 = Math.floor(range.unitToX(p + PPQN.Bar) * devicePixelRatio) - devicePixelRatio
-            context.fillRect(x0, 0, x1 - x0, height)
+            context.fillRect(x0, 0, devicePixelRatio, height)
         }
     }
     const renderRegions = (strategy: RegionModifyStrategy, filterSelected: boolean, hideSelected: boolean): void => {

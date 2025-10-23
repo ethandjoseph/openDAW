@@ -326,7 +326,7 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
             this.#processQueue = Option.wrap(this.#audioGraphSorting.sorted().concat())
             if (DEBUG) {
                 console.debug(`%cAudio-Graph%c\n${this.#processQueue.unwrap()
-                    .map((x, index) => `${(index + 1)}: ${x}`).join("\n")}`,
+                        .map((x, index) => `${(index + 1)}: ${x}`).join("\n")}`,
                     "color: hsl(200, 83%, 60%)", "color: inherit")
             }
         }
@@ -386,6 +386,7 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
     get soundfontManager(): SoundfontLoaderManager {return this.#soundfontManager}
     get rootBoxAdapter(): RootBoxAdapter {return this.#rootBoxAdapter}
     get timelineBoxAdapter(): TimelineBoxAdapter {return this.#timelineBoxAdapter}
+    get signatureDuration(): ppqn {return this.timelineBoxAdapter.signatureDuration}
     get bpm(): number {return this.#timelineBoxAdapter.box.bpm.getValue()}
     get liveStreamBroadcaster(): LiveStreamBroadcaster {return this.#liveStreamBroadcaster}
     get liveStreamReceiver(): never {return panic("Only available in main thread")}
