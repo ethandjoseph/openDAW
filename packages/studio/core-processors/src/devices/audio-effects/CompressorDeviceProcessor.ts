@@ -1,6 +1,6 @@
 import {AudioEffectDeviceAdapter, CompressorDeviceBoxAdapter} from "@opendaw/studio-adapters"
 import {int, Option, Terminable, UUID} from "@opendaw/lib-std"
-import {AudioBuffer, Event, gainToDb, RenderQuantum} from "@opendaw/lib-dsp"
+import {AudioBuffer, dbToGain, Event, gainToDb, Ramp, RenderQuantum} from "@opendaw/lib-dsp"
 import {EngineContext} from "../../EngineContext"
 import {Block, Processor} from "../../processing"
 import {PeakBroadcaster} from "../../PeakBroadcaster"
@@ -45,13 +45,24 @@ export class CompressorDeviceProcessor extends AudioProcessor implements AudioEf
     readonly #output: AudioBuffer
     readonly #peaks: PeakBroadcaster
 
+    readonly #ballistics: LevelDetector
+    readonly #gainComputer: GainComputer
+    readonly #delay: DelayLine
+    readonly #lookaheadProcessor: LookAhead
+    readonly #smoothedAutoMakeup: SmoothingFilter
+
+    readonly #sidechainSignal: Float32Array
+    readonly #originalSignal: readonly [Float32Array, Float32Array]
+    readonly #lookaheadDelay: number = 0.005
+    readonly #editorValues: Float32Array
+    readonly #smoothInputGain: Ramp<number>
+
     #source: Option<AudioBuffer> = Option.None
 
     #lookahead: boolean = false
     #automakeup: boolean = false
     #autoattack: boolean = false
     #autorelease: boolean = false
-    #inputgain: number = 0.0
     #threshold: number = -10.0
     #ratio: number = 2.0
     #knee: number = 6.0
@@ -60,25 +71,13 @@ export class CompressorDeviceProcessor extends AudioProcessor implements AudioEf
     #makeup: number = 0.0
     #mix: number = 1.0
 
-    // DSP components
-    readonly #ballistics: LevelDetector
-    readonly #gainComputer: GainComputer = new GainComputer()
-    readonly #delay: DelayLine
-    readonly #lookaheadProcessor: LookAhead
-    readonly #smoothedAutoMakeup: SmoothingFilter
-
-    // State variables
-    readonly #sidechainSignal: Float32Array
-    readonly #originalSignal: readonly [Float32Array, Float32Array]
-    readonly #lookaheadDelay: number = 0.005
-    readonly #editorValues: Float32Array
-
-    #prevInput: number = 0.0
     #autoMakeup: number = 0.0
 
     #inpMax: number = 0.0
     #outMax: number = 0.0
     #redMin: number = 0.0
+
+    #processing: boolean = false
 
     constructor(context: EngineContext, adapter: CompressorDeviceBoxAdapter) {
         super(context)
@@ -87,6 +86,7 @@ export class CompressorDeviceProcessor extends AudioProcessor implements AudioEf
         this.#output = new AudioBuffer()
         this.#peaks = this.own(new PeakBroadcaster(context.broadcaster, adapter.address))
         this.#editorValues = new Float32Array([Number.NEGATIVE_INFINITY, 0.0, Number.NEGATIVE_INFINITY])
+        this.#smoothInputGain = Ramp.linear(sampleRate)
 
         const {
             lookahead, automakeup, autoattack, autorelease,
@@ -107,6 +107,7 @@ export class CompressorDeviceProcessor extends AudioProcessor implements AudioEf
         this.parameterMix = this.own(this.bindParameter(mix))
 
         this.#ballistics = new LevelDetector(sampleRate)
+        this.#gainComputer = new GainComputer()
         this.#delay = new DelayLine(sampleRate, 0.005, RenderQuantum, 2)
         this.#lookaheadProcessor = new LookAhead(sampleRate, this.#lookaheadDelay, RenderQuantum)
         this.#smoothedAutoMakeup = new SmoothingFilter(sampleRate)
@@ -134,13 +135,13 @@ export class CompressorDeviceProcessor extends AudioProcessor implements AudioEf
     get outgoing(): Processor {return this}
 
     reset(): void {
+        this.#processing = false
         this.#output.clear()
         this.#peaks.clear()
         this.eventInput.clear()
-        this.#sidechainSignal.fill(0)
-        this.#originalSignal[0].fill(0)
-        this.#originalSignal[1].fill(0)
-        this.#prevInput = this.#inputgain
+        this.#sidechainSignal.fill(0.0)
+        this.#originalSignal[0].fill(0.0)
+        this.#originalSignal[1].fill(0.0)
         this.#autoMakeup = 0.0
         this.#inpMax = 0.0
         this.#outMax = 0.0
@@ -171,19 +172,19 @@ export class CompressorDeviceProcessor extends AudioProcessor implements AudioEf
         const outR = this.#output.getChannel(1)
 
         for (let i = from; i < to; i++) {
-            const l = srcL[i]
-            const r = srcR[i]
-            outL[i] = l
-            outR[i] = r
+            const g = this.#smoothInputGain.moveAndGet()
+            const l = outL[i] = srcL[i] * g
+            const r = outR[i] = srcR[i] * g
             const peak = Math.max(Math.abs(l), Math.abs(r))
-            if (this.#inpMax <= peak) {this.#inpMax = peak} else {this.#inpMax *= CompressorDeviceProcessor.PEAK_DECAY_PER_SAMPLE}
+            if (this.#inpMax <= peak) {
+                this.#inpMax = peak
+            } else {
+                this.#inpMax *= CompressorDeviceProcessor.PEAK_DECAY_PER_SAMPLE
+            }
         }
 
         // Clear sidechain and original signal buffers
         this.#sidechainSignal.fill(0, 0, numSamples)
-
-        // Apply input gain
-        this.#applyInputGain(outL, outR, from, numSamples)
 
         // Get max L/R amplitude values and fill sidechain signal
         for (let i = 0; i < numSamples; i++) {
@@ -255,30 +256,7 @@ export class CompressorDeviceProcessor extends AudioProcessor implements AudioEf
         }
 
         this.#peaks.process(outL, outR, from, to)
-    }
-
-    #applyInputGain(left: Float32Array, right: Float32Array, offset: int, numSamples: int): void {
-        const startGain = decibelsToGain(this.#prevInput)
-        const endGain = decibelsToGain(this.#inputgain)
-
-        if (Math.abs(startGain - endGain) < 0.0001) {
-            // No ramp needed
-            for (let i = 0; i < numSamples; i++) {
-                const idx = offset + i
-                left[idx] *= endGain
-                right[idx] *= endGain
-            }
-        } else {
-            // Apply gain ramp
-            for (let i = 0; i < numSamples; i++) {
-                const idx = offset + i
-                const t = i / numSamples
-                const gain = startGain + (endGain - startGain) * t
-                left[idx] *= gain
-                right[idx] *= gain
-            }
-            this.#prevInput = this.#inputgain
-        }
+        this.#processing = true
     }
 
     #calculateAutoMakeup(src: Float32Array, numSamples: int): number {
@@ -308,7 +286,7 @@ export class CompressorDeviceProcessor extends AudioProcessor implements AudioEf
                 this.#ballistics.setRelease(this.#release * 0.001) // Convert ms to seconds
             }
         } else if (parameter === this.parameterInputgain) {
-            this.#inputgain = this.parameterInputgain.getValue()
+            this.#smoothInputGain.set(dbToGain(this.parameterInputgain.getValue()), this.#processing)
         } else if (parameter === this.parameterThreshold) {
             this.#threshold = this.parameterThreshold.getValue()
             this.#gainComputer.setThreshold(this.#threshold)
