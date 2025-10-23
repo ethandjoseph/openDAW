@@ -51,7 +51,7 @@ export const FoldDeviceEditor = ({lifecycle, service, adapter, deviceHost}: Cons
                                       const {devicePixelRatio, context, actualWidth, actualHeight} = painter
                                       const w = actualWidth * scale
                                       const h2 = actualHeight * scale * 0.5
-                                      const amountGain = dbToGain(drive.getValue())
+                                      const amountGain = dbToGain(drive.getControlledValue())
                                       const toY = (value: number) => h2 - (h2 - devicePixelRatio * 2 * scale) * value
                                       context.save()
                                       context.scale(1.0 / scale, 1.0 / scale)
