@@ -32,5 +32,5 @@
         "@opendaw/typescript-config": "^0.0.20",
         "jsdom": "^26.1.0"
     },
-    "gitHead": "a3c95d33522ce3b35c1a67af0fd6064488d35c97"
+    "gitHead": "cbe2d3409a066196db3434a48f61320f29c80d99"
 }
