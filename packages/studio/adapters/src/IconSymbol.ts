@@ -11,6 +11,7 @@ export enum IconSymbol {
     Book,
     Box,
     Bug,
+    Fold,
     Checkbox,
     Clips,
     Close,

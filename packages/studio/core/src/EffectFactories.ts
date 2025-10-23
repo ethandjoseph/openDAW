@@ -144,7 +144,7 @@ export namespace EffectFactories {
 
     export const Fold: EffectFactory = {
         defaultName: "Fold",
-        defaultIcon: IconSymbol.Waveform,
+        defaultIcon: IconSymbol.Fold,
         description: "Folds the signal back into audio-range",
         separatorBefore: false,
         type: "audio",
