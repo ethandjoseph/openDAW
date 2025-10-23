@@ -108,7 +108,6 @@ export class FoldDeviceProcessor extends AudioProcessor implements AudioEffectDe
 
     parameterChanged(parameter: AutomatableParameter): void {
         if (parameter === this.parameterDrive) {
-            console.debug("drive changed", this.parameterDrive.getValue())
             this.#smoothInputGain.set(dbToGain(this.parameterDrive.getValue()), this.#processed)
         } else if (parameter === this.parameterVolume) {
             this.#smoothOutputGain.set(dbToGain(this.parameterVolume.getValue()), this.#processed)
