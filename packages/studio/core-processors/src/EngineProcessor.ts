@@ -308,6 +308,7 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
         try {
             return this.render(inputs, outputs)
         } catch (reason: any) {
+            console.debug(reason)
             this.#running = false
             this.#engineToClient.error(reason)
             this.terminate()
@@ -325,7 +326,8 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
             this.#processQueue = Option.wrap(this.#audioGraphSorting.sorted().concat())
             if (DEBUG) {
                 console.debug(`%cAudio-Graph%c\n${this.#processQueue.unwrap()
-                    .map((x, index) => `${(index + 1)}: ${x}`).join("\n")}`, "color: hsl(200, 83%, 60%)", "color: inherit")
+                    .map((x, index) => `${(index + 1)}: ${x}`).join("\n")}`,
+                    "color: hsl(200, 83%, 60%)", "color: inherit")
             }
         }
         const processors = this.#processQueue.unwrap()
@@ -398,7 +400,7 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
     get isAudioContext(): boolean {return true}
 
     terminate(): void {
-        console.debug(`terminate: ${this}`)
+        console.trace(`terminate: ${this}`)
         this.#terminator.terminate()
         this.#audioUnits.forEach(unit => unit.terminate())
         this.#audioUnits.clear()

@@ -31,8 +31,7 @@ export const MIDIOutputDeviceEditor = ({lifecycle, service, adapter, deviceHost}
             .map(devices => devices
                 .find(device => device.id === owner.getValue()))
         deviceLabelClass.toggle("not-available", device.isEmpty())
-
-        device.ifSome(device => project.connectMIDIOutput(adapter.address.uuid, device))
+        device.ifSome(device => project.connectMIDIOutput(adapter.box, device))
     }
     return (
         <DeviceEditor lifecycle={lifecycle}

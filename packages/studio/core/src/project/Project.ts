@@ -2,11 +2,13 @@ import {
     Arrays,
     ByteArrayOutput,
     Func,
+    isDefined,
     Option,
     panic,
     Procedure,
     safeExecute,
     SortedSet,
+    Subscription,
     Terminable,
     TerminableOwner,
     Terminator,
@@ -21,6 +23,7 @@ import {
     BoxVisitor,
     CompressorDeviceBox,
     GrooveShuffleBox,
+    MIDIOutputDeviceBox,
     RootBox,
     TimelineBox,
     TrackBox,
@@ -155,6 +158,12 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
     readonly mixer: Mixer
     readonly engine = new EngineFacade()
 
+    readonly #midiOutputs: SortedSet<UUID.Bytes, {
+        box: MIDIOutputDeviceBox,
+        device: MIDIOutput
+        subscription: Subscription
+    }> = UUID.newSet(({box: {address: {uuid}}}) => uuid)
+
     private constructor(env: ProjectEnv, boxGraph: BoxGraph, {
         rootBox,
         userInterfaceBoxes,
@@ -284,28 +293,29 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
         }) ?? false)
     }
 
-    readonly #midiOutputs: SortedSet<UUID.Bytes, {
-        uuid: UUID.Bytes,
-        device: MIDIOutput
-    }> = UUID.newSet(({uuid}) => uuid)
-
-    connectMIDIOutput(uuid: UUID.Bytes, device: MIDIOutput): void {
-        this.#midiOutputs.add({uuid, device})
+    connectMIDIOutput(box: MIDIOutputDeviceBox, device: MIDIOutput): void {
+        console.debug("connectMIDIOutput", UUID.toString(box.address.uuid), device.name, device.manufacturer)
+        this.disconnectMIDIOutput(box.address.uuid)
+        this.#midiOutputs.add({
+            box, device, subscription: box.host.subscribe(pointer => {
+                if (pointer.isEmpty()) {
+                    this.disconnectMIDIOutput(box.address.uuid)
+                }
+            })
+        })
     }
 
     disconnectMIDIOutput(uuid: UUID.Bytes): void {
-        this.#midiOutputs.removeByKey(uuid)
-    }
-
-    optConnectedMIDIOutput(uuid: UUID.Bytes): Option<MIDIOutput> {
-        return this.#midiOutputs.opt(uuid).map(({device}) => device)
+        const entry = this.#midiOutputs.removeByKeyIfExist(uuid)
+        if (isDefined(entry)) {
+            console.debug("disconnectMIDIOutput", UUID.toString(uuid))
+            entry.subscription.terminate()
+        }
     }
 
     receivedMIDIFromEngine(target: UUID.Bytes, data: Uint8Array, relativeTimeInMs: number): void {
-        this.#midiOutputs.opt(target).match({
-            none: () => console.warn("No MIDIOutput registered."),
-            some: ({device}) => device.send(data, performance.now() + relativeTimeInMs)
-        })
+        this.#midiOutputs.opt(target).ifSome(({box, device}) =>
+            device.send(data, performance.now() + relativeTimeInMs + box.delay.getValue()))
     }
 
     terminate(): void {

@@ -1,4 +1,4 @@
-import {int, Option, Terminable, UUID} from "@opendaw/lib-std"
+import {byte, int, Option, Terminable, UUID} from "@opendaw/lib-std"
 import {AudioBuffer, Event, PPQN} from "@opendaw/lib-dsp"
 import {MIDIOutputDeviceBoxAdapter} from "@opendaw/studio-adapters"
 import {EngineContext} from "../../EngineContext"
@@ -14,9 +14,10 @@ export class MIDIOutputDeviceProcessor extends AudioProcessor implements Instrum
     readonly #adapter: MIDIOutputDeviceBoxAdapter
 
     readonly #audioOutput: AudioBuffer
-    readonly #data: Int32Array
 
-    #index: int = 0
+    readonly #activeNotes: Array<byte> = []
+
+    #lastChannel: byte
 
     #source: Option<NoteEventSource> = Option.None
 
@@ -25,12 +26,18 @@ export class MIDIOutputDeviceProcessor extends AudioProcessor implements Instrum
 
         this.#adapter = adapter
         this.#audioOutput = new AudioBuffer()
-        this.#data = new Int32Array(1024) // TODO How large should this be?
+
+        this.#lastChannel = adapter.box.channel.getValue()
 
         this.ownAll(
-            context.liveStreamBroadcaster.broadcastIntegers(adapter.address, this.#data, () => {
-                this.#data[this.#index] = -1
-                this.#index = 0
+            adapter.box.channel.subscribe(owner => {
+                this.#activeNotes.forEach(pitch => {
+                    context.engineToClient
+                        .sendMIDIData(adapter.uuid,
+                            MidiData.noteOff(this.#lastChannel, pitch), 0)
+                })
+                this.#activeNotes.length = 0
+                this.#lastChannel = owner.getValue()
             }),
             context.registerProcessor(this)
         )
@@ -44,14 +51,21 @@ export class MIDIOutputDeviceProcessor extends AudioProcessor implements Instrum
         for (const event of this.#source.unwrap().processNotes(p0, p1, flags)) {
             if (event.pitch >= 0 && event.pitch <= 127) {
                 const relativeTimeInMs = (s0 / sampleRate + PPQN.pulsesToSeconds(event.position - p0, bpm)) * 1000.0
+                const channel = this.#adapter.box.channel.getValue()
                 if (NoteLifecycleEvent.isStart(event)) {
+                    const velocityAsByte = Math.round(event.velocity * 127)
+                    this.#activeNotes.push(event.pitch)
                     this.context.engineToClient
                         .sendMIDIData(this.#adapter.uuid,
-                            MidiData.noteOn(1, event.pitch, Math.round(event.velocity * 127)), relativeTimeInMs)
+                            MidiData.noteOn(channel, event.pitch, velocityAsByte), relativeTimeInMs)
                 } else if (NoteLifecycleEvent.isStop(event)) {
+                    const deleteIndex = this.#activeNotes.indexOf(event.pitch)
+                    if (deleteIndex > -1) {
+                        this.#activeNotes.splice(deleteIndex, 1)
+                    }
                     this.context.engineToClient
                         .sendMIDIData(this.#adapter.uuid,
-                            MidiData.noteOff(1, event.pitch), relativeTimeInMs)
+                            MidiData.noteOff(channel, event.pitch), relativeTimeInMs)
                 }
             }
         }

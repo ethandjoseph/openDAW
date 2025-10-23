@@ -13,5 +13,5 @@ export const MIDIOutputDeviceBox: BoxSchema<Pointers> = createInstrumentDevice("
         }
     },
     11: {type: "int32", name: "channel"},
-    12: {type: "int32", name: "delay"}
+    12: {type: "int32", name: "delay", value: 10}
 })
