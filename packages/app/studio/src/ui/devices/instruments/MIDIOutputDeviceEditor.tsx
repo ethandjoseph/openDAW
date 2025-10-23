@@ -1,6 +1,6 @@
 import css from "./MIDIOutputDeviceEditor.sass?inline"
-import {clamp, int, Lifecycle, ParseResult, StringResult, Strings} from "@opendaw/lib-std"
-import {createElement, replaceChildren} from "@opendaw/lib-jsx"
+import {clamp, int, Lifecycle, ObservableValue, ParseResult, StringResult, Strings} from "@opendaw/lib-std"
+import {createElement, Inject, replaceChildren} from "@opendaw/lib-jsx"
 import {DeviceEditor} from "@/ui/devices/DeviceEditor.tsx"
 import {MenuItems} from "@/ui/devices/menu-items.ts"
 import {DeviceHost, IconSymbol, MIDIOutputDeviceBoxAdapter} from "@opendaw/studio-adapters"
@@ -25,6 +25,15 @@ type Construct = {
 export const MIDIOutputDeviceEditor = ({lifecycle, service, adapter, deviceHost}: Construct) => {
     const {project} = service
     const {editing} = project
+    const deviceLabelClass = Inject.classList("device-label")
+    const deviceIdObserver = (owner: ObservableValue<string>) => {
+        const device = MidiDevices.externalOutputDevices()
+            .map(devices => devices
+                .find(device => device.id === owner.getValue()))
+        deviceLabelClass.toggle("not-available", device.isEmpty())
+
+        device.ifSome(device => project.connectMIDIOutput(adapter.address.uuid, device))
+    }
     return (
         <DeviceEditor lifecycle={lifecycle}
                       project={project}
@@ -47,11 +56,17 @@ export const MIDIOutputDeviceEditor = ({lifecycle, service, adapter, deviceHost}
                                       )),
                                   some: () => replaceChildren(element, (
                                       <div className="selector">
-                                          <MenuButton root={MenuItem.root().setRuntimeChildrenProcedure(parent => {
+                                          <MenuButton root={MenuItem.root().setRuntimeChildrenProcedure(parent =>
                                               parent.addMenuItem(...MidiDevices.externalOutputDevices().match({
-                                                  none: () => [MenuItem.default({label: "No MIDI requested."})],
+                                                  none: () => [MenuItem.default({
+                                                      label: "No MIDI requested.",
+                                                      selectable: false
+                                                  })],
                                                   some: outputs => outputs.length === 0
-                                                      ? [MenuItem.default({label: "No device found."})]
+                                                      ? [MenuItem.default({
+                                                          label: "No device found.",
+                                                          selectable: false
+                                                      })]
                                                       : outputs.map(output => MenuItem.default({
                                                           label: output.name ?? "Unnamed device"
                                                       }).setTriggerProcedure(() => {
@@ -59,15 +74,23 @@ export const MIDIOutputDeviceEditor = ({lifecycle, service, adapter, deviceHost}
                                                               adapter.box.device.id.setValue(output.id)
                                                               adapter.box.device.label.setValue(output.name ?? "Unnamed device")
                                                           })
-                                                          // project.connectMIDIOutput(adapter.address.uuid, output)
+                                                          // updating UI if id was the same
+                                                          deviceIdObserver(adapter.box.device.id)
                                                       }))
-                                              }))
-                                          })} appearance={{color: Colors.dark, activeColor: Colors.gray}}>
-                                              <div className="device-label"
+                                              })))}
+                                                      style={{width: "100%"}}
+                                                      appearance={{
+                                                          color: Colors.dark,
+                                                          activeColor: Colors.gray
+                                                      }}>
+                                              <div className={deviceLabelClass}
                                                    onInit={element => {
-                                                       lifecycle.own(adapter.box.device.label.catchupAndSubscribe(owner =>
-                                                           element.textContent = Strings.nonEmpty(
-                                                               owner.getValue(), "No device selected")))
+                                                       lifecycle.ownAll(
+                                                           adapter.box.device.id.catchupAndSubscribe(deviceIdObserver),
+                                                           adapter.box.device.label.catchupAndSubscribe(owner =>
+                                                               element.textContent = Strings.nonEmpty(
+                                                                   owner.getValue(), "No device selected"))
+                                                       )
                                                    }}/>
                                           </MenuButton>
                                           <div className="number-inputs">
