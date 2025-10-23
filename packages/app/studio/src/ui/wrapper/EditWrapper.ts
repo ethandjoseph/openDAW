@@ -7,7 +7,13 @@ export namespace EditWrapper {
         editing: BoxEditing, owner: MutableObservableValue<T>): MutableObservableValue<T> =>
         new class implements MutableObservableValue<T> {
             getValue(): T {return owner.getValue()}
-            setValue(value: T) {editing.modify(() => owner.setValue(value))}
+            setValue(value: T) {
+                if (editing.canModify()) {
+                    editing.modify(() => owner.setValue(value))
+                } else {
+                    owner.setValue(value)
+                }
+            }
             subscribe(observer: Observer<ObservableValue<T>>): Subscription {
                 return owner.subscribe(() => observer(this))
             }
