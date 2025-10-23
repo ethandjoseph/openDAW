@@ -75,7 +75,7 @@ export const DevicePanel = ({lifecycle, service}: Construct) => {
             }),
             visitPlayfieldSampleBox: (box: PlayfieldSampleBox): Context => ({
                 deviceHost,
-                instrument: ObservableValue.make(Option.wrap(project.boxAdapters.adapterFor(box, PlayfieldSampleBoxAdapter)))
+                instrument: ObservableValue.seal(Option.wrap(project.boxAdapters.adapterFor(box, PlayfieldSampleBoxAdapter)))
             })
         }))
     }
