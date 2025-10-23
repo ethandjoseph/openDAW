@@ -68,6 +68,7 @@ export const ContentEditor = ({lifecycle, service}: Construct) => {
     let owner: Option<EventOwnerReader<unknown>> = Option.None
     lifecycle.ownAll(
         {terminate: () => {owner = Option.None}},
+        service.project.timelineBoxAdapter.catchupAndSubscribeSignature(signature => snapping.signature = signature),
         menu.viewMenu.attach(collector => collector.addItems(
             MenuItem.default({label: "Zoom to Edit-Region", selectable: editingSubject.get().nonEmpty()})
                 .setTriggerProcedure(() => owner

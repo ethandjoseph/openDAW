@@ -94,16 +94,44 @@ export class Snapping implements Observable<Snapping> {
                 name: "Smart",
                 get ppqn(): int {
                     const [nominator, denominator] = scope.signature
+                    const barPulses = PPQN.fromSignature(nominator, denominator)
+                    const beatPulses = PPQN.fromSignature(1, denominator)
                     const minUnits = SMART_MIN_PIXEL * range.unitsPerPixel
-                    const stepExp = Math.ceil((Math.log(minUnits / PPQN.fromSignature(nominator, denominator)) / Math.log(2.0)))
-                    const clampSmartSnapping = true
-                    let min
-                    if (clampSmartSnapping) {
-                        min = PPQN.fromSignature(1, 16)
-                    } else {
-                        min = PPQN.fromSignature(1, 128)
+
+                    // Start from the finest resolution
+                    let interval = PPQN.fromSignature(1, 128)
+
+                    // Scale up using the same logic as TimeGrid
+                    while (interval < minUnits) {
+                        if (interval < beatPulses) {
+                            // Below beat level: multiply by 2
+                            const nextInterval = interval * 2
+                            if (nextInterval > beatPulses) {
+                                interval = beatPulses
+                            } else {
+                                interval = nextInterval
+                            }
+                        } else if (interval < barPulses) {
+                            // Between beat and bar level: multiply by nominator
+                            const nextInterval = interval * nominator
+                            if (nextInterval > barPulses) {
+                                interval = barPulses
+                            } else {
+                                interval = nextInterval
+                            }
+                        } else {
+                            // At or above bar level: don't go beyond a single bar for snapping
+                            break
+                        }
                     }
-                    return clamp(Math.floor(PPQN.Bar * Math.pow(2.0, stepExp) + 0.5), min, PPQN.Bar)
+
+                    const clampSmartSnapping = true
+                    const min = clampSmartSnapping
+                        ? PPQN.fromSignature(1, 16)
+                        : PPQN.fromSignature(1, 128)
+
+                    // Clamp between min and bar level
+                    return clamp(Math.floor(interval), min, barPulses)
                 }
             },
             {name: "Bar", ppqn: PPQN.fromSignature(1, 1)},
