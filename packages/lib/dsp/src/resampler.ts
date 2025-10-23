@@ -42,6 +42,7 @@ class Resampler2xMono {
         this.#downIndex = 0
     }
 
+
     upsample(input: Float32Array, output: Float32Array, fromIndex: int, toIndex: int): void {
         const buffer = this.#upBuffer
         const phase0 = PHASE0_COEFF
@@ -49,7 +50,7 @@ class Resampler2xMono {
 
         for (let i = fromIndex; i < toIndex; i++) {
             const x = input[i]
-            const outIdx = i * 2
+            const outIdx = (i - fromIndex) * 2
 
             // Store input in circular buffer
             buffer[this.#upIndex] = x
@@ -80,10 +81,11 @@ class Resampler2xMono {
         const coeff = HALFBAND_COEFF
 
         for (let i = fromIndex; i < toIndex; i++) {
+            const inIdx = (i - fromIndex) * 2
             // Add both input samples to buffer
-            buffer[this.#downIndex] = input[i * 2]
+            buffer[this.#downIndex] = input[inIdx]
             this.#downIndex = (this.#downIndex + 1) % buffer.length
-            buffer[this.#downIndex] = input[i * 2 + 1]
+            buffer[this.#downIndex] = input[inIdx + 1]
             this.#downIndex = (this.#downIndex + 1) % buffer.length
 
             // Apply full anti-aliasing filter and decimate
