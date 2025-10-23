@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.46](https://github.com/andremichelle/openDAW/compare/@opendaw/app-headless@0.0.45...@opendaw/app-headless@0.0.46) (2025-10-23)
+
+**Note:** Version bump only for package @opendaw/app-headless
+
 ## [0.0.45](https://github.com/andremichelle/openDAW/compare/@opendaw/app-headless@0.0.44...@opendaw/app-headless@0.0.45) (2025-10-21)
 
 **Note:** Version bump only for package @opendaw/app-headless
