@@ -15,7 +15,7 @@ export interface ObservableValue<T> extends Observable<ObservableValue<T>> {
 }
 
 export namespace ObservableValue {
-    export const make = <T>(value: T): ObservableValue<T> => new class implements ObservableValue<T> {
+    export const seal = <T>(value: T): ObservableValue<T> => new class implements ObservableValue<T> {
         getValue(): T {return value}
         subscribe(_observer: Observer<ObservableValue<T>>): Subscription {return Terminable.Empty}
         catchupAndSubscribe(observer: Observer<ObservableValue<T>>): Subscription {
