@@ -1,8 +1,8 @@
 import {AcceptedSource} from "./FFmpegWorker"
 import {Progress} from "@opendaw/lib-std"
 
-export interface Converter<OPTIONS> {
+export interface FFmpegConverter<OPTIONS> {
     convert(source: AcceptedSource,
             progress: Progress.Handler,
-            options?: OPTIONS): Promise<Blob>
+            options?: OPTIONS): Promise<ArrayBuffer>
 }

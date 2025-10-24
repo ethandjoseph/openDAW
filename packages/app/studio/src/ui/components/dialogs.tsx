@@ -30,6 +30,7 @@ export namespace Dialogs {
         buttons?: ReadonlyArray<Button>
         origin?: Element
         abortSignal?: AbortSignal
+        excludeOk?: boolean
     }
 
     type Info = {
@@ -41,24 +42,28 @@ export namespace Dialogs {
         abortSignal?: AbortSignal
     }
 
-    export const show = async ({headline, content, okText, buttons, origin, abortSignal}: Default): Promise<void> => {
-        buttons ??= []
+    export const show = async (
+        {headline, content, okText, buttons, origin, abortSignal, excludeOk}: Default): Promise<void> => {
+        const actualButtons: Array<Button> = isDefined(buttons) ? [...buttons] : []
+        if (excludeOk !== true) {
+            actualButtons.push({
+                text: okText ?? "Ok",
+                primary: true,
+                onClick: handler => {
+                    resolved = true
+                    handler.close()
+                    resolve()
+                }
+            })
+        }
         let resolved = false
         const {resolve, reject, promise} = Promise.withResolvers<void>()
         const dialog: HTMLDialogElement = (
             <Dialog headline={headline ?? "Dialog"}
                     icon={IconSymbol.System}
                     cancelable={true}
-                    buttons={[...buttons, {
-                        text: okText ?? "Ok",
-                        primary: true,
-                        onClick: handler => {
-                            resolved = true
-                            handler.close()
-                            resolve()
-                        }
-                    }]}>
-                <div style={{padding: "1em 0"}}>{content}</div>
+                    buttons={actualButtons}>
+                <div style={{padding: "1em 0", color: Colors.dark}}>{content}</div>
             </Dialog>
         )
         Surface.get(origin).body.appendChild(dialog)

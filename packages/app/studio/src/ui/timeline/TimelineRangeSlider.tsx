@@ -87,7 +87,7 @@ export const TimelineRangeSlider = ({lifecycle, range, style, className: extraCl
                 cancel(_prevValue: unitValue): void {}
                 finalise(_prevValue: unitValue, _newValue: unitValue): void {}
                 finally(): void {}
-            }), slider, {horizontal: true, trackLength}))
+            }), slider, {horizontal: true, trackLength, ratio: 1.0}))
         onUpdate()
     }
 

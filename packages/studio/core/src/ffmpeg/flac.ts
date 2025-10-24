@@ -1,15 +1,15 @@
-import {Converter} from "./converter"
+import {FFmpegConverter} from "./FFmpegConverter"
 import {int, Progress} from "@opendaw/lib-std"
 import {AcceptedSource, FFmpegWorker} from "./FFmpegWorker"
 
 // compression level (0-12, 8 is default)
 export type FlacOptions = { compression: int }
 
-export class FlacConverter implements Converter<FlacOptions> {
+export class FlacConverter implements FFmpegConverter<FlacOptions> {
     readonly #worker: FFmpegWorker
 
     constructor(worker: FFmpegWorker) {this.#worker = worker}
-    async convert(source: AcceptedSource, progress: Progress.Handler, options?: FlacOptions): Promise<Blob> {
+    async convert(source: AcceptedSource, progress: Progress.Handler, options?: FlacOptions): Promise<ArrayBuffer> {
         const subscription = this.#worker.progressNotifier.subscribe(progress)
         try {
             let inputData: Uint8Array
@@ -29,7 +29,7 @@ export class FlacConverter implements Converter<FlacOptions> {
             if (typeof outputData === "string") {
                 return Promise.reject(outputData)
             }
-            return new Blob([new Uint8Array(outputData)], {type: "audio/flac"})
+            return new Blob([new Uint8Array(outputData)], {type: "audio/flac"}).arrayBuffer()
         } finally {
             subscription.terminate()
             await this.#worker.cleanupFiles(["input.wav", "output.flac"])

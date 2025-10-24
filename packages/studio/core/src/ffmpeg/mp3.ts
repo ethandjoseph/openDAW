@@ -1,17 +1,17 @@
 import {Progress} from "@opendaw/lib-std"
 import {AcceptedSource, FFmpegWorker} from "./FFmpegWorker"
-import {Converter} from "./converter"
+import {FFmpegConverter} from "./FFmpegConverter"
 
 export type Mp3Options = { bitrate?: string, quality?: number }
 
-export class Mp3Converter implements Converter<Mp3Options> {
+export class Mp3Converter implements FFmpegConverter<Mp3Options> {
     readonly #worker: FFmpegWorker
 
     constructor(worker: FFmpegWorker) {this.#worker = worker}
 
     async convert(source: AcceptedSource,
-                  progress: Progress.Handler = Progress.Empty,
-                  options: Mp3Options = {}): Promise<Blob> {
+                  progress: Progress.Handler,
+                  options: Mp3Options = {}): Promise<ArrayBuffer> {
         const subscription = this.#worker.progressNotifier.subscribe(progress)
         try {
             let inputData: Uint8Array
@@ -35,7 +35,7 @@ export class Mp3Converter implements Converter<Mp3Options> {
             if (typeof outputData === "string") {
                 return Promise.reject(outputData)
             }
-            return new Blob([new Uint8Array(outputData)], {type: "audio/mpeg"})
+            return new Blob([new Uint8Array(outputData)], {type: "audio/mpeg"}).arrayBuffer()
         } finally {
             subscription.terminate()
             await this.#worker.cleanupFiles(["input.wav", "output.mp3"])
