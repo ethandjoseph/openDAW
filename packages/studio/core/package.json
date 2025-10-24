@@ -1,52 +1,58 @@
 {
-    "name": "@opendaw/studio-core",
-    "version": "0.0.48",
-    "license": "LGPL-3.0-or-later",
-    "publishConfig": {
-        "access": "public"
+  "name": "@opendaw/studio-core",
+  "version": "0.0.48",
+  "license": "LGPL-3.0-or-later",
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     },
-    "main": "./dist/index.js",
-    "types": "./dist/index.d.ts",
-    "exports": {
-        ".": {
-            "types": "./dist/index.d.ts",
-            "default": "./dist/index.js"
-        },
-        "./workers-main.js": "./dist/workers-main.js",
-        "./processors.js": "./dist/processors.js"
-    },
-    "files": [
-        "dist/**",
-        "dist/workers-main.js",
-        "dist/processors.js"
-    ],
-    "scripts": {
-        "build": "tsc",
-        "lint": "eslint \"**/*.ts\"",
-        "test": "vitest run --config vitest.config.ts"
-    },
-    "dependencies": {
-        "@opendaw/lib-box": "^0.0.39",
-        "@opendaw/lib-dawproject": "^0.0.25",
-        "@opendaw/lib-dom": "^0.0.39",
-        "@opendaw/lib-dsp": "^0.0.39",
-        "@opendaw/lib-fusion": "^0.0.39",
-        "@opendaw/lib-runtime": "^0.0.39",
-        "@opendaw/lib-std": "^0.0.39",
-        "@opendaw/studio-adapters": "^0.0.40",
-        "@opendaw/studio-boxes": "^0.0.39",
-        "@opendaw/studio-enums": "^0.0.30",
-        "dropbox": "^10.34.0",
-        "y-websocket": "^1.4.5",
-        "yjs": "^13.6.27",
-        "zod": "^4.1.12"
-    },
-    "devDependencies": {
-        "@opendaw/eslint-config": "^0.0.20",
-        "@opendaw/studio-core-processors": "^0.0.40",
-        "@opendaw/studio-core-workers": "^0.0.35",
-        "@opendaw/studio-forge-boxes": "^0.0.39",
-        "@opendaw/typescript-config": "^0.0.20"
-    },
-    "gitHead": "5a6c7ff14cb76c6e46c9511799596a5133dae043"
+    "./workers-main.js": "./dist/workers-main.js",
+    "./processors.js": "./dist/processors.js"
+  },
+  "files": [
+    "dist/**",
+    "dist/workers-main.js",
+    "dist/processors.js"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint \"**/*.ts\"",
+    "test": "vitest run --config vitest.config.ts"
+  },
+  "dependencies": {
+    "@opendaw/lib-box": "^0.0.39",
+    "@opendaw/lib-dawproject": "^0.0.25",
+    "@opendaw/lib-dom": "^0.0.39",
+    "@opendaw/lib-dsp": "^0.0.39",
+    "@opendaw/lib-fusion": "^0.0.39",
+    "@opendaw/lib-runtime": "^0.0.39",
+    "@opendaw/lib-std": "^0.0.39",
+    "@opendaw/studio-adapters": "^0.0.40",
+    "@opendaw/studio-boxes": "^0.0.39",
+    "@opendaw/studio-enums": "^0.0.30",
+    "dropbox": "^10.34.0",
+    "y-websocket": "^1.4.5",
+    "yjs": "^13.6.27",
+    "zod": "^4.1.12"
+  },
+  "peerDependencies": {
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/util": "^0.12.2"
+  },
+  "devDependencies": {
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/util": "^0.12.2",
+    "@opendaw/eslint-config": "^0.0.20",
+    "@opendaw/studio-core-processors": "^0.0.40",
+    "@opendaw/studio-core-workers": "^0.0.35",
+    "@opendaw/studio-forge-boxes": "^0.0.39",
+    "@opendaw/typescript-config": "^0.0.20"
+  },
+  "gitHead": "c96a36e71c9424fc97b7da3de42b87301d626bf0"
 }
