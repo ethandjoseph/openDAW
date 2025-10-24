@@ -109,7 +109,7 @@ export abstract class PrimitiveField<
 
     setInitValue(value: V): void {
         assert(this.graph.constructingBox(), "Cannot change initial value at runtime")
-        this.setValue(this.#initValue = value)
+        this.setValue(this.#initValue = this.clamp(value))
     }
 
     getValue(): V {return this.#value}
@@ -117,7 +117,7 @@ export abstract class PrimitiveField<
         const oldValue = this.#value
         const newValue = this.clamp(value)
         if (this.equals(newValue)) {return}
-        this.#value = value
+        this.#value = newValue
         this.graph.onPrimitiveValueUpdate(this, oldValue, newValue)
     }
     writeValue(output: ByteArrayOutput, value: V): void {this.serialization().encode(output, value)}
