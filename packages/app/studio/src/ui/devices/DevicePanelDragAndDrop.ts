@@ -61,6 +61,7 @@ export namespace DevicePanelDragAndDrop {
                         const {create, defaultIcon, defaultName}: InstrumentFactory =
                             asDefined(InstrumentFactories.Named[dragData.device], `Unknown: '${dragData.device}'`)
                         const instrumentBox: InstrumentBox = create(boxGraph, inputField, defaultName, defaultIcon)
+                        // TODO This needs to be done in a more generic way
                         const captureBox = asDefined(instrumentBox.box.accept<BoxVisitor<CaptureAudioBox | CaptureMidiBox>>({
                             visitVaporisateurDeviceBox: () => CaptureMidiBox.create(boxGraph, UUID.generate()),
                             visitNanoDeviceBox: () => CaptureMidiBox.create(boxGraph, UUID.generate()),
