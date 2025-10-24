@@ -16,6 +16,9 @@ export default defineConfig(({command}) => {
                 "@": resolve(__dirname, "./src")
             }
         },
+        optimizeDeps: {
+            exclude: ["@ffmpeg/ffmpeg", "@ffmpeg/util"]
+        },
         build: {
             target: "esnext",
             minify: true,
@@ -42,11 +45,12 @@ export default defineConfig(({command}) => {
             } : undefined,
             headers: {
                 "Cross-Origin-Opener-Policy": "same-origin",
-                "Cross-Origin-Embedder-Policy": "require-corp"
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cross-Origin-Resource-Policy": "cross-origin"
             },
             fs: {
                 // Allow serving files from the entire workspace
-                allow: [".."]
+                allow: [resolve(__dirname, "../../../")]
             }
         },
         plugins: [
