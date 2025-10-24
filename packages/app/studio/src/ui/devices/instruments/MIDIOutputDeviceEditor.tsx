@@ -1,9 +1,9 @@
 import css from "./MIDIOutputDeviceEditor.sass?inline"
-import {clamp, int, Lifecycle, ObservableValue, ParseResult, StringResult, Strings} from "@opendaw/lib-std"
+import {clamp, int, Lifecycle, ObservableValue, ParseResult, StringResult, Strings, UUID} from "@opendaw/lib-std"
 import {createElement, Inject, replaceChildren} from "@opendaw/lib-jsx"
 import {DeviceEditor} from "@/ui/devices/DeviceEditor.tsx"
 import {MenuItems} from "@/ui/devices/menu-items.ts"
-import {DeviceHost, IconSymbol, MIDIOutputDeviceBoxAdapter} from "@opendaw/studio-adapters"
+import {DeviceHost, IconSymbol, MIDIOutputDeviceBoxAdapter, TrackType} from "@opendaw/studio-adapters"
 import {Html} from "@opendaw/lib-dom"
 import {StudioService} from "@/service/StudioService"
 import {Colors, InstrumentFactories, MidiDevices} from "@opendaw/studio-core"
@@ -12,6 +12,7 @@ import {MenuItem} from "@/ui/model/menu-item"
 import {Icon} from "@/ui/components/Icon"
 import {NumberInput} from "@/ui/components/NumberInput"
 import {EditWrapper} from "@/ui/wrapper/EditWrapper"
+import {TrackBox, UnitParameterBox} from "@opendaw/studio-boxes"
 
 const className = Html.adoptStyleSheet(css, "editor")
 
@@ -122,6 +123,20 @@ export const MIDIOutputDeviceEditor = ({lifecycle, service, adapter, deviceHost}
                                                            }}
                                               />
                                           </div>
+                                          <button onclick={() => {
+                                              editing.modify(() => {
+                                                  const tracks = adapter.audioUnitBoxAdapter().box.tracks
+                                                  const parameter = UnitParameterBox.create(
+                                                      project.boxGraph, UUID.generate(),
+                                                      box => box.owner.refer(adapter.box.parameters)) // TODO add label
+                                                  TrackBox.create(project.boxGraph, UUID.generate(), box => {
+                                                      box.target.refer(parameter.value)
+                                                      box.tracks.refer(tracks)
+                                                      box.type.setValue(TrackType.Value)
+                                                      box.index.setValue(tracks.pointerHub.incoming().length)
+                                                  })
+                                              })
+                                          }}></button>
                                       </div>
                                   ))
                               }))

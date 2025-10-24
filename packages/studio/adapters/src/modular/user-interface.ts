@@ -28,7 +28,7 @@ export class DeviceInterfaceKnobAdapter implements DeviceInterfaceElementAdapter
     }
 
     get parameterAdapter(): AutomatableParameterFieldAdapter {
-        return this.moduleAdapter.parameters.parameterAt(this.#parameterTarget.address.fieldKeys)
+        return this.moduleAdapter.parameters.parameterAt(this.#parameterTarget.address)
     }
 
     get #parameterTarget(): PrimitiveField {

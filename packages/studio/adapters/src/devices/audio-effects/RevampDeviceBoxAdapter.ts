@@ -1,6 +1,6 @@
 import {RevampBell, RevampDeviceBox, RevampPass, RevampShelf} from "@opendaw/studio-boxes"
 import {int, StringMapping, UUID, ValueMapping} from "@opendaw/lib-std"
-import {Address, BooleanField, FieldKeys, Int32Field, PointerField, StringField} from "@opendaw/lib-box"
+import {Address, BooleanField, Int32Field, PointerField, StringField} from "@opendaw/lib-box"
 import {Pointers} from "@opendaw/studio-enums"
 import {AudioEffectDeviceAdapter, DeviceHost, Devices} from "../../DeviceAdapter"
 import {BoxAdaptersContext} from "../../BoxAdaptersContext"
@@ -40,8 +40,6 @@ export class RevampDeviceBoxAdapter implements AudioEffectDeviceAdapter {
     }
 
     audioUnitBoxAdapter(): AudioUnitBoxAdapter {return this.deviceHost().audioUnitBoxAdapter()}
-
-    parameterAt(fieldIndices: FieldKeys): AutomatableParameterFieldAdapter {return this.#parametric.parameterAt(fieldIndices)}
 
     terminate(): void {this.#parametric.terminate()}
 

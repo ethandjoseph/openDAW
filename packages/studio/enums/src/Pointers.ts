@@ -16,6 +16,7 @@ export enum Pointers {
     AuxSend,
     Modulation,
     Automation,
+    Parameter,
     ParameterController,
     MidiControl,
     StepAutomation,

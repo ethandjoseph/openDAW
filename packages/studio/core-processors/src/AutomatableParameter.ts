@@ -1,4 +1,4 @@
-import {PrimitiveValues} from "@opendaw/lib-box"
+import {Address, PrimitiveValues} from "@opendaw/lib-box"
 import {AutomatableParameterFieldAdapter} from "@opendaw/studio-adapters"
 import {
     assert,
@@ -35,6 +35,9 @@ export class AutomatableParameter<T extends PrimitiveValues = any> implements Te
             this.#notifier.notify(this)
         }))
     }
+
+    get adapter(): AutomatableParameterFieldAdapter<T> {return this.#adapter}
+    get address(): Address {return this.#adapter.address}
 
     subscribe(observer: Observer<this>): Subscription {return this.#notifier.subscribe(observer)}
     getValue(): T {return this.#value}

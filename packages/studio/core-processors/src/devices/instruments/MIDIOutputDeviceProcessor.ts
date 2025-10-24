@@ -1,4 +1,4 @@
-import {byte, int, Option, Terminable, UUID} from "@opendaw/lib-std"
+import {Arrays, asInstanceOf, byte, int, Option, Terminable, UUID} from "@opendaw/lib-std"
 import {AudioBuffer, Event, PPQN} from "@opendaw/lib-dsp"
 import {MIDIOutputDeviceBoxAdapter} from "@opendaw/studio-adapters"
 import {EngineContext} from "../../EngineContext"
@@ -9,6 +9,7 @@ import {NoteEventSource, NoteEventTarget, NoteLifecycleEvent} from "../../NoteEv
 import {DeviceProcessor} from "../../DeviceProcessor"
 import {InstrumentDeviceProcessor} from "../../InstrumentDeviceProcessor"
 import {MidiData} from "@opendaw/lib-midi"
+import {UnitParameterBox} from "@opendaw/studio-boxes"
 
 export class MIDIOutputDeviceProcessor extends AudioProcessor implements InstrumentDeviceProcessor, NoteEventTarget {
     readonly #adapter: MIDIOutputDeviceBoxAdapter
@@ -16,6 +17,8 @@ export class MIDIOutputDeviceProcessor extends AudioProcessor implements Instrum
     readonly #audioOutput: AudioBuffer
 
     readonly #activeNotes: Array<byte> = []
+
+    readonly #parameters: Array<AutomatableParameter<number>>
 
     #lastChannel: byte
 
@@ -26,10 +29,21 @@ export class MIDIOutputDeviceProcessor extends AudioProcessor implements Instrum
 
         this.#adapter = adapter
         this.#audioOutput = new AudioBuffer()
+        this.#parameters = []
 
         this.#lastChannel = adapter.box.channel.getValue()
 
         this.ownAll(
+            // TODO If there is a timing issue make ParameterSet observable
+            adapter.box.parameters.pointerHub.catchupAndSubscribe({
+                onAdded: (({box}) => this.#parameters.push(
+                    this.bindParameter(adapter.parameters.parameterAt(
+                        asInstanceOf(box, UnitParameterBox).value.address)))),
+                onRemoved: (({box}) => {
+                    Arrays.removeIf(this.#parameters, parameter =>
+                        parameter.address === asInstanceOf(box, UnitParameterBox).value.address)
+                })
+            }),
             adapter.box.channel.subscribe(owner => {
                 this.#activeNotes.forEach(pitch => {
                     context.engineToClient
@@ -87,7 +101,16 @@ export class MIDIOutputDeviceProcessor extends AudioProcessor implements Instrum
 
     handleEvent(_event: Event): void {}
     processAudio(_block: Block, _fromIndex: int, _toIndex: int): void {}
-    parameterChanged(_parameter: AutomatableParameter): void {}
+
+    parameterChanged(parameter: AutomatableParameter): void {
+        const relativeTimeInMs = 0.0 // TODO Get offset to actual relative block position
+        const channel = this.#adapter.box.channel.getValue()
+        const controllerId = 0 // We need to find the controllerId from the UnitParameterBox
+        this.context.engineToClient
+            .sendMIDIData(this.#adapter.uuid,
+                MidiData.control(channel, controllerId, Math.round(parameter.getValue() * 127)), relativeTimeInMs)
+    }
+
     finishProcess(): void {}
 
     toString(): string {return `{MIDIOutputDeviceProcessor}`}

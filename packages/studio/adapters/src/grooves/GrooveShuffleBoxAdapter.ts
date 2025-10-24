@@ -1,11 +1,10 @@
-import {Address, FieldKeys} from "@opendaw/lib-box"
+import {Address} from "@opendaw/lib-box"
 import {GrooveShuffleBox} from "@opendaw/studio-boxes"
 import {int, moebiusEase, squashUnit, StringMapping, Terminator, UUID, ValueMapping} from "@opendaw/lib-std"
 import {GroovePattern, GroovePatternFunction, ppqn, PPQN} from "@opendaw/lib-dsp"
 import {GrooveAdapter} from "./GrooveBoxAdapter"
 import {BoxAdaptersContext} from "../BoxAdaptersContext"
 import {ParameterAdapterSet} from "../ParameterAdapterSet"
-import {AutomatableParameterFieldAdapter} from "../AutomatableParameterFieldAdapter"
 
 export class GrooveShuffleBoxAdapter implements GrooveAdapter {
     static readonly Durations: ReadonlyArray<[int, int]> = [
@@ -54,8 +53,6 @@ export class GrooveShuffleBoxAdapter implements GrooveAdapter {
     get box(): GrooveShuffleBox {return this.#box}
     get uuid(): UUID.Bytes {return this.#box.address.uuid}
     get address(): Address {return this.#box.address}
-
-    parameterAt(fieldIndices: FieldKeys): AutomatableParameterFieldAdapter {return this.#parametric.parameterAt(fieldIndices)}
 
     terminate(): void {this.#terminator.terminate()}
 

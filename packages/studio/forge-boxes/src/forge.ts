@@ -29,6 +29,7 @@ import {MarkerBox} from "./schema/timeline/marker"
 import {GrooveShuffleBox} from "./schema/grooves"
 import {CaptureAudioBox, CaptureMidiBox} from "./schema/capture"
 import {SoundfontFileBox} from "./schema/soundfont"
+import {UnitParameterBox} from "./schema/parameter"
 
 BoxForge.gen<Pointers>({
     path: "../boxes/src/",
@@ -38,7 +39,7 @@ BoxForge.gen<Pointers>({
         print: pointer => `Pointers.${Pointers[pointer]}`
     },
     boxes: [
-        RootBox, SelectionBox, UserInterfaceBox,
+        RootBox, SelectionBox, UserInterfaceBox, UnitParameterBox,
         TimelineBox, TrackBox,
         NoteEventBox, NoteEventRepeatBox, NoteEventCollectionBox, NoteRegionBox, NoteClipBox,
         ValueEventBox, ValueEventCollectionBox, ValueEventCurveBox, ValueRegionBox, ValueClipBox,

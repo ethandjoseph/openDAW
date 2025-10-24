@@ -1,14 +1,15 @@
-import {UUID} from "@opendaw/lib-std"
-import {MIDIOutputDeviceBox} from "@opendaw/studio-boxes"
-import {Address, BooleanField, FieldKeys, StringField} from "@opendaw/lib-box"
+import {asInstanceOf, StringMapping, Terminator, UUID, ValueMapping} from "@opendaw/lib-std"
+import {MIDIOutputDeviceBox, UnitParameterBox} from "@opendaw/studio-boxes"
+import {Address, BooleanField, StringField} from "@opendaw/lib-box"
 import {DeviceHost, Devices, InstrumentDeviceBoxAdapter} from "../../DeviceAdapter"
 import {BoxAdaptersContext} from "../../BoxAdaptersContext"
 import {ParameterAdapterSet} from "../../ParameterAdapterSet"
 import {TrackType} from "../../timeline/TrackType"
-import {AutomatableParameterFieldAdapter} from "../../AutomatableParameterFieldAdapter"
 import {AudioUnitBoxAdapter} from "../../audio-unit/AudioUnitBoxAdapter"
 
 export class MIDIOutputDeviceBoxAdapter implements InstrumentDeviceBoxAdapter {
+    readonly #terminator = new Terminator()
+
     readonly type = "instrument"
     readonly accepts = "midi"
 
@@ -20,7 +21,16 @@ export class MIDIOutputDeviceBoxAdapter implements InstrumentDeviceBoxAdapter {
     constructor(context: BoxAdaptersContext, box: MIDIOutputDeviceBox) {
         this.#context = context
         this.#box = box
-        this.#parametric = new ParameterAdapterSet(this.#context)
+        this.#parametric = this.#terminator.own(new ParameterAdapterSet(this.#context))
+        this.#terminator.own(box.parameters.pointerHub.catchupAndSubscribe({
+            onAdded: (({box}) => this.#parametric.createParameter(
+                asInstanceOf(box, UnitParameterBox).value,
+                ValueMapping.unipolar(),
+                StringMapping.numeric(),
+                "CV",
+                0.0)),
+            onRemoved: (({box: {address}}) => this.#parametric.removeParameter(address))
+        }))
     }
 
     get box(): MIDIOutputDeviceBox {return this.#box}
@@ -32,6 +42,7 @@ export class MIDIOutputDeviceBoxAdapter implements InstrumentDeviceBoxAdapter {
     get enabledField(): BooleanField {return this.#box.enabled}
     get minimizedField(): BooleanField {return this.#box.minimized}
     get acceptsMidiEvents(): boolean {return true}
+    get parameters(): ParameterAdapterSet {return this.#parametric}
 
     deviceHost(): DeviceHost {
         return this.#context.boxAdapters
@@ -40,7 +51,5 @@ export class MIDIOutputDeviceBoxAdapter implements InstrumentDeviceBoxAdapter {
 
     audioUnitBoxAdapter(): AudioUnitBoxAdapter {return this.deviceHost().audioUnitBoxAdapter()}
 
-    parameterAt(fieldIndices: FieldKeys): AutomatableParameterFieldAdapter {return this.#parametric.parameterAt(fieldIndices)}
-
-    terminate(): void {this.#parametric.terminate()}
+    terminate(): void {this.#terminator.terminate()}
 }

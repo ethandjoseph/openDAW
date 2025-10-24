@@ -1,12 +1,11 @@
 import {ReverbDeviceBox} from "@opendaw/studio-boxes"
 import {StringMapping, UUID, ValueMapping} from "@opendaw/lib-std"
-import {Address, BooleanField, FieldKeys, Int32Field, PointerField, StringField} from "@opendaw/lib-box"
+import {Address, BooleanField, Int32Field, PointerField, StringField} from "@opendaw/lib-box"
 import {Pointers} from "@opendaw/studio-enums"
 import {AudioEffectDeviceAdapter, DeviceHost, Devices} from "../../DeviceAdapter"
 import {BoxAdaptersContext} from "../../BoxAdaptersContext"
 import {ParameterAdapterSet} from "../../ParameterAdapterSet"
 import {AudioUnitBoxAdapter} from "../../audio-unit/AudioUnitBoxAdapter"
-import {AutomatableParameterFieldAdapter} from "../../AutomatableParameterFieldAdapter"
 
 export class ReverbDeviceBoxAdapter implements AudioEffectDeviceAdapter {
     readonly type = "audio-effect"
@@ -39,8 +38,6 @@ export class ReverbDeviceBoxAdapter implements AudioEffectDeviceAdapter {
     }
 
     audioUnitBoxAdapter(): AudioUnitBoxAdapter {return this.deviceHost().audioUnitBoxAdapter()}
-
-    parameterAt(fieldIndices: FieldKeys): AutomatableParameterFieldAdapter {return this.#parametric.parameterAt(fieldIndices)}
 
     terminate(): void {this.#parametric.terminate()}
 

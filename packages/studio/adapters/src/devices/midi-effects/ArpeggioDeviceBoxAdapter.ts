@@ -1,12 +1,11 @@
 import {ArpeggioDeviceBox} from "@opendaw/studio-boxes"
 import {Pointers} from "@opendaw/studio-enums"
-import {Address, BooleanField, FieldKeys, Int32Field, PointerField, StringField} from "@opendaw/lib-box"
+import {Address, BooleanField, Int32Field, PointerField, StringField} from "@opendaw/lib-box"
 import {Fraction} from "@opendaw/lib-dsp"
 import {StringMapping, UUID, ValueMapping} from "@opendaw/lib-std"
 import {DeviceHost, Devices, MidiEffectDeviceAdapter} from "../../DeviceAdapter"
 import {BoxAdaptersContext} from "../../BoxAdaptersContext"
 import {ParameterAdapterSet} from "../../ParameterAdapterSet"
-import {AutomatableParameterFieldAdapter} from "../../AutomatableParameterFieldAdapter"
 import {AudioUnitBoxAdapter} from "../../audio-unit/AudioUnitBoxAdapter"
 
 export class ArpeggioDeviceBoxAdapter implements MidiEffectDeviceAdapter {
@@ -43,8 +42,6 @@ export class ArpeggioDeviceBoxAdapter implements MidiEffectDeviceAdapter {
     get enabledField(): BooleanField {return this.#box.enabled}
     get minimizedField(): BooleanField {return this.#box.minimized}
     get host(): PointerField<Pointers.MidiEffectHost> {return this.#box.host}
-
-    parameterAt(fieldIndices: FieldKeys): AutomatableParameterFieldAdapter {return this.#parametric.parameterAt(fieldIndices)}
 
     deviceHost(): DeviceHost {
         return this.#context.boxAdapters

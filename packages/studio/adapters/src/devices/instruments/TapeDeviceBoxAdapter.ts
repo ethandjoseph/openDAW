@@ -1,11 +1,10 @@
 import {TapeDeviceBox} from "@opendaw/studio-boxes"
 import {StringMapping, UUID, ValueMapping} from "@opendaw/lib-std"
-import {Address, BooleanField, FieldKeys, StringField} from "@opendaw/lib-box"
+import {Address, BooleanField, StringField} from "@opendaw/lib-box"
 import {DeviceHost, Devices, InstrumentDeviceBoxAdapter} from "../../DeviceAdapter"
 import {BoxAdaptersContext} from "../../BoxAdaptersContext"
 import {ParameterAdapterSet} from "../../ParameterAdapterSet"
 import {AudioUnitBoxAdapter} from "../../audio-unit/AudioUnitBoxAdapter"
-import {AutomatableParameterFieldAdapter} from "../../AutomatableParameterFieldAdapter"
 import {TrackType} from "../../timeline/TrackType"
 
 export class TapeDeviceBoxAdapter implements InstrumentDeviceBoxAdapter {
@@ -41,8 +40,6 @@ export class TapeDeviceBoxAdapter implements InstrumentDeviceBoxAdapter {
     }
 
     audioUnitBoxAdapter(): AudioUnitBoxAdapter {return this.deviceHost().audioUnitBoxAdapter()}
-
-    parameterAt(fieldIndices: FieldKeys): AutomatableParameterFieldAdapter {return this.#parametric.parameterAt(fieldIndices)}
 
     terminate(): void {this.#parametric.terminate()}
 

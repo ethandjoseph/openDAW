@@ -45,6 +45,14 @@ export namespace MidiData {
         return bytes
     }
 
+    export const control = (channel: byte, controller: byte, value: byte) => {
+        const bytes = new Uint8Array(3)
+        bytes[0] = channel | Command.Controller
+        bytes[1] = controller & 0x7F
+        bytes[2] = value & 0x7F
+        return bytes
+    }
+
     export const accept = (data: Nullable<Uint8Array>, visitor: MidiEventVisitor): void => {
         if (isNull(data)) {return}
         if (isNoteOn(data)) {

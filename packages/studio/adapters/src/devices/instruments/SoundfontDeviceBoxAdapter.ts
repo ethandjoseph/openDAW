@@ -9,12 +9,11 @@ import {
     UUID
 } from "@opendaw/lib-std"
 import {SoundfontDeviceBox} from "@opendaw/studio-boxes"
-import {Address, BooleanField, FieldKeys, StringField} from "@opendaw/lib-box"
+import {Address, BooleanField, StringField} from "@opendaw/lib-box"
 import {DeviceHost, Devices, InstrumentDeviceBoxAdapter} from "../../DeviceAdapter"
 import {BoxAdaptersContext} from "../../BoxAdaptersContext"
 import {ParameterAdapterSet} from "../../ParameterAdapterSet"
 import {TrackType} from "../../timeline/TrackType"
-import {AutomatableParameterFieldAdapter} from "../../AutomatableParameterFieldAdapter"
 import {AudioUnitBoxAdapter} from "../../audio-unit/AudioUnitBoxAdapter"
 import {SoundfontLoader} from "../../soundfont/SoundfontLoader"
 import type {Preset, SoundFont2} from "soundfont2"
@@ -78,10 +77,6 @@ export class SoundfontDeviceBoxAdapter implements InstrumentDeviceBoxAdapter {
     }
 
     audioUnitBoxAdapter(): AudioUnitBoxAdapter {return this.deviceHost().audioUnitBoxAdapter()}
-
-    parameterAt(fieldIndices: FieldKeys): AutomatableParameterFieldAdapter {
-        return this.#parametric.parameterAt(fieldIndices)
-    }
 
     terminate(): void {
         this.#loaderSubscription.terminate()

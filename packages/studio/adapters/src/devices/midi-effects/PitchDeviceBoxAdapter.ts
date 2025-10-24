@@ -1,12 +1,11 @@
 import {Pointers} from "@opendaw/studio-enums"
 import {StringMapping, UUID, ValueMapping} from "@opendaw/lib-std"
-import {Address, BooleanField, FieldKeys, Int32Field, PointerField, StringField} from "@opendaw/lib-box"
+import {Address, BooleanField, Int32Field, PointerField, StringField} from "@opendaw/lib-box"
 import {PitchDeviceBox} from "@opendaw/studio-boxes"
 import {DeviceHost, Devices, MidiEffectDeviceAdapter} from "../../DeviceAdapter"
 import {BoxAdaptersContext} from "../../BoxAdaptersContext"
 import {ParameterAdapterSet} from "../../ParameterAdapterSet"
 import {AudioUnitBoxAdapter} from "../../audio-unit/AudioUnitBoxAdapter"
-import {AutomatableParameterFieldAdapter} from "../../AutomatableParameterFieldAdapter"
 
 export class PitchDeviceBoxAdapter implements MidiEffectDeviceAdapter {
     readonly type = "midi-effect"
@@ -39,8 +38,6 @@ export class PitchDeviceBoxAdapter implements MidiEffectDeviceAdapter {
     }
 
     audioUnitBoxAdapter(): AudioUnitBoxAdapter {return this.deviceHost().audioUnitBoxAdapter()}
-
-    parameterAt(fieldIndices: FieldKeys): AutomatableParameterFieldAdapter {return this.#parametric.parameterAt(fieldIndices)}
 
     terminate(): void {this.#parametric.terminate()}
 
