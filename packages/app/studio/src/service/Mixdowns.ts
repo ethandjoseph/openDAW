@@ -15,9 +15,7 @@ import {Dialogs} from "@/ui/components/dialogs"
 export namespace Mixdowns {
     export const exportMixdown = async ({project, meta}: ProjectProfile): Promise<void> => {
         const buffer = await AudioOfflineRenderer.start(project, Option.None)
-
         const {resolve, reject, promise} = Promise.withResolvers<void>()
-
         const {status, error} = await Promises.tryCatch(Dialogs.show({
             headline: "Encode Mixdown",
             content: "openDAW will download FFmpeg (30MB) once to encode your mixdown unless you choose 'Wav'.",
