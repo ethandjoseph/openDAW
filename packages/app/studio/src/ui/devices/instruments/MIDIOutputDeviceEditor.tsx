@@ -27,11 +27,11 @@ export const MIDIOutputDeviceEditor = ({lifecycle, service, adapter, deviceHost}
     const {editing} = project
     const deviceLabelClass = Inject.classList("device-label")
     const deviceIdObserver = (owner: ObservableValue<string>) => {
-        const device = MidiDevices.externalOutputDevices()
-            .map(devices => devices
-                .find(device => device.id === owner.getValue()))
-        deviceLabelClass.toggle("not-available", device.isEmpty())
-        device.ifSome(device => project.connectMIDIOutput(adapter.box, device))
+        const requestedId = owner.getValue()
+        const optDevice = MidiDevices.externalOutputDevices()
+            .map(devices => devices.find(device => device.id === requestedId))
+        deviceLabelClass.toggle("not-available", optDevice.isEmpty() && requestedId !== "")
+        optDevice.ifSome(device => project.connectMIDIOutput(adapter.box, device))
     }
     return (
         <DeviceEditor lifecycle={lifecycle}
