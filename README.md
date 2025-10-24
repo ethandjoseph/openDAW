@@ -132,6 +132,7 @@ Huge thanks to our [ambassadors](https://opendaw.org/ambassadors), whose dedicat
 
 * [openDAW](https://github.com/andremichelle/opendaw)
 * [openDAW-headless (SDK)](https://github.com/andremichelle/opendaw-headless)
+* [openDAW-headless @naomiaro](https://github.com/naomiaro/opendaw-test) (openDAW-headless fork with more docs and examples)
 
 ### Roadmap
 
