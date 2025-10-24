@@ -40,7 +40,6 @@ import {Promises} from "@opendaw/lib-runtime"
 import {ExportStemsConfiguration} from "@opendaw/studio-adapters"
 import {Address} from "@opendaw/lib-box"
 import {
-    AudioOfflineRenderer,
     AudioWorklets,
     CloudAuthManager,
     DawProjectService,
@@ -65,6 +64,7 @@ import {AudioUnitBox} from "@opendaw/studio-boxes"
 import {AudioUnitType} from "@opendaw/studio-enums"
 import {Surface} from "@/ui/surface/Surface"
 import {SoftwareMIDIPanel} from "@/ui/software-midi/SoftwareMIDIPanel"
+import {Mixdowns} from "@/service/Mixdowns"
 
 /**
  * I am just piling stuff after stuff in here to boot the environment.
@@ -202,16 +202,17 @@ export class StudioService implements ProjectEnv {
 
     async exportMixdown() {
         return this.#projectProfileService.getValue()
-            .ifSome(async ({project, meta}) => {
+            .ifSome(async (profile) => {
                 await this.audioContext.suspend()
-                await AudioOfflineRenderer.start(project, meta, Option.None)
+                await Mixdowns.exportMixdown(profile)
                 this.audioContext.resume().then()
             })
     }
 
     async exportStems() {
         return this.#projectProfileService.getValue()
-            .ifSome(async ({project, meta}) => {
+            .ifSome(async (profile) => {
+                const {project} = profile
                 if (project.rootBox.audioUnits.pointerHub.incoming()
                     .every(({box}) => asInstanceOf(box, AudioUnitBox).type.getValue() === AudioUnitType.Output)) {
                     return RuntimeNotifier.info({
@@ -227,7 +228,7 @@ export class StudioService implements ProjectEnv {
                 }
                 ExportStemsConfiguration.sanitizeExportNamesInPlace(config)
                 await this.audioContext.suspend()
-                await AudioOfflineRenderer.start(project, meta, Option.wrap(config))
+                await Mixdowns.exportStems(profile, config)
                 this.audioContext.resume().then(EmptyExec, EmptyExec)
             })
     }
