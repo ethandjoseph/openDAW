@@ -96,6 +96,7 @@ Huge thanks to our [ambassadors](https://opendaw.org/ambassadors), whose dedicat
 - Client
 - skyboundzoo
 - JHINZ
+- Mark Dammer
 
 ### openDAW Custom Pledge
 
@@ -112,6 +113,7 @@ Huge thanks to our [ambassadors](https://opendaw.org/ambassadors), whose dedicat
 * Nano (simple sampler pitching a single audio file)
 * Tape (playback device for audio regions and clips)
 * Soundfont (simple soundfont player)
+* MIDI Output (to external devices)
 * Stereo Tool (volume, panning and/or invert the stereo signal)
 * Delay (stereo delay with cross and filter options)
 * Crusher (degenerates audio signal)
@@ -120,6 +122,7 @@ Huge thanks to our [ambassadors](https://opendaw.org/ambassadors), whose dedicat
 * Arpeggio (midi effect)
 * Pitch (offsets midi note pitches)
 * Zeitgeist (transforms time)
+* Fold (waveform folding algorithm with oversampling)
 
 #### Ported Plugins (Excluded in commercial license)
 
