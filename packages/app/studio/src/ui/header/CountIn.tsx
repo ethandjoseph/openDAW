@@ -14,7 +14,7 @@ type Construct = {
 export const CountIn = ({lifecycle, engine}: Construct) => {
     const textElement: SVGTextElement = (
         <text x="50%" y="50%" dy="0.08em"
-              font-size="84"
+              font-size="64"
               font-family="Rubik"
               text-anchor="middle"
               dominant-baseline="middle"
@@ -55,7 +55,7 @@ export const CountIn = ({lifecycle, engine}: Construct) => {
         engine.countInBeatsRemaining
             .catchupAndSubscribe(owner => {
                 const remaining = owner.getValue()
-                showProgress(remaining / engine.countInBeatsTotal.getValue())
+                showProgress(remaining / engine.countInBarsTotal.getValue())
                 textElement.textContent = Math.floor(remaining + 1).toString()
             }),
         Terminable.create(() => element.remove())

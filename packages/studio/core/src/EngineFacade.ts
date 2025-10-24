@@ -14,14 +14,14 @@ import {ppqn} from "@opendaw/lib-dsp"
 import {ClipNotification, NoteSignal} from "@opendaw/studio-adapters"
 import {Engine} from "./Engine"
 import {EngineWorklet} from "./EngineWorklet"
-import {Project} from "./project/Project"
+import {Project} from "./project"
 
 export class EngineFacade implements Engine {
     readonly #terminator: Terminator = new Terminator()
     readonly #lifecycle: Terminator = this.#terminator.own(new Terminator())
     readonly #playbackTimestamp: DefaultObservableValue<ppqn> = new DefaultObservableValue(0.0)
     readonly #playbackTimestampEnabled: DefaultObservableValue<boolean> = new DefaultObservableValue(true)
-    readonly #countInBeatsTotal: DefaultObservableValue<int> = new DefaultObservableValue(4)
+    readonly #countInBarsTotal: DefaultObservableValue<int> = new DefaultObservableValue(1)
     readonly #countInBeatsRemaining: DefaultObservableValue<int> = new DefaultObservableValue(0)
     readonly #position: DefaultObservableValue<ppqn> = new DefaultObservableValue(0.0)
     readonly #isPlaying: DefaultObservableValue<boolean> = new DefaultObservableValue(false)
@@ -41,7 +41,7 @@ export class EngineFacade implements Engine {
         this.#lifecycle.ownAll(
             worklet.playbackTimestamp.catchupAndSubscribe(owner => this.#playbackTimestamp.setValue(owner.getValue())),
             worklet.playbackTimestampEnabled.catchupAndSubscribe(owner => this.#playbackTimestampEnabled.setValue(owner.getValue())),
-            worklet.countInBeatsTotal.catchupAndSubscribe(owner => this.#countInBeatsTotal.setValue(owner.getValue())),
+            worklet.countInBarsTotal.catchupAndSubscribe(owner => this.#countInBarsTotal.setValue(owner.getValue())),
             worklet.countInBeatsRemaining.catchupAndSubscribe(owner => this.#countInBeatsRemaining.setValue(owner.getValue())),
             worklet.position.catchupAndSubscribe(owner => this.#position.setValue(owner.getValue())),
             worklet.isPlaying.catchupAndSubscribe(owner => this.#isPlaying.setValue(owner.getValue())),
@@ -50,7 +50,8 @@ export class EngineFacade implements Engine {
             worklet.metronomeEnabled.catchupAndSubscribe(owner => this.#metronomeEnabled.setValue(owner.getValue())),
             worklet.markerState.catchupAndSubscribe(owner => this.#markerState.setValue(owner.getValue())),
             this.#metronomeEnabled.catchupAndSubscribe(owner => worklet.metronomeEnabled.setValue(owner.getValue())),
-            this.#playbackTimestampEnabled.catchupAndSubscribe(owner => worklet.playbackTimestampEnabled.setValue(owner.getValue()))
+            this.#playbackTimestampEnabled.catchupAndSubscribe(owner => worklet.playbackTimestampEnabled.setValue(owner.getValue())),
+            this.#countInBarsTotal.catchupAndSubscribe(owner => worklet.countInBarsTotal.setValue(owner.getValue()))
         )
     }
 
@@ -75,7 +76,7 @@ export class EngineFacade implements Engine {
     get metronomeEnabled(): MutableObservableValue<boolean> {return this.#metronomeEnabled}
     get playbackTimestamp(): ObservableValue<ppqn> {return this.#playbackTimestamp}
     get playbackTimestampEnabled(): MutableObservableValue<boolean> {return this.#playbackTimestampEnabled}
-    get countInBeatsTotal(): ObservableValue<int> {return this.#countInBeatsTotal}
+    get countInBarsTotal(): MutableObservableValue<int> {return this.#countInBarsTotal}
     get countInBeatsRemaining(): ObservableValue<int> {return this.#countInBeatsRemaining}
     get markerState(): DefaultObservableValue<Nullable<[UUID.Bytes, int]>> {return this.#markerState}
     get project(): Project {return this.#worklet.unwrap("No worklet to get project").project}

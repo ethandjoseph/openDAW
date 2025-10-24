@@ -17,6 +17,7 @@ import {Manuals} from "@/ui/pages/Manuals"
 import {HorizontalPeakMeter} from "@/ui/components/HorizontalPeakMeter"
 import {Address} from "@opendaw/lib-box"
 import {gainToDb} from "@opendaw/lib-dsp"
+import {ContextMenu} from "@/ui/ContextMenu"
 
 const className = Html.adoptStyleSheet(css, "Header")
 
@@ -100,6 +101,13 @@ export const Header = ({lifecycle, service}: Construct) => {
             }
             <hr/>
             <Checkbox lifecycle={lifecycle}
+                      onInit={element => lifecycle.own(ContextMenu.subscribe(element, collector =>
+                          collector.addItems(MenuItem.default({label: "Set Count-In (Bars)"})
+                              .setRuntimeChildrenProcedure(parent => parent.addMenuItem(...[1, 2, 3, 4, 5, 6, 7, 8]
+                                  .map(count => MenuItem.default({
+                                      label: String(count),
+                                      checked: count === service.engine.countInBarsTotal.getValue()
+                                  }).setTriggerProcedure(() => service.engine.countInBarsTotal.setValue(count))))))))}
                       model={service.engine.metronomeEnabled}
                       appearance={{activeColor: Colors.orange, tooltip: "Metronome"}}>
                 <Icon symbol={IconSymbol.Metronome}/>

@@ -49,7 +49,7 @@ export class EngineWorklet extends AudioWorkletNode implements Engine {
     readonly #isPlaying: DefaultObservableValue<boolean> = new DefaultObservableValue(false)
     readonly #isRecording: DefaultObservableValue<boolean> = new DefaultObservableValue(false)
     readonly #isCountingIn: DefaultObservableValue<boolean> = new DefaultObservableValue(false)
-    readonly #countInBeatsTotal: DefaultObservableValue<int> = new DefaultObservableValue(4)
+    readonly #countInBarsTotal: DefaultObservableValue<int> = new DefaultObservableValue(1)
     readonly #countInBeatsRemaining: DefaultObservableValue<int> = new DefaultObservableValue(0)
     readonly #metronomeEnabled: DefaultObservableValue<boolean> = new DefaultObservableValue(false)
     readonly #markerState: DefaultObservableValue<Nullable<[UUID.Bytes, int]>> = new DefaultObservableValue<Nullable<[UUID.Bytes, int]>>(null)
@@ -68,7 +68,6 @@ export class EngineWorklet extends AudioWorkletNode implements Engine {
             this.#isPlaying.setValue(state.isPlaying)
             this.#isRecording.setValue(state.isRecording)
             this.#isCountingIn.setValue(state.isCountingIn)
-            this.#countInBeatsTotal.setValue(state.countInBeatsTotal)
             this.#countInBeatsRemaining.setValue(state.countInBeatsRemaining)
             this.#playbackTimestamp.setValue(state.playbackTimestamp)
             this.#position.setValue(state.position) // This must be the last to handle the state values before
@@ -100,13 +99,18 @@ export class EngineWorklet extends AudioWorkletNode implements Engine {
                     play(): void {dispatcher.dispatchAndForget(this.play)}
                     stop(reset: boolean): void {dispatcher.dispatchAndForget(this.stop, reset)}
                     setPosition(position: number): void {dispatcher.dispatchAndForget(this.setPosition, position)}
-                    prepareRecordingState(countIn: boolean) {dispatcher.dispatchAndForget(this.prepareRecordingState, countIn)}
+                    prepareRecordingState(countIn: boolean) {
+                        dispatcher.dispatchAndForget(this.prepareRecordingState, countIn)
+                    }
                     stopRecording() {dispatcher.dispatchAndForget(this.stopRecording)}
                     setMetronomeEnabled(enabled: boolean): void {
                         dispatcher.dispatchAndForget(this.setMetronomeEnabled, enabled)
                     }
                     setPlaybackTimestampEnabled(enabled: boolean): void {
                         dispatcher.dispatchAndForget(this.setPlaybackTimestampEnabled, enabled)
+                    }
+                    setCountInBarsTotal(value: int): void {
+                        dispatcher.dispatchAndForget(this.setCountInBarsTotal, value)
                     }
                     queryLoadingComplete(): Promise<boolean> {
                         return dispatcher.dispatchAndReturn(this.queryLoadingComplete)
@@ -184,7 +188,9 @@ export class EngineWorklet extends AudioWorkletNode implements Engine {
             new SyncSource<BoxIO.TypeMap>(project.boxGraph, messenger.channel("engine-sync"), false),
             this.#metronomeEnabled.catchupAndSubscribe(owner => this.#commands.setMetronomeEnabled(owner.getValue())),
             this.#playbackTimestampEnabled.catchupAndSubscribe(owner =>
-                this.#commands.setPlaybackTimestampEnabled(owner.getValue()))
+                this.#commands.setPlaybackTimestampEnabled(owner.getValue())),
+            this.#countInBarsTotal.catchupAndSubscribe(owner =>
+                this.#commands.setCountInBarsTotal(owner.getValue()))
         )
     }
 
@@ -198,7 +204,7 @@ export class EngineWorklet extends AudioWorkletNode implements Engine {
     get isPlaying(): ObservableValue<boolean> {return this.#isPlaying}
     get isRecording(): ObservableValue<boolean> {return this.#isRecording}
     get isCountingIn(): ObservableValue<boolean> {return this.#isCountingIn}
-    get countInBeatsTotal(): ObservableValue<int> {return this.#countInBeatsTotal}
+    get countInBarsTotal(): MutableObservableValue<int> {return this.#countInBarsTotal}
     get countInBeatsRemaining(): ObservableValue<number> {return this.#countInBeatsRemaining}
     get position(): ObservableValue<ppqn> {return this.#position}
     get playbackTimestamp(): MutableObservableValue<number> {return this.#playbackTimestamp}

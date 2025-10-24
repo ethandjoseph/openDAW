@@ -98,7 +98,7 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
     #recordingStartTime: ppqn = 0.0
     #playbackTimestamp: ppqn = 0.0 // this is where we start playing again (after paused)
     #playbackTimestampEnabled: boolean = true
-    #countInBeatsTotal: int = 4
+    #countInBarsTotal: int = 1
 
     constructor({processorOptions: {sab, project, exportConfiguration, options}}: {
         processorOptions: EngineProcessorAttachment
@@ -149,10 +149,10 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
         this.#ignoredRegions = UUID.newSet<UUID.Bytes>(uuid => uuid)
         this.#stateSender = SyncStream.writer(EngineStateSchema(), sab, x => {
             const {transporting, isCountingIn, isRecording, position} = this.#timeInfo
+            const denominator = this.#timelineBoxAdapter.box.signature.denominator.getValue()
             x.position = position
             x.playbackTimestamp = this.#playbackTimestamp
-            x.countInBeatsTotal = this.#countInBeatsTotal
-            x.countInBeatsRemaining = isCountingIn ? (this.#recordingStartTime - position) / PPQN.Quarter : 0
+            x.countInBeatsRemaining = isCountingIn ? (this.#recordingStartTime - position) / PPQN.fromSignature(1, denominator) : 0
             x.isPlaying = transporting
             x.isRecording = isRecording
             x.isCountingIn = isCountingIn
@@ -193,13 +193,12 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
                     if (this.#timeInfo.isRecording || this.#timeInfo.isCountingIn) {return}
                     if (!this.#timeInfo.transporting && countIn) {
                         const position = this.#timeInfo.position
-                        const nominator = this.#timelineBoxAdapter.box.signature.nominator.getValue()
-                        const denominator = this.#timelineBoxAdapter.box.signature.denominator.getValue()
+                        const [nominator, denominator] = this.#timelineBoxAdapter.signature
                         this.#recordingStartTime = quantizeFloor(position, PPQN.fromSignature(nominator, denominator))
                         this.#timeInfo.isCountingIn = true
                         this.#timeInfo.metronomeEnabled = true
                         this.#timeInfo.transporting = true
-                        this.#timeInfo.position = this.#recordingStartTime - PPQN.fromSignature(this.#countInBeatsTotal, denominator)
+                        this.#timeInfo.position = this.#recordingStartTime - PPQN.fromSignature(this.#countInBarsTotal * nominator, denominator)
                         const subscription = this.#renderer.setCallback(this.#recordingStartTime, () => {
                             this.#timeInfo.isCountingIn = false
                             this.#timeInfo.isRecording = true
@@ -221,6 +220,7 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
                 },
                 setMetronomeEnabled: (value: boolean) => this.#timeInfo.metronomeEnabled = this.#metronomeEnabled = value,
                 setPlaybackTimestampEnabled: (value: boolean) => this.#playbackTimestampEnabled = value,
+                setCountInBarsTotal: (value: int) => this.#countInBarsTotal = value,
                 queryLoadingComplete: (): Promise<boolean> =>
                     Promise.resolve(this.#boxGraph.boxes().every(box => box.accept<BoxVisitor<boolean>>({
                         visitAudioFileBox: (box: AudioFileBox) =>

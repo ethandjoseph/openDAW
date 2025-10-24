@@ -14,6 +14,7 @@ export interface EngineCommands extends Terminable {
 
     setMetronomeEnabled(enabled: boolean): void
     setPlaybackTimestampEnabled(enabled: boolean): void
+    setCountInBarsTotal(value: int): void
     queryLoadingComplete(): Promise<boolean>
     // throws a test error while processing audio
     panic(): void

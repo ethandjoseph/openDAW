@@ -1,5 +1,5 @@
 import css from "./ButtonCheckboxRadio.sass?inline"
-import {isDefined, Lifecycle} from "@opendaw/lib-std"
+import {isDefined, Lifecycle, Procedure} from "@opendaw/lib-std"
 import {createElement, JsxValue} from "@opendaw/lib-jsx"
 import {TextTooltip} from "@/ui/surface/TextTooltip.tsx"
 import {CssUtils, Html} from "@opendaw/lib-dom"
@@ -21,15 +21,20 @@ type Construct = {
     style?: Partial<CSSStyleDeclaration>
     className?: string
     appearance?: Appearance
+    onInit?: Procedure<HTMLElement>
 }
 
-export const ButtonCheckboxRadio = ({lifecycle, dataClass, style, className: externalClassName, appearance}: Construct,
-                                    children: JsxValue) => {
+export const ButtonCheckboxRadio = (
+    {
+        lifecycle, dataClass, style, className: externalClassName, appearance, onInit
+    }: Construct,
+    children: JsxValue) => {
     const wrapper: HTMLElement = (
         <div className={Html.buildClassList(className,
             appearance?.framed && "framed",
             appearance?.landscape && "landscape",
             externalClassName)}
+             onInit={onInit}
              data-class={dataClass}
              onpointerdown={(event: PointerEvent) => {
                  self.getSelection()?.removeAllRanges()
