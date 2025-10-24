@@ -1,6 +1,6 @@
 {
     "name": "@opendaw/studio-core",
-    "version": "0.0.46",
+    "version": "0.0.47",
     "license": "LGPL-3.0-or-later",
     "publishConfig": {
         "access": "public"
@@ -26,16 +26,16 @@
         "test": "vitest run --config vitest.config.ts"
     },
     "dependencies": {
-        "@opendaw/lib-box": "^0.0.37",
-        "@opendaw/lib-dawproject": "^0.0.23",
-        "@opendaw/lib-dom": "^0.0.37",
-        "@opendaw/lib-dsp": "^0.0.37",
-        "@opendaw/lib-fusion": "^0.0.37",
-        "@opendaw/lib-runtime": "^0.0.37",
-        "@opendaw/lib-std": "^0.0.37",
-        "@opendaw/studio-adapters": "^0.0.38",
-        "@opendaw/studio-boxes": "^0.0.37",
-        "@opendaw/studio-enums": "^0.0.28",
+        "@opendaw/lib-box": "^0.0.38",
+        "@opendaw/lib-dawproject": "^0.0.24",
+        "@opendaw/lib-dom": "^0.0.38",
+        "@opendaw/lib-dsp": "^0.0.38",
+        "@opendaw/lib-fusion": "^0.0.38",
+        "@opendaw/lib-runtime": "^0.0.38",
+        "@opendaw/lib-std": "^0.0.38",
+        "@opendaw/studio-adapters": "^0.0.39",
+        "@opendaw/studio-boxes": "^0.0.38",
+        "@opendaw/studio-enums": "^0.0.29",
         "dropbox": "^10.34.0",
         "y-websocket": "^1.4.5",
         "yjs": "^13.6.27",
@@ -43,9 +43,9 @@
     },
     "devDependencies": {
         "@opendaw/eslint-config": "^0.0.20",
-        "@opendaw/studio-core-processors": "^0.0.38",
-        "@opendaw/studio-core-workers": "^0.0.33",
-        "@opendaw/studio-forge-boxes": "^0.0.37",
+        "@opendaw/studio-core-processors": "^0.0.39",
+        "@opendaw/studio-core-workers": "^0.0.34",
+        "@opendaw/studio-forge-boxes": "^0.0.38",
         "@opendaw/typescript-config": "^0.0.20"
     },
     "gitHead": "cbe2d3409a066196db3434a48f61320f29c80d99"

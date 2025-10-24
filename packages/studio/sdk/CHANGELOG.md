@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.47](https://github.com/andremichelle/opendaw/compare/@opendaw/studio-sdk@0.0.46...@opendaw/studio-sdk@0.0.47) (2025-10-24)
+
+**Note:** Version bump only for package @opendaw/studio-sdk
+
 ## [0.0.46](https://github.com/andremichelle/opendaw/compare/@opendaw/studio-sdk@0.0.45...@opendaw/studio-sdk@0.0.46) (2025-10-23)
 
 **Note:** Version bump only for package @opendaw/studio-sdk
