@@ -65,6 +65,8 @@ export namespace DevicePanelDragAndDrop {
                             visitVaporisateurDeviceBox: () => CaptureMidiBox.create(boxGraph, UUID.generate()),
                             visitNanoDeviceBox: () => CaptureMidiBox.create(boxGraph, UUID.generate()),
                             visitPlayfieldDeviceBox: () => CaptureMidiBox.create(boxGraph, UUID.generate()),
+                            visitMIDIOutputDeviceBox: () => CaptureMidiBox.create(boxGraph, UUID.generate()),
+                            visitSoundfontDeviceBox: () => CaptureMidiBox.create(boxGraph, UUID.generate()),
                             visitTapeDeviceBox: () => CaptureAudioBox.create(boxGraph, UUID.generate())
                         }))
                         deviceHost.box.capture.targetVertex.unwrap().box.delete()
