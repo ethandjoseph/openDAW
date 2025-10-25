@@ -177,6 +177,7 @@ use in the web studio:
 * [d3-force](https://d3js.org/d3-force) (for graph debugging)
 * [soundfont2](https://github.com/Mrtenz/soundfont2) (for soundfont loading)
 * [zod](https://zod.dev) (schema validation)
+* [ffmpeg](https://github.com/ffmpegwasm/ffmpeg.wasm) (decoding/encoding)
 
 Before starting, ensure you have the following installed on your system:
 
