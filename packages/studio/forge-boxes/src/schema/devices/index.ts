@@ -17,7 +17,7 @@ import {SoundfontDeviceBox} from "./instruments/SoundfontDeviceBox"
 import {CompressorDeviceBox} from "./audio-effects/CompressorDeviceBox"
 import {CrusherDeviceBox} from "./audio-effects/CrusherDeviceBox"
 import {FoldDeviceBox} from "./audio-effects/FoldDeviceBox"
-import {MIDIOutputDeviceBox} from "./instruments/MIDIOutputDeviceBox"
+import {MIDIOutputDeviceBox, MIDIOutputParameterBox} from "./instruments/MIDIOutputDeviceBox"
 
 export const DeviceDefinitions = [
     UnknownAudioEffectDevice,
@@ -34,9 +34,11 @@ export const DeviceDefinitions = [
     ReverbDeviceBox,
     VaporisateurDeviceBox,
     MIDIOutputDeviceBox,
+    MIDIOutputParameterBox,
     SoundfontDeviceBox,
     NanoDeviceBox,
-    PlayfieldDeviceBox, PlayfieldSampleBox,
+    PlayfieldDeviceBox,
+    PlayfieldSampleBox,
     TapeDeviceBox,
     ArpeggioDeviceBox,
     PitchDeviceBox,

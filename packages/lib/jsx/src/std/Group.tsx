@@ -1,6 +1,7 @@
 import {JsxValue} from "../types"
 import {createElement} from "../create-element"
+import {Procedure} from "@opendaw/lib-std"
 
-export const Group = (_: unknown, children: ReadonlyArray<JsxValue>) => (
-    <div style={{display: "contents"}}>{children}</div>
+export const Group = ({onInit}: { onInit?: Procedure<HTMLDivElement> }, children: ReadonlyArray<JsxValue>) => (
+    <div onInit={onInit} style={{display: "contents"}}>{children}</div>
 )

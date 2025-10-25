@@ -5,65 +5,17 @@ component
   display: flex
   flex-direction: column
   align-items: start
+  row-gap: 0.25em
   @include mixins.Control
 
-  div.request-midi
-    margin: auto
-    display: flex
-    place-items: center
-    column-gap: 0.5em
-    padding: 0 0.5em
-    color: var(--color-orange)
-    background-color: rgba(black, 0.2)
+  div.device-label
+    width: 100%
+    font-size: 12px
+    padding: 0.5em 1em
     border-radius: 0.25em
-    cursor: pointer
-    height: min-content
+    color: var(--color-gray)
+    background-color: rgba(black, 0.4)
 
-    &:hover
-      color: rgba(black, 0.8)
-      background-color: var(--color-orange)
-
-    > span
-      font-size: 9px
-
-    > svg
-      font-size: 18px
-
-  div.no-midi-support
-    margin: auto
-    display: flex
-    flex-direction: column
-    row-gap: 0.5em
-    color: var(--color-dark)
-
-    > div
-      text-align: center
-
-  div.selector
-    margin-top: 1em
-    display: flex
-    flex-direction: column
-    align-items: start
-    row-gap: 0.5em
-
-    div.device-label
-      width: 100%
-      font-size: 12px
-      padding: 0.5em 1em
-      border-radius: 0.25em
-      color: var(--color-gray)
-      background-color: rgba(black, 0.4)
-
-      &.not-available
-        color: var(--color-dark)
-        text-decoration: line-through
-
-    > div.number-inputs
-      margin: 0 0 0 0.5em
-      display: grid
-      grid-template-columns: 10em 1fr
-      column-gap: 0.5em
-      align-items: center
-
-      > span
-        font-size: 11px
+    &.not-available
+      color: var(--color-dark)
+      text-decoration: line-through

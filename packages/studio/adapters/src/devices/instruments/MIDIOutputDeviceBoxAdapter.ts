@@ -1,5 +1,5 @@
 import {asInstanceOf, StringMapping, Terminator, UUID, ValueMapping} from "@opendaw/lib-std"
-import {MIDIOutputDeviceBox, UnitParameterBox} from "@opendaw/studio-boxes"
+import {MIDIOutputDeviceBox, MIDIOutputParameterBox} from "@opendaw/studio-boxes"
 import {Address, BooleanField, StringField} from "@opendaw/lib-box"
 import {DeviceHost, Devices, InstrumentDeviceBoxAdapter} from "../../DeviceAdapter"
 import {BoxAdaptersContext} from "../../BoxAdaptersContext"
@@ -23,13 +23,15 @@ export class MIDIOutputDeviceBoxAdapter implements InstrumentDeviceBoxAdapter {
         this.#box = box
         this.#parametric = this.#terminator.own(new ParameterAdapterSet(this.#context))
         this.#terminator.own(box.parameters.pointerHub.catchupAndSubscribe({
-            onAdded: (({box}) => this.#parametric.createParameter(
-                asInstanceOf(box, UnitParameterBox).value,
-                ValueMapping.unipolar(),
-                StringMapping.numeric(),
-                "CV",
-                0.0)),
-            onRemoved: (({box: {address}}) => this.#parametric.removeParameter(address))
+            onAdded: (({box}) => this.#parametric
+                .createParameter(
+                    asInstanceOf(box, MIDIOutputParameterBox).value,
+                    ValueMapping.linear(0, 127),
+                    StringMapping.numeric(),
+                    "CV",
+                    0.0)),
+            onRemoved: (({box}) => this.#parametric
+                .removeParameter(asInstanceOf(box, MIDIOutputParameterBox).value.address))
         }))
     }
 

@@ -9,7 +9,7 @@ import {NoteEventSource, NoteEventTarget, NoteLifecycleEvent} from "../../NoteEv
 import {DeviceProcessor} from "../../DeviceProcessor"
 import {InstrumentDeviceProcessor} from "../../InstrumentDeviceProcessor"
 import {MidiData} from "@opendaw/lib-midi"
-import {UnitParameterBox} from "@opendaw/studio-boxes"
+import {MIDIOutputParameterBox} from "@opendaw/studio-boxes"
 
 export class MIDIOutputDeviceProcessor extends AudioProcessor implements InstrumentDeviceProcessor, NoteEventTarget {
     readonly #adapter: MIDIOutputDeviceBoxAdapter
@@ -34,22 +34,19 @@ export class MIDIOutputDeviceProcessor extends AudioProcessor implements Instrum
         this.#lastChannel = adapter.box.channel.getValue()
 
         this.ownAll(
-            // TODO If there is a timing issue make ParameterSet observable
             adapter.box.parameters.pointerHub.catchupAndSubscribe({
                 onAdded: (({box}) => this.#parameters.push(
                     this.bindParameter(adapter.parameters.parameterAt(
-                        asInstanceOf(box, UnitParameterBox).value.address)))),
+                        asInstanceOf(box, MIDIOutputParameterBox).value.address)))),
                 onRemoved: (({box}) => {
                     Arrays.removeIf(this.#parameters, parameter =>
-                        parameter.address === asInstanceOf(box, UnitParameterBox).value.address)
+                        parameter.address === asInstanceOf(box, MIDIOutputParameterBox).value.address)
                 })
             }),
             adapter.box.channel.subscribe(owner => {
-                this.#activeNotes.forEach(pitch => {
+                this.#activeNotes.forEach(pitch =>
                     context.engineToClient
-                        .sendMIDIData(adapter.uuid,
-                            MidiData.noteOff(this.#lastChannel, pitch), 0)
-                })
+                        .sendMIDIData(adapter.uuid, MidiData.noteOff(this.#lastChannel, pitch), 0))
                 this.#activeNotes.length = 0
                 this.#lastChannel = owner.getValue()
             }),
@@ -108,7 +105,7 @@ export class MIDIOutputDeviceProcessor extends AudioProcessor implements Instrum
         const controllerId = 0 // We need to find the controllerId from the UnitParameterBox
         this.context.engineToClient
             .sendMIDIData(this.#adapter.uuid,
-                MidiData.control(channel, controllerId, Math.round(parameter.getValue() * 127)), relativeTimeInMs)
+                MidiData.control(channel, controllerId, parameter.getValue()), relativeTimeInMs)
     }
 
     finishProcess(): void {}
