@@ -26,10 +26,7 @@ export class MIDIOutputDeviceBoxAdapter implements InstrumentDeviceBoxAdapter {
             onAdded: (({box}) => this.#parametric
                 .createParameter(
                     asInstanceOf(box, MIDIOutputParameterBox).value,
-                    ValueMapping.linear(0, 127),
-                    StringMapping.numeric(),
-                    "CV",
-                    0.0)),
+                    ValueMapping.linear(0, 127), StringMapping.numeric(), "", 0.0)),
             onRemoved: (({box}) => this.#parametric
                 .removeParameter(asInstanceOf(box, MIDIOutputParameterBox).value.address))
         }))

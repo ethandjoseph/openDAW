@@ -27,7 +27,7 @@ export abstract class AudioProcessor extends AbstractProcessor {
                     fromIndex = toIndex
                 }
                 if (UpdateEvent.isOfType(event)) {
-                    this.updateParameter(event.position)
+                    this.updateParameters(event.position, s0 / sampleRate + PPQN.pulsesToSeconds(event.position - p0, bpm))
                 } else {
                     (anyEvents ??= []).push(event)
                 }

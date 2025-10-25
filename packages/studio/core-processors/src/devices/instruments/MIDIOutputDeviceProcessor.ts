@@ -99,10 +99,10 @@ export class MIDIOutputDeviceProcessor extends AudioProcessor implements Instrum
     handleEvent(_event: Event): void {}
     processAudio(_block: Block, _fromIndex: int, _toIndex: int): void {}
 
-    parameterChanged(parameter: AutomatableParameter): void {
-        const relativeTimeInMs = 0.0 // TODO Get offset to actual relative block position
+    parameterChanged(parameter: AutomatableParameter, relativeBlockTime: number = 0.0): void {
+        const relativeTimeInMs = relativeBlockTime * 1000.0
         const channel = this.#adapter.box.channel.getValue()
-        const controllerId = 0 // We need to find the controllerId from the UnitParameterBox
+        const controllerId = asInstanceOf(parameter.adapter.field.box, MIDIOutputParameterBox).controller.getValue()
         this.context.engineToClient
             .sendMIDIData(this.#adapter.uuid,
                 MidiData.control(channel, controllerId, parameter.getValue()), relativeTimeInMs)

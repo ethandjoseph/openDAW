@@ -1,5 +1,5 @@
 import {Block, ProcessInfo} from "./processing"
-import {Event, ppqn} from "@opendaw/lib-dsp"
+import {Event, PPQN, ppqn} from "@opendaw/lib-dsp"
 import {Maybe} from "@opendaw/lib-std"
 import {AbstractProcessor} from "./AbstractProcessor"
 import {UpdateEvent} from "./UpdateClock"
@@ -8,7 +8,7 @@ export abstract class EventProcessor extends AbstractProcessor {
     process({blocks}: ProcessInfo): void {
         blocks.forEach((block) => {
             this.introduceBlock(block)
-            const {index, p0, p1} = block
+            const {index, p0, p1, s0, bpm} = block
             let anyEvents: Maybe<Array<Event>> = null
             let position = p0
             for (const event of this.eventInput.get(index)) {
@@ -19,7 +19,7 @@ export abstract class EventProcessor extends AbstractProcessor {
                     position = event.position
                 }
                 if (UpdateEvent.isOfType(event)) {
-                    this.updateParameter(event.position)
+                    this.updateParameters(event.position, s0 / sampleRate + PPQN.pulsesToSeconds(event.position - p0, bpm))
                 } else {
                     (anyEvents ??= []).push(event)
                 }

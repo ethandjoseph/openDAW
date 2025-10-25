@@ -25,13 +25,17 @@ export const ControlValues = ({lifecycle, project, adapter}: Construct) => (
             lifecycle.ownAll(
                 adapter.box.parameters.pointerHub.catchupAndSubscribe({
                     onAdded: ({box}) => {
+                        const parameterBox = asInstanceOf(box, MIDIOutputParameterBox)
                         const parameter: AutomatableParameterFieldAdapter<byte> =
-                            adapter.parameters.parameterAt(asInstanceOf(box, MIDIOutputParameterBox).value.address)
+                            adapter.parameters.parameterAt(parameterBox.value.address)
                         const lifecycle = new Terminator()
-                        const element = <ControlValue lifecycle={lifecycle}
-                                                      project={project}
-                                                      adapter={adapter}
-                                                      parameter={parameter}/>
+                        const element = (
+                            <ControlValue lifecycle={lifecycle}
+                                          project={project}
+                                          box={parameterBox}
+                                          adapter={adapter}
+                                          parameter={parameter}/>
+                        )
                         parent.appendChild(element)
                         set.add({uuid: box.address.uuid, lifecycle})
                         lifecycle.own({terminate: () => element.remove()})

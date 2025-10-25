@@ -6,6 +6,7 @@ import {AutomatableParameter} from "./AutomatableParameter"
 import {ProcessInfo, Processor} from "./processing"
 import {EngineContext} from "./EngineContext"
 import {EventBuffer} from "./EventBuffer"
+import {ppqn} from "@opendaw/lib-dsp"
 
 export abstract class AbstractProcessor implements Processor, TerminableOwner, Terminable {
     readonly #terminator = new Terminator()
@@ -26,7 +27,7 @@ export abstract class AbstractProcessor implements Processor, TerminableOwner, T
     abstract reset(): void
     abstract process(processInfo: ProcessInfo): void
 
-    parameterChanged(parameter: AutomatableParameter): void {
+    parameterChanged(parameter: AutomatableParameter, _relativeBlockTime?: number): void {
         return panic(`Got update event for ${parameter}, but has no parameter change method`)
     }
 
@@ -59,15 +60,15 @@ export abstract class AbstractProcessor implements Processor, TerminableOwner, T
         return parameter
     }
 
-    updateParameter(position: number): void {
+    updateParameters(position: ppqn, relativeBlockTimeInSeconds: number): void {
         this.#automatedParameters.forEach((parameter: AutomatableParameter) => {
             if (parameter.updateAutomation(position)) {
-                this.parameterChanged(parameter)
+                this.parameterChanged(parameter, relativeBlockTimeInSeconds)
             }
         })
     }
 
-    readAllParameters(): void {this.#parameters.forEach(parameter => this.parameterChanged(parameter))}
+    readAllParameters(): void {this.#parameters.forEach(parameter => this.parameterChanged(parameter, 0.0))}
 
     own<T extends Terminable>(terminable: T): T {return this.#terminator.own(terminable)}
     ownAll<T extends Terminable>(...terminables: T[]): void {return this.#terminator.ownAll(...terminables)}
