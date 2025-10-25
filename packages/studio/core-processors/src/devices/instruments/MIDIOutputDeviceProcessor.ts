@@ -105,7 +105,7 @@ export class MIDIOutputDeviceProcessor extends AudioProcessor implements Instrum
         const controllerId = asInstanceOf(parameter.adapter.field.box, MIDIOutputParameterBox).controller.getValue()
         this.context.engineToClient
             .sendMIDIData(this.#adapter.uuid,
-                MidiData.control(channel, controllerId, parameter.getValue()), relativeTimeInMs)
+                MidiData.control(channel, controllerId, Math.round(parameter.getValue() * 127)), relativeTimeInMs)
     }
 
     finishProcess(): void {}
