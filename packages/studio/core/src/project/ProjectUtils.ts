@@ -39,7 +39,7 @@ export namespace ProjectUtils {
         assert(Arrays.satisfy(audioUnitBoxes, isSameGraph), "AudioUnits must share the same BoxGraph")
         // TODO Implement include options.
         assert(!options.includeAux && !options.includeBus, "Options are not yet implemented")
-        const {boxGraph, masterBusBox, masterAudioUnit, rootBox} = targetProject
+        const {boxGraph, masterBusBox, rootBox} = targetProject
         const dependencies = audioUnitBoxes
             .flatMap(box => Array.from(box.graph.dependenciesOf(box, {alwaysFollowMandatory: true}).boxes))
             .filter(box => box.name !== SelectionBox.ClassName && box.name !== AuxSendBox.ClassName)
@@ -168,10 +168,13 @@ export namespace ProjectUtils {
         })
     }
 
-    const reorderAudioUnits = (uuidMap: SortedSet<UUID.Bytes, UUIDMapper>, audioUnitBoxes: ReadonlyArray<AudioUnitBox>, rootBox: RootBox): void => {
+    const reorderAudioUnits = (uuidMap: SortedSet<UUID.Bytes, UUIDMapper>,
+                               audioUnitBoxes: ReadonlyArray<AudioUnitBox>,
+                               rootBox: RootBox): void => {
         audioUnitBoxes
             .toSorted(compareIndex)
             .forEach((box: AudioUnitBox) => {
+                // That is a bit slow, but we are probably not dealing with too many audioUnits at this point.
                 const boxes = IndexedBox.collectIndexedBoxes(rootBox.audioUnits, AudioUnitBox)
                 const order: int = AudioUnitOrdering[box.type.getValue()]
                 let index = 0 | 0

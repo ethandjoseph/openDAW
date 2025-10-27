@@ -22,7 +22,7 @@ export const AddParameterButton = ({project: {boxGraph, editing}, adapter}: Cons
                  const index = tracks.pointerHub.incoming().length
                  const parameter = MIDIOutputParameterBox.create(
                      boxGraph, UUID.generate(), box => {
-                         box.label.setValue("CV")
+                         box.label.setValue("CC")
                          box.owner.refer(adapter.box.parameters)
                      })
                  TrackBox.create(boxGraph, UUID.generate(), box => {
