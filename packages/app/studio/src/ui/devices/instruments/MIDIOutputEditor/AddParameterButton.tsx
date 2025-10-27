@@ -31,6 +31,6 @@ export const AddParameterButton = ({project: {boxGraph, editing}, adapter}: Cons
                      box.type.setValue(TrackType.Value)
                      box.tracks.refer(tracks)
                  })
-             })}><Icon symbol={IconSymbol.Add}/> <span>CV</span></div>
+             })}><Icon symbol={IconSymbol.Add}/> <span>CC</span></div>
     )
 }
