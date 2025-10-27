@@ -225,7 +225,7 @@ export class BoxGraph<BoxMap = any> {
         alwaysFollowMandatory?: boolean
     } = {}): Dependencies {
         const excludeBox = isDefined(options.excludeBox) ? options.excludeBox : Predicates.alwaysFalse
-        const alwaysFollowMandatory = isDefined(options.alwaysFollowMandatory) ? options.alwaysFollowMandatory : true
+        const alwaysFollowMandatory = isDefined(options.alwaysFollowMandatory) ? options.alwaysFollowMandatory : false
         const boxes = new Set<Box>()
         const pointers = new Set<PointerField>()
         const trace = (box: Box): void => {
