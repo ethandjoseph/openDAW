@@ -35,5 +35,5 @@
         "@opendaw/eslint-config": "^0.0.20",
         "@opendaw/typescript-config": "^0.0.20"
     },
-    "gitHead": "ee29837d620b53244f842b642abd2b1674b2745f"
+    "gitHead": "cc371b41cc7a5a0d3ef9c13f29df42c893374a53"
 }
