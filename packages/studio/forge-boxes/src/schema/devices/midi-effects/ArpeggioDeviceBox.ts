@@ -1,11 +1,11 @@
 import {BoxSchema} from "@opendaw/lib-box-forge"
 import {Pointers} from "@opendaw/studio-enums"
-import {DefaultParameterPointerRules} from "../../defaults"
-import {createMidiEffectDevice} from "../builder"
+import {DefaultParameterPointerRules} from "../../std/Defaults"
+import {DeviceFactory} from "../../std/DeviceFactory"
 
 // TODO Add an option to use milliseconds as a rate
 
-export const ArpeggioDeviceBox: BoxSchema<Pointers> = createMidiEffectDevice("ArpeggioDeviceBox", {
+export const ArpeggioDeviceBox: BoxSchema<Pointers> = DeviceFactory.createMidiEffect("ArpeggioDeviceBox", {
     10: {type: "int32", name: "mode-index", pointerRules: DefaultParameterPointerRules},
     11: {type: "int32", name: "num-octaves", pointerRules: DefaultParameterPointerRules, value: 1},
     12: {type: "int32", name: "rate-index", pointerRules: DefaultParameterPointerRules, value: 9},

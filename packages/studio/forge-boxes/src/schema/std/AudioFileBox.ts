@@ -10,5 +10,5 @@ export const AudioFileBox: BoxSchema<Pointers> = {
             2: {type: "int32", name: "end-in-seconds"},
             3: {type: "string", name: "file-name"}
         }
-    }, pointerRules: {accepts: [Pointers.AudioFile], mandatory: true}
+    }, pointerRules: {accepts: [Pointers.AudioFile, Pointers.FileUploadState], mandatory: true}
 }

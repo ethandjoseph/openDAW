@@ -1,4 +1,3 @@
-import {DeviceClashBox} from "./clash"
 import {DelayDeviceBox} from "./audio-effects/DelayDeviceBox"
 import {DeviceInterfaceKnobBox, ModularDeviceBox} from "./modular"
 import {RevampDeviceBox} from "./audio-effects/RevampDeviceBox"
@@ -24,7 +23,6 @@ export const DeviceDefinitions = [
     UnknownMidiEffectDevice,
     DeviceInterfaceKnobBox,
     ModularDeviceBox,
-    DeviceClashBox,
     StereoToolDeviceBox,
     CompressorDeviceBox,
     DelayDeviceBox,

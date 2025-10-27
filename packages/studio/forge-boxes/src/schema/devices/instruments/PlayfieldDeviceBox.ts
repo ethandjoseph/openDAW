@@ -1,9 +1,9 @@
 import {BoxSchema} from "@opendaw/lib-box-forge"
 import {Pointers} from "@opendaw/studio-enums"
-import {createInstrumentDevice} from "../builder"
-import {DefaultParameterPointerRules} from "../../defaults"
+import {DeviceFactory} from "../../std/DeviceFactory"
+import {DefaultParameterPointerRules} from "../../std/Defaults"
 
-export const PlayfieldDeviceBox: BoxSchema<Pointers> = createInstrumentDevice("PlayfieldDeviceBox", {
+export const PlayfieldDeviceBox: BoxSchema<Pointers> = DeviceFactory.createInstrument("PlayfieldDeviceBox", {
     10: {type: "field", name: "samples", pointerRules: {accepts: [Pointers.Sample], mandatory: false}}
 })
 

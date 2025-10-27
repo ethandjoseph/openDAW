@@ -1,5 +1,5 @@
 import {Pointers} from "@opendaw/studio-enums"
-import {DefaultParameterPointerRules} from "./defaults"
+import {DefaultParameterPointerRules} from "./Defaults"
 import {BoxSchema, FieldRecord, mergeFields, reserveMany} from "@opendaw/lib-box-forge"
 import {PPQN} from "@opendaw/lib-dsp"
 import {Objects} from "@opendaw/lib-std"

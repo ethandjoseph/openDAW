@@ -1,6 +1,6 @@
 import {BoxSchema, FieldRecord, mergeFields, reserveMany} from "@opendaw/lib-box-forge"
 import {Pointers} from "@opendaw/studio-enums"
-import {createAudioEffectDevice} from "./builder"
+import {DeviceFactory} from "../std/DeviceFactory"
 
 const DeviceInterfaceElement = {
     1: {type: "pointer", name: "user-interface", pointerType: Pointers.DeviceUserInterface, mandatory: true},
@@ -20,7 +20,7 @@ export const DeviceInterfaceKnobBox: BoxSchema<Pointers> = {
     }
 }
 
-export const ModularDeviceBox: BoxSchema<Pointers> = createAudioEffectDevice("ModularDeviceBox", {
+export const ModularDeviceBox: BoxSchema<Pointers> = DeviceFactory.createAudioEffect("ModularDeviceBox", {
     10: {
         type: "pointer",
         name: "modular-setup",

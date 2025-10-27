@@ -1,11 +1,11 @@
 import {BoxSchema} from "@opendaw/lib-box-forge"
 import {Pointers} from "@opendaw/studio-enums"
-import {createAudioEffectDevice} from "../builder"
-import {DefaultParameterPointerRules} from "../../defaults"
+import {DeviceFactory} from "../../std/DeviceFactory"
+import {DefaultParameterPointerRules} from "../../std/Defaults"
 
 // Ported from https://github.com/p-hlp/CTAGDRC
 
-export const CompressorDeviceBox: BoxSchema<Pointers> = createAudioEffectDevice("CompressorDeviceBox", {
+export const CompressorDeviceBox: BoxSchema<Pointers> = DeviceFactory.createAudioEffect("CompressorDeviceBox", {
     10: {type: "boolean", name: "lookahead", pointerRules: DefaultParameterPointerRules, value: false},
     11: {type: "boolean", name: "automakeup", pointerRules: DefaultParameterPointerRules, value: true},
     12: {type: "boolean", name: "autoattack", pointerRules: DefaultParameterPointerRules, value: false},

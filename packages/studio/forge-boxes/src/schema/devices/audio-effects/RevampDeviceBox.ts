@@ -1,7 +1,7 @@
 import {BoxSchema, ClassSchema} from "@opendaw/lib-box-forge"
 import {Pointers} from "@opendaw/studio-enums"
-import {DefaultParameterPointerRules} from "../../defaults"
-import {createAudioEffectDevice} from "../builder"
+import {DefaultParameterPointerRules} from "../../std/Defaults"
+import {DeviceFactory} from "../../std/DeviceFactory"
 
 const Pass = {
     name: "RevampPass",
@@ -32,7 +32,7 @@ const Bell = {
     }
 } satisfies ClassSchema<Pointers>
 
-export const RevampDeviceBox: BoxSchema<Pointers> = createAudioEffectDevice("RevampDeviceBox", {
+export const RevampDeviceBox: BoxSchema<Pointers> = DeviceFactory.createAudioEffect("RevampDeviceBox", {
     10: {type: "object", name: "high-pass", class: Pass},
     11: {type: "object", name: "low-shelf", class: Shelf},
     12: {type: "object", name: "low-bell", class: Bell},

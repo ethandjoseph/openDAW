@@ -1,5 +1,5 @@
 import {AudioSendRouting, AudioUnitType, Pointers} from "@opendaw/studio-enums"
-import {DefaultParameterPointerRules} from "./defaults"
+import {DefaultParameterPointerRules} from "./Defaults"
 import {BoxSchema} from "@opendaw/lib-box-forge"
 
 export const AudioUnitBox: BoxSchema<Pointers> = {

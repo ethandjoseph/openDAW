@@ -39,6 +39,7 @@ export type ClassSchema<E extends PointerTypes> = {
 export type BoxSchema<E extends PointerTypes> = Referencable<E> & {
     type: "box"
     class: ClassSchema<E>
+    ephemeral?: boolean
 }
 export type ObjectSchema<E extends PointerTypes> = {
     type: "object"

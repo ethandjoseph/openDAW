@@ -29,7 +29,7 @@ Digital Signal Processing utilities and audio processing functions for TypeScrip
 
 * **ppqn.ts** - Pulses Per Quarter Note timing utilities
 * **bpm-tools.ts** - Beats Per Minute calculations and tools
-* **grooves.ts** - Rhythm and groove pattern utilities
+* **GrooveBoxes.ts** - Rhythm and groove pattern utilities
 
 ## Audio Graph & Events
 

@@ -1,9 +1,9 @@
 import {BoxSchema} from "@opendaw/lib-box-forge"
 import {Pointers} from "@opendaw/studio-enums"
-import {DefaultParameterPointerRules} from "../../defaults"
-import {createAudioEffectDevice} from "../builder"
+import {DefaultParameterPointerRules} from "../../std/Defaults"
+import {DeviceFactory} from "../../std/DeviceFactory"
 
-export const DelayDeviceBox: BoxSchema<Pointers> = createAudioEffectDevice("DelayDeviceBox", {
+export const DelayDeviceBox: BoxSchema<Pointers> = DeviceFactory.createAudioEffect("DelayDeviceBox", {
     10: {type: "float32", name: "delay", pointerRules: DefaultParameterPointerRules, value: 4},
     11: {type: "float32", name: "feedback", pointerRules: DefaultParameterPointerRules, value: 0.5},
     12: {type: "float32", name: "cross", pointerRules: DefaultParameterPointerRules, value: 0.0},

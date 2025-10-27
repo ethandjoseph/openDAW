@@ -14,6 +14,7 @@ export enum Pointers {
     AudioEffectHost,
     AudioBusses,
     AuxSend,
+    FileUploadState,
     Modulation,
     Automation,
     Parameter,

@@ -44,7 +44,7 @@ Standard library providing core utilities and data structures for TypeScript pro
 * Generator functions and utilities **generators.ts**
 * Interval operations and utilities **intervals.ts**
 * Range implementations **range.ts**
-* Selection utilities **selection.ts**
+* Selection utilities **SelectionBox.ts**
 
 ## Async & Reactive
 

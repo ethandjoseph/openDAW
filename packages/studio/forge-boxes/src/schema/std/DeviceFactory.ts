@@ -31,24 +31,26 @@ const AudioEffectDeviceAttributes = {
     ...reserveMany(6, 7, 8, 9)
 } as const satisfies FieldRecord<Pointers>
 
-export const createMidiEffectDevice = <FIELDS extends FieldRecord<Pointers>>(
-    name: string, fields: Objects.Disjoint<typeof MidiEffectDeviceAttributes, FIELDS>): BoxSchema<Pointers> => ({
-    type: "box",
-    class: {name, fields: mergeFields(MidiEffectDeviceAttributes, fields)},
-    pointerRules: {accepts: DefaultPointers, mandatory: false}
-})
+export namespace DeviceFactory {
+    export const createMidiEffect = <FIELDS extends FieldRecord<Pointers>>(
+        name: string, fields: Objects.Disjoint<typeof MidiEffectDeviceAttributes, FIELDS>): BoxSchema<Pointers> => ({
+        type: "box",
+        class: {name, fields: mergeFields(MidiEffectDeviceAttributes, fields)},
+        pointerRules: {accepts: DefaultPointers, mandatory: false}
+    })
 
-export const createInstrumentDevice = <FIELDS extends FieldRecord<Pointers>>(
-    name: string, fields: Objects.Disjoint<typeof InstrumentDeviceAttributes, FIELDS>,
-    ...pointers: Array<Pointers>): BoxSchema<Pointers> => ({
-    type: "box",
-    class: {name, fields: mergeFields(InstrumentDeviceAttributes, fields)},
-    pointerRules: {accepts: DefaultPointers.concat(pointers), mandatory: false}
-})
+    export const createInstrument = <FIELDS extends FieldRecord<Pointers>>(
+        name: string, fields: Objects.Disjoint<typeof InstrumentDeviceAttributes, FIELDS>,
+        ...pointers: Array<Pointers>): BoxSchema<Pointers> => ({
+        type: "box",
+        class: {name, fields: mergeFields(InstrumentDeviceAttributes, fields)},
+        pointerRules: {accepts: DefaultPointers.concat(pointers), mandatory: false}
+    })
 
-export const createAudioEffectDevice = <FIELDS extends FieldRecord<Pointers>>(
-    name: string, fields: Objects.Disjoint<typeof AudioEffectDeviceAttributes, FIELDS>): BoxSchema<Pointers> => ({
-    type: "box",
-    class: {name, fields: mergeFields(AudioEffectDeviceAttributes, fields)},
-    pointerRules: {accepts: DefaultPointers, mandatory: false}
-})
+    export const createAudioEffect = <FIELDS extends FieldRecord<Pointers>>(
+        name: string, fields: Objects.Disjoint<typeof AudioEffectDeviceAttributes, FIELDS>): BoxSchema<Pointers> => ({
+        type: "box",
+        class: {name, fields: mergeFields(AudioEffectDeviceAttributes, fields)},
+        pointerRules: {accepts: DefaultPointers, mandatory: false}
+    })
+}

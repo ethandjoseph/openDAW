@@ -1,8 +1,8 @@
 import {BoxSchema} from "@opendaw/lib-box-forge"
 import {Pointers} from "@opendaw/studio-enums"
-import {createInstrumentDevice} from "../builder"
+import {DeviceFactory} from "../../std/DeviceFactory"
 
-export const MIDIOutputDeviceBox: BoxSchema<Pointers> = createInstrumentDevice("MIDIOutputDeviceBox", {
+export const MIDIOutputDeviceBox: BoxSchema<Pointers> = DeviceFactory.createInstrument("MIDIOutputDeviceBox", {
     10: {
         type: "object", name: "device", class: {
             name: "Device",

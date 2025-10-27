@@ -58,29 +58,28 @@ export const DevicesBrowser = ({lifecycle, service}: Construct) => {
 }
 
 const createInstrumentList = (lifecycle: Lifecycle, project: Project) => (
-    <ul>{
-        Object.entries(InstrumentFactories.Named).map(([key, factory]) => {
-            const element = (
-                <li onclick={() => project.editing.modify(() => project.api.createInstrument(factory))}>
-                    <div className="icon">
-                        <Icon symbol={factory.defaultIcon}/>
-                    </div>
-                    {factory.defaultName}
-                </li>
-            )
-            lifecycle.ownAll(
-                DragAndDrop.installSource(element, () => ({
-                    type: "instrument",
-                    device: key as InstrumentFactories.Keys,
-                    copy: true
-                } satisfies DragDevice)),
-                TextTooltip.simple(element, () => {
-                    const {bottom, left} = element.getBoundingClientRect()
-                    return {clientX: left, clientY: bottom + 12, text: factory.description}
-                })
-            )
-            return element
-        })
+    <ul>{Object.entries(InstrumentFactories.Named).map(([key, factory]) => {
+        const element = (
+            <li onclick={() => project.editing.modify(() => project.api.createInstrument(factory))}>
+                <div className="icon">
+                    <Icon symbol={factory.defaultIcon}/>
+                </div>
+                {factory.defaultName}
+            </li>
+        )
+        lifecycle.ownAll(
+            DragAndDrop.installSource(element, () => ({
+                type: "instrument",
+                device: key as InstrumentFactories.Keys,
+                copy: true
+            } satisfies DragDevice)),
+            TextTooltip.simple(element, () => {
+                const {bottom, left} = element.getBoundingClientRect()
+                return {clientX: left, clientY: bottom + 12, text: factory.description}
+            })
+        )
+        return element
+    })
     }</ul>
 )
 
