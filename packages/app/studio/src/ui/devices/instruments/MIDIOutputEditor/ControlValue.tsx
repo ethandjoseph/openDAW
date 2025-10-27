@@ -32,7 +32,7 @@ export const ControlValue = ({lifecycle, project, box, adapter, parameter}: Cons
                 resolvers.promise.then((value: string) =>
                     editing.modify(() => box.label.setValue(value)), EmptyExec)
                 return resolvers
-            }} provider={() => ({unit: "", value: parameter.name})}>
+            }} provider={() => ({unit: "", value: box.label.getValue()})}>
                 <span onInit={element => lifecycle.own(box.label
                     .catchupAndSubscribe(owner =>
                         element.textContent = Strings.nonEmpty(owner.getValue(), "Unnamed")))}/>
