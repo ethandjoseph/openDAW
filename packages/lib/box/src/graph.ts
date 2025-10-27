@@ -12,6 +12,8 @@ import {
     Option,
     Optional,
     panic,
+    Predicate,
+    Predicates,
     Procedure,
     SortedSet,
     Subscription,
@@ -218,11 +220,11 @@ export class BoxGraph<BoxMap = any> {
         this.#updateListeners.proxy.onUpdate(update)
     }
 
-    dependenciesOf(box: Box): Dependencies {
+    dependenciesOf(box: Box, excludeBox: Predicate<Box> = Predicates.alwaysFalse): Dependencies {
         const boxes = new Set<Box>()
         const pointers = new Set<PointerField>()
         const trace = (box: Box): void => {
-            if (boxes.has(box)) {return}
+            if (boxes.has(box) || excludeBox(box)) {return}
             boxes.add(box)
             box.outgoingEdges()
                 .filter(([pointer]) => !pointers.has(pointer))
@@ -245,7 +247,7 @@ export class BoxGraph<BoxMap = any> {
         }
         trace(box)
         boxes.delete(box)
-        return {boxes: boxes, pointers: Array.from(pointers).reverse()}
+        return {boxes, pointers: Array.from(pointers).reverse()}
     }
 
     verifyPointers(): { count: int } {

@@ -42,7 +42,8 @@ import {
     EffectPointerType,
     IconSymbol,
     IndexedAdapterCollectionListener,
-    TrackType
+    TrackType,
+    UnionBoxTypes
 } from "@opendaw/studio-adapters"
 import {Project} from "./Project"
 import {InstrumentFactory} from "../InstrumentFactory"
@@ -278,6 +279,7 @@ export class ProjectApi {
     }
 
     // This version ignores selected items, buses and aux-sends. All outputs will be redirected to the primary output.
+    // TODO Do not create a Project. Accept one target project as a parameter.
     extractIntoNew(audioUnits: ReadonlyArray<AudioUnitBox>,
                    option: { includeAux?: boolean, includeBus?: boolean } = {}): Project {
         console.time("extractIntoNew")
@@ -299,7 +301,7 @@ export class ProjectApi {
                 })),
             ...audioUnits
                 .map(box => ({
-                    source: box.collection.targetAddress.unwrap("AudioUnitBox was not connect to a RootBox").uuid,
+                    source: box.collection.targetAddress.unwrap("AudioUnitBox is not connected to a RootBox").uuid,
                     target: rootBox.audioUnits.address.uuid
                 })),
             ...audioUnits
@@ -308,7 +310,7 @@ export class ProjectApi {
                 .map(({address: {uuid}, name}) =>
                     ({source: uuid, target: name === AudioFileBox.ClassName ? uuid : UUID.generate()}))
         ])
-        assert(allAdded, "Some mapping are redundant")
+        assert(allAdded, "Some mappings are redundant")
         boxGraph.beginTransaction()
         PointerField.decodeWith({
             map: (_pointer: PointerField, newAddress: Option<Address>): Option<Address> =>
