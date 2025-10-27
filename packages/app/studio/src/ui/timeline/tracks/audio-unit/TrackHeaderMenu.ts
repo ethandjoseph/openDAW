@@ -7,6 +7,7 @@ import {CaptureMidiBox, TrackBox} from "@opendaw/studio-boxes"
 import {StudioService} from "@/service/StudioService"
 import {MenuCapture} from "@/ui/timeline/tracks/audio-unit/menu/capture"
 import {Browser} from "@opendaw/lib-dom"
+import {Project, ProjectUtils} from "@opendaw/studio-core"
 
 export const installTrackHeaderMenu = (service: StudioService,
                                        audioUnitBoxAdapter: AudioUnitBoxAdapter,
@@ -21,7 +22,8 @@ export const installTrackHeaderMenu = (service: StudioService,
     return parent.addMenuItem(
         MenuItem.default({label: "Test Extract", hidden: !Browser.isLocalHost()}) // TODO Remove when tested
             .setTriggerProcedure(() => editing.modify(async () => {
-                const newProject = project.api.extractIntoNew([trackBoxAdapter.audioUnit])
+                const newProject = Project.new(service)
+                ProjectUtils.extractAudioUnits([trackBoxAdapter.audioUnit], newProject)
                 service.projectProfileService.setProject(newProject, "NEW")
             })),
         MenuItem.default({label: "Enabled", checked: trackBoxAdapter.enabled.getValue()})

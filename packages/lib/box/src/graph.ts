@@ -220,7 +220,12 @@ export class BoxGraph<BoxMap = any> {
         this.#updateListeners.proxy.onUpdate(update)
     }
 
-    dependenciesOf(box: Box, excludeBox: Predicate<Box> = Predicates.alwaysFalse): Dependencies {
+    dependenciesOf(box: Box, options: {
+        excludeBox?: Predicate<Box>
+        alwaysFollowMandatory?: boolean
+    } = {}): Dependencies {
+        const excludeBox = isDefined(options.excludeBox) ? options.excludeBox : Predicates.alwaysFalse
+        const alwaysFollowMandatory = isDefined(options.alwaysFollowMandatory) ? options.alwaysFollowMandatory : true
         const boxes = new Set<Box>()
         const pointers = new Set<PointerField>()
         const trace = (box: Box): void => {
@@ -233,7 +238,8 @@ export class BoxGraph<BoxMap = any> {
                         .unwrap(`Could not find target of ${source.toString()}`)
                     pointers.add(source)
                     if (targetVertex.pointerRules.mandatory &&
-                        targetVertex.pointerHub.incoming().every(pointer => pointers.has(pointer))) {
+                        (alwaysFollowMandatory || targetVertex.pointerHub.incoming()
+                            .every(pointer => pointers.has(pointer)))) {
                         return trace(targetVertex.box)
                     }
                 })

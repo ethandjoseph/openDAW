@@ -7,6 +7,7 @@ import {Workspace} from "@/ui/workspace/Workspace"
 import {Surface} from "@/ui/surface/Surface"
 import {Project, ProjectUtils} from "@opendaw/studio-core"
 import {AnyRegionBox, UnionBoxTypes} from "@opendaw/studio-adapters"
+import {PPQN} from "@opendaw/lib-dsp"
 
 export class Shortcuts {
     constructor(service: StudioService) {
@@ -71,7 +72,7 @@ export class Shortcuts {
                         .selected()
                         .filter(vertex => vertex.isBox() && UnionBoxTypes.isRegionBox(vertex))
                     const targetProject = Project.new(service)
-                    ProjectUtils.moveRegions(regions, targetProject)
+                    ProjectUtils.extractRegions(regions, targetProject, PPQN.Bar)
                     service.projectProfileService.setProject(targetProject, "Copy")
                 })
             } else if (event.shiftKey) {
