@@ -11,10 +11,11 @@ import {
     StereoToolDeviceBox,
     UnknownAudioEffectDeviceBox,
     UnknownMidiEffectDeviceBox,
+    VelocityDeviceBox,
     ZeitgeistDeviceBox
 } from "@opendaw/studio-boxes"
 
 export type EffectBox =
-    | ArpeggioDeviceBox | PitchDeviceBox | ZeitgeistDeviceBox | UnknownMidiEffectDeviceBox
+    | ArpeggioDeviceBox | PitchDeviceBox | VelocityDeviceBox | ZeitgeistDeviceBox | UnknownMidiEffectDeviceBox
     | DelayDeviceBox | ReverbDeviceBox | RevampDeviceBox | StereoToolDeviceBox
     | ModularDeviceBox | UnknownAudioEffectDeviceBox | CompressorDeviceBox | CrusherDeviceBox | FoldDeviceBox

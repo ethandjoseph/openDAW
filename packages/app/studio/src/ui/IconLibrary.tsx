@@ -671,7 +671,20 @@ export const IconLibrary = () => (
                 <path
                     d="M36,13c2.21,0,4,1.79,4,4c0,0.55,0.45,1,1,1s1-0.45,1-1c0-2.21,1.79-4,4-4c0.55,0,1-0.45,1-1s-0.45-1-1-1  c-2.21,0-4-1.79-4-4c0-0.55-0.45-1-1-1s-1,0.45-1,1c0,2.21-1.79,4-4,4c-0.55,0-1,0.45-1,1S35.45,13,36,13z M41,10.31  c0.44,0.67,1.02,1.24,1.69,1.69c-0.67,0.44-1.24,1.02-1.69,1.69c-0.44-0.67-1.02-1.24-1.69-1.69C39.98,11.56,40.56,10.98,41,10.31z"/>
             </symbol>
+            <symbol id={IconSymbol.toName(IconSymbol.Magnet)} viewBox="0 0 512 512" fill="none" stroke="currentColor"
+                 stroke-width="32">
+                <path d="M421.83,293.82A144,144,0,0,0,218.18,90.17" stroke-miterlimit="10"/>
+                <path d="M353.94,225.94a48,48,0,0,0-67.88-67.88" stroke-miterlimit="10"/>
+                <line x1="192" y1="464" x2="192" y2="416" stroke-linecap="round" stroke-miterlimit="10"/>
+                <line x1="90.18" y1="421.82" x2="124.12" y2="387.88" stroke-linecap="round" stroke-miterlimit="10"/>
+                <line x1="48" y1="320" x2="96" y2="320" stroke-linecap="round" stroke-miterlimit="10"/>
+                <path d="M286.06,158.06,172.92,271.19a32,32,0,0,1-45.25,0L105,248.57a32,32,0,0,1,0-45.26L218.18,90.17"
+                      stroke-linejoin="round"/>
+                <path d="M421.83,293.82,308.69,407a32,32,0,0,1-45.26,0l-22.62-22.63a32,32,0,0,1,0-45.26L353.94,225.94"
+                      stroke-linejoin="round"/>
+                <line x1="139.6" y1="169.98" x2="207.48" y2="237.87" stroke-linejoin="round"/>
+                <line x1="275.36" y1="305.75" x2="343.25" y2="373.63" stroke-linejoin="round"/>
+            </symbol>
         </defs>
     </svg>
 )
-

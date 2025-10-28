@@ -21,6 +21,7 @@ import {
     UnknownAudioEffectDeviceBox,
     UnknownMidiEffectDeviceBox,
     VaporisateurDeviceBox,
+    VelocityDeviceBox,
     ZeitgeistDeviceBox
 } from "@opendaw/studio-boxes"
 import {ArpeggioDeviceEditor} from "@/ui/devices/midi-effects/ArpeggioDeviceEditor.tsx"
@@ -46,6 +47,7 @@ import {
     UnknownAudioEffectDeviceBoxAdapter,
     UnknownMidiEffectDeviceBoxAdapter,
     VaporisateurDeviceBoxAdapter,
+    VelocityDeviceBoxAdapter,
     ZeitgeistDeviceBoxAdapter
 } from "@opendaw/studio-adapters"
 import {DelayDeviceEditor} from "@/ui/devices/audio-effects/DelayDeviceEditor.tsx"
@@ -70,6 +72,7 @@ import {CompressorDeviceEditor} from "@/ui/devices/audio-effects/CompressorDevic
 import {CrusherDeviceEditor} from "@/ui/devices/audio-effects/CrusherDeviceEditor"
 import {FoldDeviceEditor} from "@/ui/devices/audio-effects/FoldDeviceEditor"
 import {MIDIOutputDeviceEditor} from "@/ui/devices/instruments/MIDIOutputDeviceEditor"
+import {VelocityDeviceEditor} from "@/ui/devices/midi-effects/VelocityDeviceEditor"
 
 export namespace DeviceEditorFactory {
     export const toMidiEffectDeviceEditor = (service: StudioService, lifecycle: Lifecycle, box: Box, deviceHost: DeviceHost) =>
@@ -92,6 +95,12 @@ export namespace DeviceEditorFactory {
                                    service={service}
                                    adapter={service.project.boxAdapters.adapterFor(box, PitchDeviceBoxAdapter)}
                                    deviceHost={deviceHost}/>
+            ),
+            visitVelocityDeviceBox: (box: VelocityDeviceBox) => (
+                <VelocityDeviceEditor lifecycle={lifecycle}
+                                      service={service}
+                                      adapter={service.project.boxAdapters.adapterFor(box, VelocityDeviceBoxAdapter)}
+                                      deviceHost={deviceHost}/>
             ),
             visitZeitgeistDeviceBox: (box: ZeitgeistDeviceBox) => (
                 <ZeitgeistDeviceEditor lifecycle={lifecycle}
@@ -120,9 +129,9 @@ export namespace DeviceEditorFactory {
             ),
             visitMIDIOutputDeviceBox: (box: MIDIOutputDeviceBox): JsxValue => (
                 <MIDIOutputDeviceEditor lifecycle={lifecycle}
-                                      service={service}
-                                      adapter={service.project.boxAdapters.adapterFor(box, MIDIOutputDeviceBoxAdapter)}
-                                      deviceHost={deviceHost}/>
+                                        service={service}
+                                        adapter={service.project.boxAdapters.adapterFor(box, MIDIOutputDeviceBoxAdapter)}
+                                        deviceHost={deviceHost}/>
             ),
             visitSoundfontDeviceBox: (box: SoundfontDeviceBox): JsxValue => (
                 <SoundfontDeviceEditor lifecycle={lifecycle}

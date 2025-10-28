@@ -14,7 +14,7 @@ import {
     PitchDeviceBox,
     RevampDeviceBox,
     ReverbDeviceBox,
-    StereoToolDeviceBox,
+    StereoToolDeviceBox, VelocityDeviceBox,
     ZeitgeistDeviceBox
 } from "@opendaw/studio-boxes"
 import {IconSymbol} from "@opendaw/studio-adapters"
@@ -43,6 +43,19 @@ export namespace EffectFactories {
         type: "midi",
         create: ({boxGraph}, unit, index) => PitchDeviceBox.create(boxGraph, UUID.generate(), box => {
             box.label.setValue("Pitch")
+            box.index.setValue(index)
+            box.host.refer(unit)
+        })
+    }
+
+    export const Velocity: EffectFactory = {
+        defaultName: "Velocity",
+        defaultIcon: IconSymbol.Note,
+        description: "Shifts the pitch of incoming notes",
+        separatorBefore: false,
+        type: "midi",
+        create: ({boxGraph}, unit, index) => VelocityDeviceBox.create(boxGraph, UUID.generate(), box => {
+            box.label.setValue("Velocity")
             box.index.setValue(index)
             box.host.refer(unit)
         })
@@ -208,7 +221,7 @@ export namespace EffectFactories {
         }
     }
 
-    export const MidiNamed = {Arpeggio, Pitch, Zeitgeist}
+    export const MidiNamed = {Arpeggio, Pitch, Velocity, Zeitgeist}
     export const AudioNamed = {StereoTool, Compressor, Delay, Reverb, Revamp, Crusher, Fold, Modular}
     export const MidiList: ReadonlyArray<Readonly<EffectFactory>> = Object.values(MidiNamed)
     export const AudioList: ReadonlyArray<Readonly<EffectFactory>> = Object.values(AudioNamed)

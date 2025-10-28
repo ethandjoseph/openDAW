@@ -58,6 +58,7 @@ export enum IconSymbol {
     Loop,
     LowPass,
     LowShelf,
+    Magnet,
     MainMenu,
     Maximized,
     Menu,

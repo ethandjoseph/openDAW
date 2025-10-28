@@ -19,6 +19,7 @@ import {
     UnknownAudioEffectDeviceBox,
     UnknownMidiEffectDeviceBox,
     VaporisateurDeviceBox,
+    VelocityDeviceBox,
     ZeitgeistDeviceBox
 } from "@opendaw/studio-boxes"
 import {DelayDeviceProcessor} from "./devices/audio-effects/DelayDeviceProcessor"
@@ -42,6 +43,7 @@ import {
     UnknownAudioEffectDeviceBoxAdapter,
     UnknownMidiEffectDeviceBoxAdapter,
     VaporisateurDeviceBoxAdapter,
+    VelocityDeviceBoxAdapter,
     ZeitgeistDeviceBoxAdapter
 } from "@opendaw/studio-adapters"
 import {NopDeviceProcessor} from "./devices/audio-effects/NopDeviceProcessor"
@@ -68,6 +70,7 @@ import {CompressorDeviceProcessor} from "./devices/audio-effects/CompressorDevic
 import {CrusherDeviceProcessor} from "./devices/audio-effects/CrusherDeviceProcessor"
 import {FoldDeviceProcessor} from "./devices/audio-effects/FoldDeviceProcessor"
 import {MIDIOutputDeviceProcessor} from "./devices/instruments/MIDIOutputDeviceProcessor"
+import {VelocityDeviceProcessor} from "./devices/midi-effects/VelocityDeviceProcessor"
 
 export namespace InstrumentDeviceProcessorFactory {
     export const create = (context: EngineContext,
@@ -100,6 +103,8 @@ export namespace MidiEffectDeviceProcessorFactory {
                 new ArpeggioDeviceProcessor(context, context.boxAdapters.adapterFor(box, ArpeggioDeviceBoxAdapter)),
             visitPitchDeviceBox: (box: PitchDeviceBox): MidiEffectProcessor =>
                 new PitchDeviceProcessor(context, context.boxAdapters.adapterFor(box, PitchDeviceBoxAdapter)),
+            visitVelocityDeviceBox: (box: VelocityDeviceBox): MidiEffectProcessor =>
+                new VelocityDeviceProcessor(context, context.boxAdapters.adapterFor(box, VelocityDeviceBoxAdapter)),
             visitZeitgeistDeviceBox: (box: ZeitgeistDeviceBox): MidiEffectProcessor =>
                 new ZeitgeistDeviceProcessor(context, context.boxAdapters.adapterFor(box, ZeitgeistDeviceBoxAdapter))
         }), `Could not create midi-effect for'${box.name}'`)

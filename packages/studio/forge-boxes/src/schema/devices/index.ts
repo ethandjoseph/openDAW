@@ -17,6 +17,7 @@ import {CompressorDeviceBox} from "./audio-effects/CompressorDeviceBox"
 import {CrusherDeviceBox} from "./audio-effects/CrusherDeviceBox"
 import {FoldDeviceBox} from "./audio-effects/FoldDeviceBox"
 import {MIDIOutputDeviceBox, MIDIOutputParameterBox} from "./instruments/MIDIOutputDeviceBox"
+import {VelocityDeviceBox} from "./midi-effects/VelocityDeviceBox"
 
 export const DeviceDefinitions = [
     UnknownAudioEffectDevice,
@@ -27,6 +28,7 @@ export const DeviceDefinitions = [
     CompressorDeviceBox,
     DelayDeviceBox,
     CrusherDeviceBox,
+    VelocityDeviceBox,
     FoldDeviceBox,
     RevampDeviceBox,
     ReverbDeviceBox,

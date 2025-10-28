@@ -60,6 +60,7 @@ import {
     ValueEventCollectionBox,
     ValueRegionBox,
     VaporisateurDeviceBox,
+    VelocityDeviceBox,
     ZeitgeistDeviceBox
 } from "@opendaw/studio-boxes"
 import {AudioUnitBoxAdapter} from "./audio-unit/AudioUnitBoxAdapter"
@@ -112,6 +113,7 @@ import {CompressorDeviceBoxAdapter} from "./devices/audio-effects/CompressorDevi
 import {CrusherDeviceBoxAdapter} from "./devices/audio-effects/CrusherDeviceBoxAdapter"
 import {FoldDeviceBoxAdapter} from "./devices/audio-effects/FoldDeviceBoxAdapter"
 import {MIDIOutputDeviceBoxAdapter} from "./devices/instruments/MIDIOutputDeviceBoxAdapter"
+import {VelocityDeviceBoxAdapter} from "./devices/midi-effects/VelocityDeviceBoxAdapter"
 
 export class BoxAdapters implements Terminable {
     readonly #context: BoxAdaptersContext
@@ -167,6 +169,7 @@ export class BoxAdapters implements Terminable {
             visitRootBox: (box: RootBox): BoxAdapter => new RootBoxAdapter(this.#context, box),
             visitArpeggioDeviceBox: (box: ArpeggioDeviceBox) => new ArpeggioDeviceBoxAdapter(this.#context, box),
             visitPitchDeviceBox: (box: PitchDeviceBox) => new PitchDeviceBoxAdapter(this.#context, box),
+            visitVelocityDeviceBox: (box: VelocityDeviceBox) => new VelocityDeviceBoxAdapter(this.#context, box),
             visitStereoToolDeviceBox: (box: StereoToolDeviceBox) => new StereoToolDeviceBoxAdapter(this.#context, box),
             visitCrusherDeviceBox: (box: CrusherDeviceBox) => new CrusherDeviceBoxAdapter(this.#context, box),
             visitFoldDeviceBox: (box: FoldDeviceBox) => new FoldDeviceBoxAdapter(this.#context, box),
