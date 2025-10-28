@@ -28,9 +28,9 @@ export class VelocityDeviceBoxAdapter implements MidiEffectDeviceAdapter {
 
     computeVelocity(position: ppqn, original: unitValue): unitValue {
         const {magnetPosition, magnetStrength, randomSeed, randomAmount, offset, mix} = this.namedParameter
-        this.#random.setSeed(randomSeed.getValue() + position)
+        this.#random.setSeed(randomSeed.valueAt(position) + position)
         const magnet = original + (magnetPosition.valueAt(position) - original) * magnetStrength.valueAt(position)
-        const random = (this.#random.uniform() * 2.0 - 1.0) * randomAmount.getValue()
+        const random = (this.#random.uniform() * 2.0 - 1.0) * randomAmount.valueAt(position)
         const delta = offset.valueAt(position)
         const wet = mix.valueAt(position)
         return original * (1.0 - wet) + (clampUnit(magnet + random + delta)) * wet
@@ -59,23 +59,23 @@ export class VelocityDeviceBoxAdapter implements MidiEffectDeviceAdapter {
             magnetPosition: this.#parametric.createParameter(
                 box.magnetPosition,
                 ValueMapping.unipolar(),
-                StringMapping.percent(), "Mag. Pos."),
+                StringMapping.percent(), "Position"),
             magnetStrength: this.#parametric.createParameter(
                 box.magnetStrength,
                 ValueMapping.unipolar(),
-                StringMapping.percent(), "Mag. Str."),
+                StringMapping.percent(), "Strength"),
             randomSeed: this.#parametric.createParameter(
                 box.randomSeed,
                 ValueMapping.linearInteger(0, 0xFFFF),
-                StringMapping.numeric({unit: "", fractionDigits: 0}), "Ran. Seed"),
+                StringMapping.numeric({unit: "", fractionDigits: 0}), "Seed"),
             randomAmount: this.#parametric.createParameter(
                 box.randomAmount,
                 ValueMapping.unipolar(),
-                StringMapping.percent(), "Ran. Amount"),
+                StringMapping.percent(), "Amount"),
             offset: this.#parametric.createParameter(
                 box.offset,
-                ValueMapping.unipolar(),
-                StringMapping.percent(), "Offset"),
+                ValueMapping.bipolar(),
+                StringMapping.percent({bipolar: true}), "Offset"),
             mix: this.#parametric.createParameter(
                 box.mix,
                 ValueMapping.unipolar(),

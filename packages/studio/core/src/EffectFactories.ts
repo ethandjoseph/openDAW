@@ -14,7 +14,8 @@ import {
     PitchDeviceBox,
     RevampDeviceBox,
     ReverbDeviceBox,
-    StereoToolDeviceBox, VelocityDeviceBox,
+    StereoToolDeviceBox,
+    VelocityDeviceBox,
     ZeitgeistDeviceBox
 } from "@opendaw/studio-boxes"
 import {IconSymbol} from "@opendaw/studio-adapters"
@@ -50,7 +51,7 @@ export namespace EffectFactories {
 
     export const Velocity: EffectFactory = {
         defaultName: "Velocity",
-        defaultIcon: IconSymbol.Note,
+        defaultIcon: IconSymbol.Velocity,
         description: "Shifts the pitch of incoming notes",
         separatorBefore: false,
         type: "midi",
