@@ -1,6 +1,6 @@
-import {FFmpegConverter} from "./FFmpegConverter"
 import {int, Progress} from "@opendaw/lib-std"
-import {AcceptedSource, FFmpegWorker} from "./FFmpegWorker"
+import type {FFmpegConverter} from "./FFmpegConverter"
+import type {AcceptedSource, FFmpegWorker} from "./FFmpegWorker"
 
 // compression level (0-12, 8 is default)
 export type FlacOptions = { compression: int }

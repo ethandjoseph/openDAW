@@ -1,5 +1,5 @@
-import {AcceptedSource} from "./FFmpegWorker"
 import {Progress} from "@opendaw/lib-std"
+import type {AcceptedSource} from "./FFmpegWorker"
 
 export interface FFmpegConverter<OPTIONS> {
     convert(source: AcceptedSource,
