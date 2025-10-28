@@ -53,9 +53,9 @@ Adds or subtracts from programmed/processed velocity in the range **±100%**. Fi
 Blends original and processed velocities.  
 **0%** = dry passthrough. **100%** = fully processed.
 
-## 2. Technical Notes & Limits
+# 2. Technical Notes & Limits
 
-### 2.1 Processing Order
+## 2.1 Processing Order
 The effect applies changes in this order:
 1. **Target Pull** — Notes are pulled toward the **Position** by **Strength**.
 2. **Humanization** — Random variation is added (set by **Amount**, shaped by **Seed**).
@@ -63,7 +63,7 @@ The effect applies changes in this order:
 4. **Safety Clamp** — The processed value is kept within a valid velocity range.
 5. **Mix** — The processed result is blended with the original using **Mix**.
 
-### 2.2 Units
+## 2.2 Units
 - Processed velocities are clamped **internally as float**
 - UI controls: shown as **0-100%**
 - MIDI output: Emitted as 0-127
@@ -72,7 +72,7 @@ The effect applies changes in this order:
 - 50% (UI) ↔ 0.50 ↔ ~64 (MIDI)
 - 75% (UI) ↔ 0.75 ↔ ~95 (MIDI)
 
-### 2.3 Other Details
+## 2.3 Other Details
 - Only **Note On** velocities are modified; other MIDI messages (aftertouch, CCs, etc.) pass through unchanged.    
 - With **Strength = 100%** and **Mix = 100%**:  
   - If **Amount = 0** → **Position + Offset** → clamp.  
