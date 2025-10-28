@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.42](https://github.com/andremichelle/openDAW/compare/@opendaw/lib-runtime@0.0.41...@opendaw/lib-runtime@0.0.42) (2025-10-28)
+
+**Note:** Version bump only for package @opendaw/lib-runtime
+
 ## [0.0.41](https://github.com/andremichelle/openDAW/compare/@opendaw/lib-runtime@0.0.40...@opendaw/lib-runtime@0.0.41) (2025-10-27)
 
 **Note:** Version bump only for package @opendaw/lib-runtime

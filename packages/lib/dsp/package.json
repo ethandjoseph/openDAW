@@ -1,6 +1,6 @@
 {
     "name": "@opendaw/lib-dsp",
-    "version": "0.0.41",
+    "version": "0.0.42",
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "license": "LGPL-3.0-or-later",
@@ -26,7 +26,7 @@
         "test": "vitest run"
     },
     "dependencies": {
-        "@opendaw/lib-std": "^0.0.41"
+        "@opendaw/lib-std": "^0.0.42"
     },
     "devDependencies": {
         "@opendaw/eslint-config": "^0.0.20",
