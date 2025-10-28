@@ -24,6 +24,7 @@ type Construct = {
 export const VelocityDeviceEditor = ({lifecycle, service, adapter, deviceHost}: Construct) => {
     const {project} = service
     const {editing, liveStreamReceiver, midiLearning} = project
+    const {magnetPosition, magnetStrength, offset} = adapter.namedParameter
     const particleLifeTime = 20
     const velocities: Array<{ original: unitValue, computed: unitValue, lifeTime: int }> = []
     return (
@@ -38,7 +39,6 @@ export const VelocityDeviceEditor = ({lifecycle, service, adapter, deviceHost}: 
                                       <canvas onInit={canvas => {
                                           const painter = lifecycle.own(new CanvasPainter(canvas, painter => {
                                               const {context, devicePixelRatio, width, height} = painter
-                                              const {magnetPosition, magnetStrength} = adapter.namedParameter
                                               const pad = 4
                                               const right = width - pad
                                               const bottom = height - pad
@@ -115,7 +115,8 @@ export const VelocityDeviceEditor = ({lifecycle, service, adapter, deviceHost}: 
                                   editing,
                                   midiLearning,
                                   adapter,
-                                  parameter
+                                  parameter,
+                                  anchor: parameter === offset ? 0.5 : 0.0
                               }))
                               }
                           </div>

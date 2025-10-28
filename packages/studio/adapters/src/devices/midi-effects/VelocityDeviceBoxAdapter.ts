@@ -75,7 +75,7 @@ export class VelocityDeviceBoxAdapter implements MidiEffectDeviceAdapter {
             offset: this.#parametric.createParameter(
                 box.offset,
                 ValueMapping.bipolar(),
-                StringMapping.percent({bipolar: true}), "Offset"),
+                StringMapping.percent(), "Offset"),
             mix: this.#parametric.createParameter(
                 box.mix,
                 ValueMapping.unipolar(),

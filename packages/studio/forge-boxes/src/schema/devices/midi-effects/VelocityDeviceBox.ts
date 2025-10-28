@@ -8,6 +8,6 @@ export const VelocityDeviceBox: BoxSchema<Pointers> = DeviceFactory.createMidiEf
     11: {type: "float32", name: "magnet-strength", pointerRules: DefaultParameterPointerRules},
     12: {type: "int32", name: "random-seed", value: 0x800},
     13: {type: "float32", name: "random-amount", pointerRules: DefaultParameterPointerRules},
-    14: {type: "float32", name: "offset", pointerRules: DefaultParameterPointerRules},
+    14: {type: "float32", name: "offset", pointerRules: DefaultParameterPointerRules, value: 0.0},
     15: {type: "float32", name: "mix", pointerRules: DefaultParameterPointerRules, value: 1.0}
 })
