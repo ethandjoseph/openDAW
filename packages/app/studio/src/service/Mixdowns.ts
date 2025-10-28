@@ -1,16 +1,10 @@
-import {
-    AudioOfflineRenderer,
-    FFmpegConverter,
-    FFmpegWorker,
-    ProjectMeta,
-    ProjectProfile,
-    WavFile
-} from "@opendaw/studio-core"
 import {DefaultObservableValue, Errors, Option, panic, RuntimeNotifier} from "@opendaw/lib-std"
-import {Promises} from "@opendaw/lib-runtime"
+import {AudioOfflineRenderer, ProjectMeta, ProjectProfile, WavFile} from "@opendaw/studio-core"
 import {Files} from "@opendaw/lib-dom"
+import {Promises} from "@opendaw/lib-runtime"
 import {ExportStemsConfiguration} from "@opendaw/studio-adapters"
 import {Dialogs} from "@/ui/components/dialogs"
+import type {FFmpegConverter, FFmpegWorker} from "@opendaw/studio-core"
 
 export namespace Mixdowns {
     export const exportMixdown = async ({project, meta}: ProjectProfile): Promise<void> => {
@@ -137,6 +131,7 @@ export namespace Mixdowns {
     }
 
     const loadFFmepg = async (): Promise<FFmpegWorker> => {
+        const {FFmpegWorker} = await import("@opendaw/studio-core/FFmpegWorker")
         const progress = new DefaultObservableValue(0.0)
         const progressDialog = RuntimeNotifier.progress({headline: "Loading FFmpeg...", progress})
         const {status, value, error} = await Promises.tryCatch(FFmpegWorker.load(value => progress.setValue(value)))
