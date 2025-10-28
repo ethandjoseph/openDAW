@@ -2,3 +2,18 @@
 
 component
   @include mixins.ControlLayout(3)
+  grid-auto-flow: column
+
+  > div.header
+    display: grid
+    grid-template-rows: 2fr 1fr
+    grid-template-columns: subgrid
+    grid-column: 1 / -1
+    row-gap: 0.25em
+    justify-items: center
+    color: var(--color-shadow)
+
+    > div.canvas
+      width: 100%
+      height: 100%
+      grid-column: 1 / -1
