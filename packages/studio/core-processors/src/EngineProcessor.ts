@@ -128,8 +128,8 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
                 switchMarkerState(state: Nullable<[UUID.Bytes, int]>): void {
                     dispatcher.dispatchAndForget(this.switchMarkerState, state)
                 }
-                sendMIDIData(target: UUID.Bytes, data: Uint8Array, relativeTimeInMs: number) {
-                    dispatcher.dispatchAndForget(this.sendMIDIData, target, data, relativeTimeInMs)
+                sendMIDIData(midiDeviceId: string, data: Uint8Array, relativeTimeInMs: number) {
+                    dispatcher.dispatchAndForget(this.sendMIDIData, midiDeviceId, data, relativeTimeInMs)
                 }
                 ready() {dispatcher.dispatchAndForget(this.ready)}
             })

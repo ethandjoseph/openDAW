@@ -173,12 +173,12 @@ export class EngineWorklet extends AudioWorkletNode implements Engine {
                     this.#notifyClipNotification.notify({type: "sequencing", changes})
                 },
                 switchMarkerState: (state: Nullable<[UUID.Bytes, int]>): void => this.#markerState.setValue(state),
-                sendMIDIData: (target: UUID.Bytes, data: Uint8Array, relativeTimeInMs: number) => {
+                sendMIDIData: (midiDeviceId: string, data: Uint8Array, relativeTimeInMs: number) => {
                     let delay = 20.0 // default 20ms
                     if (this.context instanceof AudioContext) {
                         delay = this.context.outputLatency / 1000.0
                     }
-                    this.#project.receivedMIDIFromEngine(target, data, relativeTimeInMs + delay)
+                    this.#project.receivedMIDIFromEngine(midiDeviceId, data, relativeTimeInMs + delay)
                 }
             } satisfies EngineToClient
         )

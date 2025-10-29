@@ -2,13 +2,10 @@ import {
     Arrays,
     ByteArrayOutput,
     Func,
-    isDefined,
     Option,
     panic,
     Procedure,
     safeExecute,
-    SortedSet,
-    Subscription,
     Terminable,
     TerminableOwner,
     Terminator,
@@ -23,7 +20,6 @@ import {
     BoxVisitor,
     CompressorDeviceBox,
     GrooveShuffleBox,
-    MIDIOutputDeviceBox,
     RootBox,
     TimelineBox,
     TrackBox,
@@ -56,7 +52,7 @@ import {ProjectMigration} from "./ProjectMigration"
 import {CaptureDevices, Recording} from "../capture"
 import {EngineFacade} from "../EngineFacade"
 import {EngineWorklet} from "../EngineWorklet"
-import {MIDILearning} from "../midi"
+import {MidiDevices, MIDILearning} from "../midi"
 import {ProjectValidation} from "./ProjectValidation"
 import {Preferences} from "../Preferences"
 import {PPQN, ppqn} from "@opendaw/lib-dsp"
@@ -159,12 +155,6 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
     readonly mixer: Mixer
     readonly engine = new EngineFacade()
 
-    readonly #midiOutputs: SortedSet<UUID.Bytes, {
-        box: MIDIOutputDeviceBox,
-        device: MIDIOutput
-        subscription: Subscription
-    }> = UUID.newSet(({box: {address: {uuid}}}) => uuid)
-
     private constructor(env: ProjectEnv, boxGraph: BoxGraph, {
         rootBox,
         userInterfaceBoxes,
@@ -262,6 +252,11 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
         }
     }
 
+    receivedMIDIFromEngine(midiDeviceId: string, data: Uint8Array, relativeTimeInMs: number): void {
+        MidiDevices.get().ifSome(midiAccess => midiAccess.outputs
+            .get(midiDeviceId)?.send(data, performance.now() + relativeTimeInMs))
+    }
+
     collectSampleUUIDs(): ReadonlyArray<UUID.Bytes> {
         return this.boxGraph.boxes()
             .filter(box => box.accept<BoxVisitor<boolean>>({visitAudioFileBox: (_box: AudioFileBox): boolean => true}))
@@ -296,31 +291,6 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
                 return false
             }
         }) ?? false)
-    }
-
-    connectMIDIOutput(box: MIDIOutputDeviceBox, device: MIDIOutput): void {
-        console.debug("connectMIDIOutput", UUID.toString(box.address.uuid), device.name, device.manufacturer)
-        this.disconnectMIDIOutput(box.address.uuid)
-        this.#midiOutputs.add({
-            box, device, subscription: box.host.subscribe(pointer => {
-                if (pointer.isEmpty()) {
-                    this.disconnectMIDIOutput(box.address.uuid)
-                }
-            })
-        })
-    }
-
-    disconnectMIDIOutput(uuid: UUID.Bytes): void {
-        const entry = this.#midiOutputs.removeByKeyIfExist(uuid)
-        if (isDefined(entry)) {
-            console.debug("disconnectMIDIOutput", UUID.toString(uuid))
-            entry.subscription.terminate()
-        }
-    }
-
-    receivedMIDIFromEngine(target: UUID.Bytes, data: Uint8Array, relativeTimeInMs: number): void {
-        this.#midiOutputs.opt(target).ifSome(({box, device}) =>
-            device.send(data, performance.now() + relativeTimeInMs + box.delay.getValue()))
     }
 
     terminate(): void {

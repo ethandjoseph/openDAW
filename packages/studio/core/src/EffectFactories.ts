@@ -52,7 +52,7 @@ export namespace EffectFactories {
     export const Velocity: EffectFactory = {
         defaultName: "Velocity",
         defaultIcon: IconSymbol.Velocity,
-        description: "Shifts the pitch of incoming notes",
+        description: "Manipulates the velocity of incoming notes",
         separatorBefore: false,
         type: "midi",
         create: ({boxGraph}, unit, index) => VelocityDeviceBox.create(boxGraph, UUID.generate(), box => {

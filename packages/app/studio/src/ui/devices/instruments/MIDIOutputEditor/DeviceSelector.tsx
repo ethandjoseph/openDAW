@@ -18,7 +18,6 @@ export const DeviceSelector = ({lifecycle, project, adapter}: Construct) => {
         const optDevice = MidiDevices.externalOutputDevices()
             .map(devices => devices.find(device => device.id === requestedId))
         deviceLabelClass.toggle("not-available", optDevice.isEmpty() && requestedId !== "")
-        optDevice.ifSome(device => project.connectMIDIOutput(adapter.box, device))
     }
     return (
         <MenuButton root={MenuItem.root().setRuntimeChildrenProcedure(parent =>
