@@ -15,11 +15,17 @@ component
     flex-direction: column
     row-gap: 0.75em
 
-    > nav
+    nav
       display: flex
       flex-direction: column
       row-gap: 0.25em
       font-size: 0.875rem
+
+      nav
+        color: var(--color-dark)
+
+      nav nav, nav a
+        padding-left: 0.5em
 
       a
         color: var(--color-dark)

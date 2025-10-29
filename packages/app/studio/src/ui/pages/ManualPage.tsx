@@ -4,10 +4,27 @@ import {StudioService} from "@/service/StudioService.ts"
 import {ThreeDots} from "@/ui/spinner/ThreeDots"
 import {BackButton} from "@/ui/pages/BackButton"
 import {Markdown} from "@/ui/Markdown"
-import {Manuals} from "@/ui/pages/Manuals"
+import {Manual, Manuals} from "@/ui/pages/Manuals"
 import {Html} from "@opendaw/lib-dom"
+import {MenuItem} from "@/ui/model/menu-item"
+import {panic} from "@opendaw/lib-std"
 
 const className = Html.adoptStyleSheet(css, "ManualPage")
+
+const addManuals = (manuals: ReadonlyArray<Manual>): ReadonlyArray<MenuItem> => manuals.map(manual => {
+    if (manual.type === "page") {
+        return <LocalLink href={manual.path}>{manual.label}</LocalLink>
+    } else if (manual.type === "folder") {
+        return (
+            <nav>
+                <div>• {manual.label}</div>
+                <div>{...addManuals(manual.files)}</div>
+            </nav>
+        )
+    } else {
+        return panic()
+    }
+})
 
 export const ManualPage: PageFactory<StudioService> = ({service, path}: PageContext<StudioService>) => {
     return (
@@ -15,7 +32,8 @@ export const ManualPage: PageFactory<StudioService> = ({service, path}: PageCont
             <aside>
                 <BackButton/>
                 <nav>
-                    {Manuals.map(([name, url]) => (<LocalLink href={url}>{name}</LocalLink>))}
+                    <LocalLink href="/manuals/">⇱</LocalLink>
+                    {addManuals(Manuals)}
                 </nav>
             </aside>
             <div className="manual">

@@ -70,7 +70,7 @@ export namespace ProjectUtils {
         console.debug(`Found ${audioUnitBoxSet.keyCount()} audioUnits`)
         console.debug(`Found ${trackBoxSet.size} tracks`)
         const audioUnitBoxes = [...audioUnitBoxSet.keys()]
-        const {boxGraph, masterBusBox, masterAudioUnit, rootBox} = targetProject
+        const {boxGraph, masterBusBox, rootBox} = targetProject
         const excludeBox: Predicate<Box> =
             box => (isInstanceOf(box, TrackBox) && !trackBoxSet.has(box))
                 || (UnionBoxTypes.isRegionBox(box) && !regionBoxSet.has(box))
@@ -163,6 +163,13 @@ export namespace ProjectUtils {
                     const input = new ByteArrayInput(source.toArrayBuffer())
                     const key = source.name as keyof BoxIO.TypeMap
                     const uuid = uuidMap.get(source.address.uuid).target
+                    if (source instanceof AudioFileBox || source instanceof SoundfontFileBox) {
+                        // Those boxes keep their UUID. So if they are already in the graph, we can just read them.
+                        if (boxGraph.findBox(source.address.uuid).nonEmpty()) {
+                            source.read(input)
+                            return
+                        }
+                    }
                     boxGraph.createBox(key, uuid, box => box.read(input))
                 })
         })

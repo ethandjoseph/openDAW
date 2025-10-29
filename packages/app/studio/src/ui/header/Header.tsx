@@ -1,7 +1,7 @@
 import css from "./Header.sass?inline"
 import {Checkbox} from "@/ui/components/Checkbox.tsx"
 import {Icon} from "@/ui/components/Icon.tsx"
-import {Lifecycle, Nullable, ObservableValue, Observer, Subscription, Terminator, UUID} from "@opendaw/lib-std"
+import {Lifecycle, Nullable, ObservableValue, Observer, panic, Subscription, Terminator, UUID} from "@opendaw/lib-std"
 import {TransportGroup} from "@/ui/header/TransportGroup.tsx"
 import {TimeStateDisplay} from "@/ui/header/TimeStateDisplay.tsx"
 import {RadioGroup} from "@/ui/components/RadioGroup.tsx"
@@ -13,7 +13,7 @@ import {IconSymbol} from "@opendaw/studio-adapters"
 import {Html} from "@opendaw/lib-dom"
 import {MenuItem} from "@/ui/model/menu-item"
 import {Colors, MidiDevices} from "@opendaw/studio-core"
-import {Manuals} from "@/ui/pages/Manuals"
+import {Manual, Manuals} from "@/ui/pages/Manuals"
 import {HorizontalPeakMeter} from "@/ui/components/HorizontalPeakMeter"
 import {Address} from "@opendaw/lib-box"
 import {gainToDb} from "@opendaw/lib-dsp"
@@ -41,6 +41,19 @@ export const Header = ({lifecycle, service}: Construct) => {
                     }))
         })
     }))
+    const addManualMenuItems = (manuals: ReadonlyArray<Manual>): ReadonlyArray<MenuItem> => manuals.map(manual => {
+        if (manual.type === "page") {
+            return MenuItem.default({
+                label: manual.label,
+                checked: RouteLocation.get().path === manual.path
+            }).setTriggerProcedure(() => RouteLocation.get().navigateTo(manual.path))
+        } else if (manual.type === "folder") {
+            return MenuItem.default({label: manual.label})
+                .setRuntimeChildrenProcedure(parent => parent.addMenuItem(...addManualMenuItems(manual.files)))
+        } else {
+            return panic()
+        }
+    })
     return (
         <header className={className}>
             <MenuButton root={service.menu}
@@ -59,10 +72,7 @@ export const Header = ({lifecycle, service}: Construct) => {
                         const helpVisible = service.layout.helpVisible
                         return parent.addMenuItem(
                             MenuItem.header({label: "Manuals", icon: IconSymbol.OpenDAW, color: Colors.green}),
-                            ...Manuals.slice(1).map(([label, url]) => MenuItem.default({
-                                label,
-                                checked: RouteLocation.get().path === url
-                            }).setTriggerProcedure(() => RouteLocation.get().navigateTo(url))),
+                            ...addManualMenuItems(Manuals),
                             MenuItem.default({
                                 label: "Visible Hints & Tooltips",
                                 checked: helpVisible.getValue(),
