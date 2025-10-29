@@ -93,7 +93,6 @@ export namespace InstrumentFactories {
                 useAudioFile(boxGraph, UUID.parse("51c5eea4-391c-4743-896a-859692ec1105"), "909 Open Hat", 0.502),
                 useAudioFile(boxGraph, UUID.parse("42a56ff6-89b6-4f2e-8a66-5a41d316f4cb"), "909 Crash", 1.055),
                 useAudioFile(boxGraph, UUID.parse("87cde966-b799-4efc-a994-069e703478d3"), "909 Ride", 1.720)
-
             ]
             const samples = files.map((file, index) => PlayfieldSampleBox.create(boxGraph, UUID.generate(), box => {
                 box.device.refer(deviceBox.samples)
