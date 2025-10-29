@@ -8,7 +8,7 @@ export namespace EditWrapper {
         new class implements MutableObservableValue<T> {
             getValue(): T {return owner.getValue()}
             setValue(value: T) {
-                if (editing.canModify()) {
+                if (editing.mustModify()) {
                     editing.modify(() => owner.setValue(value))
                 } else {
                     owner.setValue(value)
@@ -28,7 +28,7 @@ export namespace EditWrapper {
         new class implements MutableObservableValue<T> {
             getValue(): T {return adapter.getControlledValue()}
             setValue(value: T) {
-                if (editing.canModify()) {
+                if (editing.mustModify()) {
                     editing.modify(() => adapter.setValue(value))
                 } else {
                     adapter.setValue(value)

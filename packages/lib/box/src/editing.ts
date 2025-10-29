@@ -74,7 +74,7 @@ export class BoxEditing implements Editing {
 
     // TODO This is an option to clarify, if user actions meant to be run by a modifier or not.
     //  See ParameterWrapper. Not the nicest solution. Probably coming back to this sooner or later.
-    canModify(): boolean {return !this.#graph.inTransaction()}
+    mustModify(): boolean {return !this.#graph.inTransaction()}
 
     modify<R>(modifier: Provider<Maybe<R>>, mark: boolean = true): Option<R> {
         if (this.#modifying) {
