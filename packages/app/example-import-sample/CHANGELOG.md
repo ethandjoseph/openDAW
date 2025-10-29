@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.54](https://github.com/andremichelle/openDAW/compare/@opendaw/example-import-sample@0.0.53...@opendaw/example-import-sample@0.0.54) (2025-10-29)
+
+**Note:** Version bump only for package @opendaw/example-import-sample
+
 ## [0.0.53](https://github.com/andremichelle/openDAW/compare/@opendaw/example-import-sample@0.0.52...@opendaw/example-import-sample@0.0.53) (2025-10-28)
 
 **Note:** Version bump only for package @opendaw/example-import-sample
