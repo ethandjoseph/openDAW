@@ -31,6 +31,7 @@ export enum Pointers {
     RegionCollection,
     TrackCollection,
     Device,
+    MIDIDevice,
     Groove,
     ModularSetup,
     ModuleCollection,

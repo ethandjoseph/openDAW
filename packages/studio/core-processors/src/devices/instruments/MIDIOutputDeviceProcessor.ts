@@ -9,7 +9,7 @@ import {NoteEventSource, NoteEventTarget, NoteLifecycleEvent} from "../../NoteEv
 import {DeviceProcessor} from "../../DeviceProcessor"
 import {InstrumentDeviceProcessor} from "../../InstrumentDeviceProcessor"
 import {MidiData} from "@opendaw/lib-midi"
-import {MIDIOutputParameterBox} from "@opendaw/studio-boxes"
+import {MIDIOutputBox, MIDIOutputParameterBox} from "@opendaw/studio-boxes"
 
 export class MIDIOutputDeviceProcessor extends AudioProcessor implements InstrumentDeviceProcessor, NoteEventTarget {
     readonly #adapter: MIDIOutputDeviceBoxAdapter
@@ -31,23 +31,23 @@ export class MIDIOutputDeviceProcessor extends AudioProcessor implements Instrum
         this.#audioOutput = new AudioBuffer()
         this.#parameters = []
 
-        this.#lastChannel = adapter.box.channel.getValue()
+        const {midiDevice, box, parameters} = adapter
+
+        this.#lastChannel = box.channel.getValue()
 
         this.ownAll(
-            adapter.box.parameters.pointerHub.catchupAndSubscribe({
-                onAdded: (({box}) => this.#parameters.push(
-                    this.bindParameter(adapter.parameters.parameterAt(
-                        asInstanceOf(box, MIDIOutputParameterBox).value.address)))),
-                onRemoved: (({box}) => {
+            box.parameters.pointerHub.catchupAndSubscribe({
+                onAdded: (({box}) =>
+                    this.#parameters.push(this.bindParameter(
+                        parameters.parameterAt(asInstanceOf(box, MIDIOutputParameterBox).value.address)))),
+                onRemoved: (({box}) =>
                     Arrays.removeIf(this.#parameters, parameter =>
-                        parameter.address === asInstanceOf(box, MIDIOutputParameterBox).value.address)
-                })
+                        parameter.address === asInstanceOf(box, MIDIOutputParameterBox).value.address))
             }),
-            adapter.box.channel.subscribe(owner => {
-                this.#activeNotes.forEach(pitch =>
-                    context.engineToClient
-                        .sendMIDIData(adapter.box.device.id.getValue(),
-                            MidiData.noteOff(this.#lastChannel, pitch), adapter.box.delay.getValue()))
+            box.channel.subscribe(owner => {
+                midiDevice.ifSome(outputBox => this.#activeNotes.forEach(pitch =>
+                    context.engineToClient.sendMIDIData(outputBox.id.getValue(),
+                        MidiData.noteOff(this.#lastChannel, pitch), outputBox.delayInMs.getValue())))
                 this.#activeNotes.length = 0
                 this.#lastChannel = owner.getValue()
             }),
@@ -60,9 +60,12 @@ export class MIDIOutputDeviceProcessor extends AudioProcessor implements Instrum
 
     introduceBlock({p0, p1, s0, flags, bpm}: Block): void {
         if (this.#source.isEmpty()) {return}
-        const {box: {channel, delay, device}} = this.#adapter
-        const delayInMs = delay.getValue()
-        const deviceId = device.id.getValue()
+        const {box: {channel, device}} = this.#adapter
+        const optDevice = device.targetVertex.match({
+            none: () => Option.None,
+            some: ({box}) => Option.wrap(asInstanceOf(box, MIDIOutputBox))
+        })
+        const delayInMs = optDevice.mapOr(box => box.delayInMs.getValue(), 0)
         for (const event of this.#source.unwrap().processNotes(p0, p1, flags)) {
             if (event.pitch >= 0 && event.pitch <= 127) {
                 const blockOffsetInSeconds = s0 / sampleRate
@@ -72,17 +75,14 @@ export class MIDIOutputDeviceProcessor extends AudioProcessor implements Instrum
                 if (NoteLifecycleEvent.isStart(event)) {
                     const velocityAsByte = Math.round(event.velocity * 127)
                     this.#activeNotes.push(event.pitch)
-                    this.context.engineToClient
-                        .sendMIDIData(deviceId,
-                            MidiData.noteOn(channelIndex, event.pitch, velocityAsByte), relativeTimeInMs)
+                    optDevice.ifSome(device => this.context.engineToClient.sendMIDIData(device.id.getValue(),
+                        MidiData.noteOn(channelIndex, event.pitch, velocityAsByte), relativeTimeInMs))
                 } else if (NoteLifecycleEvent.isStop(event)) {
                     const deleteIndex = this.#activeNotes.indexOf(event.pitch)
-                    if (deleteIndex > -1) {
-                        this.#activeNotes.splice(deleteIndex, 1)
-                    }
-                    this.context.engineToClient
-                        .sendMIDIData(deviceId,
-                            MidiData.noteOff(channelIndex, event.pitch), relativeTimeInMs)
+                    if (deleteIndex > -1) {this.#activeNotes.splice(deleteIndex, 1)}
+                    optDevice.ifSome(optDevice => this.context.engineToClient
+                        .sendMIDIData(optDevice.id.getValue(),
+                            MidiData.noteOff(channelIndex, event.pitch), relativeTimeInMs))
                 }
             }
         }
@@ -106,13 +106,14 @@ export class MIDIOutputDeviceProcessor extends AudioProcessor implements Instrum
     processAudio(_block: Block, _fromIndex: int, _toIndex: int): void {}
 
     parameterChanged(parameter: AutomatableParameter, relativeBlockTime: number = 0.0): void {
-        const {box: {channel, delay, device}} = this.#adapter
-        const relativeTimeInMs = relativeBlockTime * 1000.0 * delay.getValue()
+        const {box: {channel, device}} = this.#adapter
+        if (device.isEmpty()) {return}
+        const {id, delayInMs} = asInstanceOf(device.targetVertex.unwrap().box, MIDIOutputBox)
+        const relativeTimeInMs = relativeBlockTime * 1000.0 * delayInMs.getValue()
         const controllerId = asInstanceOf(parameter.adapter.field.box, MIDIOutputParameterBox).controller.getValue()
         const velocityAsByte = Math.round(parameter.getValue() * 127)
-        this.context.engineToClient
-            .sendMIDIData(device.id.getValue(),
-                MidiData.control(channel.getValue(), controllerId, velocityAsByte), relativeTimeInMs)
+        const data = MidiData.control(channel.getValue(), controllerId, velocityAsByte)
+        this.context.engineToClient.sendMIDIData(id.getValue(), data, relativeTimeInMs)
     }
 
     finishProcess(): void {}

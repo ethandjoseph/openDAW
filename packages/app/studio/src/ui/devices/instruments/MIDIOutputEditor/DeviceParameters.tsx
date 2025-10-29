@@ -15,7 +15,7 @@ type Construct = {
     box: MIDIOutputDeviceBox
 }
 
-export const DeviceParameters = ({lifecycle, editing, box: {channel, delay}}: Construct) => (
+export const DeviceParameters = ({lifecycle, editing, box: {channel, deprecatedDelay}}: Construct) => (
     <Frag>
         <div className={className}>
             <span>Channel:</span>
@@ -41,7 +41,7 @@ export const DeviceParameters = ({lifecycle, editing, box: {channel, delay}}: Co
         <div className={className}>
             <span>Delay (ms):</span>
             <NumberInput lifecycle={lifecycle}
-                         model={EditWrapper.forValue(editing, delay)}
+                         model={EditWrapper.forValue(editing, deprecatedDelay)}
                          guard={{
                              guard: (value: int): int => clamp(value, 0, 500)
                          }}

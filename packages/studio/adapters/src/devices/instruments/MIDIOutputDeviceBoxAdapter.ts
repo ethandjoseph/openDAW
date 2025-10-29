@@ -1,5 +1,14 @@
-import {asInstanceOf, StringMapping, Terminator, UUID, ValueMapping} from "@opendaw/lib-std"
-import {MIDIOutputDeviceBox, MIDIOutputParameterBox} from "@opendaw/studio-boxes"
+import {
+    asInstanceOf,
+    Observer,
+    Option,
+    StringMapping,
+    Subscription,
+    Terminator,
+    UUID,
+    ValueMapping
+} from "@opendaw/lib-std"
+import {MIDIOutputBox, MIDIOutputDeviceBox, MIDIOutputParameterBox} from "@opendaw/studio-boxes"
 import {Address, BooleanField, StringField} from "@opendaw/lib-box"
 import {DeviceHost, Devices, InstrumentDeviceBoxAdapter} from "../../DeviceAdapter"
 import {BoxAdaptersContext} from "../../BoxAdaptersContext"
@@ -42,6 +51,16 @@ export class MIDIOutputDeviceBoxAdapter implements InstrumentDeviceBoxAdapter {
     get minimizedField(): BooleanField {return this.#box.minimized}
     get acceptsMidiEvents(): boolean {return true}
     get parameters(): ParameterAdapterSet {return this.#parametric}
+    get midiDevice(): Option<MIDIOutputBox> {
+        return this.#box.device.targetVertex.map(({box}) => asInstanceOf(box, MIDIOutputBox))
+    }
+
+    catchupAndSubscribeMIDIOutput(observer: Observer<Option<MIDIOutputBox>>): Subscription {
+        return this.#box.device.catchupAndSubscribe(({targetVertex}) => targetVertex.match({
+            none: () => observer(Option.None),
+            some: ({box}) => observer(Option.wrap(asInstanceOf(box, MIDIOutputBox)))
+        }))
+    }
 
     deviceHost(): DeviceHost {
         return this.#context.boxAdapters

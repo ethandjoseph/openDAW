@@ -30,6 +30,11 @@ export const RootBox: BoxSchema<Pointers> = {
                 name: "output-device",
                 pointerRules: {accepts: [Pointers.AudioOutput], mandatory: true}
             },
+            35: {
+                type: "field",
+                name: "output-midi-device",
+                pointerRules: {accepts: [Pointers.MIDIDevice], mandatory: false}
+            },
             40: {
                 type: "object",
                 name: "piano-mode",

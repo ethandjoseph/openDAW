@@ -5,6 +5,8 @@ import {
     CaptureAudioBox,
     CaptureMidiBox,
     GrooveShuffleBox,
+    MIDIOutputBox,
+    MIDIOutputDeviceBox,
     RevampDeviceBox,
     ValueEventBox,
     ValueEventCurveBox,
@@ -41,6 +43,27 @@ export class ProjectMigration {
                     boxGraph.beginTransaction()
                     startInSeconds.setValue(Float.floatToIntBits(startInSeconds.getValue()))
                     endInSeconds.setValue(Float.floatToIntBits(endInSeconds.getValue()))
+                    boxGraph.endTransaction()
+                }
+            },
+            visitMIDIOutputDeviceBox: (deviceBox: MIDIOutputDeviceBox): void => {
+                const id = deviceBox.deprecatedDevice.id.getValue()
+                const label = deviceBox.deprecatedDevice.label.getValue()
+                const delay = deviceBox.deprecatedDelay.getValue()
+                if (id !== "") {
+                    console.debug("Migrate 'MIDIOutputDeviceBox' to MIDIOutputBox")
+                    boxGraph.beginTransaction()
+                    deviceBox.device.refer(
+                        MIDIOutputBox.create(boxGraph, UUID.generate(), box => {
+                            box.id.setValue(id)
+                            box.label.setValue(label)
+                            box.delayInMs.setValue(delay)
+                            box.root.refer(rootBox.outputMidiDevice)
+                        }).device
+                    )
+                    // clear all data
+                    deviceBox.deprecatedDevice.id.setValue("")
+                    deviceBox.deprecatedDevice.label.setValue("")
                     boxGraph.endTransaction()
                 }
             },
