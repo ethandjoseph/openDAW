@@ -140,7 +140,7 @@ class Voice {
         const inpR = data.frames[1] ?? inpL
         const numberOfFrames = data.numberOfFrames
         const rateRatio = data.sampleRate / sampleRate
-        const gain = this.#device.gain
+        const gain = this.#device.gain * this.#event.velocity
         const release = this.#device.release
         const releaseInverse = 1.0 / release
         for (let i = fromIndex; i < toIndex; i++) {
