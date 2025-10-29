@@ -1,7 +1,7 @@
 {
     "name": "@opendaw/example-import-sample",
     "private": true,
-    "version": "0.0.54",
+    "version": "0.0.55",
     "type": "module",
     "license": "LGPL-3.0-or-later",
     "scripts": {
@@ -11,16 +11,16 @@
         "lint": "eslint \"src/**/*.ts\""
     },
     "dependencies": {
-        "@opendaw/lib-box": "^0.0.45",
-        "@opendaw/lib-dom": "^0.0.45",
-        "@opendaw/lib-dsp": "^0.0.45",
-        "@opendaw/lib-jsx": "^0.0.45",
-        "@opendaw/lib-runtime": "^0.0.45",
-        "@opendaw/lib-std": "^0.0.45",
-        "@opendaw/studio-adapters": "^0.0.46",
-        "@opendaw/studio-boxes": "^0.0.45",
-        "@opendaw/studio-core": "^0.0.54",
-        "@opendaw/studio-enums": "^0.0.36"
+        "@opendaw/lib-box": "^0.0.46",
+        "@opendaw/lib-dom": "^0.0.46",
+        "@opendaw/lib-dsp": "^0.0.46",
+        "@opendaw/lib-jsx": "^0.0.46",
+        "@opendaw/lib-runtime": "^0.0.46",
+        "@opendaw/lib-std": "^0.0.46",
+        "@opendaw/studio-adapters": "^0.0.47",
+        "@opendaw/studio-boxes": "^0.0.46",
+        "@opendaw/studio-core": "^0.0.55",
+        "@opendaw/studio-enums": "^0.0.37"
     },
     "devDependencies": {
         "@opendaw/eslint-config": "^0.0.20",

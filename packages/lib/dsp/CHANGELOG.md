@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.46](https://github.com/andremichelle/openDAW/compare/@opendaw/lib-dsp@0.0.45...@opendaw/lib-dsp@0.0.46) (2025-10-29)
+
+**Note:** Version bump only for package @opendaw/lib-dsp
+
 ## [0.0.45](https://github.com/andremichelle/openDAW/compare/@opendaw/lib-dsp@0.0.44...@opendaw/lib-dsp@0.0.45) (2025-10-29)
 
 **Note:** Version bump only for package @opendaw/lib-dsp
