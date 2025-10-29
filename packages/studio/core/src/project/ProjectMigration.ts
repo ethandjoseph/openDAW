@@ -1,4 +1,5 @@
 import {
+    AudioFileBox,
     AudioUnitBox,
     BoxVisitor,
     CaptureAudioBox,
@@ -9,9 +10,12 @@ import {
     ValueEventCurveBox,
     ZeitgeistDeviceBox
 } from "@opendaw/studio-boxes"
-import {asDefined, asInstanceOf, clamp, UUID} from "@opendaw/lib-std"
+import {asDefined, asInstanceOf, clamp, Float, UUID} from "@opendaw/lib-std"
 import {AudioUnitType} from "@opendaw/studio-enums"
 import {ProjectSkeleton} from "@opendaw/studio-adapters"
+
+const isIntEncodedAsFloat = (v: number) =>
+    v > 0 && v < 1e-6 && Number.isFinite(v) && (v / 1.401298464324817e-45) % 1 === 0
 
 export class ProjectMigration {
     static migrate({boxGraph, mandatoryBoxes}: ProjectSkeleton): void {
@@ -30,6 +34,16 @@ export class ProjectMigration {
         }
         // We need to run on a copy, because we might add more boxes during the migration
         boxGraph.boxes().slice().forEach(box => box.accept<BoxVisitor>({
+            visitAudioFileBox: (box: AudioFileBox): void => {
+                const {startInSeconds, endInSeconds} = box
+                if (isIntEncodedAsFloat(startInSeconds.getValue()) || isIntEncodedAsFloat(endInSeconds.getValue())) {
+                    console.debug("Migrate 'AudioFileBox' to float")
+                    boxGraph.beginTransaction()
+                    startInSeconds.setValue(Float.floatToIntBits(startInSeconds.getValue()))
+                    endInSeconds.setValue(Float.floatToIntBits(endInSeconds.getValue()))
+                    boxGraph.endTransaction()
+                }
+            },
             visitZeitgeistDeviceBox: (box: ZeitgeistDeviceBox) => {
                 if (box.groove.targetAddress.isEmpty()) {
                     console.debug("Migrate 'ZeitgeistDeviceBox' to GrooveShuffleBox")
