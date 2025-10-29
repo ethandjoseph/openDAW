@@ -1,9 +1,8 @@
 import {
     asInstanceOf,
-    Observer,
-    Option,
+    MutableObservableOption,
+    ObservableOption,
     StringMapping,
-    Subscription,
     Terminator,
     UUID,
     ValueMapping
@@ -24,21 +23,29 @@ export class MIDIOutputDeviceBoxAdapter implements InstrumentDeviceBoxAdapter {
 
     readonly #context: BoxAdaptersContext
     readonly #box: MIDIOutputDeviceBox
+    readonly #midiDevice: MutableObservableOption<MIDIOutputBox>
 
     readonly #parametric: ParameterAdapterSet
 
     constructor(context: BoxAdaptersContext, box: MIDIOutputDeviceBox) {
         this.#context = context
         this.#box = box
+        this.#midiDevice = new MutableObservableOption()
         this.#parametric = this.#terminator.own(new ParameterAdapterSet(this.#context))
-        this.#terminator.own(box.parameters.pointerHub.catchupAndSubscribe({
-            onAdded: (({box}) => this.#parametric
-                .createParameter(
-                    asInstanceOf(box, MIDIOutputParameterBox).value,
-                    ValueMapping.unipolar(), StringMapping.percent({fractionDigits: 1}), "", 0.0)),
-            onRemoved: (({box}) => this.#parametric
-                .removeParameter(asInstanceOf(box, MIDIOutputParameterBox).value.address))
-        }))
+        this.#terminator.ownAll(
+            box.parameters.pointerHub.catchupAndSubscribe({
+                onAdded: (({box}) => this.#parametric
+                    .createParameter(
+                        asInstanceOf(box, MIDIOutputParameterBox).value,
+                        ValueMapping.unipolar(), StringMapping.percent({fractionDigits: 1}), "", 0.0)),
+                onRemoved: (({box}) => this.#parametric
+                    .removeParameter(asInstanceOf(box, MIDIOutputParameterBox).value.address))
+            }),
+            this.#box.device.catchupAndSubscribe(({targetVertex}) => targetVertex.match({
+                none: () => this.#midiDevice.clear(),
+                some: ({box}) => this.#midiDevice.wrap(asInstanceOf(box, MIDIOutputBox))
+            }))
+        )
     }
 
     get box(): MIDIOutputDeviceBox {return this.#box}
@@ -51,16 +58,7 @@ export class MIDIOutputDeviceBoxAdapter implements InstrumentDeviceBoxAdapter {
     get minimizedField(): BooleanField {return this.#box.minimized}
     get acceptsMidiEvents(): boolean {return true}
     get parameters(): ParameterAdapterSet {return this.#parametric}
-    get midiDevice(): Option<MIDIOutputBox> {
-        return this.#box.device.targetVertex.map(({box}) => asInstanceOf(box, MIDIOutputBox))
-    }
-
-    catchupAndSubscribeMIDIOutput(observer: Observer<Option<MIDIOutputBox>>): Subscription {
-        return this.#box.device.catchupAndSubscribe(({targetVertex}) => targetVertex.match({
-            none: () => observer(Option.None),
-            some: ({box}) => observer(Option.wrap(asInstanceOf(box, MIDIOutputBox)))
-        }))
-    }
+    get midiDevice(): ObservableOption<MIDIOutputBox> {return this.#midiDevice}
 
     deviceHost(): DeviceHost {
         return this.#context.boxAdapters
