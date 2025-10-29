@@ -5,11 +5,12 @@ import {Project} from "./project"
 import {EffectBox} from "./EffectBox"
 
 export interface EffectFactory {
-    get defaultName(): string
-    get defaultIcon(): IconSymbol
-    get description(): string
-    get separatorBefore(): boolean
-    get type(): "audio" | "midi"
+    readonly defaultName: string
+    readonly defaultIcon: IconSymbol
+    readonly description: string
+    readonly manualPage?: string
+    readonly separatorBefore: boolean
+    readonly type: "audio" | "midi"
 
     create(project: Project, unit: Field<EffectPointerType>, index: int): EffectBox
 }

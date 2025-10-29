@@ -4,6 +4,10 @@ A MIDI effect for shaping **note velocity**. Use it to push crescendos and swell
 
 ---
 
+![screenshot](../../../images/devices/midi/velocity.png)
+
+---
+
 ## 0. Overview
 
 _Velocity_ works like a “magnet” that pulls incoming note velocities toward a **Target Velocity**. You decide how strongly the magnet pulls, whether to **offset** the result up/down, and how much **human variation** to add. A final **Mix** blends the processed (wet) velocities with the original (dry) values.

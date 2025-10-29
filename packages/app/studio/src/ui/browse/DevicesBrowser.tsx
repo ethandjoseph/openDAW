@@ -1,7 +1,7 @@
 import css from "./DevicesBrowser.sass?inline"
-import {isInstanceOf, Lifecycle, Objects, panic} from "@opendaw/lib-std"
+import {isDefined, isInstanceOf, Lifecycle, Objects, panic} from "@opendaw/lib-std"
 import {Html} from "@opendaw/lib-dom"
-import {createElement} from "@opendaw/lib-jsx"
+import {createElement, RouteLocation} from "@opendaw/lib-jsx"
 import {StudioService} from "@/service/StudioService.ts"
 import {DragAndDrop} from "@/ui/DragAndDrop"
 import {DragDevice} from "@/ui/AnyDragData"
@@ -10,6 +10,8 @@ import {DeviceHost, Devices} from "@opendaw/studio-adapters"
 import {EffectFactories, EffectFactory, InstrumentFactories, Project} from "@opendaw/studio-core"
 import {ModularBox} from "@opendaw/studio-boxes"
 import {Icon} from "../components/Icon"
+import {ContextMenu} from "@/ui/ContextMenu"
+import {MenuItem} from "@/ui/model/menu-item"
 
 const className = Html.adoptStyleSheet(css, "DevicesBrowser")
 
@@ -89,25 +91,30 @@ const createEffectList = <
     <ul>{
         Object.entries(records).map(([key, entry]) => {
             const element = (
-                <li onclick={() => {
-                    const {boxAdapters, editing, userEditingManager} = project
-                    userEditingManager.audioUnit.get().ifSome(vertex => {
-                        const deviceHost: DeviceHost = boxAdapters.adapterFor(vertex.box, Devices.isHost)
-                        if (type === "midi-effect" && deviceHost.inputAdapter.mapOr(input => input.accepts !== "midi", true)) {
-                            return
-                        }
-                        const effectField =
-                            type === "audio-effect" ? deviceHost.audioEffects.field()
-                                : type === "midi-effect" ? deviceHost.midiEffects.field()
-                                    : panic(`Unknown ${type}`)
-                        editing.modify(() => {
-                            const box = entry.create(project, effectField, effectField.pointerHub.incoming().length)
-                            if (isInstanceOf(box, ModularBox)) {
-                                service.switchScreen("modular")
+                <li onInit={element => {
+                    lifecycle.own(ContextMenu.subscribe(element, collector => collector.addItems(MenuItem.default({
+                        label: `Visit Manual Page for ${entry.defaultName}`, selectable: isDefined(entry.manualPage)
+                    }).setTriggerProcedure(() => RouteLocation.get().navigateTo(entry.manualPage ?? "/")))))
+                    element.onclick = () => {
+                        const {boxAdapters, editing, userEditingManager} = project
+                        userEditingManager.audioUnit.get().ifSome(vertex => {
+                            const deviceHost: DeviceHost = boxAdapters.adapterFor(vertex.box, Devices.isHost)
+                            if (type === "midi-effect" && deviceHost.inputAdapter.mapOr(input => input.accepts !== "midi", true)) {
+                                return
                             }
-                            return box
+                            const effectField =
+                                type === "audio-effect" ? deviceHost.audioEffects.field()
+                                    : type === "midi-effect" ? deviceHost.midiEffects.field()
+                                        : panic(`Unknown ${type}`)
+                            editing.modify(() => {
+                                const box = entry.create(project, effectField, effectField.pointerHub.incoming().length)
+                                if (isInstanceOf(box, ModularBox)) {
+                                    service.switchScreen("modular")
+                                }
+                                return box
+                            })
                         })
-                    })
+                    }
                 }}>
                     <div className="icon">
                         <Icon symbol={entry.defaultIcon}/>

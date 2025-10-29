@@ -53,6 +53,7 @@ export namespace EffectFactories {
         defaultName: "Velocity",
         defaultIcon: IconSymbol.Velocity,
         description: "Manipulates the velocity of incoming notes",
+        manualPage: "manuals/devices/midi/velocity",
         separatorBefore: false,
         type: "midi",
         create: ({boxGraph}, unit, index) => VelocityDeviceBox.create(boxGraph, UUID.generate(), box => {
