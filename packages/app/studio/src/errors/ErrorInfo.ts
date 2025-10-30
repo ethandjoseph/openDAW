@@ -11,7 +11,7 @@ export namespace ErrorInfo {
         if (event instanceof ErrorEvent && event.error instanceof Error) {
             return {name: event.error.name || "Error", message: event.error.message, stack: event.error.stack}
         } else if (event instanceof PromiseRejectionEvent) {
-            const reason = event.reason
+            let reason = event.reason
             if (reason instanceof Error) {
                 if (!isDefined(reason.stack)) {
                     try {
@@ -19,7 +19,7 @@ export namespace ErrorInfo {
                         throw reason
                     } catch (error) {
                         if (error instanceof Error) {
-                            reason.stack = error.stack
+                            reason = {...reason, stack: error.stack}
                         }
                     }
                 }

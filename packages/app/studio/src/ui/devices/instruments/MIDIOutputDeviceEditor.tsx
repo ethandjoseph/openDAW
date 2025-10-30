@@ -44,6 +44,7 @@ export const MIDIOutputDeviceEditor = ({lifecycle, service, adapter, deviceHost}
                                                <DeviceSelector lifecycle={lifecycle}
                                                                project={project}
                                                                adapter={adapter}/>
+                                               <hr/>
                                                <DeviceParameters lifecycle={lifecycle}
                                                                  editing={editing}
                                                                  box={adapter.box}/>

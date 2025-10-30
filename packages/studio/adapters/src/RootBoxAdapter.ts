@@ -1,6 +1,6 @@
-import {RootBox} from "@opendaw/studio-boxes"
+import {MIDIOutputBox, RootBox} from "@opendaw/studio-boxes"
 import {Address} from "@opendaw/lib-box"
-import {UUID} from "@opendaw/lib-std"
+import {asInstanceOf, UUID} from "@opendaw/lib-std"
 import {AudioBusBoxAdapter} from "./audio-unit/AudioBusBoxAdapter"
 import {Pointers} from "@opendaw/studio-enums"
 import {IndexedBoxAdapterCollection} from "./IndexedBoxAdapterCollection"
@@ -54,6 +54,9 @@ export class RootBoxAdapter implements BoxAdapter {
     }
     get pianoMode(): PianoModeAdapter {return this.#pianoMode}
     get created(): Date {return new Date(this.#box.created.getValue())}
+    get midiOutputDevices(): ReadonlyArray<MIDIOutputBox> {
+        return this.#box.outputMidiDevices.pointerHub.incoming().map(({box}) => asInstanceOf(box, MIDIOutputBox))
+    }
 
     terminate(): void {this.#audioUnits.terminate()}
 }

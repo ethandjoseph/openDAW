@@ -1,13 +1,26 @@
 import css from "./DeviceSelector.sass?inline"
-import {asInstanceOf, clamp, DefaultObservableValue, int, Lifecycle, Strings, Terminator, UUID} from "@opendaw/lib-std"
+import {
+    asInstanceOf,
+    clamp,
+    DefaultObservableValue,
+    int,
+    isNotNull,
+    Lifecycle,
+    Strings,
+    Terminator,
+    UUID
+} from "@opendaw/lib-std"
 import {createElement, Inject} from "@opendaw/lib-jsx"
 import {MenuButton} from "@/ui/components/MenuButton"
 import {MenuItem} from "@/ui/model/menu-item"
 import {Colors, MidiDevices, Project} from "@opendaw/studio-core"
-import {MIDIOutputDeviceBoxAdapter} from "@opendaw/studio-adapters"
+import {IconSymbol, MIDIOutputDeviceBoxAdapter} from "@opendaw/studio-adapters"
 import {MIDIOutputBox, RootBox} from "@opendaw/studio-boxes"
 import {Html} from "@opendaw/lib-dom"
 import {NumberInput} from "@/ui/components/NumberInput"
+import {Checkbox} from "@/ui/components/Checkbox"
+import {Icon} from "@/ui/components/Icon"
+import {EditWrapper} from "@/ui/wrapper/EditWrapper"
 
 const className = Html.adoptStyleSheet(css, "DeviceSelector")
 
@@ -18,19 +31,20 @@ type Construct = {
 }
 
 const getOrCreateMIDIOutput = (rootBox: RootBox, output: MIDIOutput): MIDIOutputBox => {
-    return rootBox.outputMidiDevice.pointerHub
+    return rootBox.outputMidiDevices.pointerHub
             .incoming()
             .map(({box}) => asInstanceOf(box, MIDIOutputBox))
             .find((box) => box.id.getValue() === output.id)
         ?? MIDIOutputBox.create(rootBox.graph, UUID.generate(), box => {
             box.id.setValue(output.id)
             box.label.setValue(output.name ?? "Unnamed")
-            box.root.refer(rootBox.outputMidiDevice)
+            box.root.refer(rootBox.outputMidiDevices)
         })
 }
 
 export const DeviceSelector = ({lifecycle, project, adapter}: Construct) => {
     const {editing, rootBox} = project
+    const {box: {device}, midiDevice} = adapter
     const deviceLabelClass = Inject.classList("device-label")
     const deviceIdObserver = (requestedId: string) => {
         const optDevice = MidiDevices.externalOutputDevices()
@@ -38,18 +52,25 @@ export const DeviceSelector = ({lifecycle, project, adapter}: Construct) => {
         deviceLabelClass.toggle("not-available", optDevice.isEmpty() && requestedId !== "")
     }
     const delayInMs = lifecycle.own(new DefaultObservableValue<int>(0))
-    const delaySubscription = lifecycle.own(new Terminator())
+    const sendTransportMessages = lifecycle.own(new DefaultObservableValue<boolean>(false))
+    const deviceSubscription = lifecycle.own(new Terminator())
     lifecycle.ownAll(
-        adapter.midiDevice.catchupAndSubscribe(opt => {
-            delaySubscription.terminate()
+        midiDevice.catchupAndSubscribe(opt => {
+            deviceSubscription.terminate()
             opt.match({
                 none: () => delayInMs.setValue(0),
-                some: device => delaySubscription.own(device.delayInMs
-                    .catchupAndSubscribe(owner => delayInMs.setValue(owner.getValue())))
+                some: device => {
+                    deviceSubscription.ownAll(
+                        device.delayInMs.catchupAndSubscribe(owner => delayInMs.setValue(owner.getValue())),
+                        device.sendTransportMessages.catchupAndSubscribe(owner => sendTransportMessages.setValue(owner.getValue()))
+                    )
+                }
             })
         }),
-        delayInMs.catchupAndSubscribe(owner => adapter.midiDevice
-            .ifSome(device => editing.modify(() => device.delayInMs.setValue(owner.getValue()))))
+        delayInMs.catchupAndSubscribe(owner => midiDevice
+            .ifSome(device => editing.modify(() => device.delayInMs.setValue(owner.getValue())))),
+        sendTransportMessages.catchupAndSubscribe(owner => midiDevice
+            .ifSome(device => editing.modify(() => device.sendTransportMessages.setValue(owner.getValue()))))
     )
     return (
         <div className={className}>
@@ -60,12 +81,26 @@ export const DeviceSelector = ({lifecycle, project, adapter}: Construct) => {
                         ? [MenuItem.default({label: "No device found.", selectable: false})]
                         : outputs.map(output => MenuItem.default({
                             label: output.name ?? "Unnamed device",
-                            checked: output.id === adapter.box.device.targetVertex
+                            checked: output.id === device.targetVertex
                                 .mapOr(({box}) => asInstanceOf(box, MIDIOutputBox).id.getValue(), "")
-                        }).setTriggerProcedure(() => {
-                            editing.modify(() => adapter.box.device.refer(getOrCreateMIDIOutput(rootBox, output).device))
-                            deviceIdObserver(output.id) // TODO I think this is not needed anymore
-                        }))
+                        }).setTriggerProcedure(() => editing.modify(() => {
+                            const disconnectedDevice = midiDevice.unwrapOrNull()
+                            device.refer(getOrCreateMIDIOutput(rootBox, output).device)
+                            if (isNotNull(disconnectedDevice) && disconnectedDevice.device.pointerHub.size() === 0) {
+                                disconnectedDevice.delete()
+                            }
+                        }))).concat(MenuItem.default({
+                            label: `Remove ${midiDevice.match({
+                                none: () => "MIDI device",
+                                some: device => device.label.getValue()
+                            })}`
+                        }).setTriggerProcedure(() => editing.modify(() => {
+                            const disconnectedDevice = midiDevice.unwrapOrNull()
+                            device.defer()
+                            if (isNotNull(disconnectedDevice) && disconnectedDevice.device.pointerHub.size() === 0) {
+                                disconnectedDevice.delete()
+                            }
+                        })))
                 })))} style={{width: "100%"}} appearance={{color: Colors.dark, activeColor: Colors.gray}}>
                 <div className={deviceLabelClass}
                      onInit={element => {
@@ -74,7 +109,10 @@ export const DeviceSelector = ({lifecycle, project, adapter}: Construct) => {
                              adapter.midiDevice.catchupAndSubscribe(opt => {
                                  subscriber.terminate()
                                  opt.match<unknown>({
-                                     none: () => element.textContent = "No device selected",
+                                     none: () => {
+                                         element.textContent = "No device selected"
+                                         deviceIdObserver("")
+                                     },
                                      some: output => subscriber.ownAll(
                                          output.id.catchupAndSubscribe(owner => deviceIdObserver(owner.getValue())),
                                          output.label.catchupAndSubscribe(owner =>
@@ -86,14 +124,17 @@ export const DeviceSelector = ({lifecycle, project, adapter}: Construct) => {
                          )
                      }}/>
             </MenuButton>
-            <div className="delay">
+            <div className="controls">
                 <span>Delay (ms):</span>
                 <NumberInput lifecycle={lifecycle}
                              model={delayInMs}
-                             guard={{
-                                 guard: (value: int): int => clamp(value, 0, 500)
-                             }}
+                             guard={{guard: (value: int): int => clamp(value, 0, 500)}}
                 />
+                <div/>
+                <span>Send Transport:</span>
+                <Checkbox lifecycle={lifecycle} model={EditWrapper.forValue(editing, sendTransportMessages)}>
+                    <Icon symbol={IconSymbol.Checkbox}/>
+                </Checkbox>
             </div>
         </div>
     )

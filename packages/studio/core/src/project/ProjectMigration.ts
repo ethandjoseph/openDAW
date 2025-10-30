@@ -58,7 +58,7 @@ export class ProjectMigration {
                             box.id.setValue(id)
                             box.label.setValue(label)
                             box.delayInMs.setValue(delay)
-                            box.root.refer(rootBox.outputMidiDevice)
+                            box.root.refer(rootBox.outputMidiDevices)
                         }).device
                     )
                     // clear all data
