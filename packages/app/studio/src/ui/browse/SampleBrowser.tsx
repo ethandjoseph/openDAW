@@ -101,8 +101,8 @@ export const SampleBrowser = ({lifecycle, service}: Construct) => {
                                 <Frag>
                                     <header>
                                         <span>Name</span>
-                                        <span className="right">bpm</span>
-                                        <span className="right">sec</span>
+                                        <span className="right">Bpm</span>
+                                        <span className="right">Sec</span>
                                     </header>
                                     {entries}
                                 </Frag>

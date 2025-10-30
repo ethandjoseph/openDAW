@@ -35,6 +35,7 @@ export class OpenSampleAPI implements SampleAPI {
 
     private constructor() {}
 
+    @Lazy
     async all(): Promise<ReadonlyArray<Sample>> {
         return Promises.guardedRetry(() => fetch(`${OpenSampleAPI.ApiRoot}/list.php`, OpenDAWHeaders)
             .then(x => x.json().then(x => z.array(Sample).parse(x)), () => []), (_error, count) => count < 10)

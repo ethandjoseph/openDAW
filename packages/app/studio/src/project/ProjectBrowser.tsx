@@ -45,52 +45,54 @@ export const ProjectBrowser = ({service, lifecycle, select}: Construct) => {
                            <div className="filter">
                                <SearchInput lifecycle={lifecycle} model={filter} style={{gridColumn: "1 / -1"}}/>
                            </div>
-                           <header>
-                               <div className="name">Name</div>
-                               <div className="time">Modified</div>
-                               <div/>
-                           </header>
-                           <div className="list">
-                               {projects
-                                   .toSorted((a, b) => -StringComparator(a.meta.modified, b.meta.modified))
-                                   .map(({uuid, meta}) => {
-                                       const icon: DomElement = <Icon symbol={IconSymbol.Delete}
-                                                                      className="delete-icon"/>
-                                       const timeString = TimeSpan.millis(new Date(meta.modified).getTime() - now).toUnitString()
-                                       const row: HTMLElement = (
-                                           <Group onInit={element => filter.catchupAndSubscribe(owner => {
-                                               element.classList.toggle("hidden", !meta.name
-                                                   .toLowerCase()
-                                                   .includes(owner.getValue().toLowerCase()))
-                                           })}>
-                                               <div className="labels"
-                                                    onclick={() => select([uuid, meta])}
-                                                    onInit={element => lifecycle.own(ContextMenu.subscribe(element,
-                                                        collector => collector.addItems(MenuItem.default({
-                                                            label: "Show UUID"
-                                                        }).setTriggerProcedure(() => RuntimeNotifier.info({
-                                                            headline: meta.name,
-                                                            message: UUID.toString(uuid)
-                                                        })))))}>
-                                                   <div className="name">{meta.name}</div>
-                                                   <div className="time">{timeString}</div>
-                                               </div>
-                                               {icon}
-                                           </Group>
-                                       )
-                                       icon.onclick = (event) => {
-                                           event.stopPropagation()
-                                           Dialogs.approve({
-                                               headline: "Delete Project?",
-                                               message: "Are you sure? This cannot be undone."
-                                           }).then(approved => {
-                                               if (approved) {
-                                                   service.deleteProject(uuid, meta).then(() => row.remove())
-                                               }
-                                           })
-                                       }
-                                       return row
-                                   })}
+                           <div className="content">
+                               <header>
+                                   <div className="name">Name</div>
+                                   <div className="time">Modified</div>
+                                   <div/>
+                               </header>
+                               <div className="list">
+                                   {projects
+                                       .toSorted((a, b) => -StringComparator(a.meta.modified, b.meta.modified))
+                                       .map(({uuid, meta}) => {
+                                           const icon: DomElement = <Icon symbol={IconSymbol.Delete}
+                                                                          className="delete-icon"/>
+                                           const timeString = TimeSpan.millis(new Date(meta.modified).getTime() - now).toUnitString()
+                                           const row: HTMLElement = (
+                                               <Group onInit={element => filter.catchupAndSubscribe(owner => {
+                                                   element.classList.toggle("hidden", !meta.name
+                                                       .toLowerCase()
+                                                       .includes(owner.getValue().toLowerCase()))
+                                               })}>
+                                                   <div className="labels"
+                                                        onclick={() => select([uuid, meta])}
+                                                        onInit={element => lifecycle.own(ContextMenu.subscribe(element,
+                                                            collector => collector.addItems(MenuItem.default({
+                                                                label: "Show UUID"
+                                                            }).setTriggerProcedure(() => RuntimeNotifier.info({
+                                                                headline: meta.name,
+                                                                message: UUID.toString(uuid)
+                                                            })))))}>
+                                                       <div className="name">{meta.name}</div>
+                                                       <div className="time">{timeString}</div>
+                                                   </div>
+                                                   {icon}
+                                               </Group>
+                                           )
+                                           icon.onclick = (event) => {
+                                               event.stopPropagation()
+                                               Dialogs.approve({
+                                                   headline: "Delete Project?",
+                                                   message: "Are you sure? This cannot be undone."
+                                               }).then(approved => {
+                                                   if (approved) {
+                                                       service.deleteProject(uuid, meta).then(() => row.remove())
+                                                   }
+                                               })
+                                           }
+                                           return row
+                                       })}
+                               </div>
                            </div>
                        </Frag>
                    )}/>
