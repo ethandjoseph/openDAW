@@ -50,7 +50,13 @@ export const VelocityDeviceEditor = ({lifecycle, service, adapter, deviceHost}: 
                                               context.lineTo(right, pad)
                                               context.moveTo(pad, bottom)
                                               context.lineTo(right, bottom)
-                                              context.strokeStyle = "hsla(200, 40%, 70%, 0.12)"
+
+                                              const gradient = context.createLinearGradient(pad, 0, right, 0)
+                                              gradient.addColorStop(0.0, "hsla(200, 40%, 70%, 0.1)")
+                                              gradient.addColorStop(1.0, "hsla(200, 40%, 70%, 0.3)")
+
+                                              context.strokeStyle = gradient
+
                                               context.stroke()
                                               context.setLineDash(Arrays.empty())
                                               for (let i = velocities.length - 1; i >= 0; i--) {
