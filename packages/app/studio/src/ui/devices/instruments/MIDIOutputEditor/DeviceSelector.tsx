@@ -52,13 +52,16 @@ export const DeviceSelector = ({lifecycle, project, adapter}: Construct) => {
         deviceLabelClass.toggle("not-available", optDevice.isEmpty() && requestedId !== "")
     }
     const delayInMs = lifecycle.own(new DefaultObservableValue<int>(0))
-    const sendTransportMessages = lifecycle.own(new DefaultObservableValue<boolean>(false))
+    const sendTransportMessages = lifecycle.own(new DefaultObservableValue<boolean>(true))
     const deviceSubscription = lifecycle.own(new Terminator())
     lifecycle.ownAll(
         midiDevice.catchupAndSubscribe(opt => {
             deviceSubscription.terminate()
             opt.match({
-                none: () => delayInMs.setValue(0),
+                none: () => {
+                    delayInMs.setValue(0)
+                    sendTransportMessages.setValue(true)
+                },
                 some: device => {
                     deviceSubscription.ownAll(
                         device.delayInMs.catchupAndSubscribe(owner => delayInMs.setValue(owner.getValue())),
