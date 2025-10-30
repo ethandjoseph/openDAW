@@ -1,15 +1,28 @@
 @use "@/mixins"
 
 component
-  appearance: none
-  font-size: 0.75rem
-  font-family: inherit
-  border: none
-  outline: none
-  color: var(--color-bright)
+  min-height: 1rem
+  width: 100%
+  display: flex
+  align-items: center
+  column-gap: 0.125rem
+  border-radius: 1em
   background-color: rgba(black, 0.4)
-  box-shadow: 0 0 0 1px rgba(white, 0.02)
-  padding: 0.25em
-  border-radius: 1px
-  white-space: nowrap
-  @include mixins.width-available
+  box-shadow: 0 -1px 1px 0 rgba(white, 0.1) inset
+
+  > svg
+    margin-left: 0.5em
+    font-size: 1em
+    color: var(--color-shadow)
+
+  > input
+    appearance: none
+    font-size: 0.825em
+    font-family: inherit
+    border: none
+    outline: none
+    color: var(--color-bright)
+    padding: 0.5em
+    white-space: nowrap
+    background: none
+    @include mixins.width-available

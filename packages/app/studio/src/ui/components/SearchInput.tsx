@@ -1,7 +1,9 @@
-import {Html} from "@opendaw/lib-dom"
 import css from "./SearchInput.sass?inline"
 import {Lifecycle, MutableObservableValue} from "@opendaw/lib-std"
+import {Html} from "@opendaw/lib-dom"
 import {createElement} from "@opendaw/lib-jsx"
+import {Icon} from "@/ui/components/Icon"
+import {IconSymbol} from "@opendaw/studio-adapters"
 
 const className = Html.adoptStyleSheet(css, "SearchInput")
 
@@ -13,17 +15,20 @@ type Construct = {
 }
 
 export const SearchInput = ({lifecycle, model, placeholder, style}: Construct) => {
-    const input: HTMLInputElement = (
-        <input type="search"
-               value={model.getValue()}
-               className={className}
-               placeholder={placeholder}
-               style={style} oninput={(event) => {
-            if (event.target instanceof HTMLInputElement) {
-                model.setValue(event.target.value)
-            }
-        }}/>
+    return (
+        <div className={className} style={style}>
+            <Icon symbol={IconSymbol.Search}/>
+            <input type="search"
+                   value={model.getValue()}
+                   placeholder={placeholder}
+                   oninput={(event) => {
+                       if (event.target instanceof HTMLInputElement) {
+                           model.setValue(event.target.value)
+                       }
+                   }}
+                   onInit={input => {
+                       lifecycle.own(model.subscribe(owner => input.value = owner.getValue()))
+                   }}/>
+        </div>
     )
-    lifecycle.own(model.subscribe(owner => input.value = owner.getValue()))
-    return input
 }

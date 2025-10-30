@@ -62,7 +62,7 @@ export const Dashboard = ({lifecycle, service}: Construct) => {
                     </div>
                     <div className="resources">
                         <RadioGroup lifecycle={lifecycle}
-                                    style={{columnGap: "0.75em"}}
+                                    style={{columnGap: "1em"}}
                                     appearance={{activeColor: Colors.orange}}
                                     model={scope}
                                     elements={[

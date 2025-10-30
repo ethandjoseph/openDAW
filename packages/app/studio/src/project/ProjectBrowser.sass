@@ -1,5 +1,5 @@
 component
-  font-size: 0.75rem
+  flex: 1 1 0
   display: grid
   grid-template-columns: 1fr auto auto
   align-content: start
@@ -8,9 +8,17 @@ component
   overflow: hidden
 
   header
-    font-size: 11px
-    color: var(--color-blue)
     display: contents
+    color: var(--color-blue)
+
+  div.filter
+    font-size: 1.25em
+    display: flex
+    align-items: center
+    height: 2rem
+    column-gap: 0.25rem
+    margin-bottom: 0.5rem
+    grid-column: 1 / -1
 
   div.list
     padding: 0 1em 0 0
@@ -18,7 +26,6 @@ component
     grid-template-columns: subgrid
     grid-column: 1 / -1
     align-items: center
-    max-height: 20.5em
     row-gap: 0.25em
     overflow-y: scroll
     color: var(--color-dark)

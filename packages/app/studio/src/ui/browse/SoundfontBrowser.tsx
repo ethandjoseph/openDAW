@@ -32,7 +32,6 @@ export const SoundfontBrowser = ({lifecycle, service}: Construct) => {
     const entriesLifeSpan = lifecycle.own(new Terminator())
     const reload = Inject.ref<HotspotUpdater>()
     const filter = new DefaultObservableValue("")
-    const searchInput = <SearchInput lifecycle={lifecycle} model={filter}/>
     const element: Element = (
         <div className={className} tabIndex={-1}>
             <div className="filter">
@@ -48,7 +47,7 @@ export const SoundfontBrowser = ({lifecycle, service}: Construct) => {
                         tooltip: "Locally stored soundfonts"
                     }
                 ]} appearance={{framed: true, landscape: true}}/>
-                {searchInput}
+                <SearchInput lifecycle={lifecycle} model={filter}/>
             </div>
             <div className="content">
                 <Hotspot ref={reload} render={() => {

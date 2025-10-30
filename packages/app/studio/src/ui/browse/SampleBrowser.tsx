@@ -32,7 +32,6 @@ export const SampleBrowser = ({lifecycle, service}: Construct) => {
     const entriesLifeSpan = lifecycle.own(new Terminator())
     const reload = Inject.ref<HotspotUpdater>()
     const filter = new DefaultObservableValue("")
-    const searchInput = <SearchInput lifecycle={lifecycle} model={filter}/>
     const slider: HTMLInputElement = <input type="range" min="0.0" max="1.0" step="0.001"/>
     const linearVolume = service.samplePlayback.linearVolume
     const element: Element = (
@@ -50,7 +49,7 @@ export const SampleBrowser = ({lifecycle, service}: Construct) => {
                         tooltip: "Locally stored samples"
                     }
                 ]} appearance={{framed: true, landscape: true}}/>
-                {searchInput}
+                <SearchInput lifecycle={lifecycle} model={filter} style={{gridColumn: "1 / -1"}}/>
             </div>
             <div className="content">
                 <Hotspot ref={reload} render={() => {
