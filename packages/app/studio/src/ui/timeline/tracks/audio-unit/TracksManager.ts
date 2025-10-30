@@ -71,8 +71,8 @@ export class TracksManager implements Terminable {
     }
 
     startRegionModifier(option: Option<RegionModifier>): Option<Dragging.Process> {
-        const name = option.unwrapOrNull()?.toString() ?? "unknown"
-        console.debug(`start(${name})`)
+        const print = () => option.unwrapOrNull()?.toString() ?? "unknown"
+        console.debug(`start(${print()})`)
         return option.map(modifier => {
             assert(this.#currentRegionModifier.isEmpty(), "RegionModifier already in use.")
             const lifeTime = this.#terminator.spawn()
@@ -81,15 +81,15 @@ export class TracksManager implements Terminable {
             return {
                 update: (event: Dragging.Event): void => modifier.update(event),
                 approve: (): void => {
-                    console.debug(`approve(${name})`)
+                    console.debug(`approve(${print()})`)
                     modifier.approve(this.#service.project.editing)
                 },
                 cancel: (): void => {
-                    console.debug(`cancel(${name})`)
+                    console.debug(`cancel(${print()})`)
                     modifier.cancel()
                 },
                 finally: (): void => {
-                    console.debug(`finally(${name})`)
+                    console.debug(`finally(${print()})`)
                     lifeTime.terminate()
                 }
             }
