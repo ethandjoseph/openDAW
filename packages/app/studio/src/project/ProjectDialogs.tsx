@@ -67,7 +67,7 @@ export namespace ProjectDialogs {
             <Dialog headline={"Browse Projects"}
                     icon={IconSymbol.FileList}
                     buttons={[{text: "Ok", onClick: () => dialog.close()}]}
-                    cancelable={true}>
+                    cancelable={true} style={{height: "30em"}}>
                 <div style={{height: "2em"}}/>
                 <ProjectBrowser lifecycle={lifecycle} service={service} select={(result) => {
                     resolve(result)
