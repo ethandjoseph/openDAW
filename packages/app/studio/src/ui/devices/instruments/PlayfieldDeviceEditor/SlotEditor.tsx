@@ -87,7 +87,8 @@ export const SlotEditor = ({lifecycle, service, adapter}: Construct) => {
                 approve: () => editing.mark()
             } satisfies Dragging.Process)
         }),
-        adapter.box.device.subscribe(() => userEditingManager.audioUnit.edit(deviceAdapter.audioUnitBoxAdapter().box.editing)),
+        adapter.box.device.subscribe(() =>
+            userEditingManager.audioUnit.edit(deviceAdapter.audioUnitBoxAdapter().box.editing)),
         sampleStart.subscribe(waveformPainter.requestUpdate),
         sampleEnd.subscribe(waveformPainter.requestUpdate),
         service.project.liveStreamReceiver.subscribeFloats(adapter.address, array => {

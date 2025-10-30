@@ -87,13 +87,13 @@ export class PointerField<P extends PointerTypes = PointerTypes> extends Field<U
     }
 
     subscribe(observer: Observer<this>): Subscription {
-        return this.graph.subscribeVertexUpdates(Propagation.This, this.address, () => observer(this))
+        return this.graph.subscribeVertexUpdates(Propagation.This, this.address,
+            () => this.graph.subscribeEndTransaction(() => observer(this)))
     }
 
     catchupAndSubscribe(observer: Observer<this>): Subscription {
         observer(this)
-        return this.graph.subscribeVertexUpdates(Propagation.This, this.address,
-            () => this.graph.subscribeEndTransaction(() => observer(this)))
+        return this.subscribe(observer)
     }
 
     refer<TARGET extends PointerTypes>(vertex: Vertex<P & TARGET extends never ? never : TARGET>): void {
