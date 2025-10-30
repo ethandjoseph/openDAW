@@ -58,7 +58,7 @@ import {AudioUnitOptions} from "./AudioUnitOptions"
 import type {SoundFont2} from "soundfont2"
 import {SoundfontManagerWorklet} from "./SoundfontManagerWorklet"
 import {MidiData} from "@opendaw/lib-midi"
-import {MIDITransportSender} from "./MIDITransportSender"
+import {MIDITransportClock} from "./MIDITransportClock"
 
 const DEBUG = false
 
@@ -69,7 +69,7 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
     readonly #timeInfo: TimeInfo
     readonly #engineToClient: EngineToClient
     readonly #boxAdapters: BoxAdapters
-    readonly #soundManager: SampleLoaderManager
+    readonly #sampleManager: SampleLoaderManager
     readonly #soundfontManager: SoundfontLoaderManager
     readonly #audioUnits: SortedSet<UUID.Bytes, AudioUnit>
     readonly #rootBoxAdapter: RootBoxAdapter
@@ -84,7 +84,7 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
     readonly #updateClock: UpdateClock
     readonly #peaks: PeakBroadcaster
     readonly #metronome: Metronome
-    readonly #midiTransportSender: MIDITransportSender
+    readonly #midiTransportClock: MIDITransportClock
 
     readonly #renderer: BlockRenderer
     readonly #stateSender: SyncStream.Writer
@@ -136,7 +136,7 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
                 }
                 ready() {dispatcher.dispatchAndForget(this.ready)}
             })
-        this.#soundManager = new SampleManagerWorklet(this.#engineToClient)
+        this.#sampleManager = new SampleManagerWorklet(this.#engineToClient)
         this.#soundfontManager = new SoundfontManagerWorklet(this.#engineToClient)
         this.#audioUnits = UUID.newSet(unit => unit.adapter.uuid)
         this.#parameterFieldAdapters = new ParameterFieldAdapters()
@@ -148,7 +148,7 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
         this.#notifier = new Notifier<ProcessPhase>()
         this.#mixer = new Mixer()
         this.#metronome = new Metronome(this.#timelineBoxAdapter, this.#timeInfo)
-        this.#midiTransportSender = new MIDITransportSender(this, this.#rootBoxAdapter)
+        this.#midiTransportClock = new MIDITransportClock(this, this.#rootBoxAdapter)
         this.#renderer = new BlockRenderer(this, options)
         this.#ignoredRegions = UUID.newSet<UUID.Bytes>(uuid => uuid)
         this.#stateSender = SyncStream.writer(EngineStateSchema(), sab, x => {
@@ -171,17 +171,17 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
                 play: () => {
                     if (this.#playbackTimestampEnabled) {
                         this.#timeInfo.position = this.#playbackTimestamp
-                        this.#midiTransportSender.schedule(MidiData.positionInPPQN(this.#timeInfo.position))
+                        this.#midiTransportClock.schedule(MidiData.positionInPPQN(this.#timeInfo.position))
                     }
                     this.#timeInfo.transporting = true
-                    this.#midiTransportSender.schedule(MidiData.Start)
+                    this.#midiTransportClock.schedule(MidiData.Start)
                 },
                 stop: (reset: boolean) => {
                     if (this.#timeInfo.isRecording || this.#timeInfo.isCountingIn) {
                         this.#timeInfo.isRecording = false
                         this.#timeInfo.isCountingIn = false
                         this.#timeInfo.position = this.#playbackTimestampEnabled ? this.#playbackTimestamp : 0.0
-                        this.#midiTransportSender.schedule(MidiData.positionInPPQN(this.#timeInfo.position))
+                        this.#midiTransportClock.schedule(MidiData.positionInPPQN(this.#timeInfo.position))
                     }
                     const wasTransporting = this.#timeInfo.transporting
                     this.#timeInfo.transporting = false
@@ -190,12 +190,12 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
                     if (reset || !wasTransporting) {
                         this.#reset()
                     }
-                    this.#midiTransportSender.schedule(MidiData.Stop)
+                    this.#midiTransportClock.schedule(MidiData.Stop)
                 },
                 setPosition: (position: number) => {
                     if (!this.#timeInfo.isRecording) {
                         this.#timeInfo.position = this.#playbackTimestamp = position
-                        this.#midiTransportSender.schedule(MidiData.positionInPPQN(this.#timeInfo.position))
+                        this.#midiTransportClock.schedule(MidiData.positionInPPQN(this.#timeInfo.position))
                     }
                 },
                 prepareRecordingState: (countIn: boolean) => {
@@ -214,11 +214,11 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
                             this.#timeInfo.metronomeEnabled = this.#metronomeEnabled
                             subscription.terminate()
                         })
-                        this.#midiTransportSender.schedule(MidiData.positionInPPQN(this.#timeInfo.position))
+                        this.#midiTransportClock.schedule(MidiData.positionInPPQN(this.#timeInfo.position))
                     } else {
                         this.#timeInfo.transporting = true
                         this.#timeInfo.isRecording = true
-                        this.#midiTransportSender.schedule(MidiData.Start)
+                        this.#midiTransportClock.schedule(MidiData.Start)
                     }
                 },
                 stopRecording: () => {
@@ -228,7 +228,7 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
                     this.#timeInfo.metronomeEnabled = this.#metronomeEnabled
                     this.#timeInfo.transporting = false
                     this.#ignoredRegions.clear()
-                    this.#midiTransportSender.schedule(MidiData.Stop)
+                    this.#midiTransportClock.schedule(MidiData.Stop)
                 },
                 setMetronomeEnabled: (value: boolean) => this.#timeInfo.metronomeEnabled = this.#metronomeEnabled = value,
                 setPlaybackTimestampEnabled: (value: boolean) => this.#playbackTimestampEnabled = value,
@@ -236,7 +236,7 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
                 queryLoadingComplete: (): Promise<boolean> =>
                     Promise.resolve(this.#boxGraph.boxes().every(box => box.accept<BoxVisitor<boolean>>({
                         visitAudioFileBox: (box: AudioFileBox) =>
-                            this.#soundManager.getOrCreate(box.address.uuid).data.nonEmpty() && box.pointerHub.nonEmpty()
+                            this.#sampleManager.getOrCreate(box.address.uuid).data.nonEmpty() && box.pointerHub.nonEmpty()
                     }) ?? true)),
                 panic: () => this.#panic = true,
                 noteSignal: (signal: NoteSignal) => {
@@ -262,7 +262,7 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
                         }
                     })
                     this.#timeInfo.transporting = true
-                    this.#midiTransportSender.schedule(MidiData.Start)
+                    this.#midiTransportClock.schedule(MidiData.Start)
                 },
                 scheduleClipStop: (trackIds: ReadonlyArray<UUID.Bytes>) => {
                     trackIds.forEach(trackId => {
@@ -394,7 +394,7 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
 
     get boxGraph(): BoxGraph<BoxIO.TypeMap> {return this.#boxGraph}
     get boxAdapters(): BoxAdapters {return this.#boxAdapters}
-    get sampleManager(): SampleLoaderManager {return this.#soundManager}
+    get sampleManager(): SampleLoaderManager {return this.#sampleManager}
     get soundfontManager(): SoundfontLoaderManager {return this.#soundfontManager}
     get rootBoxAdapter(): RootBoxAdapter {return this.#rootBoxAdapter}
     get timelineBoxAdapter(): TimelineBoxAdapter {return this.#timelineBoxAdapter}
