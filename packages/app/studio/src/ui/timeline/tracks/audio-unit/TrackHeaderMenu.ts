@@ -18,14 +18,14 @@ export const installTrackHeaderMenu = (service: StudioService,
     const acceptMidi = audioUnitBoxAdapter.captureBox.mapOr(box => isInstanceOf(box, CaptureMidiBox), false)
     const trackType = DeviceAccepts.toTrackType(accepts)
     const {project} = service
-    const {captureDevices, editing, selection} = project
+    const {captureDevices, editing, userEditingManager, selection} = project
     return parent.addMenuItem(
         MenuItem.default({label: "Test Extract", hidden: !Browser.isLocalHost()}) // TODO Remove when tested
-            .setTriggerProcedure(() => editing.modify(async () => {
+            .setTriggerProcedure(() => {
                 const newProject = Project.new(service)
                 ProjectUtils.extractAudioUnits([trackBoxAdapter.audioUnit], newProject)
                 service.projectProfileService.setProject(newProject, "NEW")
-            })),
+            }),
         MenuItem.default({label: "Enabled", checked: trackBoxAdapter.enabled.getValue()})
             .setTriggerProcedure(() => editing.modify(() => trackBoxAdapter.enabled.toggle())),
         MenuItem.default({
@@ -40,6 +40,11 @@ export const installTrackHeaderMenu = (service: StudioService,
             })
         })),
         MenuCapture.createItem(service, audioUnitBoxAdapter, trackBoxAdapter, editing, captureDevices.get(audioUnitBoxAdapter.uuid)),
+        MenuItem.default({label: "Copy Track"})
+            .setTriggerProcedure(() => {
+                const copies = editing.modify(() => ProjectUtils.extractAudioUnits([trackBoxAdapter.audioUnit], project)).unwrap()
+                userEditingManager.audioUnit.edit(copies[0].editing)
+            }),
         MenuItem.default({label: "Move", separatorBefore: true})
             .setRuntimeChildrenProcedure(parent => parent.addMenuItem(
                 MenuItem.default({label: "Track 1 Up", selectable: trackBoxAdapter.indexField.getValue() > 0})
