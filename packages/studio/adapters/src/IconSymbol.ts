@@ -97,6 +97,7 @@ export enum IconSymbol {
     Scissors,
     Search,
     Solo,
+    SoundFont,
     SpeakerHeadphone,
     Stack,
     Start,

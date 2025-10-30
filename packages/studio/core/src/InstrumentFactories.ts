@@ -146,7 +146,7 @@ export namespace InstrumentFactories {
 
     export const Soundfont: InstrumentFactory<{ uuid: UUID.String, name: string }> = {
         defaultName: "Soundfont",
-        defaultIcon: IconSymbol.Book,
+        defaultIcon: IconSymbol.SoundFont,
         description: "Soundfont Player",
         trackType: TrackType.Notes,
         create: (boxGraph: BoxGraph<BoxIO.TypeMap>,
