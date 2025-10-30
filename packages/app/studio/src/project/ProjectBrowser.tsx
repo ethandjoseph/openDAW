@@ -19,6 +19,7 @@ import {ProjectMeta, ProjectSignals, ProjectStorage} from "@opendaw/studio-core"
 import {ContextMenu} from "@/ui/ContextMenu"
 import {MenuItem} from "@/ui/model/menu-item"
 import {SearchInput} from "@/ui/components/SearchInput"
+import {ThreeDots} from "@/ui/spinner/ThreeDots"
 
 const className = Html.adoptStyleSheet(css, "ProjectBrowser")
 
@@ -34,7 +35,7 @@ export const ProjectBrowser = ({service, lifecycle, select}: Construct) => {
     return (
         <div className={className}>
             <Await factory={() => ProjectStorage.listProjects()}
-                   loading={() => false}
+                   loading={() => (<div className="loader"><ThreeDots/></div>)}
                    failure={({reason}) => (
                        <span>{reason instanceof DOMException ? reason.name : String(reason)}</span>
                    )}
