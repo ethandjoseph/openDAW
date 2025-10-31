@@ -19,7 +19,7 @@ import {InstrumentFactory} from "./InstrumentFactory"
 import {Pointers} from "@opendaw/studio-enums"
 
 export namespace InstrumentFactories {
-    export const Tape: InstrumentFactory = {
+    export const Tape: InstrumentFactory<void, TapeDeviceBox> = {
         defaultName: "Tape",
         defaultIcon: IconSymbol.Tape,
         description: "Plays audio regions & clips",
@@ -28,7 +28,7 @@ export namespace InstrumentFactories {
                  host: Field<Pointers.InstrumentHost | Pointers.AudioOutput>,
                  name: string,
                  icon: IconSymbol,
-                 _attachment?: never): TapeDeviceBox =>
+                 _attachment?: void): TapeDeviceBox =>
             TapeDeviceBox.create(boxGraph, UUID.generate(), box => {
                 box.label.setValue(name)
                 box.icon.setValue(IconSymbol.toName(icon))
@@ -40,7 +40,7 @@ export namespace InstrumentFactories {
             })
     }
 
-    export const Nano: InstrumentFactory = {
+    export const Nano: InstrumentFactory<void, NanoDeviceBox> = {
         defaultName: "Nano",
         defaultIcon: IconSymbol.NanoWave,
         description: "Simple sampler",
@@ -49,7 +49,7 @@ export namespace InstrumentFactories {
                  host: Field<Pointers.InstrumentHost | Pointers.AudioOutput>,
                  name: string,
                  icon: IconSymbol,
-                 _attachment?: never): NanoDeviceBox => {
+                 _attachment?: void): NanoDeviceBox => {
             const fileUUID = UUID.parse("c1678daa-4a47-4cba-b88f-4f4e384663c3")
             const fileDuration = 5.340
             const audioFileBox: AudioFileBox = boxGraph.findBox<AudioFileBox>(fileUUID)
@@ -74,7 +74,7 @@ export namespace InstrumentFactories {
         exclude: boolean
     }>
 
-    export const Playfield: InstrumentFactory<PlayfieldAttachment> = {
+    export const Playfield: InstrumentFactory<PlayfieldAttachment, PlayfieldDeviceBox> = {
         defaultName: "Playfield",
         defaultIcon: IconSymbol.Playfield,
         description: "Drum computer",
@@ -104,7 +104,7 @@ export namespace InstrumentFactories {
         }
     }
 
-    export const Vaporisateur: InstrumentFactory = {
+    export const Vaporisateur: InstrumentFactory<void, VaporisateurDeviceBox> = {
         defaultName: "Vaporisateur",
         defaultIcon: IconSymbol.Piano,
         description: "Classic subtractive synthesizer",
@@ -113,7 +113,7 @@ export namespace InstrumentFactories {
                  host: Field<Pointers.InstrumentHost | Pointers.AudioOutput>,
                  name: string,
                  icon: IconSymbol,
-                 _attachment?: never): VaporisateurDeviceBox =>
+                 _attachment?: void): VaporisateurDeviceBox =>
             VaporisateurDeviceBox.create(boxGraph, UUID.generate(), box => {
                 box.label.setValue(name)
                 box.icon.setValue(IconSymbol.toName(icon))
@@ -127,7 +127,7 @@ export namespace InstrumentFactories {
             })
     }
 
-    export const MIDIOutput: InstrumentFactory = {
+    export const MIDIOutput: InstrumentFactory<void, MIDIOutputDeviceBox> = {
         defaultName: "MIDIOutput",
         defaultIcon: IconSymbol.Midi,
         description: "MIDI Output",
@@ -136,7 +136,7 @@ export namespace InstrumentFactories {
                  host: Field<Pointers.InstrumentHost | Pointers.AudioOutput>,
                  name: string,
                  icon: IconSymbol,
-                 _attachment?: never): MIDIOutputDeviceBox =>
+                 _attachment?: void): MIDIOutputDeviceBox =>
             MIDIOutputDeviceBox.create(boxGraph, UUID.generate(), box => {
                 box.label.setValue(name)
                 box.icon.setValue(IconSymbol.toName(icon))
@@ -144,7 +144,7 @@ export namespace InstrumentFactories {
             })
     }
 
-    export const Soundfont: InstrumentFactory<{ uuid: UUID.String, name: string }> = {
+    export const Soundfont: InstrumentFactory<{ uuid: UUID.String, name: string }, SoundfontDeviceBox> = {
         defaultName: "Soundfont",
         defaultIcon: IconSymbol.SoundFont,
         description: "Soundfont Player",

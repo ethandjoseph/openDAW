@@ -45,6 +45,7 @@ import {EffectFactory} from "../EffectFactory"
 import {ColorCodes} from "../ColorCodes"
 import {EffectBox} from "../EffectBox"
 import {AudioUnitOrdering} from "../AudioUnitOrdering"
+import {InstrumentBox} from "../InstrumentBox"
 
 export type ClipRegionOptions = {
     name?: string
@@ -93,8 +94,9 @@ export class ProjectApi {
         return this.#project.rootBoxAdapter.audioUnits.catchupAndSubscribe(listener)
     }
 
-    createInstrument<T>({create, defaultIcon, defaultName, trackType}: InstrumentFactory<T>,
-                        options: InstrumentOptions<T> = {}): InstrumentProduct {
+    createInstrument<A, INST extends InstrumentBox>(
+        {create, defaultIcon, defaultName, trackType}: InstrumentFactory<A, INST>,
+        options: InstrumentOptions<A> = {} as any): InstrumentProduct<INST> {
         const {name, icon, index} = options
         const {boxGraph, rootBox, userEditingManager} = this.#project
         assert(rootBox.isAttached(), "rootBox not attached")
@@ -114,6 +116,10 @@ export class ProjectApi {
         })
         userEditingManager.audioUnit.edit(audioUnitBox.editing)
         return {audioUnitBox, instrumentBox, trackBox}
+    }
+
+    createAnyInstrument(factory: InstrumentFactory<any, any>): InstrumentProduct<InstrumentBox> {
+        return this.createInstrument(factory)
     }
 
     createAudioBus(name: string,

@@ -67,7 +67,7 @@ const createInstrumentList = (lifecycle: Lifecycle, project: Project) => (
                 if (factory === InstrumentFactories.Playfield) {
                     project.api.createInstrument(InstrumentFactories.Playfield, {attachment: DefaultPlayfieldAttachment})
                 } else {
-                    project.api.createInstrument(factory)
+                    project.api.createAnyInstrument(factory)
                 }
             })}>
                 <div className="icon">

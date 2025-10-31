@@ -1,8 +1,8 @@
 import {AudioUnitBox, TrackBox} from "@opendaw/studio-boxes"
 import {InstrumentBox} from "./InstrumentBox"
 
-export type InstrumentProduct = {
+export type InstrumentProduct<INST extends InstrumentBox> = {
     audioUnitBox: AudioUnitBox
-    instrumentBox: InstrumentBox
+    instrumentBox: INST
     trackBox: TrackBox
 }

@@ -64,7 +64,7 @@ export abstract class TimelineDragAndDrop<T extends (ClipCaptureTarget | RegionC
             }
             sample = value
         } else if (data.type === "instrument") {
-            editing.modify(() => this.project.api.createInstrument(InstrumentFactories[data.device]))
+            editing.modify(() => this.project.api.createAnyInstrument(InstrumentFactories[data.device]))
             return
         } else {
             return
