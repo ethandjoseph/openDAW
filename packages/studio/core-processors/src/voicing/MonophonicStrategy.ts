@@ -18,6 +18,7 @@ export class MonophonicStrategy implements VoicingStrategy {
         this.#held.push(event)
 
         const frequency = midiToHz(event.pitch + event.cent / 100.0, 440.0) * freqMult
+
         if (isDefined(this.#activeVoice)) {
             if (this.#activeVoice.gate) {
                 this.#activeVoice.startGlide(frequency, PPQN.Quarter)
@@ -25,10 +26,11 @@ export class MonophonicStrategy implements VoicingStrategy {
             }
             this.#activeVoice.forceStop()
         }
+
         const voice = this.#factory.create()
         voice.start(event.id, frequency, event.velocity)
-        this.#voices.push(voice)
         this.#activeVoice = voice
+        this.#voices.push(voice)
     }
 
     stop(id: int): void {
