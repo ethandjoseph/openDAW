@@ -5,11 +5,11 @@ import {AudioBuffer, midiToHz, NoteEvent} from "@opendaw/lib-dsp"
 import {Block} from "../processing"
 import {VoicingStrategy} from "./VoicingStrategy"
 
-export class SimpleStrategy<V extends Voice> implements VoicingStrategy {
-    readonly #factory: VoiceFactory<V>
-    readonly #voices: V[] = []
+export class SimpleStrategy implements VoicingStrategy {
+    readonly #factory: VoiceFactory
+    readonly #voices: Voice[] = []
 
-    constructor(factory: VoiceFactory<V>) {
+    constructor(factory: VoiceFactory) {
         this.#factory = factory
     }
 

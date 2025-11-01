@@ -25,7 +25,7 @@ import {InstrumentDeviceProcessor} from "../../InstrumentDeviceProcessor"
 import {Voice} from "../../voicing/Voice"
 import {ADSR} from "../../envelopes/ADSR"
 import {Voicing} from "../../voicing/Voicing"
-import {SimpleStrategy} from "../../voicing/SimpleVoiceStrategy"
+import {MonophonicStrategy} from "../../voicing/MonophonicStrategy"
 
 export class VaporisateurDeviceProcessor extends AudioProcessor implements InstrumentDeviceProcessor, NoteEventTarget {
     readonly #adapter: VaporisateurDeviceBoxAdapter
@@ -58,7 +58,7 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
 
         this.#adapter = adapter
 
-        this.#voicing = new Voicing(new SimpleStrategy({create: () => new VaporisateurVoice(this)}))
+        this.#voicing = new Voicing(new MonophonicStrategy({create: () => new VaporisateurVoice(this)}))
         this.#noteEventInstrument = new NoteEventInstrument(this, context.broadcaster, adapter.audioUnitBoxAdapter().address)
         this.#audioOutput = new AudioBuffer()
         this.#peakBroadcaster = this.own(new PeakBroadcaster(context.broadcaster, adapter.address))
@@ -149,7 +149,8 @@ class VaporisateurVoice implements Voice {
     readonly gainSmooth: Smooth
 
     id: int = -1
-    frequency: number = 0.0
+    beginFrequency: number = 0.0
+    currentFrequency: number = 0.0
     velocity: unitValue = 0.0
     targetFrequency: number = NaN
     glidePosition: number = 0.0
@@ -174,7 +175,7 @@ class VaporisateurVoice implements Voice {
 
     start(id: int, frequency: number, velocity: unitValue): void {
         this.id = id
-        this.frequency = frequency
+        this.beginFrequency = frequency
         this.velocity = velocity
     }
 
@@ -183,6 +184,7 @@ class VaporisateurVoice implements Voice {
     forceStop(): void {this.adsr.forceStop()}
 
     startGlide(targetFrequency: number, glideDuration: ppqn): void {
+        this.beginFrequency = this.currentFrequency
         this.targetFrequency = targetFrequency
         this.glidePosition = 0.0
         this.glideDuration = glideDuration
@@ -202,19 +204,20 @@ class VaporisateurVoice implements Voice {
         const r = output.getChannel(1)
 
         if (isNaN(this.targetFrequency)) {
-            // no glide → fill with constant frequency
-            this.freqBuffer.fill(this.frequency, fromIndex, toIndex)
+            this.freqBuffer.fill(this.beginFrequency, fromIndex, toIndex)
+            this.currentFrequency = this.beginFrequency
         } else {
             for (let i = fromIndex; i < toIndex; i++) {
                 this.glidePosition += ppqnPerSample / this.glideDuration
                 if (this.glidePosition >= 1.0) {
                     this.glidePosition = 1.0
-                    this.frequency = this.targetFrequency
+                    this.beginFrequency = this.targetFrequency
                     this.targetFrequency = NaN
-                    this.freqBuffer.fill(this.frequency, i, toIndex)
+                    this.freqBuffer.fill(this.beginFrequency, i, toIndex)
                     break
                 }
-                this.freqBuffer[i] = this.frequency + (this.targetFrequency - this.frequency) * this.glidePosition
+                this.freqBuffer[i] = this.currentFrequency =
+                    this.beginFrequency + (this.targetFrequency - this.beginFrequency) * this.glidePosition
             }
         }
 
