@@ -13,10 +13,10 @@ import {
 import {byte, isDefined, UUID} from "@opendaw/lib-std"
 import {Waveform} from "@opendaw/lib-dsp"
 import {BoxGraph, Field} from "@opendaw/lib-box"
-import {IconSymbol, TrackType} from "@opendaw/studio-adapters"
+import {TrackType} from "@opendaw/studio-adapters"
+import {IconSymbol, Pointers} from "@opendaw/studio-enums"
 
 import {InstrumentFactory} from "./InstrumentFactory"
-import {Pointers} from "@opendaw/studio-enums"
 
 export namespace InstrumentFactories {
     export const Tape: InstrumentFactory<void, TapeDeviceBox> = {

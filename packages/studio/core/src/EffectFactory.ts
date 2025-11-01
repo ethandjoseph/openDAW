@@ -1,4 +1,5 @@
-import {EffectPointerType, IconSymbol} from "@opendaw/studio-adapters"
+import {EffectPointerType} from "@opendaw/studio-adapters"
+import {IconSymbol} from "@opendaw/studio-enums"
 import {Field} from "@opendaw/lib-box"
 import {int} from "@opendaw/lib-std"
 import {Project} from "./project"

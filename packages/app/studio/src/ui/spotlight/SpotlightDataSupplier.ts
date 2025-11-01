@@ -1,6 +1,6 @@
 import {Arrays, assert, Exec} from "@opendaw/lib-std"
 
-import {IconSymbol} from "@opendaw/studio-adapters"
+import {IconSymbol} from "@opendaw/studio-enums"
 
 export type SpotlightResult = {
     name: string

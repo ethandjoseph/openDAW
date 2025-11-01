@@ -2,7 +2,7 @@ import {EmptyExec, isAbsent, isDefined, panic, RuntimeNotifier, RuntimeSignal, T
 import {Browser, Files, ModfierKeys} from "@opendaw/lib-dom"
 import {RouteLocation} from "@opendaw/lib-jsx"
 import {Promises} from "@opendaw/lib-runtime"
-import {IconSymbol} from "@opendaw/studio-adapters"
+import {IconSymbol} from "@opendaw/studio-enums"
 import {CloudBackup, Colors, FilePickerAcceptTypes, ProjectSignals, Workers, YService} from "@opendaw/studio-core"
 import {StudioService} from "@/service/StudioService"
 import {MenuItem} from "@/ui/model/menu-item"

@@ -1,6 +1,6 @@
 import css from "./InsertMarker.sass?inline"
 import {Html} from "@opendaw/lib-dom"
-import {IconSymbol} from "@opendaw/studio-adapters"
+import {IconSymbol} from "@opendaw/studio-enums"
 import {Icon} from "@/ui/components/Icon"
 import {createElement} from "@opendaw/lib-jsx"
 

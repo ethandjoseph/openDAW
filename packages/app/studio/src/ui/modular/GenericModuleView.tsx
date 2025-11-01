@@ -4,7 +4,6 @@ import {appendChildren, createElement, Frag, Inject, JsxValue} from "@opendaw/li
 import {
     AutomatableParameterFieldAdapter,
     Direction,
-    IconSymbol,
     ModuleAdapter,
     ModuleConnectorAdapter
 } from "@opendaw/studio-adapters"
@@ -21,6 +20,7 @@ import {ContextMenu} from "@/ui/ContextMenu.ts"
 import {DeviceInterfaceKnobBox} from "@opendaw/studio-boxes"
 import {Events, Html} from "@opendaw/lib-dom"
 import {Colors} from "@opendaw/studio-core"
+import {IconSymbol} from "@opendaw/studio-enums"
 
 const className = Html.adoptStyleSheet(css, "GenericModuleView")
 

@@ -4,7 +4,7 @@ import {createElement, Frag} from "@opendaw/lib-jsx"
 import {int, isDefined, Lifecycle, Nullable, Option, panic, Terminable, Terminator} from "@opendaw/lib-std"
 import {Icon} from "@/ui/components/Icon.tsx"
 import {Surface} from "@/ui/surface/Surface.tsx"
-import {IconSymbol} from "@opendaw/studio-adapters"
+import {IconSymbol} from "@opendaw/studio-enums"
 import {AnimationFrame, Events, Html} from "@opendaw/lib-dom"
 import {Colors} from "@opendaw/studio-core"
 

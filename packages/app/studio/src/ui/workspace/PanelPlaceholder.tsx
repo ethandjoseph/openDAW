@@ -9,7 +9,7 @@ import {AxisProperty} from "@/ui/workspace/AxisProperty.ts"
 import {ContextMenu} from "@/ui/ContextMenu.ts"
 import {MenuItem} from "@/ui/model/menu-item.ts"
 import {ContentGlue} from "@/ui/workspace/ContentGlue.ts"
-import {IconSymbol} from "@opendaw/studio-adapters"
+import {IconSymbol} from "@opendaw/studio-enums"
 import {Browser, Events, Html} from "@opendaw/lib-dom"
 import FlexLayoutConstrains = Workspace.FlexLayoutConstrains
 

@@ -3,7 +3,7 @@ import {Dialog} from "@/ui/components/Dialog.tsx"
 import {createElement} from "@opendaw/lib-jsx"
 import {Icon} from "@/ui/components/Icon.tsx"
 import {RadioGroup} from "@/ui/components/RadioGroup.tsx"
-import {IconSymbol} from "@opendaw/studio-adapters"
+import {IconSymbol} from "@opendaw/studio-enums"
 
 const Icons = [
     IconSymbol.AudioBus, IconSymbol.Waveform, IconSymbol.Flask, IconSymbol.BassGuitar, IconSymbol.Guitar,

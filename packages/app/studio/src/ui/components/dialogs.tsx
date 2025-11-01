@@ -13,7 +13,7 @@ import {
     Terminator
 } from "@opendaw/lib-std"
 import {Surface} from "@/ui/surface/Surface.tsx"
-import {IconSymbol} from "@opendaw/studio-adapters"
+import {IconSymbol} from "@opendaw/studio-enums"
 import {Box, BoxGraph} from "@opendaw/lib-box"
 import {BoxDebugView} from "./BoxDebugView"
 import {BoxesDebugView} from "@/ui/components/BoxesDebugView.tsx"

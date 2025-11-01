@@ -1,5 +1,5 @@
 import {asDefined} from "@opendaw/lib-std"
-import {IconSymbol} from "@opendaw/studio-adapters"
+import {IconSymbol} from "@opendaw/studio-enums"
 import {CssUtils} from "@opendaw/lib-dom"
 
 const iconSymbolToCursor = (symbol: IconSymbol, hotspotX: number, hotspotY: number, fallback: CssUtils.Cursor = "auto") => {

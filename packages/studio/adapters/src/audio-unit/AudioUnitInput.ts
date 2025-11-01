@@ -12,7 +12,7 @@ import {
 import {PointerHub} from "@opendaw/lib-box"
 import {AudioBusBox} from "@opendaw/studio-boxes"
 import {Pointers} from "@opendaw/studio-enums"
-import {IconSymbol} from "../IconSymbol"
+import {IconSymbol} from "@opendaw/studio-enums"
 import {AudioUnitInputAdapter} from "./AudioUnitInputAdapter"
 import {BoxAdapters} from "../BoxAdapters"
 import {AudioBusBoxAdapter} from "./AudioBusBoxAdapter"

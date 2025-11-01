@@ -1,5 +1,6 @@
 import {Dialog} from "@/ui/components/Dialog"
-import {ExportStemsConfiguration, IconSymbol} from "@opendaw/studio-adapters"
+import {ExportStemsConfiguration} from "@opendaw/studio-adapters"
+import {IconSymbol} from "@opendaw/studio-enums"
 import {Surface} from "@/ui/surface/Surface"
 import {createElement} from "@opendaw/lib-jsx"
 import {Errors, isDefined, Objects, Terminator, UUID} from "@opendaw/lib-std"

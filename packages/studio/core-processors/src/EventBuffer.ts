@@ -1,5 +1,5 @@
-import {Event} from "@opendaw/lib-dsp"
 import {ArrayMultimap, Arrays, int} from "@opendaw/lib-std"
+import {Event} from "@opendaw/lib-dsp"
 
 export class EventBuffer {
     readonly #events: ArrayMultimap<int, Event>

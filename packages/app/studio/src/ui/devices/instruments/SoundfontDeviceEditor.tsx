@@ -3,7 +3,7 @@ import {int, Lifecycle, Option, Terminator, UUID} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {DeviceEditor} from "@/ui/devices/DeviceEditor.tsx"
 import {MenuItems} from "@/ui/devices/menu-items.ts"
-import {DeviceHost, IconSymbol, Soundfont, SoundfontDeviceBoxAdapter} from "@opendaw/studio-adapters"
+import {DeviceHost, Soundfont, SoundfontDeviceBoxAdapter} from "@opendaw/studio-adapters"
 import {DevicePeakMeter} from "@/ui/devices/panel/DevicePeakMeter.tsx"
 import {Html} from "@opendaw/lib-dom"
 import {StudioService} from "@/service/StudioService"
@@ -14,6 +14,7 @@ import {Icon} from "@/ui/components/Icon"
 import {InstrumentFactories} from "@opendaw/studio-core"
 import {FlexSpacer} from "@/ui/components/FlexSpacer"
 import {SoundfontFileBox} from "@opendaw/studio-boxes"
+import {IconSymbol} from "@opendaw/studio-enums"
 
 const className = Html.adoptStyleSheet(css, "editor")
 

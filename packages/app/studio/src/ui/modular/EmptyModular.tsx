@@ -1,7 +1,7 @@
 import css from "./EmptyModular.sass?inline"
 import {Lifecycle} from "@opendaw/lib-std"
 import {Icon} from "@/ui/components/Icon.tsx"
-import {IconSymbol} from "@opendaw/studio-adapters"
+import {IconSymbol} from "@opendaw/studio-enums"
 import {createElement} from "@opendaw/lib-jsx"
 import {Html} from "@opendaw/lib-dom"
 

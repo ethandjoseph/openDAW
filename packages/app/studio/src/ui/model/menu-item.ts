@@ -1,6 +1,6 @@
 import {Arrays, Option, Procedure, Terminable} from "@opendaw/lib-std"
 
-import {IconSymbol} from "@opendaw/studio-adapters"
+import {IconSymbol} from "@opendaw/studio-enums"
 
 export type MenuItemOptions = {
     hidden?: boolean

@@ -3,7 +3,7 @@ import {Arrays, DefaultObservableValue, Lifecycle, RuntimeSignal, StringComparat
 import {Await, createElement, Frag, Hotspot, HotspotUpdater, Inject, replaceChildren} from "@opendaw/lib-jsx"
 import {Events, Html, Keyboard} from "@opendaw/lib-dom"
 import {Runtime} from "@opendaw/lib-runtime"
-import {IconSymbol} from "@opendaw/studio-adapters"
+import {IconSymbol} from "@opendaw/studio-enums"
 import {OpenSoundfontAPI, ProjectSignals, SoundfontStorage} from "@opendaw/studio-core"
 import {StudioService} from "@/service/StudioService.ts"
 import {ThreeDots} from "@/ui/spinner/ThreeDots.tsx"

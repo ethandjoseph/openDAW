@@ -11,7 +11,7 @@ import {
     UUID
 } from "@opendaw/lib-std"
 import {Icon} from "@/ui/components/Icon"
-import {IconSymbol} from "@opendaw/studio-adapters"
+import {IconSymbol} from "@opendaw/studio-enums"
 import {Dialogs} from "@/ui/components/dialogs"
 import {Await, createElement, DomElement, Frag, Group} from "@opendaw/lib-jsx"
 import {Html} from "@opendaw/lib-dom"

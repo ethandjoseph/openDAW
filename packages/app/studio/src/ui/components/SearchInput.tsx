@@ -3,7 +3,7 @@ import {Lifecycle, MutableObservableValue} from "@opendaw/lib-std"
 import {Html} from "@opendaw/lib-dom"
 import {createElement} from "@opendaw/lib-jsx"
 import {Icon} from "@/ui/components/Icon"
-import {IconSymbol} from "@opendaw/studio-adapters"
+import {IconSymbol} from "@opendaw/studio-enums"
 
 const className = Html.adoptStyleSheet(css, "SearchInput")
 

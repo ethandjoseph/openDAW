@@ -13,7 +13,7 @@ import {
 } from "@opendaw/lib-std"
 import {ppqn, PPQN} from "@opendaw/lib-dsp"
 import {BoxGraph, Field, IndexedBox, PointerField, StringField} from "@opendaw/lib-box"
-import {AudioUnitType, Pointers} from "@opendaw/studio-enums"
+import {AudioUnitType, IconSymbol, Pointers} from "@opendaw/studio-enums"
 import {
     AudioBusBox,
     AudioUnitBox,
@@ -33,7 +33,6 @@ import {
     AudioUnitBoxAdapter,
     CaptureBox,
     EffectPointerType,
-    IconSymbol,
     IndexedAdapterCollectionListener,
     TrackType
 } from "@opendaw/studio-adapters"

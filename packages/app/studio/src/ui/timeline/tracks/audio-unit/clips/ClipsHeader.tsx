@@ -3,7 +3,7 @@ import {DefaultObservableValue, Lifecycle, ObservableValue, Option, Terminator, 
 import {createElement, DomElement} from "@opendaw/lib-jsx"
 import {StudioService} from "@/service/StudioService.ts"
 import {Icon} from "@/ui/components/Icon.tsx"
-import {IconSymbol} from "@opendaw/studio-adapters"
+import {IconSymbol} from "@opendaw/studio-enums"
 import {deferNextFrame, Dragging, Events, Html} from "@opendaw/lib-dom"
 import {TextTooltip} from "@/ui/surface/TextTooltip"
 

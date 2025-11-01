@@ -1,7 +1,6 @@
 import css from "./UnknownEffectDeviceEditor.sass?inline"
 import {
     DeviceHost,
-    IconSymbol,
     UnknownAudioEffectDeviceBoxAdapter,
     UnknownMidiEffectDeviceBoxAdapter
 } from "@opendaw/studio-adapters"
@@ -12,6 +11,7 @@ import {createElement} from "@opendaw/lib-jsx"
 import {DeviceMidiMeter} from "@/ui/devices/panel/DeviceMidiMeter.tsx"
 import {Html} from "@opendaw/lib-dom"
 import {StudioService} from "@/service/StudioService"
+import {IconSymbol} from "@opendaw/studio-enums"
 
 const className = Html.adoptStyleSheet(css, "UnknownAudioEffectDeviceEditor")
 

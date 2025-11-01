@@ -29,7 +29,6 @@ import {
     BoxAdapters,
     BoxAdaptersContext,
     ClipSequencing,
-    IconSymbol,
     ParameterFieldAdapters,
     ProcessorOptions,
     ProjectDecoder,
@@ -44,7 +43,7 @@ import {
     VertexSelection
 } from "@opendaw/studio-adapters"
 import {LiveStreamBroadcaster, LiveStreamReceiver} from "@opendaw/lib-fusion"
-import {AudioUnitType} from "@opendaw/studio-enums"
+import {AudioUnitType, IconSymbol} from "@opendaw/studio-enums"
 import {ProjectEnv} from "./ProjectEnv"
 import {Mixer} from "../Mixer"
 import {ProjectApi} from "./ProjectApi"

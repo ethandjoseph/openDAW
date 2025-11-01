@@ -4,7 +4,7 @@ import {AudioBusBox} from "@opendaw/studio-boxes"
 import {DeviceBoxAdapter, DeviceHost, Devices} from "../DeviceAdapter"
 import {BoxAdaptersContext} from "../BoxAdaptersContext"
 import {AudioUnitBoxAdapter} from "./AudioUnitBoxAdapter"
-import {IconSymbol} from "../IconSymbol"
+import {IconSymbol} from "@opendaw/studio-enums"
 
 export class AudioBusBoxAdapter implements DeviceBoxAdapter {
     readonly type = "bus"

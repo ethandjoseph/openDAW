@@ -4,7 +4,7 @@ import {DefaultObservableValue, Lifecycle} from "@opendaw/lib-std"
 import {createElement, Frag} from "@opendaw/lib-jsx"
 import {Colors, Preferences} from "@opendaw/studio-core"
 import {Checkbox} from "@/ui/components/Checkbox"
-import {IconSymbol} from "@opendaw/studio-adapters"
+import {IconSymbol} from "@opendaw/studio-enums"
 import {Icon} from "@/ui/components/Icon"
 
 const className = Html.adoptStyleSheet(css, "PreferencePanel")

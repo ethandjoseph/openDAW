@@ -1,8 +1,9 @@
 import {MenuItem} from "@/ui/model/menu-item"
 import {Arrays, int, isInstanceOf, Option} from "@opendaw/lib-std"
 import {CaptureAudioBox} from "@opendaw/studio-boxes"
+import {IconSymbol} from "@opendaw/studio-enums"
 import {AudioDevices, Capture, CaptureAudio, CaptureMidi, MidiDevices} from "@opendaw/studio-core"
-import {AudioUnitBoxAdapter, IconSymbol, TrackBoxAdapter} from "@opendaw/studio-adapters"
+import {AudioUnitBoxAdapter, TrackBoxAdapter} from "@opendaw/studio-adapters"
 import {BoxEditing} from "@opendaw/lib-box"
 import {StudioService} from "@/service/StudioService"
 

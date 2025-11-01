@@ -8,10 +8,11 @@ import {Exec, Lifecycle, MutableObservableValue, Notifier, Subscription, Termina
 import {NumberInput} from "@/ui/components/NumberInput.tsx"
 import {Checkbox} from "@/ui/components/Checkbox.tsx"
 import {Icon} from "@/ui/components/Icon.tsx"
-import {AudioUnitBoxAdapter, IconSymbol, RootBoxAdapter, TrackBoxAdapter, TrackType} from "@opendaw/studio-adapters"
+import {AudioUnitBoxAdapter, RootBoxAdapter, TrackBoxAdapter, TrackType} from "@opendaw/studio-adapters"
 import {RadioGroup} from "@/ui/components/RadioGroup.tsx"
 import {EditWrapper} from "@/ui/wrapper/EditWrapper.ts"
 import {Colors} from "@opendaw/studio-core"
+import {IconSymbol} from "@opendaw/studio-enums"
 
 const className = Html.adoptStyleSheet(css, "PianoModePanel")
 

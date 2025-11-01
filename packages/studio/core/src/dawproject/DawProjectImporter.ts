@@ -42,7 +42,7 @@ import {
     TransportSchema,
     WarpsSchema
 } from "@opendaw/lib-dawproject"
-import {AudioSendRouting, AudioUnitType, Pointers} from "@opendaw/studio-enums"
+import {AudioSendRouting, AudioUnitType, IconSymbol, Pointers} from "@opendaw/studio-enums"
 import {
     AudioBusBox,
     AudioFileBox,
@@ -64,7 +64,7 @@ import {
     UnknownMidiEffectDeviceBox,
     UserInterfaceBox
 } from "@opendaw/studio-boxes"
-import {CaptureBox, DeviceBoxUtils, IconSymbol, ProjectSkeleton, TrackType} from "@opendaw/studio-adapters"
+import {CaptureBox, DeviceBoxUtils, ProjectSkeleton, TrackType} from "@opendaw/studio-adapters"
 import {DawProject} from "./DawProject"
 import {InstrumentBox} from "../InstrumentBox"
 import {AudioUnitOrdering} from "../AudioUnitOrdering"
@@ -483,7 +483,7 @@ export namespace DawProjectImport {
             visitTapeDeviceBox: () => TrackType.Audio,
             visitNanoDeviceBox: () => TrackType.Notes,
             visitPlayfieldDeviceBox: () => TrackType.Notes,
-            visitVaporisateurDeviceBox: () => TrackType.Notes,
+            visitVaporisateurDeviceBox: () => TrackType.Notes
         }) ?? TrackType.Undefined
     }
 }
