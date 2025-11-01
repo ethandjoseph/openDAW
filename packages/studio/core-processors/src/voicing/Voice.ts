@@ -5,7 +5,7 @@ import {Block} from "../processing"
 export interface Voice {
     readonly gate: boolean
 
-    start(frequency: number, velocity: unitValue): void
+    start(id: int, frequency: number, velocity: unitValue): void
     stop(): void
     forceStop(): void
     startGlide(targetFrequency: number, glideDuration: ppqn): void

@@ -1,4 +1,4 @@
-import {asEnumValue, clamp, Id, int, Option, Terminable, unitValue, UUID} from "@opendaw/lib-std"
+import {asEnumValue, clamp, int, Option, Terminable, unitValue, UUID} from "@opendaw/lib-std"
 import {
     AudioBuffer,
     BandLimitedOscillator,
@@ -7,7 +7,6 @@ import {
     dbToGain,
     Event,
     midiToHz,
-    NoteEvent,
     ppqn,
     RenderQuantum,
     Smooth,
@@ -99,9 +98,13 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
 
     handleEvent(event: Event): void {
         if (NoteLifecycleEvent.isStart(event)) {
-            this.#voices.push(new VaporisateurVoice(this, event))
+            const frequency = midiToHz(event.pitch + event.cent / 100.0, 440.0) * this.freqMult
+            const voice = new VaporisateurVoice(this)
+            voice.start(event.id, frequency, event.velocity)
+            voice.startGlide(frequency * 2, event.duration) // Just a test
+            this.#voices.push(voice)
         } else if (NoteLifecycleEvent.isStop(event)) {
-            this.#voices.find(voice => voice.event.id === event.id)?.stop()
+            this.#voices.find(voice => voice.id === event.id)?.stop()
         }
     }
 
@@ -144,22 +147,28 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
 
 class VaporisateurVoice implements Voice {
     readonly device: VaporisateurDeviceProcessor
-    readonly event: Id<NoteEvent>
     readonly osc: BandLimitedOscillator
     readonly buffer: Float32Array
     readonly filterCoeff: BiquadCoeff
     readonly filterProcessor: BiquadMono
     readonly adsr: ADSR
     readonly adsrBuffer: Float32Array
+    readonly freqBuffer: Float32Array
     readonly gainSmooth: Smooth
+
+    id: int = -1
+    frequency: number = 0.0
+    velocity: unitValue = 0.0
+    targetFrequency: number = NaN
+    glidePosition: number = 0.0
+    glideDuration: number = 0.0
 
     phase: number = 0.0
 
-    constructor(device: VaporisateurDeviceProcessor, event: Id<NoteEvent>) {
+    constructor(device: VaporisateurDeviceProcessor) {
         this.device = device
-        this.event = event
 
-        this.osc = new BandLimitedOscillator()
+        this.osc = new BandLimitedOscillator(sampleRate)
         this.buffer = new Float32Array(RenderQuantum)
         this.filterCoeff = new BiquadCoeff()
         this.filterProcessor = new BiquadMono()
@@ -167,10 +176,14 @@ class VaporisateurVoice implements Voice {
         this.adsr.set(this.device.attack, 0.0, 1.0, this.device.release)
         this.adsr.gateOn()
         this.adsrBuffer = new Float32Array(RenderQuantum)
+        this.freqBuffer = new Float32Array(RenderQuantum)
         this.gainSmooth = new Smooth(0.003, sampleRate)
     }
 
-    start(frequency: number, velocity: unitValue): void {
+    start(id: int, frequency: number, velocity: unitValue): void {
+        this.id = id
+        this.frequency = frequency
+        this.velocity = velocity
     }
 
     stop(): void {this.adsr.gateOff()}
@@ -178,21 +191,42 @@ class VaporisateurVoice implements Voice {
     forceStop(): void {this.adsr.forceStop()}
 
     startGlide(targetFrequency: number, glideDuration: ppqn): void {
+        this.targetFrequency = targetFrequency
+        this.glidePosition = 0.0
+        this.glideDuration = glideDuration
     }
 
     get gate(): boolean {return this.adsr.gate}
 
-    process(output: AudioBuffer, _block: Block, fromIndex: int, toIndex: int): boolean {
-        const frequency = midiToHz(this.event.pitch + this.event.cent / 100.0, 440.0) * this.device.freqMult
-        const gain = velocityToGain(this.event.velocity) * this.device.gain * dbToGain(-15)
+    process(output: AudioBuffer, block: Block, fromIndex: int, toIndex: int): boolean {
+        const gain = velocityToGain(this.velocity) * this.device.gain * dbToGain(-15)
         const waveform = this.device.waveform
+        const ppqnPerSample = (block.p1 - block.p0) / (block.s1 - block.s0)
         const cutoffMapping = this.device.adapter.namedParameter.cutoff.valueMapping
         const cutoff = cutoffMapping.x(this.device.cutoff)
         const resonance = this.device.resonance
         const filterEnvelope = this.device.filterEnvelope
         const l = output.getChannel(0)
         const r = output.getChannel(1)
-        this.osc.generate(this.buffer, frequency / sampleRate, waveform, fromIndex, toIndex)
+
+        if (isNaN(this.targetFrequency)) {
+            // no glide → fill with constant frequency
+            this.freqBuffer.fill(this.frequency, fromIndex, toIndex)
+        } else {
+            for (let i = fromIndex; i < toIndex; i++) {
+                this.glidePosition += ppqnPerSample / this.glideDuration
+                if (this.glidePosition >= 1.0) {
+                    this.glidePosition = 1.0
+                    this.frequency = this.targetFrequency
+                    this.targetFrequency = NaN
+                    this.freqBuffer.fill(this.frequency, i, toIndex)
+                    break
+                }
+                this.freqBuffer[i] = this.frequency + (this.targetFrequency - this.frequency) * this.glidePosition
+            }
+        }
+
+        this.osc.generateFromFrequencies(this.buffer, this.freqBuffer, waveform, fromIndex, toIndex)
         this.adsr.process(this.adsrBuffer, fromIndex, toIndex)
         for (let i = fromIndex; i < toIndex; i++) {
             const env = this.gainSmooth.process(this.adsrBuffer[i])
