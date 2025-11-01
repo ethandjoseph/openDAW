@@ -1,4 +1,4 @@
-import {asEnumValue, clamp, clampUnit, Id, int, Option, Terminable, UUID} from "@opendaw/lib-std"
+import {asEnumValue, clamp, Id, int, Option, Terminable, unitValue, UUID} from "@opendaw/lib-std"
 import {
     AudioBuffer,
     BandLimitedOscillator,
@@ -8,6 +8,7 @@ import {
     Event,
     midiToHz,
     NoteEvent,
+    ppqn,
     RenderQuantum,
     velocityToGain,
     Waveform
@@ -22,11 +23,13 @@ import {NoteEventSource, NoteEventTarget, NoteLifecycleEvent} from "../../NoteEv
 import {NoteEventInstrument} from "../../NoteEventInstrument"
 import {DeviceProcessor} from "../../DeviceProcessor"
 import {InstrumentDeviceProcessor} from "../../InstrumentDeviceProcessor"
+import {Voice} from "../../voicing/Voice"
+import {ADSR} from "../../envelopes/ADSR"
 
 export class VaporisateurDeviceProcessor extends AudioProcessor implements InstrumentDeviceProcessor, NoteEventTarget {
     readonly #adapter: VaporisateurDeviceBoxAdapter
 
-    readonly #voices: Array<Voice>
+    readonly #voices: Array<VaporisateurVoice>
     readonly #noteEventInstrument: NoteEventInstrument
     readonly #audioOutput: AudioBuffer
     readonly #peakBroadcaster: PeakBroadcaster
@@ -95,16 +98,16 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
 
     handleEvent(event: Event): void {
         if (NoteLifecycleEvent.isStart(event)) {
-            this.#voices.push(new Voice(this, event))
+            this.#voices.push(new VaporisateurVoice(this, event))
         } else if (NoteLifecycleEvent.isStop(event)) {
             this.#voices.find(voice => voice.event.id === event.id)?.stop()
         }
     }
 
-    processAudio(_block: Block, fromIndex: int, toIndex: int): void {
+    processAudio(block: Block, fromIndex: int, toIndex: int): void {
         this.#audioOutput.clear(fromIndex, toIndex)
         for (let i = this.#voices.length - 1; i >= 0; i--) {
-            if (this.#voices[i].processAdd(this.#audioOutput, fromIndex, toIndex)) {
+            if (this.#voices[i].process(this.#audioOutput, block, fromIndex, toIndex)) {
                 this.#voices.splice(i, 1)
             }
         }
@@ -116,9 +119,9 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
         } else if (parameter === this.#parameterOctave || parameter === this.#parameterTune) {
             this.freqMult = 2.0 ** (this.#parameterOctave.getValue() + this.#parameterTune.getValue() / 1200.0)
         } else if (parameter === this.#parameterAttack) {
-            this.attack = Math.floor(this.#parameterAttack.getValue() * sampleRate)
+            this.attack = this.#parameterAttack.getValue()
         } else if (parameter === this.#parameterRelease) {
-            this.release = Math.floor(this.#parameterRelease.getValue() * sampleRate)
+            this.release = this.#parameterRelease.getValue()
         } else if (parameter === this.#parameterWaveform) {
             this.waveform = asEnumValue(this.#parameterWaveform.getValue(), Waveform)
         } else if (parameter === this.#parameterCutoff) {
@@ -138,17 +141,17 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
     toString(): string {return `{VaporisateurDevice}`}
 }
 
-class Voice {
+class VaporisateurVoice implements Voice {
     readonly device: VaporisateurDeviceProcessor
     readonly event: Id<NoteEvent>
     readonly osc: BandLimitedOscillator
     readonly buffer: Float32Array
     readonly filterCoeff: BiquadCoeff
     readonly filterProcessor: BiquadMono
+    readonly adsr: ADSR
+    readonly adsrBuffer: Float32Array
 
     phase: number = 0.0
-    position: int = 0 | 0
-    decayPosition: int = Number.POSITIVE_INFINITY
 
     constructor(device: VaporisateurDeviceProcessor, event: Id<NoteEvent>) {
         this.device = device
@@ -158,16 +161,28 @@ class Voice {
         this.buffer = new Float32Array(RenderQuantum)
         this.filterCoeff = new BiquadCoeff()
         this.filterProcessor = new BiquadMono()
+        this.adsr = new ADSR(sampleRate)
+        this.adsr.set(this.device.attack, 0.0, 1.0, this.device.release)
+        this.adsr.gateOn()
+        this.adsrBuffer = new Float32Array(RenderQuantum)
     }
 
-    stop(): void {this.decayPosition = this.position - this.device.attack}
+    start(frequency: number, velocity: unitValue): void {
+    }
 
-    processAdd(output: AudioBuffer, fromIndex: int, toIndex: int): boolean {
+    stop(): void {this.adsr.gateOff()}
+
+    forceStop(): void {this.adsr.forceStop()}
+
+    startGlide(targetFrequency: number, glideDuration: ppqn): void {
+    }
+
+    get gate(): boolean {return this.adsr.gate}
+
+    process(output: AudioBuffer, _block: Block, fromIndex: int, toIndex: int): boolean {
         const frequency = midiToHz(this.event.pitch + this.event.cent / 100.0, 440.0) * this.device.freqMult
         const gain = velocityToGain(this.event.velocity) * this.device.gain * dbToGain(-15)
         const waveform = this.device.waveform
-        const attack = this.device.attack
-        const release = this.device.release
         const cutoffMapping = this.device.adapter.namedParameter.cutoff.valueMapping
         const cutoff = cutoffMapping.x(this.device.cutoff)
         const resonance = this.device.resonance
@@ -175,14 +190,14 @@ class Voice {
         const l = output.getChannel(0)
         const r = output.getChannel(1)
         this.osc.generate(this.buffer, frequency / sampleRate, waveform, fromIndex, toIndex)
+        this.adsr.process(this.adsrBuffer, fromIndex, toIndex)
         for (let i = fromIndex; i < toIndex; i++) {
-            const env = clampUnit(Math.min(this.position / attack, 1.0 - (this.position - (this.decayPosition + attack)) / release, 1.0) ** 2.0)
-            // FIXME
+            const env = this.adsrBuffer[i] * 2.0
             this.filterCoeff.setLowpassParams(cutoffMapping.y(clamp(cutoff + env * filterEnvelope, 0.0, 1.0)) / sampleRate, resonance)
             const amp = this.filterProcessor.processFrame(this.filterCoeff, this.buffer[i]) * gain * env
             l[i] += amp
             r[i] += amp
-            if (++this.position - this.decayPosition > attack + release) {return true}
+            if (this.adsr.complete) {return true}
         }
         return false
     }

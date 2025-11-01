@@ -1,4 +1,4 @@
-import {Comparator, float, int, unitValue} from "@opendaw/lib-std"
+import {Comparator, int, unitValue} from "@opendaw/lib-std"
 import {Event, EventSpan} from "./events"
 
 export interface NoteEvent extends EventSpan {
@@ -6,7 +6,7 @@ export interface NoteEvent extends EventSpan {
 
     get pitch(): int
     get cent(): number
-    get velocity(): float
+    get velocity(): unitValue
 }
 
 export namespace NoteEvent {
