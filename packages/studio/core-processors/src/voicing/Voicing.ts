@@ -1,37 +1,33 @@
-import {Voice} from "./Voice"
-import {VoiceFactory} from "./VoiceFactory"
 import {Id, int} from "@opendaw/lib-std"
-import {AudioBuffer, midiToHz, NoteEvent} from "@opendaw/lib-dsp"
+import {AudioBuffer, NoteEvent} from "@opendaw/lib-dsp"
 import {Block} from "../processing"
+import {VoicingStrategy} from "./VoicingStrategy"
 
-export class Voicing<V extends Voice> {
-    readonly #factory: VoiceFactory<V>
-    readonly #voices: V[] = []
+export class Voicing {
+    #strategy: VoicingStrategy
 
-    constructor(factory: VoiceFactory<V>) {
-        this.#factory = factory
+    constructor(strategy: VoicingStrategy) {
+        this.#strategy = strategy
+    }
+
+    setStrategy(strategy: VoicingStrategy): void {
+        this.#strategy.reset()
+        this.#strategy = strategy
     }
 
     start(event: Id<NoteEvent>, freqMult: number): void {
-        const frequency = midiToHz(event.pitch + event.cent / 100.0, 440.0) * freqMult
-
-        // TODO This needs to go into the stratgy (we may not even create a new voice...)
-        const voice = this.#factory.create()
-        voice.start(event.id, frequency, event.velocity)
-        voice.startGlide(frequency * 2, event.duration) // Just a test
-        this.#voices.push(voice)
+        this.#strategy.start(event, freqMult)
     }
 
-    stop(id: int) {this.#voices.find(voice => voice.id === id)?.stop()}
+    stop(id: int): void {
+        this.#strategy.stop(id)
+    }
 
-    reset(): void {this.#voices.length = 0}
+    process(output: AudioBuffer, block: Block, fromIndex: int, toIndex: int): void {
+        this.#strategy.process(output, block, fromIndex, toIndex)
+    }
 
-    process(audioOutput: AudioBuffer, block: Block, fromIndex: int, toIndex: int) {
-        audioOutput.clear(fromIndex, toIndex)
-        for (let i = this.#voices.length - 1; i >= 0; i--) {
-            if (this.#voices[i].process(audioOutput, block, fromIndex, toIndex)) {
-                this.#voices.splice(i, 1)
-            }
-        }
+    reset(): void {
+        this.#strategy.reset()
     }
 }

@@ -25,11 +25,12 @@ import {InstrumentDeviceProcessor} from "../../InstrumentDeviceProcessor"
 import {Voice} from "../../voicing/Voice"
 import {ADSR} from "../../envelopes/ADSR"
 import {Voicing} from "../../voicing/Voicing"
+import {SimpleStrategy} from "../../voicing/SimpleVoiceStrategy"
 
 export class VaporisateurDeviceProcessor extends AudioProcessor implements InstrumentDeviceProcessor, NoteEventTarget {
     readonly #adapter: VaporisateurDeviceBoxAdapter
 
-    readonly #voicing: Voicing<VaporisateurVoice>
+    readonly #voicing: Voicing
     readonly #noteEventInstrument: NoteEventInstrument
     readonly #audioOutput: AudioBuffer
     readonly #peakBroadcaster: PeakBroadcaster
@@ -57,7 +58,7 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
 
         this.#adapter = adapter
 
-        this.#voicing = new Voicing({create: () => new VaporisateurVoice(this)})
+        this.#voicing = new Voicing(new SimpleStrategy({create: () => new VaporisateurVoice(this)}))
         this.#noteEventInstrument = new NoteEventInstrument(this, context.broadcaster, adapter.audioUnitBoxAdapter().address)
         this.#audioOutput = new AudioBuffer()
         this.#peakBroadcaster = this.own(new PeakBroadcaster(context.broadcaster, adapter.address))
