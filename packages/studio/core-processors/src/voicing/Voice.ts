@@ -3,6 +3,7 @@ import {AudioBuffer, ppqn} from "@opendaw/lib-dsp"
 import {Block} from "../processing"
 
 export interface Voice {
+    readonly id: int
     readonly gate: boolean
 
     start(id: int, frequency: number, velocity: unitValue): void

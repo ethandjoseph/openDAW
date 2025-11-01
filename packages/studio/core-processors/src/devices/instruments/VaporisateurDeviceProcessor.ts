@@ -6,7 +6,6 @@ import {
     BiquadMono,
     dbToGain,
     Event,
-    midiToHz,
     ppqn,
     RenderQuantum,
     Smooth,
@@ -25,11 +24,12 @@ import {DeviceProcessor} from "../../DeviceProcessor"
 import {InstrumentDeviceProcessor} from "../../InstrumentDeviceProcessor"
 import {Voice} from "../../voicing/Voice"
 import {ADSR} from "../../envelopes/ADSR"
+import {Voicing} from "../../voicing/Voicing"
 
 export class VaporisateurDeviceProcessor extends AudioProcessor implements InstrumentDeviceProcessor, NoteEventTarget {
     readonly #adapter: VaporisateurDeviceBoxAdapter
 
-    readonly #voices: Array<VaporisateurVoice>
+    readonly #voicing: Voicing<VaporisateurVoice>
     readonly #noteEventInstrument: NoteEventInstrument
     readonly #audioOutput: AudioBuffer
     readonly #peakBroadcaster: PeakBroadcaster
@@ -57,7 +57,7 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
 
         this.#adapter = adapter
 
-        this.#voices = []
+        this.#voicing = new Voicing({create: () => new VaporisateurVoice(this)})
         this.#noteEventInstrument = new NoteEventInstrument(this, context.broadcaster, adapter.audioUnitBoxAdapter().address)
         this.#audioOutput = new AudioBuffer()
         this.#peakBroadcaster = this.own(new PeakBroadcaster(context.broadcaster, adapter.address))
@@ -87,7 +87,7 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
     reset(): void {
         this.#noteEventInstrument.clear()
         this.#peakBroadcaster.clear()
-        this.#voices.length = 0
+        this.#voicing.reset()
         this.#audioOutput.clear()
         this.eventInput.clear()
     }
@@ -98,23 +98,14 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
 
     handleEvent(event: Event): void {
         if (NoteLifecycleEvent.isStart(event)) {
-            const frequency = midiToHz(event.pitch + event.cent / 100.0, 440.0) * this.freqMult
-            const voice = new VaporisateurVoice(this)
-            voice.start(event.id, frequency, event.velocity)
-            voice.startGlide(frequency * 2, event.duration) // Just a test
-            this.#voices.push(voice)
+            this.#voicing.start(event, this.freqMult)
         } else if (NoteLifecycleEvent.isStop(event)) {
-            this.#voices.find(voice => voice.id === event.id)?.stop()
+            this.#voicing.stop(event.id)
         }
     }
 
     processAudio(block: Block, fromIndex: int, toIndex: int): void {
-        this.#audioOutput.clear(fromIndex, toIndex)
-        for (let i = this.#voices.length - 1; i >= 0; i--) {
-            if (this.#voices[i].process(this.#audioOutput, block, fromIndex, toIndex)) {
-                this.#voices.splice(i, 1)
-            }
-        }
+        this.#voicing.process(this.#audioOutput, block, fromIndex, toIndex)
     }
 
     parameterChanged(parameter: AutomatableParameter): void {
