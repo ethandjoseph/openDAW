@@ -10,6 +10,7 @@ import {
     NoteEvent,
     ppqn,
     RenderQuantum,
+    Smooth,
     velocityToGain,
     Waveform
 } from "@opendaw/lib-dsp"
@@ -150,6 +151,7 @@ class VaporisateurVoice implements Voice {
     readonly filterProcessor: BiquadMono
     readonly adsr: ADSR
     readonly adsrBuffer: Float32Array
+    readonly gainSmooth: Smooth
 
     phase: number = 0.0
 
@@ -165,6 +167,7 @@ class VaporisateurVoice implements Voice {
         this.adsr.set(this.device.attack, 0.0, 1.0, this.device.release)
         this.adsr.gateOn()
         this.adsrBuffer = new Float32Array(RenderQuantum)
+        this.gainSmooth = new Smooth(0.003, sampleRate)
     }
 
     start(frequency: number, velocity: unitValue): void {
@@ -192,12 +195,12 @@ class VaporisateurVoice implements Voice {
         this.osc.generate(this.buffer, frequency / sampleRate, waveform, fromIndex, toIndex)
         this.adsr.process(this.adsrBuffer, fromIndex, toIndex)
         for (let i = fromIndex; i < toIndex; i++) {
-            const env = this.adsrBuffer[i] * 2.0
+            const env = this.gainSmooth.process(this.adsrBuffer[i])
             this.filterCoeff.setLowpassParams(cutoffMapping.y(clamp(cutoff + env * filterEnvelope, 0.0, 1.0)) / sampleRate, resonance)
             const amp = this.filterProcessor.processFrame(this.filterCoeff, this.buffer[i]) * gain * env
             l[i] += amp
             r[i] += amp
-            if (this.adsr.complete) {return true}
+            if (this.adsr.complete && this.gainSmooth.value < 1e-6) {return true}
         }
         return false
     }
