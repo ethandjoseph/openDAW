@@ -63,6 +63,7 @@ export class ADSR {
     gateOff(): void {
         if (this.#state !== State.Idle) {
             this.#state = State.Release
+            this.#updateRates()
         }
     }
 
