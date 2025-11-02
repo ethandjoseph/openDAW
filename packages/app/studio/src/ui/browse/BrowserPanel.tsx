@@ -27,9 +27,9 @@ export const BrowserPanel = ({lifecycle, service}: Construct) => {
                 case BrowseScope.Devices:
                     return <DevicesBrowser lifecycle={contentLifecycle} service={service}/>
                 case BrowseScope.Samples:
-                    return <SampleBrowser lifecycle={contentLifecycle} service={service}/>
+                    return <SampleBrowser lifecycle={contentLifecycle} service={service} fontSize="0.75em"/>
                 case BrowseScope.Soundfonts:
-                    return <SoundfontBrowser lifecycle={contentLifecycle} service={service}/>
+                    return <SoundfontBrowser lifecycle={contentLifecycle} service={service} fontSize="0.75em"/>
                 default:
                     return <span>Unknown</span>
             }

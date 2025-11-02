@@ -21,11 +21,12 @@ const className = Html.adoptStyleSheet(css, "SoundfontBrowser")
 type Construct = {
     lifecycle: Lifecycle
     service: StudioService
+    fontSize?: string // em
 }
 
 const location = new DefaultObservableValue(AssetLocation.OpenDAW)
 
-export const SoundfontBrowser = ({lifecycle, service}: Construct) => {
+export const SoundfontBrowser = ({lifecycle, service, fontSize}: Construct) => {
     const entries: HTMLElement = <div className="scrollable"/>
     const selection = lifecycle.own(new HTMLSelection(entries))
     const soundfontSelection = new SoundfontSelection(service, selection)
@@ -33,7 +34,7 @@ export const SoundfontBrowser = ({lifecycle, service}: Construct) => {
     const reload = Inject.ref<HotspotUpdater>()
     const filter = new DefaultObservableValue("")
     const element: Element = (
-        <div className={className} tabIndex={-1}>
+        <div className={className} tabIndex={-1} style={{fontSize}}>
             <div className="filter">
                 <RadioGroup lifecycle={lifecycle} model={location} elements={[
                     {
