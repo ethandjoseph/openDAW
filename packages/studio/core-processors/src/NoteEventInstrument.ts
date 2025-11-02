@@ -22,7 +22,7 @@ export class NoteEventInstrument implements Terminable {
     setNoteEventSource(source: NoteEventSource): Terminable {
         assert(this.#source.isEmpty(), "NoteEventSource already set")
         this.#source = Option.wrap(source)
-        this.#receiver.reset() // TODO Hope we find a less intrusive solution later
+        this.#receiver.reset()
         return Terminable.create(() => {
             this.#source = Option.None
             this.#receiver.reset()

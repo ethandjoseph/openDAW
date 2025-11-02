@@ -15,7 +15,7 @@ export class Voicing {
         this.#strategy = strategy
     }
 
-    start(event: Id<NoteEvent>, freqMult: number): void {
+    start(event: Id<NoteEvent>): void {
         this.#strategy.start(event)
     }
 

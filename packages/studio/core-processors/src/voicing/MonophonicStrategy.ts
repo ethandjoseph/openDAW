@@ -1,19 +1,19 @@
 import {Id, int, isDefined, Nullable} from "@opendaw/lib-std"
 import {AudioBuffer, NoteEvent} from "@opendaw/lib-dsp"
 import {Voice} from "./Voice"
-import {VoiceHost} from "./VoiceHost"
+import {VoicingHost} from "./VoicingHost"
 import {VoicingStrategy} from "./VoicingStrategy"
 import {Block} from "../processing"
 
 export class MonophonicStrategy implements VoicingStrategy {
-    readonly #host: VoiceHost
+    readonly #host: VoicingHost
     readonly #processing: Array<Voice> = []
     readonly #stack: Array<Id<NoteEvent>> = []
 
     #triggered: Nullable<Voice> = null // voice with the gate on
     #sounding: Nullable<Voice> = null // voice currently producing sound
 
-    constructor(host: VoiceHost) {this.#host = host}
+    constructor(host: VoicingHost) {this.#host = host}
 
     start(event: Id<NoteEvent>): void {
         this.#stack.push(event)

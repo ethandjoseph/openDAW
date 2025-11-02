@@ -201,7 +201,6 @@ export class NoteSequencer implements NoteEventSource, Terminable {
                         const b = NoteEvent.curveFunc((searchPosition + 1.0 / playCount), playCurve) * duration
                         const event: Id<NoteEvent> = NoteLifecycleEvent.startWith(source, position + a + delta, b - a)
                         this.#retainer.addAndRetain({...event})
-                        // this.#noteBroadcaster.noteOn(event.pitch)
                         yield event
                     }
                     searchPosition = ++searchIndex / playCount
@@ -210,7 +209,6 @@ export class NoteSequencer implements NoteEventSource, Terminable {
                 if (localStart <= position && position < localEnd) {
                     const event: Id<NoteEvent> = NoteLifecycleEvent.startWith(source, position + delta)
                     this.#retainer.addAndRetain({...event})
-                    // this.#noteBroadcaster.noteOn(event.pitch)
                     yield event
                 }
             }
@@ -219,7 +217,6 @@ export class NoteSequencer implements NoteEventSource, Terminable {
 
     * #releaseAll(from: ppqn): Generator<NoteCompleteEvent> {
         for (const event of this.#retainer.releaseAll()) {
-            // this.#noteBroadcaster.noteOff(event.pitch)
             yield NoteLifecycleEvent.stop(event, from)
         }
     }

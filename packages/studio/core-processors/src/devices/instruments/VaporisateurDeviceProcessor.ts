@@ -25,12 +25,13 @@ import {NoteEventSource, NoteEventTarget, NoteLifecycleEvent} from "../../NoteEv
 import {NoteEventInstrument} from "../../NoteEventInstrument"
 import {DeviceProcessor} from "../../DeviceProcessor"
 import {InstrumentDeviceProcessor} from "../../InstrumentDeviceProcessor"
-import {Voice} from "../../voicing/Voice"
 import {ADSR} from "../../envelopes/ADSR"
+import {Voice} from "../../voicing/Voice"
 import {Voicing} from "../../voicing/Voicing"
-import {MonophonicStrategy} from "../../voicing/MonophonicStrategy"
+import {PolyphonicStrategy} from "../../voicing/PolyphonicStrategy"
+import {VoicingHost} from "../../voicing/VoicingHost"
 
-export class VaporisateurDeviceProcessor extends AudioProcessor implements InstrumentDeviceProcessor, NoteEventTarget {
+export class VaporisateurDeviceProcessor extends AudioProcessor implements InstrumentDeviceProcessor, VoicingHost, NoteEventTarget {
     readonly #adapter: VaporisateurDeviceBoxAdapter
 
     readonly #voicing: Voicing
@@ -61,12 +62,7 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
 
         this.#adapter = adapter
 
-        this.#voicing = new Voicing(new MonophonicStrategy({
-            create: () => new VaporisateurVoice(this),
-            computeFrequency: (event: NoteEvent): number =>
-                midiToHz(event.pitch + event.cent / 100.0, 440.0) * this.freqMult,
-            glideTime: (): ppqn => PPQN.SemiQuaver
-        }))
+        this.#voicing = new Voicing(new PolyphonicStrategy(this))
         this.#noteEventInstrument = new NoteEventInstrument(this, context.broadcaster, adapter.audioUnitBoxAdapter().address)
         this.#audioOutput = new AudioBuffer()
         this.#peakBroadcaster = this.own(new PeakBroadcaster(context.broadcaster, adapter.address))
@@ -84,6 +80,13 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
         this.own(context.registerProcessor(this))
         this.readAllParameters()
     }
+
+    computeFrequency(event: NoteEvent): number {
+        return midiToHz(event.pitch + event.cent / 100.0, 440.0) * this.freqMult
+    }
+
+    create(): Voice {return new VaporisateurVoice(this)}
+    glideTime(): ppqn {return PPQN.Quarter}
 
     get noteEventTarget(): Option<NoteEventTarget & DeviceProcessor> {return Option.wrap(this)}
 
@@ -107,7 +110,8 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
 
     handleEvent(event: Event): void {
         if (NoteLifecycleEvent.isStart(event)) {
-            this.#voicing.start(event, this.freqMult)
+            console.debug(event.pitch)
+            this.#voicing.start(event)
         } else if (NoteLifecycleEvent.isStop(event)) {
             this.#voicing.stop(event.id)
         }
