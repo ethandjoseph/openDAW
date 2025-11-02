@@ -16,15 +16,17 @@ import {clamp, int, unitValue} from "@opendaw/lib-std"
 import {Block} from "../../processing"
 import {VaporisateurDeviceProcessor} from "./VaporisateurDeviceProcessor"
 
+// We can do this because there is no multi-threading in the processor
+const oscBuffer = new Float32Array(RenderQuantum)
+const envBuffer = new Float32Array(RenderQuantum)
+const freqBuffer = new Float32Array(RenderQuantum)
+
 export class VaporisateurVoice implements Voice {
     readonly device: VaporisateurDeviceProcessor
     readonly osc: BandLimitedOscillator
-    readonly oscBuffer: Float32Array
     readonly filterCoeff: BiquadCoeff
     readonly filterProcessor: BiquadMono
     readonly env: Adsr
-    readonly envBuffer: Float32Array
-    readonly freqBuffer: Float32Array
     readonly glide: Glide
     readonly gainSmooth: Smooth
 
@@ -38,9 +40,6 @@ export class VaporisateurVoice implements Voice {
         this.device = device
 
         this.osc = new BandLimitedOscillator(sampleRate)
-        this.oscBuffer = new Float32Array(RenderQuantum)
-        this.envBuffer = new Float32Array(RenderQuantum)
-        this.freqBuffer = new Float32Array(RenderQuantum)
         this.filterCoeff = new BiquadCoeff()
         this.filterProcessor = new BiquadMono()
         this.env = new Adsr(sampleRate)
@@ -79,14 +78,14 @@ export class VaporisateurVoice implements Voice {
         const [gainL, gainR] = StereoMatrix.panningToGains(this.panning, StereoMatrix.Mixing.Linear)
         const [outL, outR] = output.channels()
 
-        this.glide.process(this.freqBuffer, bpm, fromIndex, toIndex)
-        this.osc.generateFromFrequencies(this.oscBuffer, this.freqBuffer, waveform, fromIndex, toIndex)
-        this.env.process(this.envBuffer, fromIndex, toIndex)
+        this.glide.process(freqBuffer, bpm, fromIndex, toIndex)
+        this.osc.generateFromFrequencies(oscBuffer, freqBuffer, waveform, fromIndex, toIndex)
+        this.env.process(envBuffer, fromIndex, toIndex)
         for (let i = fromIndex; i < toIndex; i++) {
-            const vca = this.gainSmooth.process(this.envBuffer[i] * gain)
-            const cutoff = cutoffMapping.y(clamp(cutoffBase + this.envBuffer[i] * filterEnvelope, 0.0, 1.0))
+            const vca = this.gainSmooth.process(envBuffer[i] * gain)
+            const cutoff = cutoffMapping.y(clamp(cutoffBase + envBuffer[i] * filterEnvelope, 0.0, 1.0))
             this.filterCoeff.setLowpassParams(cutoff * invSampleRate, resonance)
-            const amp = this.filterProcessor.processFrame(this.filterCoeff, this.oscBuffer[i]) * vca
+            const amp = this.filterProcessor.processFrame(this.filterCoeff, oscBuffer[i]) * vca
             outL[i] += amp * gainL
             outR[i] += amp * gainR
             if (this.env.complete && this.gainSmooth.value < 1e-6) {return true}

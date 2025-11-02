@@ -73,11 +73,11 @@ export class VaporisateurDeviceBoxAdapter implements InstrumentDeviceBoxAdapter 
                 StringMapping.numeric({unit: "q", fractionDigits: 3}), "Resonance"),
             attack: this.#parametric.createParameter(
                 box.attack,
-                ValueMapping.exponential(0.001, 1.0),
+                ValueMapping.exponential(0.001, 5.0),
                 StringMapping.numeric({unit: "s", fractionDigits: 3}), "Attack"),
             decay: this.#parametric.createParameter(
                 box.decay,
-                ValueMapping.exponential(0.001, 1.0),
+                ValueMapping.exponential(0.001, 5.0),
                 StringMapping.numeric({unit: "s", fractionDigits: 3}), "Decay"),
             sustain: this.#parametric.createParameter(
                 box.sustain,
@@ -85,7 +85,7 @@ export class VaporisateurDeviceBoxAdapter implements InstrumentDeviceBoxAdapter 
                 StringMapping.percent({fractionDigits: 1}), "Sustain"),
             release: this.#parametric.createParameter(
                 box.release,
-                ValueMapping.exponential(0.001, 1.0),
+                ValueMapping.exponential(0.001, 5.0),
                 StringMapping.numeric({unit: "s", fractionDigits: 3}), "Release"),
             filterEnvelope: this.#parametric.createParameter(
                 box.filterEnvelope,
