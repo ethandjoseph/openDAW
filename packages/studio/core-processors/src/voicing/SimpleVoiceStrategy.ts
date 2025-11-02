@@ -1,19 +1,19 @@
 import {Voice} from "./Voice"
-import {VoiceFactory} from "./VoiceFactory"
+import {VoiceHost} from "./VoiceHost"
 import {Id, int} from "@opendaw/lib-std"
 import {AudioBuffer, midiToHz, NoteEvent} from "@opendaw/lib-dsp"
 import {Block} from "../processing"
 import {VoicingStrategy} from "./VoicingStrategy"
 
 export class SimpleStrategy implements VoicingStrategy {
-    readonly #factory: VoiceFactory
+    readonly #factory: VoiceHost
     readonly #voices: Voice[] = []
 
-    constructor(factory: VoiceFactory) {
+    constructor(factory: VoiceHost) {
         this.#factory = factory
     }
 
-    start(event: Id<NoteEvent>, freqMult: number): void {
+    start(event: Id<NoteEvent>): void {
         const frequency = midiToHz(event.pitch + event.cent / 100.0, 440.0) * freqMult
         const voice = this.#factory.create()
         voice.start(event.id, frequency, event.velocity)

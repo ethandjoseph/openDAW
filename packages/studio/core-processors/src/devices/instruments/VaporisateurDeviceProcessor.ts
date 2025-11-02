@@ -6,6 +6,9 @@ import {
     BiquadMono,
     dbToGain,
     Event,
+    midiToHz,
+    NoteEvent,
+    PPQN,
     ppqn,
     RenderQuantum,
     Smooth,
@@ -58,7 +61,12 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
 
         this.#adapter = adapter
 
-        this.#voicing = new Voicing(new MonophonicStrategy({create: () => new VaporisateurVoice(this)}))
+        this.#voicing = new Voicing(new MonophonicStrategy({
+            create: () => new VaporisateurVoice(this),
+            computeFrequency: (event: NoteEvent): number =>
+                midiToHz(event.pitch + event.cent / 100.0, 440.0) * this.freqMult,
+            glideTime: (): ppqn => PPQN.SemiQuaver
+        }))
         this.#noteEventInstrument = new NoteEventInstrument(this, context.broadcaster, adapter.audioUnitBoxAdapter().address)
         this.#audioOutput = new AudioBuffer()
         this.#peakBroadcaster = this.own(new PeakBroadcaster(context.broadcaster, adapter.address))
@@ -184,6 +192,7 @@ class VaporisateurVoice implements Voice {
     forceStop(): void {this.adsr.forceStop()}
 
     startGlide(targetFrequency: number, glideDuration: ppqn): void {
+        // console.debug("GLIDE START", this.currentFrequency, "→", targetFrequency)
         this.beginFrequency = this.currentFrequency
         this.targetFrequency = targetFrequency
         this.glidePosition = 0.0

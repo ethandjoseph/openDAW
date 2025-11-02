@@ -16,7 +16,7 @@ export class Voicing {
     }
 
     start(event: Id<NoteEvent>, freqMult: number): void {
-        this.#strategy.start(event, freqMult)
+        this.#strategy.start(event)
     }
 
     stop(id: int): void {

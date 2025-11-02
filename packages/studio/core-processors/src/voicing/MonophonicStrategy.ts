@@ -1,73 +1,78 @@
 import {Id, int, isDefined, Nullable} from "@opendaw/lib-std"
-import {AudioBuffer, midiToHz, NoteEvent, PPQN} from "@opendaw/lib-dsp"
+import {AudioBuffer, NoteEvent} from "@opendaw/lib-dsp"
 import {Voice} from "./Voice"
-import {VoiceFactory} from "./VoiceFactory"
+import {VoiceHost} from "./VoiceHost"
 import {VoicingStrategy} from "./VoicingStrategy"
 import {Block} from "../processing"
 
 export class MonophonicStrategy implements VoicingStrategy {
-    readonly #factory: VoiceFactory
-    readonly #voices: Voice[] = []
-    readonly #held: Id<NoteEvent>[] = []
+    readonly #host: VoiceHost
+    readonly #processing: Array<Voice> = []
+    readonly #stack: Array<Id<NoteEvent>> = []
 
-    #activeVoice: Nullable<Voice> = null
+    #triggered: Nullable<Voice> = null // voice with the gate on
+    #sounding: Nullable<Voice> = null // voice currently producing sound
 
-    constructor(factory: VoiceFactory) {this.#factory = factory}
+    constructor(host: VoiceHost) {this.#host = host}
 
-    start(event: Id<NoteEvent>, freqMult: number): void {
-        this.#held.push(event)
+    start(event: Id<NoteEvent>): void {
+        this.#stack.push(event)
 
-        const frequency = midiToHz(event.pitch + event.cent / 100.0, 440.0) * freqMult
-
-        if (isDefined(this.#activeVoice)) {
-            if (this.#activeVoice.gate) {
-                this.#activeVoice.startGlide(frequency, PPQN.Quarter)
+        if (isDefined(this.#triggered)) {
+            if (this.#triggered.gate) {
+                this.#triggered.startGlide(this.#host.computeFrequency(event), this.#host.glideTime())
                 return
             }
-            this.#activeVoice.forceStop()
         }
 
-        const voice = this.#factory.create()
-        voice.start(event.id, frequency, event.velocity)
-        this.#activeVoice = voice
-        this.#voices.push(voice)
+        if (isDefined(this.#sounding)) {
+            this.#sounding.forceStop()
+        }
+
+        const voice = this.#host.create()
+        voice.start(event.id, this.#host.computeFrequency(event), event.velocity)
+        this.#triggered = voice
+        this.#sounding = voice
+        this.#processing.push(voice)
     }
 
     stop(id: int): void {
-        const index = this.#held.findIndex(e => e.id === id)
-        if (index === -1) return
-        this.#held.splice(index, 1)
+        const index = this.#stack.findIndex(event => event.id === id)
+        if (index === -1) {return}
 
-        if (!isDefined(this.#activeVoice)) return
+        this.#stack.splice(index, 1)
+
+        if (!isDefined(this.#triggered)) return
 
         // released the topmost key and glide back if another note held
-        if (index === this.#held.length) {
-            const prev = this.#held.at(-1)
+        if (index === this.#stack.length) {
+            const prev = this.#stack.at(-1)
             if (isDefined(prev)) {
-                const targetFreq = midiToHz(prev.pitch + prev.cent / 100.0, 440.0)
-                this.#activeVoice.startGlide(targetFreq, PPQN.Quarter)
+                this.#triggered.startGlide(this.#host.computeFrequency(prev), this.#host.glideTime())
                 return
             }
         }
-        if (this.#held.length === 0) {
-            this.#activeVoice.stop()
-            this.#activeVoice = null
+        if (this.#stack.length === 0) {
+            this.#triggered.stop()
+            this.#triggered = null
         }
     }
 
     reset(): void {
-        this.#held.length = 0
-        this.#voices.length = 0
-        this.#activeVoice = null
+        this.#stack.length = 0
+        this.#processing.length = 0
+        this.#triggered = null
+        this.#sounding = null
     }
 
     process(output: AudioBuffer, block: Block, fromIndex: int, toIndex: int): void {
         output.clear(fromIndex, toIndex)
-        for (let i = this.#voices.length - 1; i >= 0; i--) {
-            const voice = this.#voices[i]
+        for (let i = this.#processing.length - 1; i >= 0; i--) {
+            const voice = this.#processing[i]
             if (voice.process(output, block, fromIndex, toIndex)) {
-                if (voice === this.#activeVoice) {this.#activeVoice = null}
-                this.#voices.splice(i, 1)
+                this.#processing.splice(i, 1)
+                if (voice === this.#triggered) {this.#triggered = null}
+                if (voice === this.#sounding) {this.#sounding = null}
             }
         }
     }

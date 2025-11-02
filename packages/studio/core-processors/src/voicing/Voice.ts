@@ -5,6 +5,7 @@ import {Block} from "../processing"
 export interface Voice {
     readonly id: int
     readonly gate: boolean
+    readonly currentFrequency: number
 
     start(id: int, frequency: number, velocity: unitValue): void
     stop(): void
