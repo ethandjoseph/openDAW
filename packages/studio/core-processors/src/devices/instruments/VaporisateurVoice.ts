@@ -5,7 +5,7 @@ import {
     BandLimitedOscillator,
     BiquadCoeff,
     BiquadMono,
-    PPQN,
+    Glide,
     ppqn,
     RenderQuantum,
     Smooth,
@@ -15,7 +15,6 @@ import {
 import {clamp, int, unitValue} from "@opendaw/lib-std"
 import {Block} from "../../processing"
 import {VaporisateurDeviceProcessor} from "./VaporisateurDeviceProcessor"
-import Mixing = StereoMatrix.Mixing
 
 export class VaporisateurVoice implements Voice {
     readonly device: VaporisateurDeviceProcessor
@@ -26,15 +25,11 @@ export class VaporisateurVoice implements Voice {
     readonly env: Adsr
     readonly envBuffer: Float32Array
     readonly freqBuffer: Float32Array
+    readonly glide: Glide
     readonly gainSmooth: Smooth
 
     id: int = -1
-    beginFrequency: number = 0.0
-    currentFrequency: number = NaN
     velocity: unitValue = 0.0
-    targetFrequency: number = NaN
-    glidePosition: number = 0.0
-    glideDuration: number = 0.0
     panning: number = 0.0
 
     phase: number = 0.0
@@ -51,18 +46,15 @@ export class VaporisateurVoice implements Voice {
         this.env.gateOn()
         this.envBuffer = new Float32Array(RenderQuantum)
         this.freqBuffer = new Float32Array(RenderQuantum)
+        this.glide = new Glide()
         this.gainSmooth = new Smooth(0.003, sampleRate)
     }
 
     start(id: int, frequency: number, velocity: unitValue, panning: number = 0.0): void {
         this.id = id
-        this.beginFrequency = frequency
         this.velocity = velocity
         this.panning = panning
-
-        if (isNaN(this.currentFrequency)) {
-            this.currentFrequency = this.beginFrequency
-        }
+        this.glide.start(frequency)
     }
 
     stop(): void {this.env.gateOff()}
@@ -70,17 +62,11 @@ export class VaporisateurVoice implements Voice {
     forceStop(): void {this.env.forceStop()}
 
     startGlide(targetFrequency: number, glideDuration: ppqn): void {
-        if (glideDuration === 0.0) {
-            this.beginFrequency = targetFrequency
-            return
-        }
-        this.beginFrequency = this.currentFrequency
-        this.targetFrequency = targetFrequency
-        this.glidePosition = 0.0
-        this.glideDuration = glideDuration
+        this.glide.glideTo(targetFrequency, glideDuration)
     }
 
     get gate(): boolean {return this.env.gate}
+    get currentFrequency(): number {return this.glide.currentFrequency()}
 
     process(output: AudioBuffer, {bpm}: Block, fromIndex: int, toIndex: int): boolean {
         const gain = velocityToGain(this.velocity) * this.device.gain
@@ -92,28 +78,10 @@ export class VaporisateurVoice implements Voice {
         const outL = output.getChannel(0)
         const outR = output.getChannel(1)
 
-        if (isNaN(this.targetFrequency)) {
-            this.freqBuffer.fill(this.beginFrequency, fromIndex, toIndex)
-            this.currentFrequency = this.beginFrequency
-        } else {
-            const ppqnPerSample = PPQN.samplesToPulses(1, bpm, sampleRate)
-            for (let i = fromIndex; i < toIndex; i++) {
-                this.glidePosition += ppqnPerSample / this.glideDuration
-                if (this.glidePosition >= 1.0) {
-                    this.glidePosition = 1.0
-                    this.beginFrequency = this.targetFrequency
-                    this.targetFrequency = NaN
-                    this.freqBuffer.fill(this.beginFrequency, i, toIndex)
-                    break
-                }
-                this.currentFrequency = this.beginFrequency + (this.targetFrequency - this.beginFrequency) * this.glidePosition
-                this.freqBuffer[i] = this.currentFrequency
-            }
-        }
-
+        this.glide.process(this.freqBuffer, bpm, fromIndex, toIndex)
         this.osc.generateFromFrequencies(this.buffer, this.freqBuffer, waveform, fromIndex, toIndex)
         this.env.process(this.envBuffer, fromIndex, toIndex)
-        const [gainL, gainR] = StereoMatrix.panningToGains(this.panning, Mixing.Linear)
+        const [gainL, gainR] = StereoMatrix.panningToGains(this.panning, StereoMatrix.Mixing.Linear)
         for (let i = fromIndex; i < toIndex; i++) {
             const vca = this.gainSmooth.process(this.envBuffer[i] * gain)
             const cutoff = cutoffMapping.y(clamp(cutoffBase + this.envBuffer[i] * filterEnvelope, 0.0, 1.0))

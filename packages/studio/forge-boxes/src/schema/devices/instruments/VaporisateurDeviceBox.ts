@@ -24,5 +24,6 @@ export const VaporisateurDeviceBox: BoxSchema<Pointers> = DeviceFactory.createIn
     },
     23: {type: "int32", name: "unison-count", pointerRules: DefaultParameterPointerRules, value: 1},
     24: {type: "float32", name: "unison-detune", pointerRules: DefaultParameterPointerRules, value: 30},
+    25: {type: "float32", name: "unison-stereo", pointerRules: DefaultParameterPointerRules, value: 1.0},
     99: {type: "int32", name: "version"}
 })
