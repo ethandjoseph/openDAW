@@ -1,4 +1,4 @@
-import {asEnumValue, clamp, int, Option, Terminable, unitValue, UUID} from "@opendaw/lib-std"
+import {asEnumValue, clamp, int, Option, panic, Terminable, unitValue, UUID} from "@opendaw/lib-std"
 import {
     AudioBuffer,
     BandLimitedOscillator,
@@ -30,6 +30,8 @@ import {Voice} from "../../voicing/Voice"
 import {Voicing} from "../../voicing/Voicing"
 import {PolyphonicStrategy} from "../../voicing/PolyphonicStrategy"
 import {VoicingHost} from "../../voicing/VoicingHost"
+import {VoicingMode} from "@opendaw/studio-enums"
+import {MonophonicStrategy} from "../../voicing/MonophonicStrategy"
 
 export class VaporisateurDeviceProcessor extends AudioProcessor implements InstrumentDeviceProcessor, VoicingHost, NoteEventTarget {
     readonly #adapter: VaporisateurDeviceBoxAdapter
@@ -42,27 +44,33 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
     readonly #parameterOctave: AutomatableParameter<number>
     readonly #parameterTune: AutomatableParameter<number>
     readonly #parameterAttack: AutomatableParameter<number>
+    readonly #parameterDecay: AutomatableParameter<number>
+    readonly #parameterSustain: AutomatableParameter<number>
     readonly #parameterRelease: AutomatableParameter<number>
     readonly #parameterWaveform: AutomatableParameter<number>
     readonly #parameterCutoff: AutomatableParameter<number>
     readonly #parameterResonance: AutomatableParameter<number>
     readonly #parameterFilterEnvelope: AutomatableParameter<number>
+    readonly #parameterGlideTime: AutomatableParameter<number>
 
     gain: number = 1.0
     freqMult: number = 1.0
     attack: number = 1.0
+    decay: number = 1.0
+    sustain: number = 1.0
     release: number = 1.0
     waveform: Waveform = Waveform.sine
     cutoff: number = 1.0
     resonance: number = Math.SQRT1_2
     filterEnvelope: number = 0.0
+    #glideTime: number = 0.0
 
     constructor(context: EngineContext, adapter: VaporisateurDeviceBoxAdapter) {
         super(context)
 
         this.#adapter = adapter
 
-        this.#voicing = new Voicing(new PolyphonicStrategy(this))
+        this.#voicing = new Voicing()
         this.#noteEventInstrument = new NoteEventInstrument(this, context.broadcaster, adapter.audioUnitBoxAdapter().address)
         this.#audioOutput = new AudioBuffer()
         this.#peakBroadcaster = this.own(new PeakBroadcaster(context.broadcaster, adapter.address))
@@ -71,13 +79,32 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
         this.#parameterOctave = this.own(this.bindParameter(this.#adapter.namedParameter.octave))
         this.#parameterTune = this.own(this.bindParameter(this.#adapter.namedParameter.tune))
         this.#parameterAttack = this.own(this.bindParameter(this.#adapter.namedParameter.attack))
+        this.#parameterDecay = this.own(this.bindParameter(this.#adapter.namedParameter.decay))
+        this.#parameterSustain = this.own(this.bindParameter(this.#adapter.namedParameter.sustain))
         this.#parameterRelease = this.own(this.bindParameter(this.#adapter.namedParameter.release))
         this.#parameterWaveform = this.own(this.bindParameter(this.#adapter.namedParameter.waveform))
         this.#parameterCutoff = this.own(this.bindParameter(this.#adapter.namedParameter.cutoff))
         this.#parameterResonance = this.own(this.bindParameter(this.#adapter.namedParameter.resonance))
         this.#parameterFilterEnvelope = this.own(this.bindParameter(this.#adapter.namedParameter.filterEnvelope))
+        this.#parameterGlideTime = this.own(this.bindParameter(this.#adapter.namedParameter.glideTime))
 
-        this.own(context.registerProcessor(this))
+        this.ownAll(
+            adapter.box.playMode.catchupAndSubscribe(owner => {
+                switch (owner.getValue()) {
+                    case VoicingMode.Monophonic: {
+                        this.#voicing.strategy = new MonophonicStrategy(this)
+                        return
+                    }
+                    case VoicingMode.Polyphonic: {
+                        this.#voicing.strategy = new PolyphonicStrategy(this)
+                        return
+                    }
+                    default:
+                        return panic(`Unknown VoicingMode '${owner.getValue()}'`)
+                }
+            }),
+            context.registerProcessor(this)
+        )
         this.readAllParameters()
     }
 
@@ -86,7 +113,7 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
     }
 
     create(): Voice {return new VaporisateurVoice(this)}
-    glideTime(): ppqn {return PPQN.Quarter}
+    glideTime(): ppqn {return this.#glideTime}
 
     get noteEventTarget(): Option<NoteEventTarget & DeviceProcessor> {return Option.wrap(this)}
 
@@ -110,7 +137,6 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
 
     handleEvent(event: Event): void {
         if (NoteLifecycleEvent.isStart(event)) {
-            console.debug(event.pitch)
             this.#voicing.start(event)
         } else if (NoteLifecycleEvent.isStop(event)) {
             this.#voicing.stop(event.id)
@@ -128,6 +154,10 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
             this.freqMult = 2.0 ** (this.#parameterOctave.getValue() + this.#parameterTune.getValue() / 1200.0)
         } else if (parameter === this.#parameterAttack) {
             this.attack = this.#parameterAttack.getValue()
+        } else if (parameter === this.#parameterDecay) {
+            this.decay = this.#parameterDecay.getValue()
+        } else if (parameter === this.#parameterSustain) {
+            this.sustain = this.#parameterSustain.getValue()
         } else if (parameter === this.#parameterRelease) {
             this.release = this.#parameterRelease.getValue()
         } else if (parameter === this.#parameterWaveform) {
@@ -138,6 +168,8 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
             this.resonance = this.#parameterResonance.getValue()
         } else if (parameter === this.#parameterFilterEnvelope) {
             this.filterEnvelope = this.#parameterFilterEnvelope.getValue()
+        } else if (parameter === this.#parameterGlideTime) {
+            this.#glideTime = this.#parameterGlideTime.getValue() * PPQN.Bar
         }
     }
 
@@ -162,7 +194,7 @@ class VaporisateurVoice implements Voice {
 
     id: int = -1
     beginFrequency: number = 0.0
-    currentFrequency: number = 0.0
+    currentFrequency: number = NaN
     velocity: unitValue = 0.0
     targetFrequency: number = NaN
     glidePosition: number = 0.0
@@ -178,7 +210,7 @@ class VaporisateurVoice implements Voice {
         this.filterCoeff = new BiquadCoeff()
         this.filterProcessor = new BiquadMono()
         this.adsr = new ADSR(sampleRate)
-        this.adsr.set(this.device.attack, 0.0, 1.0, this.device.release)
+        this.adsr.set(this.device.attack, this.device.decay, this.device.sustain, this.device.release)
         this.adsr.gateOn()
         this.adsrBuffer = new Float32Array(RenderQuantum)
         this.freqBuffer = new Float32Array(RenderQuantum)
@@ -189,6 +221,10 @@ class VaporisateurVoice implements Voice {
         this.id = id
         this.beginFrequency = frequency
         this.velocity = velocity
+
+        if (isNaN(this.currentFrequency)) {
+            this.currentFrequency = this.beginFrequency
+        }
     }
 
     stop(): void {this.adsr.gateOff()}
@@ -196,7 +232,10 @@ class VaporisateurVoice implements Voice {
     forceStop(): void {this.adsr.forceStop()}
 
     startGlide(targetFrequency: number, glideDuration: ppqn): void {
-        // console.debug("GLIDE START", this.currentFrequency, "→", targetFrequency)
+        if (glideDuration === 0.0) {
+            this.beginFrequency = targetFrequency
+            return
+        }
         this.beginFrequency = this.currentFrequency
         this.targetFrequency = targetFrequency
         this.glidePosition = 0.0

@@ -20,9 +20,42 @@ type Construct = {
 }
 
 export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHost}: Construct) => {
-    const {volume, octave, tune, waveform, cutoff, resonance, attack, release, filterEnvelope} = adapter.namedParameter
     const {project} = service
     const {editing, midiLearning, liveStreamReceiver} = project
+    const {
+        volume,
+        octave,
+        tune,
+        glideTime,
+        waveform,
+        cutoff,
+        resonance,
+        filterEnvelope,
+        attack,
+        decay,
+        sustain,
+        release,
+        playMode
+    } = adapter.namedParameter
+    const order = [
+        playMode,
+        glideTime,
+        octave,
+        tune,
+        null,
+
+        volume,
+        waveform,
+        cutoff,
+        resonance,
+        null,
+
+        attack,
+        decay,
+        sustain,
+        release,
+        filterEnvelope
+    ]
     return (
         <DeviceEditor lifecycle={lifecycle}
                       project={project}
@@ -30,68 +63,17 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
                       populateMenu={parent => MenuItems.forAudioUnitInput(parent, service, deviceHost)}
                       populateControls={() => (
                           <div className={className}>
-                              {ControlBuilder.createKnob({
-                                  lifecycle,
-                                  editing,
-                                  midiLearning,
-                                  adapter,
-                                  parameter: volume
-                              })}
-                              {ControlBuilder.createKnob({
-                                  lifecycle,
-                                  editing,
-                                  midiLearning,
-                                  adapter,
-                                  parameter: octave
-                              })}
-                              {ControlBuilder.createKnob({
-                                  lifecycle,
-                                  editing,
-                                  midiLearning,
-                                  adapter,
-                                  parameter: tune
-                              })}
-                              {ControlBuilder.createKnob({
-                                  lifecycle,
-                                  editing,
-                                  midiLearning,
-                                  adapter,
-                                  parameter: waveform
-                              })}
-                              {ControlBuilder.createKnob({
-                                  lifecycle,
-                                  editing,
-                                  midiLearning,
-                                  adapter,
-                                  parameter: cutoff
-                              })}
-                              {ControlBuilder.createKnob({
-                                  lifecycle,
-                                  editing,
-                                  midiLearning,
-                                  adapter,
-                                  parameter: resonance
-                              })}
-                              {ControlBuilder.createKnob({
-                                  lifecycle,
-                                  editing,
-                                  midiLearning,
-                                  adapter,
-                                  parameter: attack
-                              })}
-                              {ControlBuilder.createKnob({
-                                  lifecycle,
-                                  editing,
-                                  midiLearning,
-                                  adapter,
-                                  parameter: release
-                              })}
-                              {ControlBuilder.createKnob({
-                                  lifecycle,
-                                  editing,
-                                  midiLearning,
-                                  adapter,
-                                  parameter: filterEnvelope
+                              {order.map(parameter => {
+                                  if (parameter === null) {return <div/>}
+                                  return ControlBuilder.createKnob({
+                                      lifecycle,
+                                      editing,
+                                      midiLearning,
+                                      adapter,
+                                      parameter,
+                                      anchor: parameter === filterEnvelope
+                                      || parameter === octave || parameter === tune ? 0.5 : 0.0
+                                  })
                               })}
                           </div>
                       )}

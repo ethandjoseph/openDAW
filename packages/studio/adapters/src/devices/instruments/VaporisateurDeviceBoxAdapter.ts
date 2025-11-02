@@ -6,6 +6,7 @@ import {BoxAdaptersContext} from "../../BoxAdaptersContext"
 import {ParameterAdapterSet} from "../../ParameterAdapterSet"
 import {TrackType} from "../../timeline/TrackType"
 import {AudioUnitBoxAdapter} from "../../audio-unit/AudioUnitBoxAdapter"
+import {VoicingMode} from "@opendaw/studio-enums"
 
 export class VaporisateurDeviceBoxAdapter implements InstrumentDeviceBoxAdapter {
     readonly type = "instrument"
@@ -44,43 +45,60 @@ export class VaporisateurDeviceBoxAdapter implements InstrumentDeviceBoxAdapter 
     terminate(): void {this.#parametric.terminate()}
 
     #wrapParameters(box: VaporisateurDeviceBox) {
+        const VoiceModes = [VoicingMode.Monophonic, VoicingMode.Polyphonic]
         return {
             volume: this.#parametric.createParameter(
                 box.volume,
                 ValueMapping.DefaultDecibel,
-                StringMapping.numeric({unit: "db", fractionDigits: 1}), "volume"),
+                StringMapping.numeric({unit: "db", fractionDigits: 1}), "Volume"),
             octave: this.#parametric.createParameter(
                 box.octave,
                 ValueMapping.linearInteger(-3, 3),
-                StringMapping.numeric(), "octave", 0.5),
+                StringMapping.numeric(), "Octave", 0.5),
             tune: this.#parametric.createParameter(
                 box.tune,
                 ValueMapping.linear(-1200.0, +1200.0),
-                StringMapping.numeric({unit: "cent", fractionDigits: 0}), "tune", 0.5),
+                StringMapping.numeric({unit: "Cent", fractionDigits: 0}), "tune", 0.5),
             waveform: this.#parametric.createParameter(
                 box.waveform,
                 ValueMapping.linearInteger(0, 3),
-                StringMapping.indices("", ["sine", "triangle", "sawtooth", "square"]), "waveform"),
+                StringMapping.indices("", ["Sine", "Triangle", "Sawtooth", "Square"]), "Waveform"),
             cutoff: this.#parametric.createParameter(
                 box.cutoff,
                 ValueMapping.exponential(20.0, 18_000.0),
-                StringMapping.numeric({unit: "Hz"}), "cutoff"),
+                StringMapping.numeric({unit: "Hz"}), "Cutoff"),
             resonance: this.#parametric.createParameter(
                 box.resonance,
                 ValueMapping.exponential(0.01, 10.0),
-                StringMapping.numeric({unit: "q", fractionDigits: 3}), "resonance"),
+                StringMapping.numeric({unit: "q", fractionDigits: 3}), "Resonance"),
             attack: this.#parametric.createParameter(
                 box.attack,
                 ValueMapping.exponential(0.001, 1.0),
-                StringMapping.numeric({unit: "s", fractionDigits: 3}), "attack"),
+                StringMapping.numeric({unit: "s", fractionDigits: 3}), "Attack"),
+            decay: this.#parametric.createParameter(
+                box.decay,
+                ValueMapping.exponential(0.001, 1.0),
+                StringMapping.numeric({unit: "s", fractionDigits: 3}), "Decay"),
+            sustain: this.#parametric.createParameter(
+                box.sustain,
+                ValueMapping.unipolar(),
+                StringMapping.percent({fractionDigits: 1}), "Sustain"),
             release: this.#parametric.createParameter(
                 box.release,
                 ValueMapping.exponential(0.001, 1.0),
-                StringMapping.numeric({unit: "s", fractionDigits: 3}), "release"),
+                StringMapping.numeric({unit: "s", fractionDigits: 3}), "Release"),
             filterEnvelope: this.#parametric.createParameter(
                 box.filterEnvelope,
                 ValueMapping.linear(-0.5, 0.5),
-                StringMapping.percent(), "filter env", 0.5)
+                StringMapping.percent(), "Filter env", 0.5),
+            playMode: this.#parametric.createParameter(
+                box.playMode,
+                ValueMapping.values(VoiceModes),
+                StringMapping.values("", VoiceModes, ["mono", "poly"]), "Play Mode", 0.5),
+            glideTime: this.#parametric.createParameter(
+                box.glideTime,
+                ValueMapping.unipolar(),
+                StringMapping.percent({fractionDigits: 1}), "Glide time", 0.0)
         } as const
     }
 }

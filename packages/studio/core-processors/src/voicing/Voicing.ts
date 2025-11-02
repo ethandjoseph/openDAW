@@ -6,14 +6,16 @@ import {VoicingStrategy} from "./VoicingStrategy"
 export class Voicing {
     #strategy: VoicingStrategy
 
-    constructor(strategy: VoicingStrategy) {
+    constructor(strategy: VoicingStrategy = VoicingStrategy.NotSet) {
         this.#strategy = strategy
     }
 
-    setStrategy(strategy: VoicingStrategy): void {
+    set strategy(strategy: VoicingStrategy) {
         this.#strategy.reset()
         this.#strategy = strategy
     }
+
+    get strategy(): VoicingStrategy {return this.#strategy}
 
     start(event: Id<NoteEvent>): void {
         this.#strategy.start(event)

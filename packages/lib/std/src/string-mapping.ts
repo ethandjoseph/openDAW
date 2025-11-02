@@ -39,7 +39,6 @@ export namespace StringMapping {
                 return index === -1 ? {type: "unknown", value: "💣"} : {type: "explicit", value: index}
             }
         }
-
     export const values = <T>(unit: string, values: ReadonlyArray<T>, strings: ReadonlyArray<string>): StringMapping<T> =>
         new class implements StringMapping<T> {
             x(y: T): StringResult {

@@ -14,8 +14,7 @@ import {byte, isDefined, UUID} from "@opendaw/lib-std"
 import {Waveform} from "@opendaw/lib-dsp"
 import {BoxGraph, Field} from "@opendaw/lib-box"
 import {TrackType} from "@opendaw/studio-adapters"
-import {IconSymbol, Pointers} from "@opendaw/studio-enums"
-
+import {IconSymbol, Pointers, VoicingMode} from "@opendaw/studio-enums"
 import {InstrumentFactory} from "./InstrumentFactory"
 
 export namespace InstrumentFactories {
@@ -121,8 +120,11 @@ export namespace InstrumentFactories {
                 box.cutoff.setInitValue(1000.0)
                 box.resonance.setInitValue(0.1)
                 box.attack.setInitValue(0.005)
-                box.release.setInitValue(0.1)
-                box.waveform.setInitValue(Waveform.sine)
+                box.decay.setInitValue(0.100)
+                box.sustain.setInitValue(0.5)
+                box.release.setInitValue(0.5)
+                box.playMode.setInitValue(VoicingMode.Polyphonic)
+                box.waveform.setInitValue(Waveform.sawtooth)
                 box.host.refer(host)
             })
     }

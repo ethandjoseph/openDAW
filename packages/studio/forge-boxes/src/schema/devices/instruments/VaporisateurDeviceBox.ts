@@ -1,5 +1,5 @@
 import {BoxSchema} from "@opendaw/lib-box-forge"
-import {Pointers} from "@opendaw/studio-enums"
+import {Pointers, VoicingMode} from "@opendaw/studio-enums"
 import {DefaultParameterPointerRules} from "../../std/Defaults"
 import {DeviceFactory} from "../../std/DeviceFactory"
 
@@ -12,5 +12,9 @@ export const VaporisateurDeviceBox: BoxSchema<Pointers> = DeviceFactory.createIn
     15: {type: "float32", name: "resonance", pointerRules: DefaultParameterPointerRules},
     16: {type: "float32", name: "attack", pointerRules: DefaultParameterPointerRules},
     17: {type: "float32", name: "release", pointerRules: DefaultParameterPointerRules},
-    18: {type: "float32", name: "filter-envelope", pointerRules: DefaultParameterPointerRules}
+    18: {type: "float32", name: "filter-envelope", pointerRules: DefaultParameterPointerRules},
+    19: {type: "float32", name: "decay", pointerRules: DefaultParameterPointerRules, value: 0.001},
+    20: {type: "float32", name: "sustain", pointerRules: DefaultParameterPointerRules, value: 1.0},
+    21: {type: "float32", name: "glide-time", pointerRules: DefaultParameterPointerRules, value: 0.0},
+    22: {type: "int32", name: "play-mode", value: VoicingMode.Polyphonic}
 })
