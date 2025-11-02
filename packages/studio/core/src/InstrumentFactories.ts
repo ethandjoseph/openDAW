@@ -126,6 +126,7 @@ export namespace InstrumentFactories {
                 box.voicingMode.setInitValue(VoicingMode.Polyphonic)
                 box.waveform.setInitValue(Waveform.sawtooth)
                 box.host.refer(host)
+                box.version.setValue(1) // for removing the -15db in voice
             })
     }
 

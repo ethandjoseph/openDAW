@@ -10,6 +10,7 @@ import {
     RevampDeviceBox,
     ValueEventBox,
     ValueEventCurveBox,
+    VaporisateurDeviceBox,
     ZeitgeistDeviceBox
 } from "@opendaw/studio-boxes"
 import {asDefined, asInstanceOf, clamp, Float, UUID} from "@opendaw/lib-std"
@@ -124,6 +125,15 @@ export class ProjectMigration {
                 box.lowPass.order.setValue(clamp(box.lowPass.order.getValue(), 0, 3))
                 box.highPass.order.setValue(clamp(box.highPass.order.getValue(), 0, 3))
                 boxGraph.endTransaction()
+            },
+            visitVaporisateurDeviceBox: (box: VaporisateurDeviceBox): void => {
+                if (box.version.getValue() === 0) {
+                    console.debug("Migrate 'VaporisateurDeviceBox' to zero db")
+                    boxGraph.beginTransaction()
+                    box.volume.setValue(box.volume.getValue() - 15.0)
+                    box.version.setValue(1)
+                    boxGraph.endTransaction()
+                }
             }
         }))
     }

@@ -23,8 +23,8 @@ export class VaporisateurVoice implements Voice {
     readonly buffer: Float32Array
     readonly filterCoeff: BiquadCoeff
     readonly filterProcessor: BiquadMono
-    readonly adsr: Adsr
-    readonly adsrBuffer: Float32Array
+    readonly env: Adsr
+    readonly envBuffer: Float32Array
     readonly freqBuffer: Float32Array
     readonly gainSmooth: Smooth
 
@@ -46,10 +46,10 @@ export class VaporisateurVoice implements Voice {
         this.buffer = new Float32Array(RenderQuantum)
         this.filterCoeff = new BiquadCoeff()
         this.filterProcessor = new BiquadMono()
-        this.adsr = new Adsr(sampleRate)
-        this.adsr.set(this.device.env_attack, this.device.env_decay, this.device.env_sustain, this.device.env_release)
-        this.adsr.gateOn()
-        this.adsrBuffer = new Float32Array(RenderQuantum)
+        this.env = new Adsr(sampleRate)
+        this.env.set(this.device.env_attack, this.device.env_decay, this.device.env_sustain, this.device.env_release)
+        this.env.gateOn()
+        this.envBuffer = new Float32Array(RenderQuantum)
         this.freqBuffer = new Float32Array(RenderQuantum)
         this.gainSmooth = new Smooth(0.003, sampleRate)
     }
@@ -65,9 +65,9 @@ export class VaporisateurVoice implements Voice {
         }
     }
 
-    stop(): void {this.adsr.gateOff()}
+    stop(): void {this.env.gateOff()}
 
-    forceStop(): void {this.adsr.forceStop()}
+    forceStop(): void {this.env.forceStop()}
 
     startGlide(targetFrequency: number, glideDuration: ppqn): void {
         if (glideDuration === 0.0) {
@@ -80,7 +80,7 @@ export class VaporisateurVoice implements Voice {
         this.glideDuration = glideDuration
     }
 
-    get gate(): boolean {return this.adsr.gate}
+    get gate(): boolean {return this.env.gate}
 
     process(output: AudioBuffer, {bpm}: Block, fromIndex: int, toIndex: int): boolean {
         const gain = velocityToGain(this.velocity) * this.device.gain
@@ -112,16 +112,16 @@ export class VaporisateurVoice implements Voice {
         }
 
         this.osc.generateFromFrequencies(this.buffer, this.freqBuffer, waveform, fromIndex, toIndex)
-        this.adsr.process(this.adsrBuffer, fromIndex, toIndex)
+        this.env.process(this.envBuffer, fromIndex, toIndex)
         const [gainL, gainR] = StereoMatrix.panningToGains(this.panning, Mixing.Linear)
         for (let i = fromIndex; i < toIndex; i++) {
-            const vca = this.gainSmooth.process(this.adsrBuffer[i] * gain)
-            const cutoff = cutoffMapping.y(clamp(cutoffBase + this.adsrBuffer[i] * filterEnvelope, 0.0, 1.0))
+            const vca = this.gainSmooth.process(this.envBuffer[i] * gain)
+            const cutoff = cutoffMapping.y(clamp(cutoffBase + this.envBuffer[i] * filterEnvelope, 0.0, 1.0))
             this.filterCoeff.setLowpassParams(cutoff / sampleRate, resonance)
             const amp = this.filterProcessor.processFrame(this.filterCoeff, this.buffer[i]) * vca
             outL[i] += amp * gainL
             outR[i] += amp * gainR
-            if (this.adsr.complete && this.gainSmooth.value < 1e-6) {return true}
+            if (this.env.complete && this.gainSmooth.value < 1e-6) {return true}
         }
         return false
     }

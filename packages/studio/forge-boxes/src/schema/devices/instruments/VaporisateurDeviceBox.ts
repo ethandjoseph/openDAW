@@ -4,7 +4,7 @@ import {DefaultParameterPointerRules} from "../../std/Defaults"
 import {DeviceFactory} from "../../std/DeviceFactory"
 
 export const VaporisateurDeviceBox: BoxSchema<Pointers> = DeviceFactory.createInstrument("VaporisateurDeviceBox", {
-    10: {type: "float32", name: "volume", pointerRules: DefaultParameterPointerRules},
+    10: {type: "float32", name: "volume", pointerRules: DefaultParameterPointerRules, value: -3.0},
     11: {type: "int32", name: "octave", pointerRules: DefaultParameterPointerRules},
     12: {type: "float32", name: "tune", pointerRules: DefaultParameterPointerRules},
     13: {type: "int32", name: "waveform", pointerRules: DefaultParameterPointerRules},
@@ -23,5 +23,6 @@ export const VaporisateurDeviceBox: BoxSchema<Pointers> = DeviceFactory.createIn
         value: VoicingMode.Polyphonic
     },
     23: {type: "int32", name: "unison-count", pointerRules: DefaultParameterPointerRules, value: 1},
-    24: {type: "float32", name: "unison-detune", pointerRules: DefaultParameterPointerRules, value: 30}
+    24: {type: "float32", name: "unison-detune", pointerRules: DefaultParameterPointerRules, value: 30},
+    99: {type: "int32", name: "version"}
 })
