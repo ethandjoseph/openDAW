@@ -48,7 +48,7 @@ export class VaporisateurVoice implements Voice {
         this.filterCoeff = new BiquadCoeff()
         this.filterProcessor = new BiquadMono()
         this.adsr = new Adsr(sampleRate)
-        this.adsr.set(this.device.attack, this.device.decay, this.device.sustain, this.device.release)
+        this.adsr.set(this.device.env_attack, this.device.env_decay, this.device.env_sustain, this.device.env_release)
         this.adsr.gateOn()
         this.adsrBuffer = new Float32Array(RenderQuantum)
         this.freqBuffer = new Float32Array(RenderQuantum)
@@ -85,11 +85,11 @@ export class VaporisateurVoice implements Voice {
 
     process(output: AudioBuffer, {bpm}: Block, fromIndex: int, toIndex: int): boolean {
         const gain = velocityToGain(this.velocity) * this.device.gain * dbToGain(-15)
-        const waveform = this.device.waveform
+        const waveform = this.device.osc_waveform
         const cutoffMapping = this.device.adapter.namedParameter.cutoff.valueMapping
-        const cutoffBase = cutoffMapping.x(this.device.cutoff)
-        const resonance = this.device.resonance
-        const filterEnvelope = this.device.filterEnvelope
+        const cutoffBase = cutoffMapping.x(this.device.flt_cutoff)
+        const resonance = this.device.flt_resonance
+        const filterEnvelope = this.device.flt_env_amount
         const outL = output.getChannel(0)
         const outR = output.getChannel(1)
 

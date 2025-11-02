@@ -16,7 +16,7 @@ import {PolyphonicStrategy} from "../../voicing/PolyphonicStrategy"
 import {VoicingHost} from "../../voicing/VoicingHost"
 import {VoicingMode} from "@opendaw/studio-enums"
 import {MonophonicStrategy} from "../../voicing/MonophonicStrategy"
-import {VoiceSpreader} from "../../voicing/VoiceSpreader"
+import {VoiceUnison} from "../../voicing/VoiceUnison"
 import {VaporisateurVoice} from "./VaporisateurVoice"
 
 export class VaporisateurDeviceProcessor extends AudioProcessor implements InstrumentDeviceProcessor, VoicingHost, NoteEventTarget {
@@ -40,17 +40,18 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
     readonly #parameterGlideTime: AutomatableParameter<number>
     readonly #parameterVoicingMode: AutomatableParameter<VoicingMode>
     readonly #parameterUnisonCount: AutomatableParameter<int>
+    readonly #parameterUnisonDetune: AutomatableParameter<number>
 
     gain: number = 1.0
     freqMult: number = 1.0
-    attack: number = 1.0
-    decay: number = 1.0
-    sustain: number = 1.0
-    release: number = 1.0
-    waveform: Waveform = Waveform.sine
-    cutoff: number = 1.0
-    resonance: number = Math.SQRT1_2
-    filterEnvelope: number = 0.0
+    env_attack: number = 1.0
+    env_decay: number = 1.0
+    env_sustain: number = 1.0
+    env_release: number = 1.0
+    osc_waveform: Waveform = Waveform.sine
+    flt_cutoff: number = 1.0
+    flt_resonance: number = Math.SQRT1_2
+    flt_env_amount: number = 0.0
     #glideTime: number = 0.0
 
     constructor(context: EngineContext, adapter: VaporisateurDeviceBoxAdapter) {
@@ -77,6 +78,7 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
         this.#parameterGlideTime = this.own(this.bindParameter(this.#adapter.namedParameter.glideTime))
         this.#parameterVoicingMode = this.own(this.bindParameter(this.#adapter.namedParameter.voicingMode))
         this.#parameterUnisonCount = this.own(this.bindParameter(this.#adapter.namedParameter.unisonCount))
+        this.#parameterUnisonDetune = this.own(this.bindParameter(this.#adapter.namedParameter.unisonDetune))
 
         this.ownAll(
             context.registerProcessor(this)
@@ -88,7 +90,11 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
         return midiToHz(event.pitch + event.cent / 100.0, 440.0) * this.freqMult
     }
 
-    create(): Voice {return new VoiceSpreader(() => new VaporisateurVoice(this), this.#parameterUnisonCount.getValue())}
+    create(): Voice {
+        return new VoiceUnison(() =>
+            new VaporisateurVoice(this), this.#parameterUnisonCount.getValue(), this.#parameterUnisonDetune.getValue())
+    }
+
     glideTime(): ppqn {return this.#glideTime}
 
     get noteEventTarget(): Option<NoteEventTarget & DeviceProcessor> {return Option.wrap(this)}
@@ -129,21 +135,21 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
         } else if (parameter === this.#parameterOctave || parameter === this.#parameterTune) {
             this.freqMult = 2.0 ** (this.#parameterOctave.getValue() + this.#parameterTune.getValue() / 1200.0)
         } else if (parameter === this.#parameterAttack) {
-            this.attack = this.#parameterAttack.getValue()
+            this.env_attack = this.#parameterAttack.getValue()
         } else if (parameter === this.#parameterDecay) {
-            this.decay = this.#parameterDecay.getValue()
+            this.env_decay = this.#parameterDecay.getValue()
         } else if (parameter === this.#parameterSustain) {
-            this.sustain = this.#parameterSustain.getValue()
+            this.env_sustain = this.#parameterSustain.getValue()
         } else if (parameter === this.#parameterRelease) {
-            this.release = this.#parameterRelease.getValue()
+            this.env_release = this.#parameterRelease.getValue()
         } else if (parameter === this.#parameterWaveform) {
-            this.waveform = asEnumValue(this.#parameterWaveform.getValue(), Waveform)
+            this.osc_waveform = asEnumValue(this.#parameterWaveform.getValue(), Waveform)
         } else if (parameter === this.#parameterCutoff) {
-            this.cutoff = this.#parameterCutoff.getValue()
+            this.flt_cutoff = this.#parameterCutoff.getValue()
         } else if (parameter === this.#parameterResonance) {
-            this.resonance = this.#parameterResonance.getValue()
+            this.flt_resonance = this.#parameterResonance.getValue()
         } else if (parameter === this.#parameterFilterEnvelope) {
-            this.filterEnvelope = this.#parameterFilterEnvelope.getValue()
+            this.flt_env_amount = this.#parameterFilterEnvelope.getValue()
         } else if (parameter === this.#parameterGlideTime) {
             this.#glideTime = this.#parameterGlideTime.getValue() * PPQN.Bar
         } else if (parameter === this.#parameterVoicingMode) {

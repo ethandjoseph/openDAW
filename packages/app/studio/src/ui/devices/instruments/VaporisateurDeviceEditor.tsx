@@ -27,6 +27,7 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
         octave,
         tune,
         unisonCount,
+        unisonDetune,
         glideTime,
         waveform,
         cutoff,
@@ -49,7 +50,7 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
         waveform,
         cutoff,
         resonance,
-        null,
+        unisonDetune,
 
         attack,
         decay,

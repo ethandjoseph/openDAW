@@ -3,11 +3,11 @@ import {int, Provider, unitValue} from "@opendaw/lib-std"
 import {AudioBuffer, PPQN, ppqn} from "@opendaw/lib-dsp"
 import {Block} from "../processing"
 
-export class VoiceSpreader implements Voice {
+export class VoiceUnison implements Voice {
     readonly #voiceFactory: Provider<Voice>
     readonly #running: Array<{ voice: Voice, freqMult: number }> = []
-
-    numVoices: int = 7
+    readonly #numVoices: int
+    readonly #detune: number
 
     beginFrequency: number = NaN
     currentFrequency: number = NaN
@@ -17,30 +17,26 @@ export class VoiceSpreader implements Voice {
     glidePosition: unitValue = 0.0
     glideDuration: ppqn = 0.0
 
-    constructor(voiceFactory: Provider<Voice>, numVoices: int) {
+    constructor(voiceFactory: Provider<Voice>, numVoices: int, detune: number) {
         this.#voiceFactory = voiceFactory
-        this.numVoices = numVoices
+        this.#numVoices = numVoices
+        this.#detune = detune
     }
 
     start(id: int, frequency: number, velocity: unitValue, _panning: number = 0.0): void {
         this.id = id
         this.currentFrequency = this.beginFrequency = frequency
 
-        if (this.numVoices === 1) {
+        if (this.#numVoices === 1) {
             const voice = this.#voiceFactory()
-            voice.start(id, frequency, velocity / this.numVoices, 0.0)
+            voice.start(id, frequency, velocity / this.#numVoices, 0.0)
             this.#running.push({voice, freqMult: 1.0})
         } else {
-            const detuneInCents = 30
-            const detune = detuneInCents / 1200.0
-            const stereo = 1.0
-
-            for (let i = 0; i < this.numVoices; ++i) {
-                const spread = this.numVoices === 1 ? 0.0 : i / (this.numVoices - 1) * 2.0 - 1.0 // [-1...+1]
+            for (let i = 0; i < this.#numVoices; ++i) {
+                const spread = this.#numVoices === 1 ? 0.0 : i / (this.#numVoices - 1) * 2.0 - 1.0 // [-1...+1]
                 const voice = this.#voiceFactory()
-                const freqMult = 2.0 ** (spread * detune)
-                const panningMult = spread * stereo
-                voice.start(id, frequency * freqMult, velocity / this.numVoices, panningMult)
+                const freqMult = 2.0 ** (spread * (this.#detune / 1200.0))
+                voice.start(id, frequency * freqMult, velocity / this.#numVoices, spread)
                 this.#running.push({voice, freqMult})
             }
         }

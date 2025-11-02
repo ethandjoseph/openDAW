@@ -102,7 +102,11 @@ export class VaporisateurDeviceBoxAdapter implements InstrumentDeviceBoxAdapter 
             unisonCount: this.#parametric.createParameter(
                 box.unisonCount,
                 ValueMapping.values([1, 3, 5]),
-                StringMapping.values("#", [1, 3, 5], [1, 3, 5].map(x => String(x))), "Unisolo", 0.0)
+                StringMapping.values("#", [1, 3, 5], [1, 3, 5].map(x => String(x))), "Unisono", 0.0),
+            unisonDetune: this.#parametric.createParameter(
+                box.unisonDetune,
+                ValueMapping.exponential(1.0, 1200.0),
+                StringMapping.numeric({unit: "ct", fractionDigits: 0}), "Uni. Detune", 0.0)
         } as const
     }
 }
