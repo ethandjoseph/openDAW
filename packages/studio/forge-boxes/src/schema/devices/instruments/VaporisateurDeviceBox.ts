@@ -4,7 +4,7 @@ import {DefaultParameterPointerRules} from "../../std/Defaults"
 import {DeviceFactory} from "../../std/DeviceFactory"
 
 export const VaporisateurDeviceBox: BoxSchema<Pointers> = DeviceFactory.createInstrument("VaporisateurDeviceBox", {
-    10: {type: "float32", name: "volume", pointerRules: DefaultParameterPointerRules, value: -3.0},
+    10: {type: "float32", name: "volume", pointerRules: DefaultParameterPointerRules, value: -6.0},
     11: {type: "int32", name: "octave", pointerRules: DefaultParameterPointerRules},
     12: {type: "float32", name: "tune", pointerRules: DefaultParameterPointerRules},
     13: {type: "int32", name: "waveform", pointerRules: DefaultParameterPointerRules},

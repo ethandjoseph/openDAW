@@ -58,4 +58,21 @@ export class Glide {
             }
         }
     }
+
+    advance(bpm: number, fromIndex: int, toIndex: int): void {
+        if (isNaN(this.#targetFrequency)) {
+            this.#currentFrequency = this.#beginFrequency
+        } else {
+            const ppqnDelta = PPQN.samplesToPulses(toIndex - fromIndex, bpm, sampleRate)
+            this.#glidePosition += ppqnDelta / this.#glideDuration
+            if (this.#glidePosition >= 1.0) {
+                this.#glidePosition = 1.0
+                this.#beginFrequency = this.#currentFrequency = this.#targetFrequency
+                this.#targetFrequency = NaN
+            } else {
+                this.#currentFrequency =
+                    this.#beginFrequency + (this.#targetFrequency - this.#beginFrequency) * this.#glidePosition
+            }
+        }
+    }
 }
