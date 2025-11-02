@@ -2,7 +2,7 @@ import {int, unitValue} from "@opendaw/lib-std"
 
 const enum State { Idle, Attack, Decay, Sustain, Release }
 
-export class ADSR {
+export class Adsr {
     readonly #invSampleRate
 
     #state = State.Idle
@@ -56,9 +56,7 @@ export class ADSR {
         }
     }
 
-    gateOn(): void {
-        this.#state = State.Attack
-    }
+    gateOn(): void {this.#state = State.Attack}
 
     gateOff(): void {
         if (this.#state !== State.Idle) {
@@ -69,48 +67,62 @@ export class ADSR {
 
     forceStop(): void {
         this.#state = State.Idle
-        this.#value = 0
+        this.#value = 0.0
     }
 
     process(output: Float32Array, fromIndex: int, toIndex: int): void {
-        for (let i = fromIndex; i < toIndex; i++) {
+        for (let i = fromIndex; i < toIndex;) {
             switch (this.#state) {
                 case State.Attack:
-                    this.#value += this.#attackInc
-                    if (this.#value >= 1.0) {
-                        this.#value = 1.0
-                        this.#state = State.Decay
-                        this.#updateRates()
+                    while (i < toIndex) {
+                        this.#value += this.#attackInc
+                        if (this.#value >= 1.0) {
+                            this.#value = 1.0
+                            output[i++] = this.#value
+                            this.#state = State.Decay
+                            this.#updateRates()
+                            break
+                        }
+                        output[i++] = this.#value
                     }
                     break
 
                 case State.Decay:
-                    this.#value -= this.#decayDec
-                    if (this.#value <= this.#sustain) {
-                        this.#value = this.#sustain
-                        this.#state = State.Sustain
-                        this.#updateRates()
+                    while (i < toIndex) {
+                        this.#value -= this.#decayDec
+                        if (this.#value <= this.#sustain) {
+                            this.#value = this.#sustain
+                            output[i++] = this.#value
+                            this.#state = State.Sustain
+                            this.#updateRates()
+                            break
+                        }
+                        output[i++] = this.#value
                     }
                     break
 
                 case State.Sustain:
-                    this.#value = this.#sustain
-                    break
+                    output.fill(this.#sustain, i, toIndex)
+                    return
 
                 case State.Release:
-                    this.#value -= this.#releaseDec
-                    if (this.#value <= 0.0) {
-                        this.#value = 0.0
-                        this.#state = State.Idle
-                        this.#updateRates()
+                    while (i < toIndex) {
+                        this.#value -= this.#releaseDec
+                        if (this.#value <= 0.0) {
+                            this.#value = 0.0
+                            output[i++] = this.#value
+                            this.#state = State.Idle
+                            this.#updateRates()
+                            break
+                        }
+                        output[i++] = this.#value
                     }
                     break
 
                 case State.Idle:
-                    this.#value = 0.0
-                    break
+                    output.fill(0.0, i, toIndex)
+                    return
             }
-            output[i] = this.#value
         }
     }
 }

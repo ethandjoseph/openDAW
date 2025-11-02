@@ -1,13 +1,10 @@
 import {StudioService} from "@/service/StudioService"
 import {PanelType} from "@/ui/workspace/PanelType"
-import {Browser, Events, Keyboard} from "@opendaw/lib-dom"
+import {Events, Keyboard} from "@opendaw/lib-dom"
 import {DefaultWorkspace} from "@/ui/workspace/Default"
 import {Arrays, isNull} from "@opendaw/lib-std"
 import {Workspace} from "@/ui/workspace/Workspace"
 import {Surface} from "@/ui/surface/Surface"
-import {Project, ProjectUtils} from "@opendaw/studio-core"
-import {AnyRegionBox, UnionBoxTypes} from "@opendaw/studio-adapters"
-import {PPQN} from "@opendaw/lib-dsp"
 
 export class Shortcuts {
     constructor(service: StudioService) {
@@ -65,16 +62,6 @@ export class Shortcuts {
                     screen.setValue(Arrays.getNext(keys, current))
                 }
                 event.preventDefault()
-            } else if (code === "KeyQ" && Browser.isLocalHost()) { // TODO Remove when done
-                event.preventDefault()
-                service.runIfProject(project => {
-                    const regions: ReadonlyArray<AnyRegionBox> = project.selection
-                        .selected()
-                        .filter(vertex => vertex.isBox() && UnionBoxTypes.isRegionBox(vertex))
-                    const targetProject = Project.new(service)
-                    ProjectUtils.extractRegions(regions, targetProject, PPQN.Bar)
-                    service.projectProfileService.setProject(targetProject, "Copy")
-                })
             } else if (event.shiftKey) {
                 if (code === "Digit0") {
                     await service.closeProject()

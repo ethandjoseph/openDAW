@@ -1,5 +1,6 @@
 import {Voice} from "../../voicing/Voice"
 import {
+    Adsr,
     AudioBuffer,
     BandLimitedOscillator,
     BiquadCoeff,
@@ -12,7 +13,6 @@ import {
     StereoMatrix,
     velocityToGain
 } from "@opendaw/lib-dsp"
-import {ADSR} from "../../envelopes/ADSR"
 import {clamp, int, unitValue} from "@opendaw/lib-std"
 import {Block} from "../../processing"
 import {VaporisateurDeviceProcessor} from "./VaporisateurDeviceProcessor"
@@ -24,7 +24,7 @@ export class VaporisateurVoice implements Voice {
     readonly buffer: Float32Array
     readonly filterCoeff: BiquadCoeff
     readonly filterProcessor: BiquadMono
-    readonly adsr: ADSR
+    readonly adsr: Adsr
     readonly adsrBuffer: Float32Array
     readonly freqBuffer: Float32Array
     readonly gainSmooth: Smooth
@@ -47,7 +47,7 @@ export class VaporisateurVoice implements Voice {
         this.buffer = new Float32Array(RenderQuantum)
         this.filterCoeff = new BiquadCoeff()
         this.filterProcessor = new BiquadMono()
-        this.adsr = new ADSR(sampleRate)
+        this.adsr = new Adsr(sampleRate)
         this.adsr.set(this.device.attack, this.device.decay, this.device.sustain, this.device.release)
         this.adsr.gateOn()
         this.adsrBuffer = new Float32Array(RenderQuantum)
@@ -87,7 +87,7 @@ export class VaporisateurVoice implements Voice {
         const gain = velocityToGain(this.velocity) * this.device.gain * dbToGain(-15)
         const waveform = this.device.waveform
         const cutoffMapping = this.device.adapter.namedParameter.cutoff.valueMapping
-        const cutoff = cutoffMapping.x(this.device.cutoff)
+        const cutoffBase = cutoffMapping.x(this.device.cutoff)
         const resonance = this.device.resonance
         const filterEnvelope = this.device.filterEnvelope
         const outL = output.getChannel(0)
@@ -117,7 +117,8 @@ export class VaporisateurVoice implements Voice {
         const [gainL, gainR] = StereoMatrix.panningToGains(this.panning, Mixing.Linear)
         for (let i = fromIndex; i < toIndex; i++) {
             const env = this.gainSmooth.process(this.adsrBuffer[i])
-            this.filterCoeff.setLowpassParams(cutoffMapping.y(clamp(cutoff + env * filterEnvelope, 0.0, 1.0)) / sampleRate, resonance)
+            const cutoff = cutoffMapping.y(clamp(cutoffBase + env * filterEnvelope, 0.0, 1.0))
+            this.filterCoeff.setLowpassParams(cutoff / sampleRate, resonance)
             const amp = this.filterProcessor.processFrame(this.filterCoeff, this.buffer[i]) * gain * env
             outL[i] += amp * gainL
             outR[i] += amp * gainR

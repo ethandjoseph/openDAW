@@ -8,6 +8,7 @@ if ((globalThis as any)[key]) {
 }
 
 export * from "./AudioBuffer"
+export * from "./adsr"
 export * from "./bpm-tools"
 export * from "./biquad-coeff"
 export * from "./biquad-processor"

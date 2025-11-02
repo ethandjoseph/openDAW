@@ -1,7 +1,6 @@
 import {int, Terminable} from "@opendaw/lib-std"
-import {AudioBuffer, NoteEvent, ppqn} from "@opendaw/lib-dsp"
+import {AudioBuffer, ppqn} from "@opendaw/lib-dsp"
 import {EventBuffer} from "./EventBuffer"
-import {UpdateEvent} from "./UpdateClock"
 
 export const enum BlockFlag {
     transporting = 1 << 0, // is true if the (main) timeline should not advance
@@ -11,7 +10,10 @@ export const enum BlockFlag {
 }
 
 export namespace BlockFlags {
-    export const create = (transporting: boolean, discontinuous: boolean, playing: boolean, tempoChanged: boolean): int => 0
+    export const create = (transporting: boolean,
+                           discontinuous: boolean,
+                           playing: boolean,
+                           tempoChanged: boolean): int => 0
         | (transporting ? BlockFlag.transporting : 0)
         | (discontinuous ? BlockFlag.discontinuous : 0)
         | (playing ? BlockFlag.playing : 0)
@@ -33,8 +35,6 @@ export type Block = Readonly<{
 }>
 
 export enum ProcessPhase {Before, After}
-
-export type AnyEvent = UpdateEvent | NoteEvent
 
 export interface ProcessInfo {
     blocks: ReadonlyArray<Block>
