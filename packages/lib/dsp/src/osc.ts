@@ -1,42 +1,59 @@
 export enum Waveform { sine, triangle, sawtooth, square }
 
 export class BandLimitedOscillator {
-    #phase = 0.0
-    #integrator = 0.0
     readonly #invSampleRate: number
 
+    #phase = 0.0
+    #integrator = 0.0
+
     constructor(sampleRate: number) {
-        this.#invSampleRate = 1 / sampleRate
+        this.#invSampleRate = 1.0 / sampleRate
     }
 
     generate(buffer: Float32Array, frequency: number, waveform: Waveform, fromIndex: number, toIndex: number): void {
         const phaseInc = frequency * this.#invSampleRate
-        for (let i = fromIndex; i < toIndex; i++) {
-            const t = this.#phase % 1.0
-            let out = 0.0
-            switch (waveform) {
-                case Waveform.sine:
-                    out = Math.sin(2.0 * Math.PI * t)
-                    break
-                case Waveform.sawtooth:
-                    out = 2.0 * t - 1.0
+
+        switch (waveform) {
+            case Waveform.sine:
+                for (let i = fromIndex; i < toIndex; i++) {
+                    const t = this.#phase % 1.0
+                    buffer[i] = Math.sin(2.0 * Math.PI * t)
+                    this.#phase += phaseInc
+                }
+                break
+
+            case Waveform.sawtooth:
+                for (let i = fromIndex; i < toIndex; i++) {
+                    const t = this.#phase % 1.0
+                    let out = 2.0 * t - 1.0
                     out -= this.#polyBLEP(t, phaseInc)
-                    break
-                case Waveform.square:
-                    out = t < 0.5 ? 1.0 : -1.0
+                    buffer[i] = out
+                    this.#phase += phaseInc
+                }
+                break
+
+            case Waveform.square:
+                for (let i = fromIndex; i < toIndex; i++) {
+                    const t = this.#phase % 1.0
+                    let out = t < 0.5 ? 1.0 : -1.0
                     out += this.#polyBLEP(t, phaseInc)
                     out -= this.#polyBLEP((t + 0.5) % 1.0, phaseInc)
-                    break
-                case Waveform.triangle:
+                    buffer[i] = out
+                    this.#phase += phaseInc
+                }
+                break
+
+            case Waveform.triangle:
+                for (let i = fromIndex; i < toIndex; i++) {
+                    const t = this.#phase % 1.0
                     let sq = t < 0.5 ? 1.0 : -1.0
                     sq += this.#polyBLEP(t, phaseInc)
                     sq -= this.#polyBLEP((t + 0.5) % 1.0, phaseInc)
                     this.#integrator += sq * (4.0 * phaseInc)
-                    out = this.#integrator
-                    break
-            }
-            buffer[i] = out
-            this.#phase += phaseInc
+                    buffer[i] = this.#integrator
+                    this.#phase += phaseInc
+                }
+                break
         }
     }
 
@@ -45,33 +62,51 @@ export class BandLimitedOscillator {
                             waveform: Waveform,
                             fromIndex: number,
                             toIndex: number): void {
-        for (let i = fromIndex; i < toIndex; i++) {
-            const phaseInc = freqBuffer[i] * this.#invSampleRate
-            const t = this.#phase % 1.0
-            let out = 0.0
-            switch (waveform) {
-                case Waveform.sine:
-                    out = Math.sin(2.0 * Math.PI * t)
-                    break
-                case Waveform.sawtooth:
-                    out = 2.0 * t - 1.0
+        switch (waveform) {
+            case Waveform.sine:
+                for (let i = fromIndex; i < toIndex; i++) {
+                    const phaseInc = freqBuffer[i] * this.#invSampleRate
+                    const t = this.#phase % 1.0
+                    output[i] = Math.sin(2.0 * Math.PI * t)
+                    this.#phase += phaseInc
+                }
+                break
+
+            case Waveform.sawtooth:
+                for (let i = fromIndex; i < toIndex; i++) {
+                    const phaseInc = freqBuffer[i] * this.#invSampleRate
+                    const t = this.#phase % 1.0
+                    let out = 2.0 * t - 1.0
                     out -= this.#polyBLEP(t, phaseInc)
-                    break
-                case Waveform.square:
-                    out = t < 0.5 ? 1.0 : -1.0
+                    output[i] = out
+                    this.#phase += phaseInc
+                }
+                break
+
+            case Waveform.square:
+                for (let i = fromIndex; i < toIndex; i++) {
+                    const phaseInc = freqBuffer[i] * this.#invSampleRate
+                    const t = this.#phase % 1.0
+                    let out = t < 0.5 ? 1.0 : -1.0
                     out += this.#polyBLEP(t, phaseInc)
                     out -= this.#polyBLEP((t + 0.5) % 1.0, phaseInc)
-                    break
-                case Waveform.triangle:
+                    output[i] = out
+                    this.#phase += phaseInc
+                }
+                break
+
+            case Waveform.triangle:
+                for (let i = fromIndex; i < toIndex; i++) {
+                    const phaseInc = freqBuffer[i] * this.#invSampleRate
+                    const t = this.#phase % 1.0
                     let sq = t < 0.5 ? 1.0 : -1.0
                     sq += this.#polyBLEP(t, phaseInc)
                     sq -= this.#polyBLEP((t + 0.5) % 1.0, phaseInc)
                     this.#integrator += sq * (4.0 * phaseInc)
-                    out = this.#integrator
-                    break
-            }
-            output[i] = out
-            this.#phase += phaseInc
+                    output[i] = this.#integrator
+                    this.#phase += phaseInc
+                }
+                break
         }
     }
 
