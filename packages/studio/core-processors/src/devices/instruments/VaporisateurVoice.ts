@@ -114,7 +114,7 @@ export class VaporisateurVoice implements Voice {
 
         this.osc.generateFromFrequencies(this.buffer, this.freqBuffer, waveform, fromIndex, toIndex)
         this.adsr.process(this.adsrBuffer, fromIndex, toIndex)
-        const [gainL, gainR] = StereoMatrix.panningToGains(this.panning, Mixing.EqualPower)
+        const [gainL, gainR] = StereoMatrix.panningToGains(this.panning, Mixing.Linear)
         for (let i = fromIndex; i < toIndex; i++) {
             const env = this.gainSmooth.process(this.adsrBuffer[i])
             this.filterCoeff.setLowpassParams(cutoffMapping.y(clamp(cutoff + env * filterEnvelope, 0.0, 1.0)) / sampleRate, resonance)
