@@ -5,7 +5,6 @@ import {
     BandLimitedOscillator,
     BiquadCoeff,
     BiquadMono,
-    dbToGain,
     PPQN,
     ppqn,
     RenderQuantum,
@@ -84,7 +83,7 @@ export class VaporisateurVoice implements Voice {
     get gate(): boolean {return this.adsr.gate}
 
     process(output: AudioBuffer, {bpm}: Block, fromIndex: int, toIndex: int): boolean {
-        const gain = velocityToGain(this.velocity) * this.device.gain * dbToGain(-15)
+        const gain = velocityToGain(this.velocity) * this.device.gain
         const waveform = this.device.osc_waveform
         const cutoffMapping = this.device.adapter.namedParameter.cutoff.valueMapping
         const cutoffBase = cutoffMapping.x(this.device.flt_cutoff)
@@ -116,10 +115,10 @@ export class VaporisateurVoice implements Voice {
         this.adsr.process(this.adsrBuffer, fromIndex, toIndex)
         const [gainL, gainR] = StereoMatrix.panningToGains(this.panning, Mixing.Linear)
         for (let i = fromIndex; i < toIndex; i++) {
-            const env = this.gainSmooth.process(this.adsrBuffer[i])
-            const cutoff = cutoffMapping.y(clamp(cutoffBase + env * filterEnvelope, 0.0, 1.0))
+            const vca = this.gainSmooth.process(this.adsrBuffer[i] * gain)
+            const cutoff = cutoffMapping.y(clamp(cutoffBase + this.adsrBuffer[i] * filterEnvelope, 0.0, 1.0))
             this.filterCoeff.setLowpassParams(cutoff / sampleRate, resonance)
-            const amp = this.filterProcessor.processFrame(this.filterCoeff, this.buffer[i]) * gain * env
+            const amp = this.filterProcessor.processFrame(this.filterCoeff, this.buffer[i]) * vca
             outL[i] += amp * gainL
             outR[i] += amp * gainR
             if (this.adsr.complete && this.gainSmooth.value < 1e-6) {return true}
