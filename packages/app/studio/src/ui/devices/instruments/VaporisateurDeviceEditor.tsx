@@ -26,6 +26,7 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
         volume,
         octave,
         tune,
+        unisonCount,
         glideTime,
         waveform,
         cutoff,
@@ -35,14 +36,14 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
         decay,
         sustain,
         release,
-        playMode
+        voicingMode
     } = adapter.namedParameter
     const order = [
-        playMode,
+        voicingMode,
         glideTime,
         octave,
         tune,
-        null,
+        unisonCount,
 
         volume,
         waveform,

@@ -123,7 +123,7 @@ export namespace InstrumentFactories {
                 box.decay.setInitValue(0.100)
                 box.sustain.setInitValue(0.5)
                 box.release.setInitValue(0.5)
-                box.playMode.setInitValue(VoicingMode.Polyphonic)
+                box.voicingMode.setInitValue(VoicingMode.Polyphonic)
                 box.waveform.setInitValue(Waveform.sawtooth)
                 box.host.refer(host)
             })

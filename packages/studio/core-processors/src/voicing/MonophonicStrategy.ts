@@ -58,6 +58,8 @@ export class MonophonicStrategy implements VoicingStrategy {
         }
     }
 
+    forceStop(): void {this.#processing.forEach(voice => voice.forceStop())}
+
     reset(): void {
         this.#stack.length = 0
         this.#processing.length = 0
@@ -65,7 +67,7 @@ export class MonophonicStrategy implements VoicingStrategy {
         this.#sounding = null
     }
 
-    process(output: AudioBuffer, block: Block, fromIndex: int, toIndex: int): void {
+    process(output: AudioBuffer, block: Block, fromIndex: int, toIndex: int): boolean {
         output.clear(fromIndex, toIndex)
         for (let i = this.#processing.length - 1; i >= 0; i--) {
             const voice = this.#processing[i]
@@ -75,5 +77,6 @@ export class MonophonicStrategy implements VoicingStrategy {
                 if (voice === this.#sounding) {this.#sounding = null}
             }
         }
+        return this.#processing.length === 0
     }
 }

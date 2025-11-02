@@ -91,14 +91,18 @@ export class VaporisateurDeviceBoxAdapter implements InstrumentDeviceBoxAdapter 
                 box.filterEnvelope,
                 ValueMapping.linear(-0.5, 0.5),
                 StringMapping.percent(), "Filter env", 0.5),
-            playMode: this.#parametric.createParameter(
-                box.playMode,
+            voicingMode: this.#parametric.createParameter(
+                box.voicingMode,
                 ValueMapping.values(VoiceModes),
                 StringMapping.values("", VoiceModes, ["mono", "poly"]), "Play Mode", 0.5),
             glideTime: this.#parametric.createParameter(
                 box.glideTime,
                 ValueMapping.unipolar(),
-                StringMapping.percent({fractionDigits: 1}), "Glide time", 0.0)
+                StringMapping.percent({fractionDigits: 1}), "Glide time", 0.0),
+            unisonCount: this.#parametric.createParameter(
+                box.unisonCount,
+                ValueMapping.values([1, 3, 5]),
+                StringMapping.values("#", [1, 3, 5], [1, 3, 5].map(x => String(x))), "Unisolo", 0.0)
         } as const
     }
 }

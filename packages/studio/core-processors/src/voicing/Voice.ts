@@ -7,7 +7,7 @@ export interface Voice {
     readonly gate: boolean
     readonly currentFrequency: number
 
-    start(id: int, frequency: number, velocity: unitValue): void
+    start(id: int, frequency: number, velocity: unitValue, panning?: number): void
     stop(): void
     forceStop(): void
     startGlide(targetFrequency: number, glideDuration: ppqn): void

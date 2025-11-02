@@ -23,7 +23,6 @@ export class PolyphonicStrategy implements VoicingStrategy {
             }
         }
         const targetFrequency = this.#host.computeFrequency(event)
-        console.debug("lastFrequency", lastFrequency, "targetFrequency", targetFrequency)
         const voice = this.#host.create()
         if (isNaN(lastFrequency)) {
             voice.start(event.id, targetFrequency, event.velocity)
@@ -39,12 +38,14 @@ export class PolyphonicStrategy implements VoicingStrategy {
         this.#processing.find(voice => voice.id === id)?.stop()
     }
 
+    forceStop(): void {this.#processing.forEach(voice => voice.forceStop())}
+
     reset(): void {
         this.#processing.length = 0
         this.#availableForGlide.length = 0
     }
 
-    process(output: AudioBuffer, block: Block, fromIndex: int, toIndex: int): void {
+    process(output: AudioBuffer, block: Block, fromIndex: int, toIndex: int): boolean {
         output.clear(fromIndex, toIndex)
         for (let i = this.#processing.length - 1; i >= 0; i--) {
             const voice = this.#processing[i]
@@ -53,5 +54,6 @@ export class PolyphonicStrategy implements VoicingStrategy {
                 this.#processing.splice(i, 1)
             }
         }
+        return this.#processing.length === 0
     }
 }

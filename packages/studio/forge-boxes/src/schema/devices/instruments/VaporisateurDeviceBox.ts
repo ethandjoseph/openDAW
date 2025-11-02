@@ -16,5 +16,6 @@ export const VaporisateurDeviceBox: BoxSchema<Pointers> = DeviceFactory.createIn
     19: {type: "float32", name: "decay", pointerRules: DefaultParameterPointerRules, value: 0.001},
     20: {type: "float32", name: "sustain", pointerRules: DefaultParameterPointerRules, value: 1.0},
     21: {type: "float32", name: "glide-time", pointerRules: DefaultParameterPointerRules, value: 0.0},
-    22: {type: "int32", name: "play-mode", value: VoicingMode.Polyphonic}
+    22: {type: "int32", name: "voicing-mode", pointerRules: DefaultParameterPointerRules, value: VoicingMode.Polyphonic},
+    23: {type: "int32", name: "unison-count", pointerRules: DefaultParameterPointerRules, value: 1}
 })
