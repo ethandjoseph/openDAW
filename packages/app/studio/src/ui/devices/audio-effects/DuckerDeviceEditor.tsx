@@ -40,7 +40,7 @@ export const DuckerDeviceEditor = ({lifecycle, service, adapter, deviceHost}: Co
                                       adapter,
                                       parameter,
                                       anchor: parameter.anchor,
-                                      options: parameter === depth ? {} : {snap: {threshold: 0.5}}
+                                      options: parameter === depth || parameter === slope ? {} : {snap: {threshold: 0.5}}
                                   }))}
                           </div>)}
                       populateMeter={() => (
