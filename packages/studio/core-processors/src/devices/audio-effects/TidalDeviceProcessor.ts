@@ -5,7 +5,7 @@ import {Block, Processor} from "../../processing"
 import {PeakBroadcaster} from "../../PeakBroadcaster"
 import {AutomatableParameter} from "../../AutomatableParameter"
 import {AudioEffectDeviceProcessor} from "../../AudioEffectDeviceProcessor"
-import {AudioBuffer, TidalComputer, PPQN, Smooth} from "@opendaw/lib-dsp"
+import {AudioBuffer, Fraction, PPQN, Smooth, TidalComputer} from "@opendaw/lib-dsp"
 import {AudioProcessor} from "../../AudioProcessor"
 
 export class TidalDeviceProcessor extends AudioProcessor implements AudioEffectDeviceProcessor {
@@ -20,6 +20,7 @@ export class TidalDeviceProcessor extends AudioProcessor implements AudioEffectD
     readonly #smoothGainL: Smooth
     readonly #smoothGainR: Smooth
 
+    readonly #pRate: AutomatableParameter<number>
     readonly #pDepth: AutomatableParameter<number>
     readonly #pSlope: AutomatableParameter<number>
     readonly #pSymmetry: AutomatableParameter<number>
@@ -40,8 +41,9 @@ export class TidalDeviceProcessor extends AudioProcessor implements AudioEffectD
         this.#smoothGainL = new Smooth(0.003, sampleRate)
         this.#smoothGainR = new Smooth(0.003, sampleRate)
 
-        const {depth, slope, symmetry, offset, channelOffset} = adapter.namedParameter
+        const {rate, depth, slope, symmetry, offset, channelOffset} = adapter.namedParameter
 
+        this.#pRate = this.bindParameter(rate)
         this.#pDepth = this.bindParameter(depth)
         this.#pSlope = this.bindParameter(slope)
         this.#pSymmetry = this.bindParameter(symmetry)
@@ -74,7 +76,7 @@ export class TidalDeviceProcessor extends AudioProcessor implements AudioEffectD
     index(): int {return this.#adapter.indexField.getValue()}
     adapter(): TidalDeviceBoxAdapter {return this.#adapter}
 
-    processAudio({p0, s0, bpm}: Block, fromIndex: int, toIndex: int): void {
+    processAudio({p0, bpm}: Block, fromIndex: int, toIndex: int): void {
         if (this.#source.isEmpty()) {return}
         const input = this.#source.unwrap()
         const [inpL, inpR] = input.channels()
@@ -85,15 +87,17 @@ export class TidalDeviceProcessor extends AudioProcessor implements AudioEffectD
             this.#needsUpdate = false
         }
 
+        const {RateFractions} = TidalDeviceBoxAdapter
         const delta = PPQN.samplesToPulses(1, bpm, sampleRate)
-
-        const offset = this.#pOffset.getValue()
-        const channelOffset = this.#pChannelOffset.getValue()
+        const ratePulses = Fraction.toPPQN(RateFractions[this.#pRate.getValue()])
+        const rateInvPulses = 1.0 / ratePulses
+        const offsetL = this.#pOffset.getValue() / 360.0
+        const offsetR = offsetL + this.#pChannelOffset.getValue() / 360.0
 
         for (let i = fromIndex; i < toIndex; i++) {
-            const pL = (p0 + offset + i * delta) / PPQN.Quarter
+            const pL = (p0 + i * delta) * rateInvPulses + offsetL
             const gL = this.#computer.compute(pL - Math.floor(pL))
-            const pR = (p0 + offset + channelOffset + i * delta) / PPQN.Quarter
+            const pR = (p0 + i * delta) * rateInvPulses + offsetR
             const gR = this.#computer.compute(pR - Math.floor(pR))
             outL[i] = inpL[i] * this.#smoothGainL.process(gL)
             outR[i] = inpR[i] * this.#smoothGainR.process(gR)

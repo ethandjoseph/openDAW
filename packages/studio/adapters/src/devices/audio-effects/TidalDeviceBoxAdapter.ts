@@ -9,7 +9,7 @@ import {ParameterAdapterSet} from "../../ParameterAdapterSet"
 import {AudioUnitBoxAdapter} from "../../audio-unit/AudioUnitBoxAdapter"
 
 export class TidalDeviceBoxAdapter implements AudioEffectDeviceAdapter {
-    static OffsetFractions = Fraction.builder()
+    static RateFractions: ReadonlyArray<Fraction> = Fraction.builder()
         .add([1, 1]).add([1, 2]).add([1, 3]).add([1, 4])
         .add([3, 16]).add([1, 6]).add([1, 8]).add([3, 32])
         .add([1, 12]).add([1, 16]).add([3, 64]).add([1, 24])
@@ -17,7 +17,7 @@ export class TidalDeviceBoxAdapter implements AudioEffectDeviceAdapter {
         .add([1, 96]).add([1, 128])
         .asDescendingArray()
 
-    static OffsetStringMapping = StringMapping.indices("", this.OffsetFractions.map(([n, d]) => `${n}/${d}`))
+    static RateStringMapping = StringMapping.indices("", this.RateFractions.map(([n, d]) => `${n}/${d}`))
 
     readonly type = "audio-effect"
     readonly accepts = "audio"
@@ -54,6 +54,7 @@ export class TidalDeviceBoxAdapter implements AudioEffectDeviceAdapter {
     terminate(): void {this.#parametric.terminate()}
 
     #wrapParameters(box: TidalDeviceBox) {
+        const {RateFractions, RateStringMapping} = TidalDeviceBoxAdapter
         return {
             slope: this.#parametric.createParameter(
                 box.slope,
@@ -65,8 +66,8 @@ export class TidalDeviceBoxAdapter implements AudioEffectDeviceAdapter {
                 StringMapping.percent({fractionDigits: 1}), "Symmetry", 0.5),
             rate: this.#parametric.createParameter(
                 box.rate,
-                ValueMapping.bipolar(),
-                StringMapping.percent({fractionDigits: 1}), "Rate", 0.5),
+                ValueMapping.values(RateFractions.map((_, index) => index)),
+                RateStringMapping, "Rate", 0.0),
             depth: this.#parametric.createParameter(
                 box.depth,
                 ValueMapping.unipolar(),

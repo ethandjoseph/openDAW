@@ -40,7 +40,7 @@ export const Display = ({lifecycle, adapter}: Construct) => {
                     context.moveTo(x1, y0)
                     context.lineTo(x1, y1)
                     context.setLineDash([3, 3])
-                    context.strokeStyle = "hsla(200, 40%, 70%, 0.75)"
+                    context.strokeStyle = "hsla(200, 83%, 60%, 0.75)"
                     context.stroke()
 
                     const curve = (u0: number, u1: number, opacity: number, phaseOffset: number) => {
@@ -52,11 +52,11 @@ export const Display = ({lifecycle, adapter}: Construct) => {
                         for (let x = x0; x <= x1; x++) {
                             path.lineTo(x, valueToY(computer.compute(xToValue(x) + ud)))
                         }
-                        context.strokeStyle = `hsla(200, 40%, 70%, ${opacity})`
+                        context.strokeStyle = `hsla(200, 83%, 60%, ${opacity})`
                         context.stroke(path)
                         path.lineTo(x1, actualHeight)
                         path.lineTo(x0, actualHeight)
-                        context.fillStyle = `hsla(200, 40%, 70%, ${opacity * 0.1})`
+                        context.fillStyle = `hsla(200, 83%, 60%, ${opacity * 0.1})`
                         context.fill(path)
                     }
 
