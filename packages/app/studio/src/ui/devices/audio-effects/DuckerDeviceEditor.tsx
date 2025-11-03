@@ -39,7 +39,8 @@ export const DuckerDeviceEditor = ({lifecycle, service, adapter, deviceHost}: Co
                                       midiLearning,
                                       adapter,
                                       parameter,
-                                      anchor: parameter.anchor
+                                      anchor: parameter.anchor,
+                                      options: parameter === depth ? {} : {snap: {threshold: 0.5}}
                                   }))}
                           </div>)}
                       populateMeter={() => (
