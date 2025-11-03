@@ -1,5 +1,5 @@
-import css from "./DuckerDeviceEditor.sass?inline"
-import {DeviceHost, DuckerDeviceBoxAdapter} from "@opendaw/studio-adapters"
+import css from "./TidalDeviceEditor.sass?inline"
+import {DeviceHost, TidalDeviceBoxAdapter} from "@opendaw/studio-adapters"
 import {Lifecycle} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {DeviceEditor} from "@/ui/devices/DeviceEditor.tsx"
@@ -9,18 +9,18 @@ import {DevicePeakMeter} from "@/ui/devices/panel/DevicePeakMeter.tsx"
 import {Html} from "@opendaw/lib-dom"
 import {StudioService} from "@/service/StudioService"
 import {EffectFactories} from "@opendaw/studio-core"
-import {Display} from "@/ui/devices/audio-effects/Ducker/Display"
+import {Display} from "@/ui/devices/audio-effects/Tidal/Display"
 
-const className = Html.adoptStyleSheet(css, "DuckerDeviceEditor")
+const className = Html.adoptStyleSheet(css, "TidalDeviceEditor")
 
 type Construct = {
     lifecycle: Lifecycle
     service: StudioService
-    adapter: DuckerDeviceBoxAdapter
+    adapter: TidalDeviceBoxAdapter
     deviceHost: DeviceHost
 }
 
-export const DuckerDeviceEditor = ({lifecycle, service, adapter, deviceHost}: Construct) => {
+export const TidalDeviceEditor = ({lifecycle, service, adapter, deviceHost}: Construct) => {
     const {project} = service
     const {editing, midiLearning} = project
     const {rate, depth, slope, symmetry, offset, channelOffset} = adapter.namedParameter
@@ -48,6 +48,6 @@ export const DuckerDeviceEditor = ({lifecycle, service, adapter, deviceHost}: Co
                                            receiver={project.liveStreamReceiver}
                                            address={adapter.address}/>
                       )}
-                      icon={EffectFactories.AudioNamed.Ducker.defaultIcon}/>
+                      icon={EffectFactories.AudioNamed.Tidal.defaultIcon}/>
     )
 }

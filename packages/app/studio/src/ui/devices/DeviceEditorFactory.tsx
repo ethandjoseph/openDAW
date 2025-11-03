@@ -6,7 +6,7 @@ import {
     CompressorDeviceBox,
     CrusherDeviceBox,
     DelayDeviceBox,
-    DuckerDeviceBox,
+    TidalDeviceBox,
     FoldDeviceBox,
     MIDIOutputDeviceBox,
     ModularDeviceBox,
@@ -33,7 +33,7 @@ import {
     CrusherDeviceBoxAdapter,
     DelayDeviceBoxAdapter,
     DeviceHost,
-    DuckerDeviceBoxAdapter,
+    TidalDeviceBoxAdapter,
     FoldDeviceBoxAdapter,
     MIDIOutputDeviceBoxAdapter,
     ModularDeviceBoxAdapter,
@@ -75,7 +75,7 @@ import {CrusherDeviceEditor} from "@/ui/devices/audio-effects/CrusherDeviceEdito
 import {FoldDeviceEditor} from "@/ui/devices/audio-effects/FoldDeviceEditor"
 import {MIDIOutputDeviceEditor} from "@/ui/devices/instruments/MIDIOutputDeviceEditor"
 import {VelocityDeviceEditor} from "@/ui/devices/midi-effects/VelocityDeviceEditor"
-import {DuckerDeviceEditor} from "@/ui/devices/audio-effects/DuckerDeviceEditor"
+import {TidalDeviceEditor} from "@/ui/devices/audio-effects/TidalDeviceEditor"
 
 export namespace DeviceEditorFactory {
     export const toMidiEffectDeviceEditor = (service: StudioService, lifecycle: Lifecycle, box: Box, deviceHost: DeviceHost) =>
@@ -188,10 +188,10 @@ export namespace DeviceEditorFactory {
                                    adapter={service.project.boxAdapters.adapterFor(box, DelayDeviceBoxAdapter)}
                                    deviceHost={deviceHost}/>
             ),
-            visitDuckerDeviceBox: (box: DuckerDeviceBox) => (
-                <DuckerDeviceEditor lifecycle={lifecycle}
+            visitTidalDeviceBox: (box: TidalDeviceBox) => (
+                <TidalDeviceEditor lifecycle={lifecycle}
                                     service={service}
-                                    adapter={service.project.boxAdapters.adapterFor(box, DuckerDeviceBoxAdapter)}
+                                    adapter={service.project.boxAdapters.adapterFor(box, TidalDeviceBoxAdapter)}
                                     deviceHost={deviceHost}/>
             ),
             visitCrusherDeviceBox: (box: CrusherDeviceBox) => (

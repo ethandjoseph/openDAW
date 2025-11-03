@@ -5,7 +5,7 @@ import {
     CompressorDeviceBox,
     CrusherDeviceBox,
     DelayDeviceBox,
-    DuckerDeviceBox,
+    TidalDeviceBox,
     FoldDeviceBox,
     MIDIOutputDeviceBox,
     ModularDeviceBox,
@@ -30,7 +30,7 @@ import {
     CompressorDeviceBoxAdapter,
     CrusherDeviceBoxAdapter,
     DelayDeviceBoxAdapter,
-    DuckerDeviceBoxAdapter,
+    TidalDeviceBoxAdapter,
     FoldDeviceBoxAdapter,
     MIDIOutputDeviceBoxAdapter,
     ModularDeviceBoxAdapter,
@@ -73,7 +73,7 @@ import {CrusherDeviceProcessor} from "./devices/audio-effects/CrusherDeviceProce
 import {FoldDeviceProcessor} from "./devices/audio-effects/FoldDeviceProcessor"
 import {MIDIOutputDeviceProcessor} from "./devices/instruments/MIDIOutputDeviceProcessor"
 import {VelocityDeviceProcessor} from "./devices/midi-effects/VelocityDeviceProcessor"
-import {DuckerDeviceProcessor} from "./devices/audio-effects/DuckerDeviceProcessor"
+import {TidalDeviceProcessor} from "./devices/audio-effects/TidalDeviceProcessor"
 
 export namespace InstrumentDeviceProcessorFactory {
     export const create = (context: EngineContext,
@@ -125,8 +125,8 @@ export namespace AudioEffectDeviceProcessorFactory {
                 new CompressorDeviceProcessor(context, context.boxAdapters.adapterFor(box, CompressorDeviceBoxAdapter)),
             visitDelayDeviceBox: (box: DelayDeviceBox): AudioEffectDeviceProcessor =>
                 new DelayDeviceProcessor(context, context.boxAdapters.adapterFor(box, DelayDeviceBoxAdapter)),
-            visitDuckerDeviceBox: (box: DuckerDeviceBox): AudioEffectDeviceProcessor =>
-                new DuckerDeviceProcessor(context, context.boxAdapters.adapterFor(box, DuckerDeviceBoxAdapter)),
+            visitTidalDeviceBox: (box: TidalDeviceBox): AudioEffectDeviceProcessor =>
+                new TidalDeviceProcessor(context, context.boxAdapters.adapterFor(box, TidalDeviceBoxAdapter)),
             visitCrusherDeviceBox: (box: CrusherDeviceBox): AudioEffectDeviceProcessor =>
                 new CrusherDeviceProcessor(context, context.boxAdapters.adapterFor(box, CrusherDeviceBoxAdapter)),
             visitFoldDeviceBox: (box: FoldDeviceBox): AudioEffectDeviceProcessor =>

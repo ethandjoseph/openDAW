@@ -24,7 +24,7 @@ import {
     CrusherDeviceBox,
     DelayDeviceBox,
     DeviceInterfaceKnobBox,
-    DuckerDeviceBox,
+    TidalDeviceBox,
     FoldDeviceBox,
     GrooveShuffleBox,
     MarkerBox,
@@ -115,7 +115,7 @@ import {CrusherDeviceBoxAdapter} from "./devices/audio-effects/CrusherDeviceBoxA
 import {FoldDeviceBoxAdapter} from "./devices/audio-effects/FoldDeviceBoxAdapter"
 import {MIDIOutputDeviceBoxAdapter} from "./devices/instruments/MIDIOutputDeviceBoxAdapter"
 import {VelocityDeviceBoxAdapter} from "./devices/midi-effects/VelocityDeviceBoxAdapter"
-import {DuckerDeviceBoxAdapter} from "./devices/audio-effects/DuckerDeviceBoxAdapter"
+import {TidalDeviceBoxAdapter} from "./devices/audio-effects/TidalDeviceBoxAdapter"
 
 export class BoxAdapters implements Terminable {
     readonly #context: BoxAdaptersContext
@@ -179,7 +179,7 @@ export class BoxAdapters implements Terminable {
             visitCrusherDeviceBox: (box: CrusherDeviceBox) => new CrusherDeviceBoxAdapter(this.#context, box),
             visitDelayDeviceBox: (box: DelayDeviceBox) => new DelayDeviceBoxAdapter(this.#context, box),
             visitDeviceInterfaceKnobBox: (box: DeviceInterfaceKnobBox) => new DeviceInterfaceKnobAdapter(this.#context, box),
-            visitDuckerDeviceBox: (box: DuckerDeviceBox) => new DuckerDeviceBoxAdapter(this.#context, box),
+            visitTidalDeviceBox: (box: TidalDeviceBox) => new TidalDeviceBoxAdapter(this.#context, box),
             visitFoldDeviceBox: (box: FoldDeviceBox) => new FoldDeviceBoxAdapter(this.#context, box),
             visitGrooveShuffleBox: (box: GrooveShuffleBox) => new GrooveShuffleBoxAdapter(this.#context, box),
             visitMarkerBox: (box: MarkerBox) => new MarkerBoxAdapter(this.#context, box),

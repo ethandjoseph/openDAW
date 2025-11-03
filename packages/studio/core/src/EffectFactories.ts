@@ -4,7 +4,7 @@ import {
     CompressorDeviceBox,
     CrusherDeviceBox,
     DelayDeviceBox,
-    DuckerDeviceBox,
+    TidalDeviceBox,
     FoldDeviceBox,
     GrooveShuffleBox,
     ModularAudioInputBox,
@@ -172,15 +172,15 @@ export namespace EffectFactories {
             })
     }
 
-    export const Ducker: EffectFactory = {
-        defaultName: "Ducker",
-        defaultIcon: IconSymbol.Ducker,
+    export const Tidal: EffectFactory = {
+        defaultName: "Tidal",
+        defaultIcon: IconSymbol.Tidal,
         description: "Shape rhythm and space through volume and pan.",
         separatorBefore: false,
         type: "audio",
-        create: ({boxGraph}, unit, index): DuckerDeviceBox =>
-            DuckerDeviceBox.create(boxGraph, UUID.generate(), box => {
-                box.label.setValue("Ducker")
+        create: ({boxGraph}, unit, index): TidalDeviceBox =>
+            TidalDeviceBox.create(boxGraph, UUID.generate(), box => {
+                box.label.setValue("Tidal")
                 box.index.setValue(index)
                 box.host.refer(unit)
             })
@@ -239,7 +239,7 @@ export namespace EffectFactories {
     }
 
     export const MidiNamed = {Arpeggio, Pitch, Velocity, Zeitgeist}
-    export const AudioNamed = {StereoTool, Compressor, Delay, Reverb, Revamp, Crusher, Fold, Ducker, Modular}
+    export const AudioNamed = {StereoTool, Compressor, Delay, Reverb, Revamp, Crusher, Fold, Tidal, Modular}
     export const MidiList: ReadonlyArray<Readonly<EffectFactory>> = Object.values(MidiNamed)
     export const AudioList: ReadonlyArray<Readonly<EffectFactory>> = Object.values(AudioNamed)
     export const MergedNamed = {...MidiNamed, ...AudioNamed}

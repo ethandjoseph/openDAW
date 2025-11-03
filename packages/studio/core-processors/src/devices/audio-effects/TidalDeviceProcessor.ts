@@ -1,22 +1,22 @@
 import {int, Option, Terminable, UUID} from "@opendaw/lib-std"
-import {DuckerDeviceBoxAdapter} from "@opendaw/studio-adapters"
+import {TidalDeviceBoxAdapter} from "@opendaw/studio-adapters"
 import {EngineContext} from "../../EngineContext"
 import {Block, Processor} from "../../processing"
 import {PeakBroadcaster} from "../../PeakBroadcaster"
 import {AutomatableParameter} from "../../AutomatableParameter"
 import {AudioEffectDeviceProcessor} from "../../AudioEffectDeviceProcessor"
-import {AudioBuffer, DuckerComputer, PPQN, Smooth} from "@opendaw/lib-dsp"
+import {AudioBuffer, TidalComputer, PPQN, Smooth} from "@opendaw/lib-dsp"
 import {AudioProcessor} from "../../AudioProcessor"
 
-export class DuckerDeviceProcessor extends AudioProcessor implements AudioEffectDeviceProcessor {
+export class TidalDeviceProcessor extends AudioProcessor implements AudioEffectDeviceProcessor {
     static ID: int = 0 | 0
 
-    readonly #id: int = DuckerDeviceProcessor.ID++
+    readonly #id: int = TidalDeviceProcessor.ID++
 
-    readonly #adapter: DuckerDeviceBoxAdapter
+    readonly #adapter: TidalDeviceBoxAdapter
     readonly #output: AudioBuffer
     readonly #peaks: PeakBroadcaster
-    readonly #computer: DuckerComputer
+    readonly #computer: TidalComputer
     readonly #smoothGainL: Smooth
     readonly #smoothGainR: Smooth
 
@@ -30,13 +30,13 @@ export class DuckerDeviceProcessor extends AudioProcessor implements AudioEffect
 
     #needsUpdate: boolean = true
 
-    constructor(context: EngineContext, adapter: DuckerDeviceBoxAdapter) {
+    constructor(context: EngineContext, adapter: TidalDeviceBoxAdapter) {
         super(context)
 
         this.#adapter = adapter
         this.#output = new AudioBuffer()
         this.#peaks = this.own(new PeakBroadcaster(context.broadcaster, adapter.address))
-        this.#computer = new DuckerComputer()
+        this.#computer = new TidalComputer()
         this.#smoothGainL = new Smooth(0.003, sampleRate)
         this.#smoothGainR = new Smooth(0.003, sampleRate)
 
@@ -72,7 +72,7 @@ export class DuckerDeviceProcessor extends AudioProcessor implements AudioEffect
     }
 
     index(): int {return this.#adapter.indexField.getValue()}
-    adapter(): DuckerDeviceBoxAdapter {return this.#adapter}
+    adapter(): TidalDeviceBoxAdapter {return this.#adapter}
 
     processAudio({p0, s0, bpm}: Block, fromIndex: int, toIndex: int): void {
         if (this.#source.isEmpty()) {return}

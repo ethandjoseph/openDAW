@@ -31,7 +31,7 @@ export enum IconSymbol {
     Dropdown,
     Dropbox,
     DrumSet,
-    Ducker,
+    Tidal,
     Duration,
     EditBox,
     Effects,

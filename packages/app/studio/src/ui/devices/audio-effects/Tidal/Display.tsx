@@ -2,19 +2,19 @@ import css from "./Display.sass?inline"
 import {Html} from "@opendaw/lib-dom"
 import {Arrays, Lifecycle} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
-import {DuckerDeviceBoxAdapter} from "@opendaw/studio-adapters"
+import {TidalDeviceBoxAdapter} from "@opendaw/studio-adapters"
 import {CanvasPainter} from "@/ui/canvas/painter"
-import {DuckerComputer} from "@opendaw/lib-dsp"
+import {TidalComputer} from "@opendaw/lib-dsp"
 
 const className = Html.adoptStyleSheet(css, "Display")
 
 type Construct = {
     lifecycle: Lifecycle
-    adapter: DuckerDeviceBoxAdapter
+    adapter: TidalDeviceBoxAdapter
 }
 
 export const Display = ({lifecycle, adapter}: Construct) => {
-    const computer = new DuckerComputer()
+    const computer = new TidalComputer()
     return (
         <div className={className}>
             <canvas onInit={canvas => {

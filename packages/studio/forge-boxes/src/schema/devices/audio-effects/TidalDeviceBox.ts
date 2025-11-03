@@ -3,7 +3,7 @@ import {Pointers} from "@opendaw/studio-enums"
 import {DeviceFactory} from "../../std/DeviceFactory"
 import {DefaultParameterPointerRules} from "../../std/Defaults"
 
-export const DuckerDeviceBox: BoxSchema<Pointers> = DeviceFactory.createAudioEffect("DuckerDeviceBox", {
+export const TidalDeviceBox: BoxSchema<Pointers> = DeviceFactory.createAudioEffect("TidalDeviceBox", {
     10: {type: "float32", name: "slope", pointerRules: DefaultParameterPointerRules, value: 0.25},
     11: {type: "float32", name: "symmetry", pointerRules: DefaultParameterPointerRules, value: 0.5},
     20: {type: "float32", name: "rate", pointerRules: DefaultParameterPointerRules, value: 0.0},

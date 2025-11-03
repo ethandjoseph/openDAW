@@ -1,6 +1,6 @@
 import {unitValue} from "@opendaw/lib-std"
 
-export class DuckerComputer {
+export class TidalComputer {
     static readonly #SLOPE_MULT: number = 10.0
 
     #depth: number = 1.0
@@ -13,7 +13,7 @@ export class DuckerComputer {
 
     set(depth: number, slope: number, symmetry: number): void {
         this.#depth = depth
-        this.#slope = slope * DuckerComputer.#SLOPE_MULT
+        this.#slope = slope * TidalComputer.#SLOPE_MULT
         this.#symmetry = symmetry
 
         this.#pEx = 2.0 ** Math.abs(this.#slope)

@@ -1,4 +1,4 @@
-import {DuckerDeviceBox} from "@opendaw/studio-boxes"
+import {TidalDeviceBox} from "@opendaw/studio-boxes"
 import {StringMapping, UUID, ValueMapping} from "@opendaw/lib-std"
 import {Address, BooleanField, Int32Field, PointerField, StringField} from "@opendaw/lib-box"
 import {Pointers} from "@opendaw/studio-enums"
@@ -8,7 +8,7 @@ import {BoxAdaptersContext} from "../../BoxAdaptersContext"
 import {ParameterAdapterSet} from "../../ParameterAdapterSet"
 import {AudioUnitBoxAdapter} from "../../audio-unit/AudioUnitBoxAdapter"
 
-export class DuckerDeviceBoxAdapter implements AudioEffectDeviceAdapter {
+export class TidalDeviceBoxAdapter implements AudioEffectDeviceAdapter {
     static OffsetFractions = Fraction.builder()
         .add([1, 1]).add([1, 2]).add([1, 3]).add([1, 4])
         .add([3, 16]).add([1, 6]).add([1, 8]).add([3, 32])
@@ -23,19 +23,19 @@ export class DuckerDeviceBoxAdapter implements AudioEffectDeviceAdapter {
     readonly accepts = "audio"
 
     readonly #context: BoxAdaptersContext
-    readonly #box: DuckerDeviceBox
+    readonly #box: TidalDeviceBox
 
     readonly #parametric: ParameterAdapterSet
     readonly namedParameter // let typescript infer the type
 
-    constructor(context: BoxAdaptersContext, box: DuckerDeviceBox) {
+    constructor(context: BoxAdaptersContext, box: TidalDeviceBox) {
         this.#context = context
         this.#box = box
         this.#parametric = new ParameterAdapterSet(this.#context)
         this.namedParameter = this.#wrapParameters(box)
     }
 
-    get box(): DuckerDeviceBox {return this.#box}
+    get box(): TidalDeviceBox {return this.#box}
     get uuid(): UUID.Bytes {return this.#box.address.uuid}
     get address(): Address {return this.#box.address}
     get indexField(): Int32Field {return this.#box.index}
@@ -53,7 +53,7 @@ export class DuckerDeviceBoxAdapter implements AudioEffectDeviceAdapter {
 
     terminate(): void {this.#parametric.terminate()}
 
-    #wrapParameters(box: DuckerDeviceBox) {
+    #wrapParameters(box: TidalDeviceBox) {
         return {
             slope: this.#parametric.createParameter(
                 box.slope,
