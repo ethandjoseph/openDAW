@@ -132,7 +132,8 @@ Huge thanks to our [ambassadors](https://opendaw.org/ambassadors), whose dedicat
 
 * [openDAW](https://github.com/andremichelle/opendaw)
 * [openDAW-headless (SDK)](https://github.com/andremichelle/opendaw-headless)
-* [openDAW-headless @naomiaro](https://github.com/naomiaro/opendaw-test) (openDAW-headless fork with more docs and examples)
+* [openDAW-headless @naomiaro](https://github.com/naomiaro/opendaw-test) (openDAW-headless fork with more docs and
+  examples)
 
 ### Roadmap
 
@@ -250,8 +251,12 @@ participate, visit our [Contribute](https://opendaw.org/contribute) page.
 
 ### Icons
 
+* Wave by Gregor Cresnar
+  from <a href="https://thenounproject.com/icon/wave-6250020/" target="_blank" title="Wave Icon">Noun
+  Project</a> (CC BY 3.0)
+*
 * Compress by Gregor Cresnar
-  from <a href="https://thenounproject.com/browse/icons/term/compress/" target="_blank" title="Compress Icons">Noun
+  from <a href="https://thenounproject.com/browse/icons/term/compress/" target="_blank" title="Compress Icon">Noun
   Project</a> (CC BY 3.0)
 
 ## Dual-Licensing Model
