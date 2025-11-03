@@ -22,7 +22,7 @@ type Construct = {
 
 export const TidalDeviceEditor = ({lifecycle, service, adapter, deviceHost}: Construct) => {
     const {project} = service
-    const {editing, midiLearning} = project
+    const {editing, liveStreamReceiver, midiLearning} = project
     const {rate, depth, slope, symmetry, offset, channelOffset} = adapter.namedParameter
     return (
         <DeviceEditor lifecycle={lifecycle}
@@ -31,7 +31,7 @@ export const TidalDeviceEditor = ({lifecycle, service, adapter, deviceHost}: Con
                       populateMenu={parent => MenuItems.forEffectDevice(parent, service, deviceHost, adapter)}
                       populateControls={() => (
                           <div className={className}>
-                              <Display lifecycle={lifecycle} adapter={adapter}/>
+                              <Display lifecycle={lifecycle} adapter={adapter} liveStreamReceiver={liveStreamReceiver}/>
                               {[rate, depth, slope, symmetry, offset, channelOffset]
                                   .map(parameter => ControlBuilder.createKnob<number | boolean>({
                                       lifecycle,

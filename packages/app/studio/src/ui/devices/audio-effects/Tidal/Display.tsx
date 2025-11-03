@@ -1,32 +1,39 @@
 import css from "./Display.sass?inline"
 import {Html} from "@opendaw/lib-dom"
-import {Arrays, Lifecycle} from "@opendaw/lib-std"
+import {Arrays, Lifecycle, TAU} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {TidalDeviceBoxAdapter} from "@opendaw/studio-adapters"
 import {CanvasPainter} from "@/ui/canvas/painter"
 import {TidalComputer} from "@opendaw/lib-dsp"
+import {LiveStreamReceiver} from "@opendaw/lib-fusion"
 
 const className = Html.adoptStyleSheet(css, "Display")
 
 type Construct = {
     lifecycle: Lifecycle
     adapter: TidalDeviceBoxAdapter
+    liveStreamReceiver: LiveStreamReceiver
 }
 
-export const Display = ({lifecycle, adapter}: Construct) => {
+export const Display = ({lifecycle, adapter, liveStreamReceiver}: Construct) => {
     const computer = new TidalComputer()
     return (
         <div className={className}>
             <canvas onInit={canvas => {
+                let processorPhase = 0.0
                 const {depth, slope, symmetry, offset, channelOffset} = adapter.namedParameter
                 const uMin = -0.5
                 const uMax = 1.5
                 const painter = lifecycle.own(new CanvasPainter(canvas, painter => {
                     const {context, actualWidth, actualHeight, devicePixelRatio} = painter
-                    const innerHeight = actualHeight - devicePixelRatio * 2
+                    const fullOffset = offset.getValue() / 360.0
+                    const channelPhase: number = channelOffset.getValue() / 360.0
+                    const padding = devicePixelRatio * 2
+                    const top = padding
+                    const bottom = actualHeight - padding
                     const xToValue = (x: number) => uMin + (x / actualWidth - uMin) * (uMax - uMin)
                     const valueToX = (value: number) => (value - uMin) / (uMax - uMin) * actualWidth
-                    const valueToY = (value: number) => innerHeight - (innerHeight * value)
+                    const valueToY = (value: number) => bottom + (top - bottom) * value
                     computer.set(depth.getValue(), slope.getValue(), symmetry.getValue())
 
                     // edges
@@ -44,7 +51,7 @@ export const Display = ({lifecycle, adapter}: Construct) => {
                     context.stroke()
 
                     const curve = (u0: number, u1: number, opacity: number, phaseOffset: number) => {
-                        const ud = offset.getValue() / 360.0 + phaseOffset
+                        const ud = fullOffset + phaseOffset
                         const x0 = valueToX(u0)
                         const x1 = valueToX(u1)
                         const path = new Path2D()
@@ -69,17 +76,36 @@ export const Display = ({lifecycle, adapter}: Construct) => {
                     curve(1.0, uMax, 0.30, 0.0)
 
                     // Channel 1
-                    const channelPhase: number = channelOffset.getValue() / 360.0
                     curve(uMin, 0.0, 0.10, channelPhase)
                     curve(0.0, 1.0, 0.20, channelPhase)
                     curve(1.0, uMax, 0.10, channelPhase)
+
+                    const dot = (phase: number, offset: number, opacity: number) => {
+                        const u = phase - Math.floor(phase)
+                        const x = valueToX(u)
+                        const y = valueToY(computer.compute(u + offset))
+                        context.beginPath()
+                        context.arc(x, y, 4.0, 0.0, TAU)
+                        context.fillStyle = `hsla(200, 83%, 60%, ${opacity})`
+                        context.fill()
+                    }
+
+                    context.strokeStyle = "none"
+                    dot(processorPhase, fullOffset, 1.0)
+                    dot(processorPhase, fullOffset + channelPhase, 0.2)
                 }))
                 lifecycle.ownAll(
                     depth.subscribe(painter.requestUpdate),
                     slope.subscribe(painter.requestUpdate),
                     symmetry.subscribe(painter.requestUpdate),
                     offset.subscribe(painter.requestUpdate),
-                    channelOffset.subscribe(painter.requestUpdate)
+                    channelOffset.subscribe(painter.requestUpdate),
+                    liveStreamReceiver.subscribeFloat(adapter.address.append(0), value => {
+                        if (processorPhase !== value) {
+                            processorPhase = value
+                            painter.requestUpdate()
+                        }
+                    })
                 )
             }}/>
         </div>

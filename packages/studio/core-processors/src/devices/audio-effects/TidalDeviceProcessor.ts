@@ -1,7 +1,7 @@
-import {int, Option, Terminable, UUID} from "@opendaw/lib-std"
+import {Bits, int, Option, Terminable, UUID} from "@opendaw/lib-std"
 import {TidalDeviceBoxAdapter} from "@opendaw/studio-adapters"
 import {EngineContext} from "../../EngineContext"
-import {Block, Processor} from "../../processing"
+import {Block, BlockFlag, Processor} from "../../processing"
 import {PeakBroadcaster} from "../../PeakBroadcaster"
 import {AutomatableParameter} from "../../AutomatableParameter"
 import {AudioEffectDeviceProcessor} from "../../AudioEffectDeviceProcessor"
@@ -28,8 +28,8 @@ export class TidalDeviceProcessor extends AudioProcessor implements AudioEffectD
     readonly #pChannelOffset: AutomatableParameter<number>
 
     #source: Option<AudioBuffer> = Option.None
-
     #needsUpdate: boolean = true
+    #phase: number = 0.0
 
     constructor(context: EngineContext, adapter: TidalDeviceBoxAdapter) {
         super(context)
@@ -50,7 +50,10 @@ export class TidalDeviceProcessor extends AudioProcessor implements AudioEffectD
         this.#pOffset = this.bindParameter(offset)
         this.#pChannelOffset = this.bindParameter(channelOffset)
 
-        this.own(context.registerProcessor(this))
+        this.ownAll(
+            context.broadcaster.broadcastFloat(adapter.address.append(0), () => this.#phase),
+            context.registerProcessor(this)
+        )
         this.readAllParameters()
     }
 
@@ -58,6 +61,7 @@ export class TidalDeviceProcessor extends AudioProcessor implements AudioEffectD
     get outgoing(): Processor {return this}
 
     reset(): void {
+        this.#phase = 0.0
         this.#needsUpdate = true
         this.#peaks.clear()
         this.#output.clear()
@@ -76,33 +80,31 @@ export class TidalDeviceProcessor extends AudioProcessor implements AudioEffectD
     index(): int {return this.#adapter.indexField.getValue()}
     adapter(): TidalDeviceBoxAdapter {return this.#adapter}
 
-    processAudio({p0, bpm}: Block, fromIndex: int, toIndex: int): void {
+    processAudio({p0, bpm, flags}: Block, fromIndex: int, toIndex: int): void {
         if (this.#source.isEmpty()) {return}
         const input = this.#source.unwrap()
         const [inpL, inpR] = input.channels()
         const [outL, outR] = this.#output.channels()
-
         if (this.#needsUpdate) {
             this.#computer.set(this.#pDepth.getValue(), this.#pSlope.getValue(), this.#pSymmetry.getValue())
             this.#needsUpdate = false
         }
-
         const {RateFractions} = TidalDeviceBoxAdapter
         const delta = PPQN.samplesToPulses(1, bpm, sampleRate)
         const ratePulses = Fraction.toPPQN(RateFractions[this.#pRate.getValue()])
         const rateInvPulses = 1.0 / ratePulses
-        const offsetL = this.#pOffset.getValue() / 360.0
-        const offsetR = offsetL + this.#pChannelOffset.getValue() / 360.0
-
+        const offset0 = this.#pOffset.getValue() / 360.0
+        const offset1 = offset0 + this.#pChannelOffset.getValue() / 360.0
         for (let i = fromIndex; i < toIndex; i++) {
-            const pL = (p0 + i * delta) * rateInvPulses + offsetL
-            const gL = this.#computer.compute(pL - Math.floor(pL))
-            const pR = (p0 + i * delta) * rateInvPulses + offsetR
-            const gR = this.#computer.compute(pR - Math.floor(pR))
-            outL[i] = inpL[i] * this.#smoothGainL.process(gL)
-            outR[i] = inpR[i] * this.#smoothGainR.process(gR)
+            const phaseL = (p0 + i * delta) * rateInvPulses + offset0
+            const phaseR = (p0 + i * delta) * rateInvPulses + offset1
+            outL[i] = inpL[i] * this.#smoothGainL.process(this.#computer.compute(phaseL - Math.floor(phaseL)))
+            outR[i] = inpR[i] * this.#smoothGainR.process(this.#computer.compute(phaseR - Math.floor(phaseR)))
         }
         this.#peaks.process(outL, outR)
+        if (Bits.every(flags, BlockFlag.transporting | BlockFlag.playing)) {
+            this.#phase = (p0 + (toIndex - fromIndex) * delta) * rateInvPulses
+        }
     }
 
     parameterChanged(parameter: AutomatableParameter): void {
