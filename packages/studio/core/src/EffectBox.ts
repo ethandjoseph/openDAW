@@ -3,6 +3,7 @@ import {
     CompressorDeviceBox,
     CrusherDeviceBox,
     DelayDeviceBox,
+    DuckerDeviceBox,
     FoldDeviceBox,
     ModularDeviceBox,
     PitchDeviceBox,
@@ -17,5 +18,5 @@ import {
 
 export type EffectBox =
     | ArpeggioDeviceBox | PitchDeviceBox | VelocityDeviceBox | ZeitgeistDeviceBox | UnknownMidiEffectDeviceBox
-    | DelayDeviceBox | ReverbDeviceBox | RevampDeviceBox | StereoToolDeviceBox
+    | DelayDeviceBox | ReverbDeviceBox | RevampDeviceBox | StereoToolDeviceBox | DuckerDeviceBox
     | ModularDeviceBox | UnknownAudioEffectDeviceBox | CompressorDeviceBox | CrusherDeviceBox | FoldDeviceBox

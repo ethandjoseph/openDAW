@@ -39,7 +39,8 @@ export const CompressorDeviceEditor = ({lifecycle, service, adapter, deviceHost}
             <span>{parameter.name}</span>
             <RelativeUnitValueDragging lifecycle={lifecycle}
                                        editing={editing}
-                                       parameter={parameter}>
+                                       parameter={parameter}
+                                       supressValueFlyout={true}>
                 <ParameterLabel lifecycle={lifecycle}
                                 editing={editing}
                                 midiLearning={midiLearning}

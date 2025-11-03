@@ -1,0 +1,52 @@
+import css from "./DuckerDeviceEditor.sass?inline"
+import {DeviceHost, DuckerDeviceBoxAdapter} from "@opendaw/studio-adapters"
+import {Lifecycle} from "@opendaw/lib-std"
+import {createElement} from "@opendaw/lib-jsx"
+import {DeviceEditor} from "@/ui/devices/DeviceEditor.tsx"
+import {MenuItems} from "@/ui/devices/menu-items.ts"
+import {ControlBuilder} from "@/ui/devices/ControlBuilder.tsx"
+import {DevicePeakMeter} from "@/ui/devices/panel/DevicePeakMeter.tsx"
+import {Html} from "@opendaw/lib-dom"
+import {StudioService} from "@/service/StudioService"
+import {EffectFactories} from "@opendaw/studio-core"
+import {Display} from "@/ui/devices/audio-effects/Ducker/Display"
+
+const className = Html.adoptStyleSheet(css, "DuckerDeviceEditor")
+
+type Construct = {
+    lifecycle: Lifecycle
+    service: StudioService
+    adapter: DuckerDeviceBoxAdapter
+    deviceHost: DeviceHost
+}
+
+export const DuckerDeviceEditor = ({lifecycle, service, adapter, deviceHost}: Construct) => {
+    const {project} = service
+    const {editing, midiLearning} = project
+    const {rate, depth, slope, symmetry, offset, channelOffset} = adapter.namedParameter
+    return (
+        <DeviceEditor lifecycle={lifecycle}
+                      project={project}
+                      adapter={adapter}
+                      populateMenu={parent => MenuItems.forEffectDevice(parent, service, deviceHost, adapter)}
+                      populateControls={() => (
+                          <div className={className}>
+                              <Display lifecycle={lifecycle} adapter={adapter}/>
+                              {[rate, depth, slope, symmetry, offset, channelOffset]
+                                  .map(parameter => ControlBuilder.createKnob<number | boolean>({
+                                      lifecycle,
+                                      editing,
+                                      midiLearning,
+                                      adapter,
+                                      parameter,
+                                      anchor: parameter.anchor
+                                  }))}
+                          </div>)}
+                      populateMeter={() => (
+                          <DevicePeakMeter lifecycle={lifecycle}
+                                           receiver={project.liveStreamReceiver}
+                                           address={adapter.address}/>
+                      )}
+                      icon={EffectFactories.AudioNamed.Ducker.defaultIcon}/>
+    )
+}

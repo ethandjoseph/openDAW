@@ -20,6 +20,7 @@ import {MIDIOutputDeviceBox} from "./instruments/MIDIOutputDeviceBox"
 import {VelocityDeviceBox} from "./midi-effects/VelocityDeviceBox"
 import {MIDIOutputBox} from "./instruments/MIDIOutputBox"
 import {MIDIOutputParameterBox} from "./instruments/MIDIOutputParameterBox"
+import {DuckerDeviceBox} from "./audio-effects/DuckerDeviceBox"
 
 export const DeviceDefinitions = [
     UnknownAudioEffectDevice,
@@ -32,6 +33,7 @@ export const DeviceDefinitions = [
     CrusherDeviceBox,
     VelocityDeviceBox,
     FoldDeviceBox,
+    DuckerDeviceBox,
     RevampDeviceBox,
     ReverbDeviceBox,
     VaporisateurDeviceBox,

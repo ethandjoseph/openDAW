@@ -7,6 +7,7 @@ import {
     panic,
     Parameter,
     Strings,
+    Terminable,
     unitValue,
     ValueGuide
 } from "@opendaw/lib-std"
@@ -21,6 +22,7 @@ type Construct = {
     lifecycle: Lifecycle
     editing: Editing
     parameter: Parameter
+    supressValueFlyout?: boolean
     options?: ValueGuide.Options
 }
 
@@ -36,7 +38,7 @@ const lookForSolidElement = (element: Element): Element => {
 }
 
 export const RelativeUnitValueDragging = ({
-                                              lifecycle, editing, parameter, options
+                                              lifecycle, editing, parameter, supressValueFlyout, options
                                           }: Construct, children: JsxValue) => {
     const element: HTMLElement = (<Group>{children}</Group>)
     lifecycle.ownAll(
@@ -57,7 +59,7 @@ export const RelativeUnitValueDragging = ({
                                    resolvers={resolvers}/>
             )
         }),
-        ValueTooltip.default(element, () => {
+        supressValueFlyout === true ? Terminable.Empty : ValueTooltip.default(element, () => {
             const clientRect = lookForSolidElement(element).getBoundingClientRect()
             return ({
                 clientX: clientRect.left + 8,

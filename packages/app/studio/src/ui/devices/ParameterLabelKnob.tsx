@@ -35,6 +35,7 @@ export const ParameterLabelKnob = ({
             <RelativeUnitValueDragging lifecycle={lifecycle}
                                        editing={editing}
                                        parameter={parameter}
+                                       supressValueFlyout={true}
                                        options={options}>
                 <LabelKnob lifecycle={lifecycle}
                            editing={editing}

@@ -6,6 +6,7 @@ import {
     CompressorDeviceBox,
     CrusherDeviceBox,
     DelayDeviceBox,
+    DuckerDeviceBox,
     FoldDeviceBox,
     MIDIOutputDeviceBox,
     ModularDeviceBox,
@@ -32,6 +33,7 @@ import {
     CrusherDeviceBoxAdapter,
     DelayDeviceBoxAdapter,
     DeviceHost,
+    DuckerDeviceBoxAdapter,
     FoldDeviceBoxAdapter,
     MIDIOutputDeviceBoxAdapter,
     ModularDeviceBoxAdapter,
@@ -73,6 +75,7 @@ import {CrusherDeviceEditor} from "@/ui/devices/audio-effects/CrusherDeviceEdito
 import {FoldDeviceEditor} from "@/ui/devices/audio-effects/FoldDeviceEditor"
 import {MIDIOutputDeviceEditor} from "@/ui/devices/instruments/MIDIOutputDeviceEditor"
 import {VelocityDeviceEditor} from "@/ui/devices/midi-effects/VelocityDeviceEditor"
+import {DuckerDeviceEditor} from "@/ui/devices/audio-effects/DuckerDeviceEditor"
 
 export namespace DeviceEditorFactory {
     export const toMidiEffectDeviceEditor = (service: StudioService, lifecycle: Lifecycle, box: Box, deviceHost: DeviceHost) =>
@@ -184,6 +187,12 @@ export namespace DeviceEditorFactory {
                                    service={service}
                                    adapter={service.project.boxAdapters.adapterFor(box, DelayDeviceBoxAdapter)}
                                    deviceHost={deviceHost}/>
+            ),
+            visitDuckerDeviceBox: (box: DuckerDeviceBox) => (
+                <DuckerDeviceEditor lifecycle={lifecycle}
+                                    service={service}
+                                    adapter={service.project.boxAdapters.adapterFor(box, DuckerDeviceBoxAdapter)}
+                                    deviceHost={deviceHost}/>
             ),
             visitCrusherDeviceBox: (box: CrusherDeviceBox) => (
                 <CrusherDeviceEditor lifecycle={lifecycle}
