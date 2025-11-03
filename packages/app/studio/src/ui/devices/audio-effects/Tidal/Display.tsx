@@ -26,15 +26,15 @@ export const Display = ({lifecycle, adapter, liveStreamReceiver}: Construct) => 
                 const uMax = 1.5
                 const painter = lifecycle.own(new CanvasPainter(canvas, painter => {
                     const {context, actualWidth, actualHeight, devicePixelRatio} = painter
-                    const fullOffset = offset.getValue() / 360.0
-                    const channelPhase: number = channelOffset.getValue() / 360.0
+                    const fullOffset = offset.getControlledValue() / 360.0
+                    const channelPhase: number = channelOffset.getControlledValue() / 360.0
                     const padding = devicePixelRatio * 2
                     const top = padding
                     const bottom = actualHeight - padding
                     const xToValue = (x: number) => uMin + (x / actualWidth - uMin) * (uMax - uMin)
                     const valueToX = (value: number) => (value - uMin) / (uMax - uMin) * actualWidth
                     const valueToY = (value: number) => bottom + (top - bottom) * value
-                    computer.set(depth.getValue(), slope.getValue(), symmetry.getValue())
+                    computer.set(depth.getControlledValue(), slope.getControlledValue(), symmetry.getControlledValue())
 
                     // edges
                     const x0 = valueToX(0.0)
