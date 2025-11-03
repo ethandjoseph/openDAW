@@ -254,7 +254,6 @@ participate, visit our [Contribute](https://opendaw.org/contribute) page.
 * Wave by Gregor Cresnar
   from <a href="https://thenounproject.com/icon/wave-6250020/" target="_blank" title="Wave Icon">Noun
   Project</a> (CC BY 3.0)
-*
 * Compress by Gregor Cresnar
   from <a href="https://thenounproject.com/browse/icons/term/compress/" target="_blank" title="Compress Icon">Noun
   Project</a> (CC BY 3.0)
