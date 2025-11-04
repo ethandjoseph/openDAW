@@ -27,13 +27,18 @@ export const TrackHeader = ({lifecycle, service, trackBoxAdapter, audioUnitBoxAd
     const nameLabel: HTMLElement = <h5 style={{color: Colors.dark}}/>
     const controlLabel: HTMLElement = <h5 style={{color: Colors.shadow}}/>
     const {project} = service
-    lifecycle.ownAll(
-        audioUnitBoxAdapter.input
-            .catchupAndSubscribeLabelChange(option => nameLabel.textContent = option.unwrapOrElse("No Input")),
-        trackBoxAdapter.catchupAndSubscribePath(option =>
-            controlLabel.textContent = option.mapOr(([_, control]) => control, "N/A"))
+    lifecycle.own(
+        trackBoxAdapter.catchupAndSubscribePath(option => option.match({
+            none: () => {
+                nameLabel.textContent = ""
+                controlLabel.textContent = ""
+            },
+            some: ([device, target]) => {
+                nameLabel.textContent = device
+                controlLabel.textContent = target
+            }
+        }))
     )
-
     const color = ColorCodes.forAudioType(audioUnitBoxAdapter.type)
     const element: HTMLElement = (
         <div className={Html.buildClassList(className, "is-primary")} tabindex={-1}>
