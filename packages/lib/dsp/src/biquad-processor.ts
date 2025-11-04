@@ -88,6 +88,7 @@ export class ModulatedBiquad {
         this.#minFreq = minFreq
         this.#maxFreq = maxFreq
         this.#sampleRate = sampleRate
+
         this.#filter = new BiquadStack(4)
     }
 
@@ -96,25 +97,32 @@ export class ModulatedBiquad {
 
     reset(): void {this.#filter.reset()}
 
-    process(input: Float32Array, output: Float32Array, cutoffs: Float32Array, q: number, fromIndex: number, toIndex: number): void {
-        const R = 256
-        const qReduced = q / (this.#filter.order ** 1.25) // best value found to keep the Q balanced
+    process(input: Float32Array,
+            output: Float32Array,
+            cutoffs: Float32Array,
+            q: number,
+            fromIndex: number, toIndex: number): void {
+        const R = 256 // Quantize to avoid coeff computation each sample
+        const invSampleRate = 1.0 / this.#sampleRate
+        const logRatio = Math.log(this.#maxFreq / this.#minFreq)
+        const qReduced = q / (this.#filter.order ** 1.25) // this exp seems to keep the filter from getting too loud
+        const filter = this.#filter
+        const coeff = this.#coeff
         let from = fromIndex
+        let lastIdx = this.#lastIdx
         while (from < toIndex) {
-            const cutoff = cutoffs[from]
-            const idx = Math.floor(clamp(cutoff, 0.0, 1.0) * R)
+            const idx = Math.floor(clamp(cutoffs[from], 0.0, 1.0) * R)
             let to = from + 1
-            while (to < toIndex && Math.floor(clamp(cutoffs[to], 0.0, 1.0) * R) === idx) {
-                ++to
+            while (to < toIndex && Math.floor(clamp(cutoffs[to], 0.0, 1.0) * R) === idx) ++to
+            if (idx !== lastIdx) {
+                lastIdx = idx
+                coeff.setLowpassParams(this.#minFreq * Math.exp(idx / R * logRatio) * invSampleRate, qReduced)
             }
-            if (idx !== this.#lastIdx) {
-                this.#lastIdx = idx
-                const normalized = idx / R
-                const freq = this.#minFreq * Math.pow(this.#maxFreq / this.#minFreq, normalized)
-                this.#coeff.setLowpassParams(freq / this.#sampleRate, qReduced)
-            }
-            this.#filter.process(this.#coeff, input, output, from, to)
+            filter.process(coeff, input, output, from, to)
             from = to
         }
+
+        this.#lastIdx = lastIdx
     }
+
 }
