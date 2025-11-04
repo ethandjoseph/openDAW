@@ -9,6 +9,15 @@ export type NoteCompleteEvent = Id<Event & {
 export type NoteLifecycleEvent = Id<NoteEvent> | NoteCompleteEvent
 
 export namespace NoteLifecycleEvent {
+    // adjacent notes are independent
+    export const Comparator = (a: NoteLifecycleEvent, b: NoteLifecycleEvent): number => {
+        const delta = a.position - b.position
+        if (delta !== 0) {return delta}
+        if (a.type === "note-complete-event") {return -1}
+        if (b.type === "note-complete-event") {return 1}
+        return 0
+    }
+
     export const start = (position: ppqn, duration: ppqn, pitch: byte, velocity: float, cent: number = 0.0): Id<NoteEvent> =>
         ({type: "note-event", position, duration, pitch, velocity, cent, id: ++$id})
     export const startWith = (source: NoteEvent, position?: ppqn, duration?: ppqn): Id<NoteEvent> => ({

@@ -10,6 +10,7 @@ export class NoteEventInstrument implements Terminable {
     readonly #terminator = new Terminator()
     readonly #receiver: Processor
     readonly #broadcaster: NoteBroadcaster
+    readonly #buffer: Array<NoteLifecycleEvent>
 
     #source: Option<NoteEventSource> = Option.None
 
@@ -17,6 +18,7 @@ export class NoteEventInstrument implements Terminable {
         this.#receiver = receiver
 
         this.#broadcaster = this.#terminator.own(new NoteBroadcaster(broadcaster, address))
+        this.#buffer = new Array(16)
     }
 
     setNoteEventSource(source: NoteEventSource): Terminable {
@@ -32,11 +34,17 @@ export class NoteEventInstrument implements Terminable {
     introduceBlock({index, p0, p1, flags}: Block): void {
         if (this.#source.isEmpty()) {return}
         for (const event of this.#source.unwrap().processNotes(p0, p1, flags)) {
-            if (event.pitch >= 0 && event.pitch <= 127) {
-                this.#receiver.eventInput.add(index, event)
-                this.#showEvent(event)
-            }
+            this.#buffer.push(event)
         }
+        this.#buffer
+            .sort(NoteLifecycleEvent.Comparator)
+            .forEach(event => {
+                if (event.pitch >= 0 && event.pitch <= 127) {
+                    this.#receiver.eventInput.add(index, event)
+                    this.#showEvent(event)
+                }
+            })
+        this.#buffer.length = 0
     }
 
     clear(): void {}
