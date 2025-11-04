@@ -8,6 +8,7 @@ import {
     Glide,
     ppqn,
     RenderQuantum,
+    SILENCE_THRESHOLD,
     Smooth,
     StereoMatrix,
     velocityToGain
@@ -88,7 +89,7 @@ export class VaporisateurVoice implements Voice {
             const amp = this.filterProcessor.processFrame(this.filterCoeff, oscBuffer[i]) * vca
             outL[i] += amp * gainL
             outR[i] += amp * gainR
-            if (this.env.complete && this.gainSmooth.value < 1e-6) {return true}
+            if (this.env.complete && this.gainSmooth.value < SILENCE_THRESHOLD) {return true}
         }
         return false
     }
