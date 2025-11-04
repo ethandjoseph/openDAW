@@ -7,6 +7,7 @@ import {ParameterAdapterSet} from "../../ParameterAdapterSet"
 import {TrackType} from "../../timeline/TrackType"
 import {AudioUnitBoxAdapter} from "../../audio-unit/AudioUnitBoxAdapter"
 import {VoicingMode} from "@opendaw/studio-enums"
+import {Vaporisateur} from "./Vaporisateur"
 
 export class VaporisateurDeviceBoxAdapter implements InstrumentDeviceBoxAdapter {
     readonly type = "instrument"
@@ -65,7 +66,7 @@ export class VaporisateurDeviceBoxAdapter implements InstrumentDeviceBoxAdapter 
                 StringMapping.indices("", ["Sine", "Triangle", "Sawtooth", "Square"]), "Waveform"),
             cutoff: this.#parametric.createParameter(
                 box.cutoff,
-                ValueMapping.exponential(20.0, 20_000.0),
+                Vaporisateur.CUTOFF_RANGE,
                 StringMapping.numeric({unit: "Hz"}), "Cutoff"),
             resonance: this.#parametric.createParameter(
                 box.resonance,

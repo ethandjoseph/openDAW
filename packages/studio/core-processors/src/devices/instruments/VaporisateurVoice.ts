@@ -1,4 +1,3 @@
-import {Voice} from "../../voicing/Voice"
 import {
     Adsr,
     AudioBuffer,
@@ -14,7 +13,9 @@ import {
     velocityToGain
 } from "@opendaw/lib-dsp"
 import {int, unitValue} from "@opendaw/lib-std"
+import {Voice} from "../../voicing/Voice"
 import {Block} from "../../processing"
+import {Vaporisateur} from "@opendaw/studio-adapters"
 import {VaporisateurDeviceProcessor} from "./VaporisateurDeviceProcessor"
 
 // We can do this because there is no multi-threading within the processor
@@ -43,7 +44,7 @@ export class VaporisateurVoice implements Voice {
 
         this.osc = new BandLimitedOscillator(sampleRate)
         this.filterCoeff = new BiquadCoeff()
-        this.filter = new ModulatedBiquad(20.0, 20000.0, sampleRate)
+        this.filter = new ModulatedBiquad(Vaporisateur.MIN_CUTOFF, Vaporisateur.MAX_CUTOFF, sampleRate)
         this.filter.order = 1
         this.env = new Adsr(sampleRate)
         this.env.set(this.device.env_attack, this.device.env_decay, this.device.env_sustain, this.device.env_release)
