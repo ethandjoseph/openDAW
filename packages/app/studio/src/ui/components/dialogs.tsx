@@ -31,6 +31,7 @@ export namespace Dialogs {
         origin?: Element
         abortSignal?: AbortSignal
         excludeOk?: boolean
+        cancelable?: boolean
     }
 
     type Info = {
@@ -40,10 +41,11 @@ export namespace Dialogs {
         buttons?: ReadonlyArray<Button>
         origin?: Element
         abortSignal?: AbortSignal
+        cancelable?: boolean
     }
 
     export const show = async (
-        {headline, content, okText, buttons, origin, abortSignal, excludeOk}: Default): Promise<void> => {
+        {headline, content, okText, buttons, origin, abortSignal, excludeOk, cancelable}: Default): Promise<void> => {
         const actualButtons: Array<Button> = isDefined(buttons) ? [...buttons] : []
         if (excludeOk !== true) {
             actualButtons.push({
@@ -61,7 +63,7 @@ export namespace Dialogs {
         const dialog: HTMLDialogElement = (
             <Dialog headline={headline ?? "Dialog"}
                     icon={IconSymbol.System}
-                    cancelable={true}
+                    cancelable={cancelable !== false}
                     buttons={actualButtons}>
                 <div style={{padding: "1em 0", color: Colors.dark}}>{content}</div>
             </Dialog>
@@ -80,10 +82,13 @@ export namespace Dialogs {
     }
 
     // Never rejects
-    export const info = async ({headline, message, okText, buttons, origin, abortSignal}: Info): Promise<void> =>
+    export const info = async ({
+                                   headline, message, okText, buttons,
+                                   origin, abortSignal, cancelable
+                               }: Info): Promise<void> =>
         show({
             headline, content: (<p style={{whiteSpace: "pre-line"}}>{message}</p>),
-            okText, buttons, origin, abortSignal
+            okText, buttons, origin, abortSignal, cancelable
         }).catch(EmptyExec)
 
     export type ApproveCreation = {

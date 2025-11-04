@@ -349,7 +349,8 @@ export class StudioService implements ProjectEnv {
                         return Dialogs.info({
                             headline: "Audio-Engine Error",
                             message: String(safeRead(event, "error", "message") ?? "Unknown error"),
-                            okText: "Restart"
+                            okText: "Restart Engine",
+                            cancelable: false
                         })
                     },
                     load: (engine: EngineWorklet) => {

@@ -54,7 +54,7 @@ export const Dialog = (
         dialog.oncancel = (event) => event.preventDefault()
     }
     dialog.onkeydown = (event) => {
-        if (!(cancelable === true && event.key === "Escape") && !Events.isTextInput(event.target)) {
+        if (!(cancelable !== false && event.key === "Escape") && !Events.isTextInput(event.target)) {
             if (event.code !== "F12") {
                 event.preventDefault()
             }
