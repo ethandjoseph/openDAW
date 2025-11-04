@@ -1,10 +1,10 @@
-import {ArrayMultimap, Arrays, int} from "@opendaw/lib-std"
+import {ArrayMultimap, int} from "@opendaw/lib-std"
 import {Event} from "@opendaw/lib-dsp"
 
 export class EventBuffer {
     readonly #events: ArrayMultimap<int, Event>
 
-    constructor() {this.#events = new ArrayMultimap(Arrays.empty(), Event.Comparator)}
+    constructor() {this.#events = new ArrayMultimap()}
 
     add(index: int, event: Event): void {this.#events.add(index, event)}
     get(index: int): ReadonlyArray<Event> {return this.#events.get(index)}

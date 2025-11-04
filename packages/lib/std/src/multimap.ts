@@ -62,7 +62,7 @@ export class ArrayMultimap<K, V> implements Multimap<K, V>, Iterable<[K, Array<V
         if (this.#comparator.isEmpty()) {
             array.push(value)
         } else {
-            const insertIndex: int = BinarySearch.leftMost(array, value, this.#comparator.unwrap())
+            const insertIndex: int = BinarySearch.stableInsert(array, value, this.#comparator.unwrap())
             array.splice(insertIndex, 0, value)
         }
     }
