@@ -92,8 +92,7 @@ export class VaporisateurVoice implements Voice {
         this.filter.process(oscBuffer, oscBuffer, cutoffBuffer, resonance, fromIndex, toIndex)
 
         for (let i = fromIndex; i < toIndex; i++) {
-            const vca = this.gainSmooth.process(envBuffer[i] * gain)
-            const amp = oscBuffer[i] * vca
+            const amp = oscBuffer[i] * this.gainSmooth.process(envBuffer[i] * gain)
             outL[i] += amp * gainL
             outR[i] += amp * gainR
             if (this.env.complete && this.gainSmooth.value < SILENCE_THRESHOLD) {return true}
