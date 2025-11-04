@@ -1,5 +1,5 @@
 import {BiquadCoeff} from "./biquad-coeff"
-import {Arrays, int} from "@opendaw/lib-std"
+import {Arrays, clamp, int} from "@opendaw/lib-std"
 
 export interface BiquadProcessor {
     reset(): void
@@ -72,5 +72,49 @@ export class BiquadStack implements BiquadProcessor {
     processFrame(coeff: BiquadCoeff, x: number): number {
         for (let i = 0; i < this.order; i++) {x = this.#stack[i].processFrame(coeff, x)}
         return x
+    }
+}
+
+export class ModulatedBiquad {
+    readonly #coeff = new BiquadCoeff()
+    readonly #filter: BiquadStack
+    readonly #minFreq: number
+    readonly #maxFreq: number
+    readonly #sampleRate: number
+
+    #lastIdx: number = -1
+
+    constructor(minFreq: number, maxFreq: number, sampleRate: number) {
+        this.#minFreq = minFreq
+        this.#maxFreq = maxFreq
+        this.#sampleRate = sampleRate
+        this.#filter = new BiquadStack(4)
+    }
+
+    get order(): number {return this.#filter.order}
+    set order(value: number) {this.#filter.order = value}
+
+    reset(): void {this.#filter.reset()}
+
+    process(input: Float32Array, output: Float32Array, cutoffs: Float32Array, q: number, fromIndex: number, toIndex: number): void {
+        const R = 256
+        const qReduced = q / (this.#filter.order ** 1.25) // best value found to keep the Q balanced
+        let from = fromIndex
+        while (from < toIndex) {
+            const cutoff = cutoffs[from]
+            const idx = Math.floor(clamp(cutoff, 0.0, 1.0) * R)
+            let to = from + 1
+            while (to < toIndex && Math.floor(clamp(cutoffs[to], 0.0, 1.0) * R) === idx) {
+                ++to
+            }
+            if (idx !== this.#lastIdx) {
+                this.#lastIdx = idx
+                const normalized = idx / R
+                const freq = this.#minFreq * Math.pow(this.#maxFreq / this.#minFreq, normalized)
+                this.#coeff.setLowpassParams(freq / this.#sampleRate, qReduced)
+            }
+            this.#filter.process(this.#coeff, input, output, from, to)
+            from = to
+        }
     }
 }
