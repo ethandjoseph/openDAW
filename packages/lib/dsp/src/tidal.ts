@@ -1,4 +1,4 @@
-import {unitValue} from "@opendaw/lib-std"
+import {linear, unitValue} from "@opendaw/lib-std"
 
 export class TidalComputer {
     static readonly #SLOPE_MULT: number = 10.0
@@ -14,11 +14,11 @@ export class TidalComputer {
     set(depth: number, slope: number, symmetry: number): void {
         this.#depth = depth
         this.#slope = slope * TidalComputer.#SLOPE_MULT
-        this.#symmetry = symmetry
+        this.#symmetry = linear(1e-5, 1.0 - 1e-5, symmetry)
 
         this.#pEx = 2.0 ** Math.abs(this.#slope)
         this.#invS0 = 1.0 / this.#symmetry
-        this.#invS1 = 1.0 / (1.0 - symmetry)
+        this.#invS1 = 1.0 / (1.0 - this.#symmetry)
     }
 
     compute(input: unitValue): unitValue {
