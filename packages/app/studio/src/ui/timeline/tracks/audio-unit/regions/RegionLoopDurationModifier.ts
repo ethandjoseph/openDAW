@@ -29,7 +29,8 @@ class SelectedModifyStrategy implements RegionModifyStrategy {
     readMirror(region: AnyRegionBoxAdapter): boolean {return region.isMirrowed}
     translateTrackIndex(value: int): int {return value}
     iterateRange<R extends AnyRegionBoxAdapter>(regions: RegionCollection<R>, from: ppqn, to: ppqn): Iterable<R> {
-        return regions.iterateRange(from, to)
+        return regions.iterateRange(
+            this.#tool.adapters.reduce((from, adapter) => Math.min(from, adapter.position), from), to)
     }
 }
 
@@ -74,6 +75,8 @@ export class RegionLoopDurationModifier implements RegionModifier {
 
     get snapping(): Snapping {return this.#snapping}
     get deltaLoopDuration(): int {return this.#deltaLoopDuration}
+    get reference(): AnyRegionBoxAdapter {return this.#reference}
+    get adapters(): ReadonlyArray<AnyLoopableRegionBoxAdapter> {return this.#adapters}
 
     showOrigin(): boolean {return false}
     selectedModifyStrategy(): RegionModifyStrategy {return this.#selectedModifyStrategy}
