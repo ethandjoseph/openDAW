@@ -25,36 +25,40 @@ type Construct = {
 
 export const TrackHeader = ({lifecycle, service, trackBoxAdapter, audioUnitBoxAdapter}: Construct) => {
     const nameLabel: HTMLElement = <h5 style={{color: Colors.dark}}/>
-    const channelControls: HTMLElement = <Group/>
+    const controlLabel: HTMLElement = <h5 style={{color: Colors.shadow}}/>
     const {project} = service
-    const channelLifeCycle = lifecycle.own(new Terminator())
     lifecycle.ownAll(
         audioUnitBoxAdapter.input
             .catchupAndSubscribeLabelChange(option => nameLabel.textContent = option.unwrapOrElse("No Input")),
-        trackBoxAdapter.indexField
-            .catchupAndSubscribe(owner => {
-                channelLifeCycle.terminate()
-                Html.empty(channelControls)
-                if (owner.getValue() === 0) {
-                    replaceChildren(channelControls, (
-                        <AudioUnitChannelControls lifecycle={channelLifeCycle}
-                                                  service={service}
-                                                  adapter={audioUnitBoxAdapter}/>
-                    ))
-                } else {
-                    replaceChildren(channelControls, <div/>)
-                }
-            }),
         trackBoxAdapter.catchupAndSubscribePath(option =>
-            nameLabel.textContent = option.unwrapOrElse(["", "Unassigned track"]).join(" "))
+            controlLabel.textContent = option.mapOr(([_, control]) => control, "N/A"))
     )
 
     const color = ColorCodes.forAudioType(audioUnitBoxAdapter.type)
     const element: HTMLElement = (
         <div className={Html.buildClassList(className, "is-primary")} tabindex={-1}>
             <Icon symbol={TrackType.toIconSymbol(trackBoxAdapter.type)} style={{color}}/>
-            {nameLabel}
-            {channelControls}
+            <div className="labels">
+                {nameLabel}
+                {controlLabel}
+            </div>
+            <Group onInit={element => {
+                const channelLifeCycle = lifecycle.own(new Terminator())
+                trackBoxAdapter.indexField
+                    .catchupAndSubscribe(owner => {
+                        channelLifeCycle.terminate()
+                        Html.empty(element)
+                        if (owner.getValue() === 0) {
+                            replaceChildren(element, (
+                                <AudioUnitChannelControls lifecycle={channelLifeCycle}
+                                                          service={service}
+                                                          adapter={audioUnitBoxAdapter}/>
+                            ))
+                        } else {
+                            replaceChildren(element, <div/>)
+                        }
+                    })
+            }}/>
             <MenuButton root={MenuItem.root()
                 .setRuntimeChildrenProcedure(installTrackHeaderMenu(service, audioUnitBoxAdapter, trackBoxAdapter))}
                         style={{minWidth: "0", justifySelf: "end"}}
