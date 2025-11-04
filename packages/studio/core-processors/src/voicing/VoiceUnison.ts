@@ -27,14 +27,14 @@ export class VoiceUnison implements Voice {
 
         if (this.#numVoices === 1) {
             const voice = this.#voiceFactory()
-            voice.start(id, frequency, velocity / this.#numVoices, 0.0)
+            voice.start(id, frequency, velocity, 0.0)
             this.#running.push({voice, freqMult: 1.0})
         } else {
             for (let index = 0; index < this.#numVoices; ++index) {
                 const spread = index / (this.#numVoices - 1) * 2.0 - 1.0 // [-1...+1]
                 const voice = this.#voiceFactory()
                 const freqMult = 2.0 ** (spread * (this.#detune / 1200.0))
-                voice.start(id, frequency * freqMult, velocity / this.#numVoices, spread)
+                voice.start(id, frequency * freqMult, velocity / Math.sqrt(this.#numVoices), spread)
                 this.#running.push({voice, freqMult})
             }
         }
