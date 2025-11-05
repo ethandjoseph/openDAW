@@ -43,7 +43,6 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
     readonly #parameterUnisonDetune: AutomatableParameter<number>
 
     gain: number = 1.0
-    freqMult: number = 1.0
     env_attack: number = 1.0
     env_decay: number = 1.0
     env_sustain: number = 1.0
@@ -52,6 +51,7 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
     flt_cutoff: number = 1.0
     flt_resonance: number = Math.SQRT1_2
     flt_env_amount: number = 0.0
+    #frequencyMultiplier: number = 1.0
     #glideTime: number = 0.0
 
     constructor(context: EngineContext, adapter: VaporisateurDeviceBoxAdapter) {
@@ -87,9 +87,8 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
         this.readAllParameters()
     }
 
-    computeFrequency(event: NoteEvent): number {
-        return midiToHz(event.pitch + event.cent / 100.0, 440.0) * this.freqMult
-    }
+    computeFrequency(event: NoteEvent): number {return midiToHz(event.pitch + event.cent / 100.0, 440.0)}
+    frequencyMultiplier(): number {return this.#frequencyMultiplier}
 
     create(): Voice {
         return new VoiceUnison(() =>
@@ -134,7 +133,7 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
         if (parameter === this.#parameterVolume) {
             this.gain = dbToGain(this.#parameterVolume.getValue())
         } else if (parameter === this.#parameterOctave || parameter === this.#parameterTune) {
-            this.freqMult = 2.0 ** (this.#parameterOctave.getValue() + this.#parameterTune.getValue() / 1200.0)
+            this.#frequencyMultiplier = 2.0 ** (this.#parameterOctave.getValue() + this.#parameterTune.getValue() / 1200.0)
         } else if (parameter === this.#parameterAttack) {
             this.env_attack = this.#parameterAttack.getValue()
         } else if (parameter === this.#parameterDecay) {

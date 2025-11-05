@@ -66,8 +66,8 @@ export class VaporisateurDeviceBoxAdapter implements InstrumentDeviceBoxAdapter 
                 StringMapping.indices("", ["Sine", "Triangle", "Sawtooth", "Square"]), "Waveform"),
             cutoff: this.#parametric.createParameter(
                 box.cutoff,
-                Vaporisateur.CUTOFF_RANGE,
-                StringMapping.numeric({unit: "Hz"}), "Cutoff"),
+                Vaporisateur.CUTOFF_VALUE_MAPPING,
+                Vaporisateur.CUTOFF_STRING_MAPPING, "Cutoff"),
             resonance: this.#parametric.createParameter(
                 box.resonance,
                 ValueMapping.exponential(0.01, 10.0),

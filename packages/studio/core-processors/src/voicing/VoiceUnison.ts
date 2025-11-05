@@ -5,7 +5,7 @@ import {Block} from "../processing"
 
 export class VoiceUnison implements Voice {
     readonly #voiceFactory: Provider<Voice>
-    readonly #running: Array<{ voice: Voice, freqMult: number }> = []
+    readonly #running: Array<{ voice: Voice, detune: number }> = []
     readonly #glide: Glide = new Glide()
     readonly #numVoices: int
     readonly #detune: number
@@ -28,21 +28,21 @@ export class VoiceUnison implements Voice {
         if (this.#numVoices === 1) {
             const voice = this.#voiceFactory()
             voice.start(id, frequency, velocity, 0.0)
-            this.#running.push({voice, freqMult: 1.0})
+            this.#running.push({voice, detune: 1.0})
         } else {
             for (let index = 0; index < this.#numVoices; ++index) {
                 const spread = index / (this.#numVoices - 1) * 2.0 - 1.0 // [-1...+1]
                 const voice = this.#voiceFactory()
                 const freqMult = 2.0 ** (spread * (this.#detune / 1200.0))
                 voice.start(id, frequency * freqMult, velocity / Math.sqrt(this.#numVoices), spread)
-                this.#running.push({voice, freqMult})
+                this.#running.push({voice, detune: freqMult})
             }
         }
     }
 
     startGlide(targetFrequency: number, glideDuration: ppqn): void {
         this.#glide.glideTo(targetFrequency, glideDuration)
-        this.#running.forEach(({voice, freqMult}) => voice.startGlide(targetFrequency * freqMult, glideDuration))
+        this.#running.forEach(({voice, detune}) => voice.startGlide(targetFrequency * detune, glideDuration))
     }
 
     process(output: AudioBuffer, block: Block, fromIndex: int, toIndex: int): boolean {

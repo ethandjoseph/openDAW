@@ -2,7 +2,6 @@ import {
     Adsr,
     AudioBuffer,
     BandLimitedOscillator,
-    BiquadCoeff,
     Glide,
     ModulatedBiquad,
     ppqn,
@@ -27,7 +26,6 @@ const cutoffBuffer = new Float32Array(RenderQuantum)
 export class VaporisateurVoice implements Voice {
     readonly device: VaporisateurDeviceProcessor
     readonly osc: BandLimitedOscillator
-    readonly filterCoeff: BiquadCoeff
     readonly filter: ModulatedBiquad
     readonly env: Adsr
     readonly glide: Glide
@@ -43,7 +41,6 @@ export class VaporisateurVoice implements Voice {
         this.device = device
 
         this.osc = new BandLimitedOscillator(sampleRate)
-        this.filterCoeff = new BiquadCoeff()
         this.filter = new ModulatedBiquad(Vaporisateur.MIN_CUTOFF, Vaporisateur.MAX_CUTOFF, sampleRate)
         this.filter.order = 1
         this.env = new Adsr(sampleRate)
@@ -81,6 +78,7 @@ export class VaporisateurVoice implements Voice {
         const [gainL, gainR] = StereoMatrix.panningToGains(this.panning, StereoMatrix.Mixing.Linear)
         const [outL, outR] = output.channels()
 
+        freqBuffer.fill(this.device.frequencyMultiplier(), fromIndex, toIndex)
         this.glide.process(freqBuffer, bpm, fromIndex, toIndex)
         this.osc.generateFromFrequencies(oscBuffer, freqBuffer, waveform, fromIndex, toIndex)
         this.env.process(envBuffer, fromIndex, toIndex)

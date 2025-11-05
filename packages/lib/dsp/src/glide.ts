@@ -40,7 +40,7 @@ export class Glide {
 
     process(freqBuffer: Float32Array, bpm: number, fromIndex: int, toIndex: int): void {
         if (isNaN(this.#targetFrequency)) {
-            freqBuffer.fill(this.#beginFrequency, fromIndex, toIndex)
+            for (let i = fromIndex; i < toIndex; i++) {freqBuffer[i] *= this.#beginFrequency}
             this.#currentFrequency = this.#beginFrequency
         } else {
             const ppqnPerSample = PPQN.samplesToPulses(1, bpm, sampleRate)
@@ -50,10 +50,10 @@ export class Glide {
                     this.#glidePosition = 1.0
                     this.#beginFrequency = this.#targetFrequency
                     this.#targetFrequency = NaN
-                    freqBuffer.fill(this.#beginFrequency, i, toIndex)
+                    for (let j = i; j < toIndex; j++) {freqBuffer[j] *= this.#beginFrequency}
                     break
                 }
-                freqBuffer[i] = this.#currentFrequency =
+                freqBuffer[i] *= this.#currentFrequency =
                     this.#beginFrequency + (this.#targetFrequency - this.#beginFrequency) * this.#glidePosition
             }
         }
