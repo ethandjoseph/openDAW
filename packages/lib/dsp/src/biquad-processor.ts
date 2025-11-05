@@ -53,24 +53,31 @@ export class BiquadMono implements BiquadProcessor {
 export class BiquadStack implements BiquadProcessor {
     readonly #stack: ReadonlyArray<BiquadProcessor>
 
-    order: int
+    #order: int
 
     constructor(maxOrder: int) {
         this.#stack = Arrays.create(() => new BiquadMono(), maxOrder)
-        this.order = this.#stack.length
+        this.#order = this.#stack.length
+    }
+
+    get order(): int {return this.#order}
+    set order(value: int) {
+        if (this.#order === value) {return}
+        this.#order = value
+        this.reset()
     }
 
     reset(): void {this.#stack.forEach(processor => processor.reset())}
 
     process(coeff: BiquadCoeff, source: Float32Array, target: Float32Array, fromIndex: int, toIndex: int): void {
-        for (let i = 0; i < this.order; i++) {
+        for (let i = 0; i < this.#order; i++) {
             this.#stack[i].process(coeff, source, target, fromIndex, toIndex)
             source = target
         }
     }
 
     processFrame(coeff: BiquadCoeff, x: number): number {
-        for (let i = 0; i < this.order; i++) {x = this.#stack[i].processFrame(coeff, x)}
+        for (let i = 0; i < this.#order; i++) {x = this.#stack[i].processFrame(coeff, x)}
         return x
     }
 }

@@ -95,7 +95,8 @@ export class VaporisateurVoice implements Voice {
         for (let i = fromIndex; i < toIndex; i++) {
             cutoffBuffer[i] = flt_cutoff + vcaBuffer[i] * flt_env_amount// + lfoBuffer[i] * 0.1
             // vcaBuffer[i] += lfoBuffer[i] * 0.2
-            // freqBuffer[i] *= 2.0 ** (lfoBuffer[i] * 0.1)
+            // freqBuffer[i] *= 2.0 ** (lfoBuffer[i] * 0.10)
+            // freqBuffer[i] *= 2.0 ** (vcaBuffer[i] * 0.10)
         }
 
         this.osc.generateFromFrequencies(outBuffer, freqBuffer, osc_waveform, fromIndex, toIndex)
