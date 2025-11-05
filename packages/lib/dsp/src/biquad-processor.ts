@@ -1,5 +1,5 @@
 import {BiquadCoeff} from "./biquad-coeff"
-import {Arrays, clamp, int} from "@opendaw/lib-std"
+import {Arrays, clampUnit, int} from "@opendaw/lib-std"
 
 export interface BiquadProcessor {
     reset(): void
@@ -97,12 +97,9 @@ export class ModulatedBiquad {
 
     reset(): void {this.#filter.reset()}
 
-    process(input: Float32Array,
-            output: Float32Array,
-            cutoffs: Float32Array,
-            q: number,
+    process(input: Float32Array, output: Float32Array, cutoffs: Float32Array, q: number,
             fromIndex: number, toIndex: number): void {
-        const R = 256 // Quantize to avoid coeff computation each sample
+        const R = 512 // Quantize to avoid coeff computation each sample
         const invSampleRate = 1.0 / this.#sampleRate
         const logRatio = Math.log(this.#maxFreq / this.#minFreq)
         const qReduced = q / (this.#filter.order ** 1.25) // this exp seems to keep the filter from getting too loud
@@ -111,9 +108,9 @@ export class ModulatedBiquad {
         let from = fromIndex
         let lastIdx = this.#lastIdx
         while (from < toIndex) {
-            const idx = Math.floor(clamp(cutoffs[from], 0.0, 1.0) * R)
+            const idx = Math.floor(clampUnit(cutoffs[from]) * R)
             let to = from + 1
-            while (to < toIndex && Math.floor(clamp(cutoffs[to], 0.0, 1.0) * R) === idx) ++to
+            while (to < toIndex && Math.floor(clampUnit(cutoffs[to]) * R) === idx) ++to
             if (idx !== lastIdx) {
                 lastIdx = idx
                 coeff.setLowpassParams(this.#minFreq * Math.exp(idx / R * logRatio) * invSampleRate, qReduced)

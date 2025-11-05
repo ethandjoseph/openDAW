@@ -3,6 +3,8 @@ import {
     AudioBuffer,
     BandLimitedOscillator,
     Glide,
+    LFO,
+    LFOShape,
     ModulatedBiquad,
     ppqn,
     RenderQuantum,
@@ -11,21 +13,21 @@ import {
     StereoMatrix,
     velocityToGain
 } from "@opendaw/lib-dsp"
-import {int, unitValue} from "@opendaw/lib-std"
+import {Arrays, clampUnit, int, unitValue} from "@opendaw/lib-std"
 import {Voice} from "../../voicing/Voice"
 import {Block} from "../../processing"
 import {Vaporisateur} from "@opendaw/studio-adapters"
 import {VaporisateurDeviceProcessor} from "./VaporisateurDeviceProcessor"
 
 // We can do this because there is no multi-threading within the processor
-const oscBuffer = new Float32Array(RenderQuantum)
-const envBuffer = new Float32Array(RenderQuantum)
-const freqBuffer = new Float32Array(RenderQuantum)
-const cutoffBuffer = new Float32Array(RenderQuantum)
+const [
+    outBuffer, vcaBuffer, lfoBuffer, freqBuffer, cutoffBuffer
+] = Arrays.create(() => new Float32Array(RenderQuantum), 5)
 
 export class VaporisateurVoice implements Voice {
     readonly device: VaporisateurDeviceProcessor
     readonly osc: BandLimitedOscillator
+    readonly lfo: LFO
     readonly filter: ModulatedBiquad
     readonly env: Adsr
     readonly glide: Glide
@@ -36,12 +38,12 @@ export class VaporisateurVoice implements Voice {
     panning: number = 0.0
     gain: number = 1.0
     phase: number = 0.0
-    lfoPhase: number = 0.0
 
     constructor(device: VaporisateurDeviceProcessor) {
         this.device = device
 
         this.osc = new BandLimitedOscillator(sampleRate)
+        this.lfo = new LFO(sampleRate)
         this.filter = new ModulatedBiquad(Vaporisateur.MIN_CUTOFF, Vaporisateur.MAX_CUTOFF, sampleRate)
         this.filter.order = 1
         this.env = new Adsr(sampleRate)
@@ -86,22 +88,26 @@ export class VaporisateurVoice implements Voice {
 
         freqBuffer.fill(frequencyMultiplier, fromIndex, toIndex)
         this.glide.process(freqBuffer, bpm, fromIndex, toIndex)
-        this.osc.generateFromFrequencies(oscBuffer, freqBuffer, osc_waveform, fromIndex, toIndex)
-        this.env.process(envBuffer, fromIndex, toIndex)
+        this.lfo.fill(lfoBuffer, LFOShape.triangle, 10.0, fromIndex, toIndex)
+        this.env.process(vcaBuffer, fromIndex, toIndex)
 
+        // apply lfo
         for (let i = fromIndex; i < toIndex; i++) {
-            cutoffBuffer[i] = flt_cutoff + envBuffer[i] * flt_env_amount
-            this.lfoPhase += 0.001
+            cutoffBuffer[i] = flt_cutoff + vcaBuffer[i] * flt_env_amount// + lfoBuffer[i] * 0.1
+            // vcaBuffer[i] += lfoBuffer[i] * 0.2
+            // freqBuffer[i] *= 2.0 ** (lfoBuffer[i] * 0.1)
         }
 
+        this.osc.generateFromFrequencies(outBuffer, freqBuffer, osc_waveform, fromIndex, toIndex)
+
         this.filter.order = flt_order
-        this.filter.process(oscBuffer, oscBuffer, cutoffBuffer, flt_resonance, fromIndex, toIndex)
+        this.filter.process(outBuffer, outBuffer, cutoffBuffer, flt_resonance, fromIndex, toIndex)
 
         for (let i = fromIndex; i < toIndex; i++) {
-            const vca = this.gainSmooth.process(envBuffer[i] * gain)
-            const osc = oscBuffer[i] * vca
-            outL[i] += osc * gainL
-            outR[i] += osc * gainR
+            const vca = this.gainSmooth.process(clampUnit(vcaBuffer[i] * gain))
+            const out = outBuffer[i] * vca
+            outL[i] += out * gainL
+            outR[i] += out * gainR
             if (this.env.complete && vca < SILENCE_THRESHOLD) {return true}
         }
         return false
