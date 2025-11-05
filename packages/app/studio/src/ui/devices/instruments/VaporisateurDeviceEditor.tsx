@@ -33,6 +33,7 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
         cutoff,
         resonance,
         filterEnvelope,
+        filterOrder,
         attack,
         decay,
         sustain,
@@ -45,18 +46,21 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
         octave,
         tune,
         unisonCount,
+        unisonDetune,
 
         volume,
         waveform,
         cutoff,
         resonance,
-        unisonDetune,
+        filterOrder,
+        filterEnvelope,
 
         attack,
         decay,
         sustain,
         release,
-        filterEnvelope
+        null,
+        null
     ]
     return (
         <DeviceEditor lifecycle={lifecycle}

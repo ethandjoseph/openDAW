@@ -64,6 +64,10 @@ export class VaporisateurDeviceBoxAdapter implements InstrumentDeviceBoxAdapter 
                 box.waveform,
                 ValueMapping.linearInteger(0, 3),
                 StringMapping.indices("", ["Sine", "Triangle", "Sawtooth", "Square"]), "Waveform"),
+            filterOrder: this.#parametric.createParameter(
+                box.filterOrder,
+                Vaporisateur.FILTER_ORDER_VALUE_MAPPING,
+                Vaporisateur.FILTER_ORDER_STRING_MAPPING, "Filter Order"),
             cutoff: this.#parametric.createParameter(
                 box.cutoff,
                 Vaporisateur.CUTOFF_VALUE_MAPPING,

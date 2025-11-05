@@ -28,7 +28,7 @@ export class PolyphonicStrategy implements VoicingStrategy {
             voice.start(event.id, targetFrequency, event.velocity, 1.0, 0.0)
         } else {
             voice.start(event.id, lastFrequency, event.velocity, 1.0, 0.0)
-            voice.startGlide(targetFrequency, this.#host.glideTime())
+            voice.startGlide(targetFrequency, this.#host.glideTime)
         }
         this.#availableForGlide.push(voice)
         this.#processing.push(voice)

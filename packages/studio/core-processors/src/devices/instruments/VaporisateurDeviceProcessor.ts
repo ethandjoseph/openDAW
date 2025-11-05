@@ -37,6 +37,7 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
     readonly #parameterCutoff: AutomatableParameter<number>
     readonly #parameterResonance: AutomatableParameter<number>
     readonly #parameterFilterEnvelope: AutomatableParameter<number>
+    readonly #parameterFilterOrder: AutomatableParameter<int>
     readonly #parameterGlideTime: AutomatableParameter<number>
     readonly #parameterVoicingMode: AutomatableParameter<VoicingMode>
     readonly #parameterUnisonCount: AutomatableParameter<int>
@@ -51,6 +52,7 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
     flt_cutoff: number = 1.0
     flt_resonance: number = Math.SQRT1_2
     flt_env_amount: number = 0.0
+    flt_order: int = 1
     #frequencyMultiplier: number = 1.0
     #glideTime: number = 0.0
 
@@ -76,6 +78,7 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
         this.#parameterCutoff = this.own(this.bindParameter(namedParameter.cutoff))
         this.#parameterResonance = this.own(this.bindParameter(namedParameter.resonance))
         this.#parameterFilterEnvelope = this.own(this.bindParameter(namedParameter.filterEnvelope))
+        this.#parameterFilterOrder = this.own(this.bindParameter(namedParameter.filterOrder))
         this.#parameterGlideTime = this.own(this.bindParameter(namedParameter.glideTime))
         this.#parameterVoicingMode = this.own(this.bindParameter(namedParameter.voicingMode))
         this.#parameterUnisonCount = this.own(this.bindParameter(namedParameter.unisonCount))
@@ -88,14 +91,14 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
     }
 
     computeFrequency(event: NoteEvent): number {return midiToHz(event.pitch + event.cent / 100.0, 440.0)}
-    frequencyMultiplier(): number {return this.#frequencyMultiplier}
+
+    get frequencyMultiplier(): number {return this.#frequencyMultiplier}
+    get glideTime(): ppqn {return this.#glideTime}
 
     create(): Voice {
         return new VoiceUnison(() =>
             new VaporisateurVoice(this), this.#parameterUnisonCount.getValue(), this.#parameterUnisonDetune.getValue())
     }
-
-    glideTime(): ppqn {return this.#glideTime}
 
     get noteEventTarget(): Option<NoteEventTarget & DeviceProcessor> {return Option.wrap(this)}
 
@@ -145,11 +148,13 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
         } else if (parameter === this.#parameterWaveform) {
             this.osc_waveform = asEnumValue(this.#parameterWaveform.getValue(), Waveform)
         } else if (parameter === this.#parameterCutoff) {
-            this.flt_cutoff = this.#parameterCutoff.getValue()
+            this.flt_cutoff = this.#parameterCutoff.getUnitValue()
         } else if (parameter === this.#parameterResonance) {
             this.flt_resonance = this.#parameterResonance.getValue()
         } else if (parameter === this.#parameterFilterEnvelope) {
             this.flt_env_amount = this.#parameterFilterEnvelope.getValue()
+        } else if (parameter === this.#parameterFilterOrder) {
+            this.flt_order = this.#parameterFilterOrder.getValue()
         } else if (parameter === this.#parameterGlideTime) {
             this.#glideTime = this.#parameterGlideTime.getValue() * PPQN.Bar
         } else if (parameter === this.#parameterVoicingMode) {

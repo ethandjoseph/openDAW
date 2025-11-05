@@ -20,7 +20,7 @@ export class MonophonicStrategy implements VoicingStrategy {
 
         if (isDefined(this.#triggered)) {
             if (this.#triggered.gate) {
-                this.#triggered.startGlide(this.#host.computeFrequency(event), this.#host.glideTime())
+                this.#triggered.startGlide(this.#host.computeFrequency(event), this.#host.glideTime)
                 return
             }
         }
@@ -30,7 +30,7 @@ export class MonophonicStrategy implements VoicingStrategy {
         }
 
         const voice = this.#host.create()
-        voice.start(event.id, this.#host.computeFrequency(event), event.velocity)
+        voice.start(event.id, this.#host.computeFrequency(event), event.velocity, 1.0, 0.0)
         this.#triggered = voice
         this.#sounding = voice
         this.#processing.push(voice)
@@ -48,7 +48,7 @@ export class MonophonicStrategy implements VoicingStrategy {
         if (index === this.#stack.length) {
             const prev = this.#stack.at(-1)
             if (isDefined(prev)) {
-                this.#triggered.startGlide(this.#host.computeFrequency(prev), this.#host.glideTime())
+                this.#triggered.startGlide(this.#host.computeFrequency(prev), this.#host.glideTime)
                 return
             }
         }

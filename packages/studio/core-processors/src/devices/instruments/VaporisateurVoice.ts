@@ -71,32 +71,38 @@ export class VaporisateurVoice implements Voice {
     get currentFrequency(): number {return this.glide.currentFrequency()}
 
     process(output: AudioBuffer, {bpm}: Block, fromIndex: int, toIndex: int): boolean {
-        const gain = velocityToGain(this.velocity) * this.device.gain * this.gain
-        const waveform = this.device.osc_waveform
-        const cutoffMapping = this.device.adapter.namedParameter.cutoff.valueMapping
-        const cutoffBase = cutoffMapping.x(this.device.flt_cutoff)
-        const resonance = this.device.flt_resonance
-        const filterEnvelope = this.device.flt_env_amount
+        const {
+            gain: deviceGain,
+            osc_waveform,
+            flt_cutoff,
+            flt_resonance,
+            flt_env_amount,
+            flt_order,
+            frequencyMultiplier
+        } = this.device
+        const gain = velocityToGain(this.velocity) * this.gain * deviceGain
         const [gainL, gainR] = StereoMatrix.panningToGains(this.panning, StereoMatrix.Mixing.Linear)
         const [outL, outR] = output.channels()
 
-        freqBuffer.fill(this.device.frequencyMultiplier(), fromIndex, toIndex)
+        freqBuffer.fill(frequencyMultiplier, fromIndex, toIndex)
         this.glide.process(freqBuffer, bpm, fromIndex, toIndex)
-        this.osc.generateFromFrequencies(oscBuffer, freqBuffer, waveform, fromIndex, toIndex)
+        this.osc.generateFromFrequencies(oscBuffer, freqBuffer, osc_waveform, fromIndex, toIndex)
         this.env.process(envBuffer, fromIndex, toIndex)
 
         for (let i = fromIndex; i < toIndex; i++) {
-            cutoffBuffer[i] = cutoffBase + envBuffer[i] * filterEnvelope
+            cutoffBuffer[i] = flt_cutoff + envBuffer[i] * flt_env_amount
             this.lfoPhase += 0.001
         }
 
-        this.filter.process(oscBuffer, oscBuffer, cutoffBuffer, resonance, fromIndex, toIndex)
+        this.filter.order = flt_order
+        this.filter.process(oscBuffer, oscBuffer, cutoffBuffer, flt_resonance, fromIndex, toIndex)
 
         for (let i = fromIndex; i < toIndex; i++) {
-            const amp = oscBuffer[i] * this.gainSmooth.process(envBuffer[i] * gain)
-            outL[i] += amp * gainL
-            outR[i] += amp * gainR
-            if (this.env.complete && this.gainSmooth.value < SILENCE_THRESHOLD) {return true}
+            const vca = this.gainSmooth.process(envBuffer[i] * gain)
+            const osc = oscBuffer[i] * vca
+            outL[i] += osc * gainL
+            outR[i] += osc * gainR
+            if (this.env.complete && vca < SILENCE_THRESHOLD) {return true}
         }
         return false
     }
