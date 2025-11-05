@@ -19,8 +19,7 @@ export namespace MenuItems {
             MenuItem.default({
                 label: `Delete '${deviceHost.label}'`,
                 hidden: audioUnit.isOutput
-            }).setTriggerProcedure(() => editing.modify(() => deviceHost.box.delete())
-            ),
+            }).setTriggerProcedure(() => editing.modify(() => deviceHost.box.delete())),
             MenuItem.default({
                 label: "Minimized",
                 checked: deviceHost.minimizedField.getValue()
@@ -31,14 +30,16 @@ export namespace MenuItems {
                     .map(entry => MenuItem.default({
                         label: entry.defaultName,
                         separatorBefore: entry.separatorBefore
-                    }).setTriggerProcedure(() => editing.modify(() => api.insertEffect(deviceHost.midiEffects.field(), entry, 0))))
+                    }).setTriggerProcedure(() => editing.modify(() =>
+                        api.insertEffect(deviceHost.midiEffects.field(), entry, 0))))
                 )),
             MenuItem.default({label: "Add Audio Effect"})
                 .setRuntimeChildrenProcedure(parent => parent.addMenuItem(...EffectFactories.AudioList
                     .map(entry => MenuItem.default({
                         label: entry.defaultName,
                         separatorBefore: entry.separatorBefore
-                    }).setTriggerProcedure(() => editing.modify(() => api.insertEffect(deviceHost.audioEffects.field(), entry, 0))
+                    }).setTriggerProcedure(() => editing.modify(() =>
+                        api.insertEffect(deviceHost.audioEffects.field(), entry, 0))
                         .ifSome(box => {
                             if (isInstanceOf(box, ModularDeviceBox)) {service.switchScreen("modular")}
                         })))

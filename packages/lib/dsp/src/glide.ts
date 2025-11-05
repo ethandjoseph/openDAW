@@ -18,7 +18,7 @@ export class Glide {
         this.#glideDuration = 0.0
     }
 
-    start(frequency: number): void {
+    init(frequency: number): void {
         this.#beginFrequency = frequency
         if (isNaN(this.#currentFrequency)) {
             this.#currentFrequency = this.#beginFrequency

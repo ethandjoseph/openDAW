@@ -30,7 +30,7 @@ export class MonophonicStrategy implements VoicingStrategy {
         }
 
         const voice = this.#host.create()
-        voice.start(event.id, event.pitch, this.#host.computeFrequency(event), event.velocity, 1.0, 0.0)
+        voice.start(event, this.#host.computeFrequency(event), 1.0, 0.0)
         this.#triggered = voice
         this.#sounding = voice
         this.#processing.push(voice)

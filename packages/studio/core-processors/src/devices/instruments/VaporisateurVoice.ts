@@ -6,6 +6,7 @@ import {
     LFO,
     MidiKeys,
     ModulatedBiquad,
+    NoteEvent,
     ppqn,
     RenderQuantum,
     SILENCE_THRESHOLD,
@@ -13,7 +14,7 @@ import {
     StereoMatrix,
     velocityToGain
 } from "@opendaw/lib-dsp"
-import {Arrays, byte, clampUnit, int, unitValue} from "@opendaw/lib-std"
+import {Arrays, bipolar, clampUnit, Id, InaccessibleProperty, int, unitValue} from "@opendaw/lib-std"
 import {Voice} from "../../voicing/Voice"
 import {Block} from "../../processing"
 import {Vaporisateur} from "@opendaw/studio-adapters"
@@ -33,10 +34,11 @@ export class VaporisateurVoice implements Voice {
     readonly glide: Glide
     readonly gainSmooth: Smooth
 
+    #event: Id<NoteEvent> = InaccessibleProperty("NoteEvent not set")
+    #gain: unitValue = 1.0
+    #spread: bipolar = 1.0
+
     id: int = -1
-    velocity: unitValue = 0.0
-    panning: number = 0.0
-    gain: number = 1.0
     phase: number = 0.0
     filter_keyboard_delta: number = 0.0
 
@@ -54,13 +56,12 @@ export class VaporisateurVoice implements Voice {
         this.gainSmooth = new Smooth(0.003, sampleRate)
     }
 
-    start(id: int, baseNote: byte, frequency: number, velocity: unitValue, gain: number, panning: number): void {
-        this.id = id
-        this.velocity = velocity
-        this.gain = gain
-        this.panning = panning
-        this.filter_keyboard_delta = MidiKeys.keyboardTracking(baseNote, this.device.parameterFilterKeyboard.getValue())
-        this.glide.start(frequency)
+    start(event: Id<NoteEvent>, frequency: number, gain: unitValue, spread: bipolar): void {
+        this.#event = event
+        this.#gain = gain
+        this.#spread = spread
+        this.filter_keyboard_delta = MidiKeys.keyboardTracking(event.pitch, this.device.parameterFilterKeyboard.getValue())
+        this.glide.init(frequency)
     }
 
     stop(): void {this.env.gateOff()}
@@ -87,13 +88,17 @@ export class VaporisateurVoice implements Voice {
             parameterLfoRate,
             parameterLfoTargetTune,
             parameterLfoTargetCutoff,
-            parameterLfoTargetVolume
+            parameterLfoTargetVolume,
+            parameterUnisonDetune,
+            parameterUnisonStereo
         } = this.device
-        const gain = velocityToGain(this.velocity) * this.gain * deviceGain
-        const [gainL, gainR] = StereoMatrix.panningToGains(this.panning, StereoMatrix.Mixing.Linear)
+        const gain = velocityToGain(this.#event.velocity) * this.#gain * deviceGain
+        const detune = 2.0 ** (this.#spread * (parameterUnisonDetune.getValue() / 1200.0))
+        const panning = this.#spread * parameterUnisonStereo.getValue()
+        const [gainL, gainR] = StereoMatrix.panningToGains(panning, StereoMatrix.Mixing.Linear)
         const [outL, outR] = output.channels()
 
-        freqBuffer.fill(frequencyMultiplier, fromIndex, toIndex)
+        freqBuffer.fill(frequencyMultiplier * detune, fromIndex, toIndex)
         this.glide.process(freqBuffer, bpm, fromIndex, toIndex)
         this.lfo.fill(lfoBuffer, parameterLfoShape.getValue(), parameterLfoRate.getValue(), fromIndex, toIndex)
         this.env.process(vcaBuffer, fromIndex, toIndex)

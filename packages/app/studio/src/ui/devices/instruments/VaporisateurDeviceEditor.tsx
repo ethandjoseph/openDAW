@@ -38,7 +38,7 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
         tune,
         unisonCount,
         unisonDetune,
-        // unisonStereo,
+        unisonStereo,
         glideTime,
         waveform,
         cutoff,
@@ -130,7 +130,7 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
                                   <div>{createLabelControlFrag(glideTime)}</div>
                                   <div>{createLabelControlFrag(unisonCount)}</div>
                                   <div>{createLabelControlFrag(unisonDetune, 0.5)}</div>
-                                  {/*<div>{createLabelControlFrag(unisonStereo)}</div>*/}
+                                  <div>{createLabelControlFrag(unisonStereo)}</div>
                               </div>
                               <div style={{display: "contents"}}>
                                   <header>

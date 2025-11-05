@@ -1,54 +1,51 @@
 import {Voice} from "./Voice"
-import {byte, int, Provider, unitValue} from "@opendaw/lib-std"
-import {AudioBuffer, Glide, ppqn} from "@opendaw/lib-dsp"
+import {bipolar, Id, int, Provider, unitValue} from "@opendaw/lib-std"
+import {AudioBuffer, Glide, NoteEvent, ppqn} from "@opendaw/lib-dsp"
 import {Block} from "../processing"
 
 export class VoiceUnison implements Voice {
     readonly #voiceFactory: Provider<Voice>
-    readonly #running: Array<{ voice: Voice, detune: number }> = []
+    readonly #running: Array<Voice> = []
     readonly #glide: Glide = new Glide()
     readonly #numVoices: int
-    readonly #detune: number
 
     gate: boolean = true
     id: int = -1
 
-    constructor(voiceFactory: Provider<Voice>, numVoices: int, detune: number) {
+    constructor(voiceFactory: Provider<Voice>, numVoices: int) {
         this.#voiceFactory = voiceFactory
         this.#numVoices = numVoices
-        this.#detune = detune
     }
 
     get currentFrequency(): number {return this.#glide.currentFrequency()}
 
-    start(id: int, baseNote: byte, frequency: number, velocity: unitValue, gain: number, panning: number): void {
-        this.id = id
-        this.#glide.start(frequency)
+    start(event: Id<NoteEvent>, frequency: number, gain: unitValue, parentSpread: bipolar): void {
+        this.id = event.id
+        this.#glide.init(frequency)
         if (this.#numVoices === 1) {
             const voice = this.#voiceFactory()
-            voice.start(id, baseNote, frequency, velocity, gain, panning)
-            this.#running.push({voice, detune: 1.0})
+            voice.start(event, frequency, gain, parentSpread)
+            this.#running.push(voice)
         } else {
             for (let index = 0; index < this.#numVoices; ++index) {
                 const spread = index / (this.#numVoices - 1) * 2.0 - 1.0 // [-1...+1]
                 const voice = this.#voiceFactory()
-                const detune = 2.0 ** (spread * (this.#detune / 1200.0))
-                const voicePanning = (1.0 - Math.abs(panning)) * spread + panning // pushes the voice to the left or right
-                voice.start(id, baseNote, frequency * detune, velocity, gain / Math.sqrt(this.#numVoices), voicePanning)
-                this.#running.push({voice, detune})
+                const voiceSpread = (1.0 - Math.abs(parentSpread)) * spread + parentSpread // pushes the voice to the edge
+                voice.start(event, frequency, gain / Math.sqrt(this.#numVoices), voiceSpread)
+                this.#running.push(voice)
             }
         }
     }
 
     startGlide(targetFrequency: number, glideDuration: ppqn): void {
         this.#glide.glideTo(targetFrequency, glideDuration)
-        this.#running.forEach(({voice, detune}) => voice.startGlide(targetFrequency * detune, glideDuration))
+        this.#running.forEach((voice) => voice.startGlide(targetFrequency, glideDuration))
     }
 
     process(output: AudioBuffer, block: Block, fromIndex: int, toIndex: int): boolean {
         this.#glide.advance(block.bpm, fromIndex, toIndex)
         for (let i = this.#running.length - 1; i >= 0; i--) {
-            const voice = this.#running[i].voice
+            const voice = this.#running[i]
             if (voice.process(output, block, fromIndex, toIndex)) {
                 this.#running.splice(i, 1)
             }
@@ -57,12 +54,12 @@ export class VoiceUnison implements Voice {
     }
 
     stop(): void {
-        this.#running.forEach(({voice}) => voice.stop())
+        this.#running.forEach((voice) => voice.stop())
         this.gate = false
     }
 
     forceStop(): void {
-        this.#running.forEach(({voice}) => voice.forceStop())
+        this.#running.forEach((voice) => voice.forceStop())
         this.gate = false
     }
 }

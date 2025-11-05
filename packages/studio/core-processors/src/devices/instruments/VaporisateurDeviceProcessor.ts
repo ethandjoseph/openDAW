@@ -43,6 +43,7 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
     readonly #parameterVoicingMode: AutomatableParameter<VoicingMode>
     readonly #parameterUnisonCount: AutomatableParameter<int>
     readonly #parameterUnisonDetune: AutomatableParameter<number>
+    readonly #parameterUnisonStereo: AutomatableParameter<number>
     readonly #parameterLfoShape: AutomatableParameter<ClassicWaveform>
     readonly #parameterLfoRate: AutomatableParameter<number>
     readonly #parameterLfoTargetTune: AutomatableParameter<number>
@@ -90,6 +91,7 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
         this.#parameterVoicingMode = this.own(this.bindParameter(namedParameter.voicingMode))
         this.#parameterUnisonCount = this.own(this.bindParameter(namedParameter.unisonCount))
         this.#parameterUnisonDetune = this.own(this.bindParameter(namedParameter.unisonDetune))
+        this.#parameterUnisonStereo = this.own(this.bindParameter(namedParameter.unisonStereo))
         this.#parameterLfoShape = this.own(this.bindParameter(namedParameter.lfoWaveform))
         this.#parameterLfoRate = this.own(this.bindParameter(namedParameter.lfoRate))
         this.#parameterLfoTargetTune = this.own(this.bindParameter(namedParameter.lfoTargetTune))
@@ -113,10 +115,12 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
     get parameterLfoTargetTune(): AutomatableParameter<number> {return this.#parameterLfoTargetTune}
     get parameterLfoTargetCutoff(): AutomatableParameter<number> {return this.#parameterLfoTargetCutoff}
     get parameterLfoTargetVolume(): AutomatableParameter<number> {return this.#parameterLfoTargetVolume}
+    get parameterUnisonDetune(): AutomatableParameter<number> {return this.#parameterUnisonDetune}
+    get parameterUnisonStereo(): AutomatableParameter<number> {return this.#parameterUnisonStereo}
 
     create(): Voice {
         return new VoiceUnison(() =>
-            new VaporisateurVoice(this), this.#parameterUnisonCount.getValue(), this.#parameterUnisonDetune.getValue())
+            new VaporisateurVoice(this), this.#parameterUnisonCount.getValue())
     }
 
     get noteEventTarget(): Option<NoteEventTarget & DeviceProcessor> {return Option.wrap(this)}
