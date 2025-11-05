@@ -6,7 +6,7 @@ import {CanvasPainter} from "@/ui/canvas/painter"
 import {AutomatableParameterFieldAdapter} from "@opendaw/studio-adapters"
 import {ClassicWaveform} from "@opendaw/lib-dsp"
 
-const className = Html.adoptStyleSheet(css, "WaveformDisplay")
+const className = Html.adoptStyleSheet(css, "Display")
 
 type Construct = {
     lifecycle: Lifecycle

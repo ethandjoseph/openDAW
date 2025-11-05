@@ -17,6 +17,7 @@ import {ClassicWaveform} from "@opendaw/lib-dsp"
 import {EditWrapper} from "@/ui/wrapper/EditWrapper"
 import {WaveformDisplay} from "@/ui/devices/instruments/VaporisateurDeviceEditor/WaveformDisplay"
 import {EnvelopeDisplay} from "@/ui/devices/instruments/VaporisateurDeviceEditor/EnvelopeDisplay"
+import {FilterDisplay} from "@/ui/devices/instruments/VaporisateurDeviceEditor/FilterDisplay"
 
 const className = Html.adoptStyleSheet(css, "editor")
 
@@ -108,7 +109,7 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
                       populateControls={() => (
                           <div className={className}>
                               <Group>
-                                  <header/>
+                                  <div/>
                                   <div>
                                       <h3>Play-Mode</h3>
                                       <RadioGroup lifecycle={lifecycle}
@@ -140,7 +141,12 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
                                   <div>{createLabelControlFrag(volume)}</div>
                               </Group>
                               <Group>
-                                  <header/>
+                                  <header>
+                                      <FilterDisplay lifecycle={lifecycle}
+                                                     cutoff={cutoff}
+                                                     resonance={resonance}
+                                                     order={filterOrder}/>
+                                  </header>
                                   <div>{createLabelControlFrag(cutoff)}</div>
                                   <div>{createLabelControlFrag(resonance)}</div>
                                   <div>{createLabelControlFrag(filterEnvelope, 0.5)}</div>

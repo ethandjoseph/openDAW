@@ -5,7 +5,7 @@ import {createElement} from "@opendaw/lib-jsx"
 import {CanvasPainter} from "@/ui/canvas/painter"
 import {AutomatableParameterFieldAdapter} from "@opendaw/studio-adapters"
 
-const className = Html.adoptStyleSheet(css, "EnvelopeDisplay")
+const className = Html.adoptStyleSheet(css, "Display")
 
 type Construct = {
     lifecycle: Lifecycle
