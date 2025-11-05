@@ -55,11 +55,11 @@ export class VaporisateurDeviceBoxAdapter implements InstrumentDeviceBoxAdapter 
             octave: this.#parametric.createParameter(
                 box.octave,
                 ValueMapping.linearInteger(-3, 3),
-                StringMapping.numeric(), "Octave", 0.5),
+                StringMapping.numeric({unit: "oct"}), "Octave", 0.5),
             tune: this.#parametric.createParameter(
                 box.tune,
                 ValueMapping.linear(-1200.0, +1200.0),
-                StringMapping.numeric({unit: "Cent", fractionDigits: 0}), "tune", 0.5),
+                StringMapping.numeric({unit: "ct", fractionDigits: 0}), "Tune", 0.5),
             waveform: this.#parametric.createParameter(
                 box.waveform,
                 ValueMapping.linearInteger(0, 3),
@@ -94,8 +94,12 @@ export class VaporisateurDeviceBoxAdapter implements InstrumentDeviceBoxAdapter 
                 StringMapping.numeric({unit: "s", fractionDigits: 3}), "Release"),
             filterEnvelope: this.#parametric.createParameter(
                 box.filterEnvelope,
-                ValueMapping.linear(-1.0, 1.0),
-                StringMapping.percent(), "Filter env", 0.5),
+                ValueMapping.bipolar(),
+                StringMapping.percent({fractionDigits: 1}), "Filter env", 0.5),
+            filterKeyboard: this.#parametric.createParameter(
+                box.filterKeyboard,
+                ValueMapping.bipolar(),
+                StringMapping.percent({fractionDigits: 1}), "Filter Kbd.", 0.5),
             voicingMode: this.#parametric.createParameter(
                 box.voicingMode,
                 ValueMapping.values(VoiceModes),
@@ -111,7 +115,31 @@ export class VaporisateurDeviceBoxAdapter implements InstrumentDeviceBoxAdapter 
             unisonDetune: this.#parametric.createParameter(
                 box.unisonDetune,
                 ValueMapping.exponential(1.0, 1200.0),
-                StringMapping.numeric({unit: "ct", fractionDigits: 0}), "Uni. Detune", 0.0)
+                StringMapping.numeric({unit: "ct", fractionDigits: 0}), "Uni. Detune", 0.0),
+            unisonStereo: this.#parametric.createParameter(
+                box.unisonStereo,
+                ValueMapping.unipolar(),
+                StringMapping.percent({fractionDigits: 0}), "Uni. Stereo", 0.0),
+            lfoWaveform: this.#parametric.createParameter(
+                box.lfo.waveform,
+                Vaporisateur.LFO_WAVEFORM_VALUE_MAPPING,
+                Vaporisateur.LFO_WAVEFORM_STRING_MAPPING, "LFO Shape", 0.0),
+            lfoRate: this.#parametric.createParameter(
+                box.lfo.rate,
+                ValueMapping.exponential(0.0001, 30.0),
+                StringMapping.numeric({unit: "Hz", fractionDigits: 0, unitPrefix: true}), "Rate", 0.0),
+            lfoTargetTune: this.#parametric.createParameter(
+                box.lfo.targetTune,
+                ValueMapping.bipolar(),
+                StringMapping.percent({fractionDigits: 1}), "⦿ Tune", 0.5),
+            lfoTargetVolume: this.#parametric.createParameter(
+                box.lfo.targetVolume,
+                ValueMapping.bipolar(),
+                StringMapping.percent({fractionDigits: 1}), "⦿ Volume", 0.5),
+            lfoTargetCutoff: this.#parametric.createParameter(
+                box.lfo.targetCutoff,
+                ValueMapping.bipolar(),
+                StringMapping.percent({fractionDigits: 1}), "⦿ Cutoff", 0.5)
         } as const
     }
 }

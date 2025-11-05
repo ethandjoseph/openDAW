@@ -1,4 +1,4 @@
-import {int, unitValue} from "@opendaw/lib-std"
+import {byte, int, unitValue} from "@opendaw/lib-std"
 import {AudioBuffer, ppqn} from "@opendaw/lib-dsp"
 import {Block} from "../processing"
 
@@ -7,7 +7,7 @@ export interface Voice {
     readonly gate: boolean
     readonly currentFrequency: number
 
-    start(id: int, frequency: number, velocity: unitValue, gain: number, panning: number): void
+    start(id: int, baseNote: byte, frequency: number, velocity: unitValue, gain: number, panning: number): void
     stop(): void
     forceStop(): void
     startGlide(targetFrequency: number, glideDuration: ppqn): void

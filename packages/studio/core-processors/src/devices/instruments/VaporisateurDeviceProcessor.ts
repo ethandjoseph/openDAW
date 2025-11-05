@@ -1,5 +1,5 @@
 import {asEnumValue, int, Option, panic, Terminable, UUID} from "@opendaw/lib-std"
-import {AudioBuffer, dbToGain, Event, midiToHz, NoteEvent, PPQN, ppqn, Waveform} from "@opendaw/lib-dsp"
+import {AudioBuffer, dbToGain, Event, LFOShape, midiToHz, NoteEvent, PPQN, ppqn, Waveform} from "@opendaw/lib-dsp"
 import {VaporisateurDeviceBoxAdapter} from "@opendaw/studio-adapters"
 import {EngineContext} from "../../EngineContext"
 import {AudioProcessor} from "../../AudioProcessor"
@@ -38,10 +38,16 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
     readonly #parameterResonance: AutomatableParameter<number>
     readonly #parameterFilterEnvelope: AutomatableParameter<number>
     readonly #parameterFilterOrder: AutomatableParameter<int>
+    readonly #parameterFilterKeyboard: AutomatableParameter<number>
     readonly #parameterGlideTime: AutomatableParameter<number>
     readonly #parameterVoicingMode: AutomatableParameter<VoicingMode>
     readonly #parameterUnisonCount: AutomatableParameter<int>
     readonly #parameterUnisonDetune: AutomatableParameter<number>
+    readonly #parameterLfoShape: AutomatableParameter<LFOShape>
+    readonly #parameterLfoRate: AutomatableParameter<number>
+    readonly #parameterLfoTargetTune: AutomatableParameter<number>
+    readonly #parameterLfoTargetCutoff: AutomatableParameter<number>
+    readonly #parameterLfoTargetVolume: AutomatableParameter<number>
 
     gain: number = 1.0
     env_attack: number = 1.0
@@ -79,10 +85,16 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
         this.#parameterResonance = this.own(this.bindParameter(namedParameter.resonance))
         this.#parameterFilterEnvelope = this.own(this.bindParameter(namedParameter.filterEnvelope))
         this.#parameterFilterOrder = this.own(this.bindParameter(namedParameter.filterOrder))
+        this.#parameterFilterKeyboard = this.own(this.bindParameter(namedParameter.filterKeyboard))
         this.#parameterGlideTime = this.own(this.bindParameter(namedParameter.glideTime))
         this.#parameterVoicingMode = this.own(this.bindParameter(namedParameter.voicingMode))
         this.#parameterUnisonCount = this.own(this.bindParameter(namedParameter.unisonCount))
         this.#parameterUnisonDetune = this.own(this.bindParameter(namedParameter.unisonDetune))
+        this.#parameterLfoShape = this.own(this.bindParameter(namedParameter.lfoWaveform))
+        this.#parameterLfoRate = this.own(this.bindParameter(namedParameter.lfoRate))
+        this.#parameterLfoTargetTune = this.own(this.bindParameter(namedParameter.lfoTargetTune))
+        this.#parameterLfoTargetCutoff = this.own(this.bindParameter(namedParameter.lfoTargetCutoff))
+        this.#parameterLfoTargetVolume = this.own(this.bindParameter(namedParameter.lfoTargetVolume))
 
         this.ownAll(
             context.registerProcessor(this)
@@ -94,6 +106,13 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
 
     get frequencyMultiplier(): number {return this.#frequencyMultiplier}
     get glideTime(): ppqn {return this.#glideTime}
+
+    get parameterFilterKeyboard(): AutomatableParameter<number> {return this.#parameterFilterKeyboard}
+    get parameterLfoShape(): AutomatableParameter<LFOShape> {return this.#parameterLfoShape}
+    get parameterLfoRate(): AutomatableParameter<number> {return this.#parameterLfoRate}
+    get parameterLfoTargetTune(): AutomatableParameter<number> {return this.#parameterLfoTargetTune}
+    get parameterLfoTargetCutoff(): AutomatableParameter<number> {return this.#parameterLfoTargetCutoff}
+    get parameterLfoTargetVolume(): AutomatableParameter<number> {return this.#parameterLfoTargetVolume}
 
     create(): Voice {
         return new VoiceUnison(() =>

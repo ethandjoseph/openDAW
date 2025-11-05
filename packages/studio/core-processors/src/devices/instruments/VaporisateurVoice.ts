@@ -4,7 +4,7 @@ import {
     BandLimitedOscillator,
     Glide,
     LFO,
-    LFOShape,
+    MidiKeys,
     ModulatedBiquad,
     ppqn,
     RenderQuantum,
@@ -13,7 +13,7 @@ import {
     StereoMatrix,
     velocityToGain
 } from "@opendaw/lib-dsp"
-import {Arrays, clampUnit, int, unitValue} from "@opendaw/lib-std"
+import {Arrays, byte, clampUnit, int, unitValue} from "@opendaw/lib-std"
 import {Voice} from "../../voicing/Voice"
 import {Block} from "../../processing"
 import {Vaporisateur} from "@opendaw/studio-adapters"
@@ -38,6 +38,7 @@ export class VaporisateurVoice implements Voice {
     panning: number = 0.0
     gain: number = 1.0
     phase: number = 0.0
+    filter_keyboard_delta: number = 0.0
 
     constructor(device: VaporisateurDeviceProcessor) {
         this.device = device
@@ -53,11 +54,12 @@ export class VaporisateurVoice implements Voice {
         this.gainSmooth = new Smooth(0.003, sampleRate)
     }
 
-    start(id: int, frequency: number, velocity: unitValue, gain: number, panning: number): void {
+    start(id: int, baseNote: byte, frequency: number, velocity: unitValue, gain: number, panning: number): void {
         this.id = id
         this.velocity = velocity
         this.gain = gain
         this.panning = panning
+        this.filter_keyboard_delta = MidiKeys.keyboardTracking(baseNote, this.device.parameterFilterKeyboard.getValue())
         this.glide.start(frequency)
     }
 
@@ -80,7 +82,12 @@ export class VaporisateurVoice implements Voice {
             flt_resonance,
             flt_env_amount,
             flt_order,
-            frequencyMultiplier
+            frequencyMultiplier,
+            parameterLfoShape,
+            parameterLfoRate,
+            parameterLfoTargetTune,
+            parameterLfoTargetCutoff,
+            parameterLfoTargetVolume
         } = this.device
         const gain = velocityToGain(this.velocity) * this.gain * deviceGain
         const [gainL, gainR] = StereoMatrix.panningToGains(this.panning, StereoMatrix.Mixing.Linear)
@@ -88,15 +95,22 @@ export class VaporisateurVoice implements Voice {
 
         freqBuffer.fill(frequencyMultiplier, fromIndex, toIndex)
         this.glide.process(freqBuffer, bpm, fromIndex, toIndex)
-        this.lfo.fill(lfoBuffer, LFOShape.triangle, 10.0, fromIndex, toIndex)
+        this.lfo.fill(lfoBuffer, parameterLfoShape.getValue(), parameterLfoRate.getValue(), fromIndex, toIndex)
         this.env.process(vcaBuffer, fromIndex, toIndex)
+
+        const lfo_target_tune = parameterLfoTargetTune.getValue()
+        const lfo_target_cutoff = parameterLfoTargetCutoff.getValue()
+        const lfo_target_volume = parameterLfoTargetVolume.getValue()
 
         // apply lfo
         for (let i = fromIndex; i < toIndex; i++) {
-            cutoffBuffer[i] = flt_cutoff + vcaBuffer[i] * flt_env_amount// + lfoBuffer[i] * 0.1
-            // vcaBuffer[i] += lfoBuffer[i] * 0.2
-            // freqBuffer[i] *= 2.0 ** (lfoBuffer[i] * 0.10)
-            // freqBuffer[i] *= 2.0 ** (vcaBuffer[i] * 0.10)
+            const lfo = lfoBuffer[i]
+            vcaBuffer[i] += lfo * lfo_target_volume
+            cutoffBuffer[i] = flt_cutoff
+                + this.filter_keyboard_delta
+                + vcaBuffer[i] * flt_env_amount
+                + lfo * lfo_target_cutoff
+            freqBuffer[i] *= 2.0 ** (lfo * lfo_target_tune)
         }
 
         this.osc.generateFromFrequencies(outBuffer, freqBuffer, osc_waveform, fromIndex, toIndex)

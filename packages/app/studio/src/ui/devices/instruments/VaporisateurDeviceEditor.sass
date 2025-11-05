@@ -1,4 +1,29 @@
 @use "@/mixins"
 
 component
-  @include mixins.ControlLayout(6)
+  display: grid
+  grid-template-columns: repeat(6, 3.5em)
+  column-gap: 2px
+  row-gap: 4px
+  align-content: start
+  @include mixins.Control
+
+  > div
+    > *:first-child
+      grid-column: 1
+      grid-row: span 1
+      border-radius: 8px
+      outline: 0.5px solid hsla(200, 40%, 70%, 0.12)
+
+    > div
+      padding: 3px 0 0 0
+      display: grid
+      grid-template-rows: auto auto
+      row-gap: 1px
+      white-space: nowrap
+      justify-content: center
+
+      > h3
+        font-size: 9px
+        text-align: center
+        color: var(--color-orange)

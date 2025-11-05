@@ -1,4 +1,4 @@
-import {byte, int} from "@opendaw/lib-std"
+import {byte, clampUnit, int} from "@opendaw/lib-std"
 
 export namespace MidiKeys {
     export const BlackKeyIndices = [1, 3, 6, 8, 10]
@@ -13,6 +13,8 @@ export namespace MidiKeys {
     }
     export const isBlackKey = (note: int) => (BlackKeyBits & (1 << (note % 12))) !== 0
     export const toFullString = (note: int): string => `${Names.English[note % 12]}${(Math.floor(note / 12) - 2)}`
+
+    export const keyboardTracking = (note: byte, amount: number): number => clampUnit((note - 60) * amount)
 
     export interface Scale {
         get bits(): int

@@ -26,5 +26,18 @@ export const VaporisateurDeviceBox: BoxSchema<Pointers> = DeviceFactory.createIn
     24: {type: "float32", name: "unison-detune", pointerRules: DefaultParameterPointerRules, value: 30},
     25: {type: "float32", name: "unison-stereo", pointerRules: DefaultParameterPointerRules, value: 1.0},
     26: {type: "int32", name: "filter-order", pointerRules: DefaultParameterPointerRules, value: 1},
+    27: {type: "float32", name: "filter-keyboard", pointerRules: DefaultParameterPointerRules},
+    30: {
+        type: "object", name: "lfo", class: {
+            name: "VaporisateurLFO",
+            fields: {
+                1: {type: "int32", name: "waveform", pointerRules: DefaultParameterPointerRules},
+                2: {type: "float32", name: "rate", pointerRules: DefaultParameterPointerRules, value: 1.0},
+                10: {type: "float32", name: "target-tune", pointerRules: DefaultParameterPointerRules},
+                11: {type: "float32", name: "target-cutoff", pointerRules: DefaultParameterPointerRules},
+                12: {type: "float32", name: "target-volume", pointerRules: DefaultParameterPointerRules}
+            }
+        }
+    },
     99: {type: "int32", name: "version"}
 })

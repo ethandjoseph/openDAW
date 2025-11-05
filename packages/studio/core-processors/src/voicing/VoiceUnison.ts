@@ -1,5 +1,5 @@
 import {Voice} from "./Voice"
-import {int, Provider, unitValue} from "@opendaw/lib-std"
+import {byte, int, Provider, unitValue} from "@opendaw/lib-std"
 import {AudioBuffer, Glide, ppqn} from "@opendaw/lib-dsp"
 import {Block} from "../processing"
 
@@ -21,12 +21,12 @@ export class VoiceUnison implements Voice {
 
     get currentFrequency(): number {return this.#glide.currentFrequency()}
 
-    start(id: int, frequency: number, velocity: unitValue, gain: number, panning: number): void {
+    start(id: int, baseNote: byte, frequency: number, velocity: unitValue, gain: number, panning: number): void {
         this.id = id
         this.#glide.start(frequency)
         if (this.#numVoices === 1) {
             const voice = this.#voiceFactory()
-            voice.start(id, frequency, velocity, gain, panning)
+            voice.start(id, baseNote, frequency, velocity, gain, panning)
             this.#running.push({voice, detune: 1.0})
         } else {
             for (let index = 0; index < this.#numVoices; ++index) {
@@ -34,7 +34,7 @@ export class VoiceUnison implements Voice {
                 const voice = this.#voiceFactory()
                 const detune = 2.0 ** (spread * (this.#detune / 1200.0))
                 const voicePanning = (1.0 - Math.abs(panning)) * spread + panning // pushes the voice to the left or right
-                voice.start(id, frequency * detune, velocity, gain / Math.sqrt(this.#numVoices), voicePanning)
+                voice.start(id, baseNote, frequency * detune, velocity, gain / Math.sqrt(this.#numVoices), voicePanning)
                 this.#running.push({voice, detune})
             }
         }
