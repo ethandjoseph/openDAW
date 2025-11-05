@@ -5,8 +5,9 @@ import {EmptyExec, isInstanceOf, panic} from "@opendaw/lib-std"
 import {Surface} from "@/ui/surface/Surface"
 import {FloatingTextInput} from "@/ui/components/FloatingTextInput"
 import {StudioService} from "@/service/StudioService"
-import {EffectFactories, Project} from "@opendaw/studio-core"
+import {EffectFactories, FilePickerAcceptTypes, Project} from "@opendaw/studio-core"
 import {ModularDeviceBox} from "@opendaw/studio-boxes"
+import {Files} from "@opendaw/lib-dom"
 
 export namespace MenuItems {
     export const forAudioUnitInput = (parent: MenuItem, service: StudioService, deviceHost: DeviceHost): void => {
@@ -41,7 +42,12 @@ export namespace MenuItems {
                         .ifSome(box => {
                             if (isInstanceOf(box, ModularDeviceBox)) {service.switchScreen("modular")}
                         })))
-                ))
+                )),
+            MenuItem.default({label: "Save Preset To JSON..."})
+                .setTriggerProcedure(() => audioUnit.inputAdapter.ifSome(input => {
+                    const jsonString = new TextEncoder().encode(JSON.stringify(input.box.toJSON()))
+                    return Files.save(jsonString.buffer, {types: [FilePickerAcceptTypes.JsonFileType]})
+                }))
         )
     }
 
