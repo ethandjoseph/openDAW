@@ -251,11 +251,12 @@ participate, visit our [Contribute](https://opendaw.org/contribute) page.
 
 ### Icons
 
-* Wave by Gregor Cresnar
+* "Wave" by Gregor Cresnar
   from [Noun Project](https://thenounproject.com/icon/wave-6250020/) (CC BY 3.0)
-* Compress by Gregor Cresnar
+* "Compress" by Gregor Cresnar
   from [Noun Project](https://thenounproject.com/browse/icons/term/compress/) (CC BY 3.0)
-* Waveforms by [Austin Andrews](https://github.com/Templarian/MaterialDesign)
+* "Waveforms" by [Austin Andrews](https://github.com/Templarian/MaterialDesign)
+* "futurism" by Martin Königsmann from [Noun Project](https://thenounproject.com/icon/futurism-4565401/)
 
 ## Dual-Licensing Model
 

@@ -117,7 +117,7 @@ export namespace InstrumentFactories {
                 box.label.setValue(name)
                 box.icon.setValue(IconSymbol.toName(icon))
                 box.tune.setInitValue(0.0)
-                box.cutoff.setInitValue(1000.0)
+                box.cutoff.setInitValue(8000.0)
                 box.resonance.setInitValue(0.1)
                 box.attack.setInitValue(0.005)
                 box.decay.setInitValue(0.100)
