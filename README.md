@@ -123,6 +123,7 @@ Huge thanks to our [ambassadors](https://opendaw.org/ambassadors), whose dedicat
 * Pitch (offsets midi note pitches)
 * Zeitgeist (transforms time)
 * Fold (waveform folding algorithm with oversampling)
+* Tidal (Shapes rhythm and space through volume and pan)
 
 #### Ported Plugins (Excluded in commercial license)
 
