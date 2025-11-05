@@ -63,7 +63,7 @@ export class VaporisateurDeviceBoxAdapter implements InstrumentDeviceBoxAdapter 
             waveform: this.#parametric.createParameter(
                 box.waveform,
                 ValueMapping.linearInteger(0, 3),
-                StringMapping.indices("", ["Sine", "Triangle", "Sawtooth", "Square"]), "Waveform"),
+                StringMapping.indices("", ["Sine", "Triangle", "Sawtooth", "Square"]), "Osc Shape"),
             filterOrder: this.#parametric.createParameter(
                 box.filterOrder,
                 Vaporisateur.FILTER_ORDER_VALUE_MAPPING,
@@ -127,7 +127,7 @@ export class VaporisateurDeviceBoxAdapter implements InstrumentDeviceBoxAdapter 
             lfoRate: this.#parametric.createParameter(
                 box.lfo.rate,
                 ValueMapping.exponential(0.0001, 30.0),
-                StringMapping.numeric({unit: "Hz", fractionDigits: 0, unitPrefix: true}), "Rate", 0.0),
+                StringMapping.numeric({unit: "Hz", fractionDigits: 1, unitPrefix: true}), "Rate", 0.0),
             lfoTargetTune: this.#parametric.createParameter(
                 box.lfo.targetTune,
                 ValueMapping.bipolar(),
