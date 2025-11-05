@@ -34,6 +34,7 @@ export class VaporisateurVoice implements Voice {
     id: int = -1
     velocity: unitValue = 0.0
     panning: number = 0.0
+    gain: number = 1.0
     phase: number = 0.0
     lfoPhase: number = 0.0
 
@@ -50,9 +51,10 @@ export class VaporisateurVoice implements Voice {
         this.gainSmooth = new Smooth(0.003, sampleRate)
     }
 
-    start(id: int, frequency: number, velocity: unitValue, panning: number = 0.0): void {
+    start(id: int, frequency: number, velocity: unitValue, gain: number, panning: number): void {
         this.id = id
         this.velocity = velocity
+        this.gain = gain
         this.panning = panning
         this.glide.start(frequency)
     }
@@ -69,7 +71,7 @@ export class VaporisateurVoice implements Voice {
     get currentFrequency(): number {return this.glide.currentFrequency()}
 
     process(output: AudioBuffer, {bpm}: Block, fromIndex: int, toIndex: int): boolean {
-        const gain = velocityToGain(this.velocity) * this.device.gain
+        const gain = velocityToGain(this.velocity) * this.device.gain * this.gain
         const waveform = this.device.osc_waveform
         const cutoffMapping = this.device.adapter.namedParameter.cutoff.valueMapping
         const cutoffBase = cutoffMapping.x(this.device.flt_cutoff)

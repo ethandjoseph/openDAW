@@ -25,9 +25,9 @@ export class PolyphonicStrategy implements VoicingStrategy {
         const targetFrequency = this.#host.computeFrequency(event)
         const voice = this.#host.create()
         if (isNaN(lastFrequency)) {
-            voice.start(event.id, targetFrequency, event.velocity)
+            voice.start(event.id, targetFrequency, event.velocity, 1.0, 0.0)
         } else {
-            voice.start(event.id, lastFrequency, event.velocity)
+            voice.start(event.id, lastFrequency, event.velocity, 1.0, 0.0)
             voice.startGlide(targetFrequency, this.#host.glideTime())
         }
         this.#availableForGlide.push(voice)
