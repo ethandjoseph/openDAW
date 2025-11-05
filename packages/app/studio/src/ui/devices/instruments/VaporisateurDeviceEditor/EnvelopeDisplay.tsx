@@ -1,18 +1,23 @@
 import css from "./Display.sass?inline"
 import {Html} from "@opendaw/lib-dom"
-import {Lifecycle} from "@opendaw/lib-std"
+import {Lifecycle, TAU} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {CanvasPainter} from "@/ui/canvas/painter"
 import {AutomatableParameterFieldAdapter} from "@opendaw/studio-adapters"
+import {LiveStreamReceiver} from "@opendaw/lib-fusion"
+import {Address} from "@opendaw/lib-box"
 
 const className = Html.adoptStyleSheet(css, "Display")
 
 type Construct = {
     lifecycle: Lifecycle
     sustain: AutomatableParameterFieldAdapter<number>
+    receiver: LiveStreamReceiver
+    address: Address
 }
 
-export const EnvelopeDisplay = ({lifecycle, sustain}: Construct) => {
+export const EnvelopeDisplay = ({lifecycle, sustain, receiver, address}: Construct) => {
+    const envValues = new Float32Array(32).fill(-1)
     return (
         <canvas className={className} onInit={canvas => {
             const painter = lifecycle.own(new CanvasPainter(canvas, painter => {
@@ -50,8 +55,30 @@ export const EnvelopeDisplay = ({lifecycle, sustain}: Construct) => {
                 context.setLineDash([2, 2])
                 context.strokeStyle = "hsla(200, 83%, 60%, 0.20)"
                 context.stroke()
+
+                for (let i = 0; i < envValues.length; i++) {
+                    const envValue = envValues[i]
+                    if (envValue === -1) {break}
+                    context.beginPath()
+                    context.arc(envValue * actualWidth, valueToY(adsr(envValue, s)), devicePixelRatio, 0.0, TAU)
+                    context.fillStyle = "hsl(200, 83%, 75%)"
+                    context.fill()
+                }
             }))
-            lifecycle.own(sustain.catchupAndSubscribe(painter.requestUpdate))
+            lifecycle.ownAll(
+                receiver.subscribeFloats(address, (phases) => {
+                    for (let i = 0; i < phases.length; i++) {
+                        const phase = phases[i]
+                        if (phase === -1) {
+                            envValues[i] = -1
+                            break
+                        }
+                        envValues[i] = phase * 0.25
+                    }
+                    painter.requestUpdate()
+                }),
+                sustain.catchupAndSubscribe(painter.requestUpdate)
+            )
         }}/>
     )
 }

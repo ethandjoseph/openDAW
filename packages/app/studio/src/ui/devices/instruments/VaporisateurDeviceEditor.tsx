@@ -166,7 +166,10 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
                               </div>
                               <div style={{display: "contents"}}>
                                   <header>
-                                      <EnvelopeDisplay lifecycle={lifecycle} sustain={sustain}/>
+                                      <EnvelopeDisplay lifecycle={lifecycle}
+                                                       sustain={sustain}
+                                                       receiver={liveStreamReceiver}
+                                                       address={adapter.address.append(0)}/>
                                   </header>
                                   <div>{createLabelControlFrag(attack)}</div>
                                   <div>{createLabelControlFrag(decay)}</div>

@@ -1,4 +1,4 @@
-import {asEnumValue, int, Option, panic, Terminable, UUID} from "@opendaw/lib-std"
+import {asEnumValue, asInstanceOf, int, Option, panic, Terminable, UUID} from "@opendaw/lib-std"
 import {AudioBuffer, ClassicWaveform, dbToGain, Event, midiToHz, NoteEvent, PPQN, ppqn} from "@opendaw/lib-dsp"
 import {VaporisateurDeviceBoxAdapter} from "@opendaw/studio-adapters"
 import {EngineContext} from "../../EngineContext"
@@ -10,7 +10,6 @@ import {NoteEventSource, NoteEventTarget, NoteLifecycleEvent} from "../../NoteEv
 import {NoteEventInstrument} from "../../NoteEventInstrument"
 import {DeviceProcessor} from "../../DeviceProcessor"
 import {InstrumentDeviceProcessor} from "../../InstrumentDeviceProcessor"
-import {Voice} from "../../voicing/Voice"
 import {Voicing} from "../../voicing/Voicing"
 import {PolyphonicStrategy} from "../../voicing/PolyphonicStrategy"
 import {VoicingHost} from "../../voicing/VoicingHost"
@@ -18,14 +17,17 @@ import {VoicingMode} from "@opendaw/studio-enums"
 import {MonophonicStrategy} from "../../voicing/MonophonicStrategy"
 import {VoiceUnison} from "../../voicing/VoiceUnison"
 import {VaporisateurVoice} from "./VaporisateurVoice"
+import {Voice} from "../../voicing/Voice"
 
-export class VaporisateurDeviceProcessor extends AudioProcessor implements InstrumentDeviceProcessor, VoicingHost, NoteEventTarget {
+export class VaporisateurDeviceProcessor extends AudioProcessor
+    implements InstrumentDeviceProcessor, VoicingHost, NoteEventTarget {
     readonly #adapter: VaporisateurDeviceBoxAdapter
 
     readonly #voicing: Voicing
     readonly #noteEventInstrument: NoteEventInstrument
     readonly #audioOutput: AudioBuffer
     readonly #peakBroadcaster: PeakBroadcaster
+
     readonly #parameterVolume: AutomatableParameter<number>
     readonly #parameterOctave: AutomatableParameter<number>
     readonly #parameterTune: AutomatableParameter<number>
@@ -98,7 +100,20 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
         this.#parameterLfoTargetCutoff = this.own(this.bindParameter(namedParameter.lfoTargetCutoff))
         this.#parameterLfoTargetVolume = this.own(this.bindParameter(namedParameter.lfoTargetVolume))
 
+        const envValues = new Float32Array(32)
         this.ownAll(
+            context.broadcaster.broadcastFloats(adapter.address.append(0), envValues, () => {
+                let index = 0
+                this.#voicing.strategy.processing().forEach(voice => {
+                    const unisono = asInstanceOf(voice, VoiceUnison)
+                    const first = unisono.processing().at(0)
+                    if (first instanceof VaporisateurVoice) {
+                        envValues[index++] = first.env.phase
+                    }
+                    if (index === envValues.length - 1) {return}
+                })
+                envValues[index] = -1
+            }),
             context.registerProcessor(this)
         )
         this.readAllParameters()

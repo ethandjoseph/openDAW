@@ -56,4 +56,6 @@ export class PolyphonicStrategy implements VoicingStrategy {
         }
         return this.#processing.length === 0
     }
+
+    processing(): ReadonlyArray<Voice> {return this.#processing}
 }

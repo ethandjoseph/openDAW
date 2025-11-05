@@ -1,6 +1,7 @@
-import {EmptyExec, Id, int, panic} from "@opendaw/lib-std"
+import {Arrays, EmptyExec, Id, int, panic} from "@opendaw/lib-std"
 import {AudioBuffer, NoteEvent} from "@opendaw/lib-dsp"
 import {Block} from "../processing"
+import {Voice} from "./Voice"
 
 export interface VoicingStrategy {
     start(event: Id<NoteEvent>): void
@@ -8,6 +9,7 @@ export interface VoicingStrategy {
     forceStop(): void
     process(output: AudioBuffer, block: Block, fromIndex: int, toIndex: int): boolean // true if idle
     reset(): void
+    processing(): ReadonlyArray<Voice>
 }
 
 export namespace VoicingStrategy {
@@ -16,6 +18,7 @@ export namespace VoicingStrategy {
         stop: () => panic("VoicingStrategy.stop"),
         forceStop: () => EmptyExec,
         process: () => panic("VoicingStrategy.process"),
-        reset: EmptyExec
+        reset: EmptyExec,
+        processing: (): ReadonlyArray<Voice> => Arrays.empty()
     }
 }

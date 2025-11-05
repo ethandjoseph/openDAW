@@ -7,6 +7,7 @@ export class Adsr {
 
     #state = State.Idle
     #value = 0.0
+    #phase = 0.0
     #attack = 0.0
     #decay = 0.0
     #sustain = 0.0
@@ -20,6 +21,7 @@ export class Adsr {
     get gate(): boolean { return this.#state !== State.Idle && this.#state !== State.Release }
     get complete(): boolean { return this.#state === State.Idle }
     get value(): number { return this.#value }
+    get phase(): number { return this.#phase }
 
     set(attack: number, decay: number, sustain: unitValue, release: number): void {
         this.#attack = attack
@@ -78,12 +80,13 @@ export class Adsr {
                         this.#value += this.#attackInc
                         if (this.#value >= 1.0) {
                             this.#value = 1.0
+                            this.#phase = 1.0
                             output[i++] = this.#value
                             this.#state = State.Decay
                             this.#updateRates()
                             break
                         }
-                        output[i++] = this.#value
+                        output[i++] = this.#phase = this.#value
                     }
                     break
 
@@ -92,11 +95,13 @@ export class Adsr {
                         this.#value -= this.#decayDec
                         if (this.#value <= this.#sustain) {
                             this.#value = this.#sustain
+                            this.#phase = 2.0
                             output[i++] = this.#value
                             this.#state = State.Sustain
                             this.#updateRates()
                             break
                         }
+                        this.#phase = 1.0 + (1.0 - this.#value) / (1.0 - this.#sustain)
                         output[i++] = this.#value
                     }
                     break
@@ -110,11 +115,13 @@ export class Adsr {
                         this.#value -= this.#releaseDec
                         if (this.#value <= 0.0) {
                             this.#value = 0.0
+                            this.#phase = 0.0
                             output[i++] = this.#value
                             this.#state = State.Idle
                             this.#updateRates()
                             break
                         }
+                        this.#phase = 3.0 + (1.0 - (this.#value / this.#sustain))
                         output[i++] = this.#value
                     }
                     break
