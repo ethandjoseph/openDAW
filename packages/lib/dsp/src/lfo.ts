@@ -1,14 +1,14 @@
-export enum LFOShape {sine, triangle, saw, square}
+import {ClassicWaveform} from "./classic-waveform"
 
 export class LFO {
     #phase = 0.0
 
     constructor(readonly sampleRate: number) {}
 
-    fill(buffer: Float32Array, shape: LFOShape, frequency: number, fromIndex: number, toIndex: number): void {
+    fill(buffer: Float32Array, shape: ClassicWaveform, frequency: number, fromIndex: number, toIndex: number): void {
         const phaseInc = frequency / this.sampleRate
         switch (shape) {
-            case LFOShape.sine: {
+            case ClassicWaveform.sine: {
                 for (let i = fromIndex; i < toIndex; i++) {
                     buffer[i] = Math.sin(this.#phase * Math.PI * 2.0)
                     this.#phase += phaseInc
@@ -16,7 +16,7 @@ export class LFO {
                 }
                 break
             }
-            case LFOShape.triangle: {
+            case ClassicWaveform.triangle: {
                 for (let i = fromIndex; i < toIndex; i++) {
                     const phase = this.#phase % 1.0
                     buffer[i] = 4.0 * Math.abs(phase - 0.5) - 1.0
@@ -25,7 +25,7 @@ export class LFO {
                 }
                 break
             }
-            case LFOShape.saw: {
+            case ClassicWaveform.saw: {
                 for (let i = fromIndex; i < toIndex; i++) {
                     const phase = this.#phase % 1.0
                     buffer[i] = 2.0 * phase - 1.0
@@ -34,7 +34,7 @@ export class LFO {
                 }
                 break
             }
-            case LFOShape.square: {
+            case ClassicWaveform.square: {
                 for (let i = fromIndex; i < toIndex; i++) {
                     const phase = this.#phase % 1.0
                     buffer[i] = phase < 0.5 ? 1.0 : -1.0

@@ -11,7 +11,7 @@ import {
     VaporisateurDeviceBox
 } from "@opendaw/studio-boxes"
 import {byte, isDefined, UUID} from "@opendaw/lib-std"
-import {Waveform} from "@opendaw/lib-dsp"
+import {ClassicWaveform} from "@opendaw/lib-dsp"
 import {BoxGraph, Field} from "@opendaw/lib-box"
 import {TrackType} from "@opendaw/studio-adapters"
 import {IconSymbol, Pointers, VoicingMode} from "@opendaw/studio-enums"
@@ -124,7 +124,7 @@ export namespace InstrumentFactories {
                 box.sustain.setInitValue(0.5)
                 box.release.setInitValue(0.5)
                 box.voicingMode.setInitValue(VoicingMode.Polyphonic)
-                box.waveform.setInitValue(Waveform.sawtooth)
+                box.waveform.setInitValue(ClassicWaveform.saw)
                 box.host.refer(host)
                 box.version.setValue(1) // for removing the -15db in voice
             })

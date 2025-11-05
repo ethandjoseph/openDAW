@@ -1,12 +1,12 @@
 import {StringMapping, ValueMapping} from "@opendaw/lib-std"
-import {LFOShape} from "@opendaw/lib-dsp"
+import {ClassicWaveform} from "@opendaw/lib-dsp"
 
 export const Vaporisateur = (() => {
     const MIN_CUTOFF = 20.0
     const MAX_CUTOFF = 20_000.0
     const FILTER_ORDER_VALUES = [1, 2, 3, 4]
     const FILTER_ORDER_STRINGS = ["12", "24", "36", "48"]
-    const LFO_WAVEFORM_VALUES = [LFOShape.sine, LFOShape.triangle, LFOShape.saw, LFOShape.square]
+    const LFO_WAVEFORM_VALUES = [ClassicWaveform.sine, ClassicWaveform.triangle, ClassicWaveform.saw, ClassicWaveform.square]
     const LFO_WAVEFORM_STRINGS = ["Sine", "Triangle", "Saw", "Square"]
     return {
         MIN_CUTOFF,

@@ -13,8 +13,9 @@ import {RelativeUnitValueDragging} from "@/ui/wrapper/RelativeUnitValueDragging"
 import {RadioGroup} from "@/ui/components/RadioGroup"
 import {Icon} from "@/ui/components/Icon"
 import {IconSymbol} from "@opendaw/studio-enums"
-import {LFOShape, Waveform} from "@opendaw/lib-dsp"
+import {ClassicWaveform} from "@opendaw/lib-dsp"
 import {EditWrapper} from "@/ui/wrapper/EditWrapper"
+import {WaveformDisplay} from "@/ui/devices/instruments/VaporisateurDeviceEditor/WaveformDisplay"
 
 const className = Html.adoptStyleSheet(css, "editor")
 
@@ -71,7 +72,7 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
             </RelativeUnitValueDragging>
         </Frag>
     )
-    const createWaveformSelector = (parameter: AutomatableParameterFieldAdapter<Waveform | LFOShape>) => (
+    const createWaveformSelector = (parameter: AutomatableParameterFieldAdapter<ClassicWaveform>) => (
         <Frag>
             <h3>{parameter.name}</h3>
             <RadioGroup lifecycle={lifecycle}
@@ -79,19 +80,19 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
                         style={{fontSize: "9px"}}
                         elements={[
                             {
-                                value: Waveform.sine,
+                                value: ClassicWaveform.sine,
                                 element: <Icon symbol={IconSymbol.Sine}/>
                             },
                             {
-                                value: Waveform.triangle,
+                                value: ClassicWaveform.triangle,
                                 element: <Icon symbol={IconSymbol.Triangle}/>
                             },
                             {
-                                value: Waveform.sawtooth,
+                                value: ClassicWaveform.saw,
                                 element: <Icon symbol={IconSymbol.Sawtooth}/>
                             },
                             {
-                                value: Waveform.square,
+                                value: ClassicWaveform.square,
                                 element: <Icon symbol={IconSymbol.Square
                                 }/>
                             }
@@ -129,7 +130,9 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
                                   <div>{createLabelControlFrag(unisonStereo)}</div>
                               </Group>
                               <Group>
-                                  <header/>
+                                  <header>
+                                      <WaveformDisplay lifecycle={lifecycle} adapter={waveform}/>
+                                  </header>
                                   <div>{createWaveformSelector(waveform)}</div>
                                   <div>{createLabelControlFrag(octave)}</div>
                                   <div>{createLabelControlFrag(tune, 0.5)}</div>
@@ -144,7 +147,9 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
                                   <div>{createLabelControlFrag(filterOrder, 0.5)}</div>
                               </Group>
                               <Group>
-                                  <header/>
+                                  <header>
+                                      <WaveformDisplay lifecycle={lifecycle} adapter={lfoWaveform}/>
+                                  </header>
                                   <div>{createWaveformSelector(lfoWaveform)}</div>
                                   <div>{createLabelControlFrag(lfoRate)}</div>
                                   <div>{createLabelControlFrag(lfoTargetTune, 0.5)}</div>

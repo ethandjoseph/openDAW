@@ -1,5 +1,5 @@
 import {asEnumValue, int, Option, panic, Terminable, UUID} from "@opendaw/lib-std"
-import {AudioBuffer, dbToGain, Event, LFOShape, midiToHz, NoteEvent, PPQN, ppqn, Waveform} from "@opendaw/lib-dsp"
+import {AudioBuffer, ClassicWaveform, dbToGain, Event, midiToHz, NoteEvent, PPQN, ppqn} from "@opendaw/lib-dsp"
 import {VaporisateurDeviceBoxAdapter} from "@opendaw/studio-adapters"
 import {EngineContext} from "../../EngineContext"
 import {AudioProcessor} from "../../AudioProcessor"
@@ -43,7 +43,7 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
     readonly #parameterVoicingMode: AutomatableParameter<VoicingMode>
     readonly #parameterUnisonCount: AutomatableParameter<int>
     readonly #parameterUnisonDetune: AutomatableParameter<number>
-    readonly #parameterLfoShape: AutomatableParameter<LFOShape>
+    readonly #parameterLfoShape: AutomatableParameter<ClassicWaveform>
     readonly #parameterLfoRate: AutomatableParameter<number>
     readonly #parameterLfoTargetTune: AutomatableParameter<number>
     readonly #parameterLfoTargetCutoff: AutomatableParameter<number>
@@ -54,7 +54,7 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
     env_decay: number = 1.0
     env_sustain: number = 1.0
     env_release: number = 1.0
-    osc_waveform: Waveform = Waveform.sine
+    osc_waveform: ClassicWaveform = ClassicWaveform.sine
     flt_cutoff: number = 1.0
     flt_resonance: number = Math.SQRT1_2
     flt_env_amount: number = 0.0
@@ -108,7 +108,7 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
     get glideTime(): ppqn {return this.#glideTime}
 
     get parameterFilterKeyboard(): AutomatableParameter<number> {return this.#parameterFilterKeyboard}
-    get parameterLfoShape(): AutomatableParameter<LFOShape> {return this.#parameterLfoShape}
+    get parameterLfoShape(): AutomatableParameter<ClassicWaveform> {return this.#parameterLfoShape}
     get parameterLfoRate(): AutomatableParameter<number> {return this.#parameterLfoRate}
     get parameterLfoTargetTune(): AutomatableParameter<number> {return this.#parameterLfoTargetTune}
     get parameterLfoTargetCutoff(): AutomatableParameter<number> {return this.#parameterLfoTargetCutoff}
@@ -165,7 +165,7 @@ export class VaporisateurDeviceProcessor extends AudioProcessor implements Instr
         } else if (parameter === this.#parameterRelease) {
             this.env_release = this.#parameterRelease.getValue()
         } else if (parameter === this.#parameterWaveform) {
-            this.osc_waveform = asEnumValue(this.#parameterWaveform.getValue(), Waveform)
+            this.osc_waveform = asEnumValue(this.#parameterWaveform.getValue(), ClassicWaveform)
         } else if (parameter === this.#parameterCutoff) {
             this.flt_cutoff = this.#parameterCutoff.getUnitValue()
         } else if (parameter === this.#parameterResonance) {

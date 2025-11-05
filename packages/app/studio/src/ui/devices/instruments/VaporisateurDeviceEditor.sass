@@ -2,7 +2,7 @@
 
 component
   display: grid
-  grid-template-columns: repeat(6, 3.75em)
+  grid-template-columns: 2.75em repeat(5, 3.75em)
   column-gap: 2px
   row-gap: 4px
   align-content: start
@@ -10,10 +10,12 @@ component
 
   > div
     > *:first-child
+      margin-right: 4px
       grid-column: 1
       grid-row: span 1
       border-radius: 4px
       outline: 0.5px solid hsla(200, 40%, 70%, 0.12)
+      position: relative
 
     > div
       padding: 3px 0 0 0

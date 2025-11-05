@@ -1,4 +1,4 @@
-export enum Waveform { sine, triangle, sawtooth, square }
+import {ClassicWaveform} from "./classic-waveform"
 
 export class BandLimitedOscillator {
     readonly #invSampleRate: number
@@ -10,11 +10,11 @@ export class BandLimitedOscillator {
         this.#invSampleRate = 1.0 / sampleRate
     }
 
-    generate(buffer: Float32Array, frequency: number, waveform: Waveform, fromIndex: number, toIndex: number): void {
+    generate(buffer: Float32Array, frequency: number, waveform: ClassicWaveform, fromIndex: number, toIndex: number): void {
         const phaseInc = frequency * this.#invSampleRate
 
         switch (waveform) {
-            case Waveform.sine:
+            case ClassicWaveform.sine:
                 for (let i = fromIndex; i < toIndex; i++) {
                     const t = this.#phase % 1.0
                     buffer[i] = Math.sin(2.0 * Math.PI * t)
@@ -22,7 +22,7 @@ export class BandLimitedOscillator {
                 }
                 break
 
-            case Waveform.sawtooth:
+            case ClassicWaveform.saw:
                 for (let i = fromIndex; i < toIndex; i++) {
                     const t = this.#phase % 1.0
                     let out = 2.0 * t - 1.0
@@ -32,7 +32,7 @@ export class BandLimitedOscillator {
                 }
                 break
 
-            case Waveform.square:
+            case ClassicWaveform.square:
                 for (let i = fromIndex; i < toIndex; i++) {
                     const t = this.#phase % 1.0
                     let out = t < 0.5 ? 1.0 : -1.0
@@ -43,7 +43,7 @@ export class BandLimitedOscillator {
                 }
                 break
 
-            case Waveform.triangle:
+            case ClassicWaveform.triangle:
                 for (let i = fromIndex; i < toIndex; i++) {
                     const t = this.#phase % 1.0
                     let sq = t < 0.5 ? 1.0 : -1.0
@@ -59,11 +59,11 @@ export class BandLimitedOscillator {
 
     generateFromFrequencies(output: Float32Array,
                             freqBuffer: Float32Array,
-                            waveform: Waveform,
+                            waveform: ClassicWaveform,
                             fromIndex: number,
                             toIndex: number): void {
         switch (waveform) {
-            case Waveform.sine:
+            case ClassicWaveform.sine:
                 for (let i = fromIndex; i < toIndex; i++) {
                     const phaseInc = freqBuffer[i] * this.#invSampleRate
                     const t = this.#phase % 1.0
@@ -72,7 +72,7 @@ export class BandLimitedOscillator {
                 }
                 break
 
-            case Waveform.sawtooth:
+            case ClassicWaveform.saw:
                 for (let i = fromIndex; i < toIndex; i++) {
                     const phaseInc = freqBuffer[i] * this.#invSampleRate
                     const t = this.#phase % 1.0
@@ -83,7 +83,7 @@ export class BandLimitedOscillator {
                 }
                 break
 
-            case Waveform.square:
+            case ClassicWaveform.square:
                 for (let i = fromIndex; i < toIndex; i++) {
                     const phaseInc = freqBuffer[i] * this.#invSampleRate
                     const t = this.#phase % 1.0
@@ -95,7 +95,7 @@ export class BandLimitedOscillator {
                 }
                 break
 
-            case Waveform.triangle:
+            case ClassicWaveform.triangle:
                 for (let i = fromIndex; i < toIndex; i++) {
                     const phaseInc = freqBuffer[i] * this.#invSampleRate
                     const t = this.#phase % 1.0
