@@ -3,7 +3,7 @@ import {Colors} from "@opendaw/studio-core"
 
 export const Logo = () => {
     return (
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="-10 -10 90 107.5" fill={Colors.orange}>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="-10 -10 90 107.5" fill={Colors.orange} width="100%">
             <path
                 d="M34.17,27.86a6.58,6.58,0,1,0,6.58,6.57A6.58,6.58,0,0,0,34.17,27.86Zm0,11.2a4.63,4.63,0,1,1,4.64-4.63A4.63,4.63,0,0,1,34.17,39.06Z"/>
             <path
