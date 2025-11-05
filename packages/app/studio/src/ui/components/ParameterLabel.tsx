@@ -15,14 +15,18 @@ type Construct = {
     midiLearning: MIDILearning
     adapter: DeviceBoxAdapter
     parameter: AutomatableParameterFieldAdapter
+    classList?: ReadonlyArray<string>
     framed?: boolean
     standalone?: boolean
 }
 
 export const ParameterLabel = (
-    {lifecycle, editing, midiLearning, adapter, parameter, framed, standalone}: Construct): HTMLLabelElement => {
+    {
+        lifecycle, editing, midiLearning, adapter, parameter,
+        classList, framed, standalone
+    }: Construct): HTMLLabelElement => {
     return (
-        <label className={Html.buildClassList(className, framed && "framed")}
+        <label className={Html.buildClassList(className, framed && "framed", ...classList ?? [])}
                onInit={element => {
                    const onValueChange = (adapter: AutomatableParameterFieldAdapter) => {
                        const printValue = adapter.stringMapping.x(

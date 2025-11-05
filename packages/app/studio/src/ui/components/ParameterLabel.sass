@@ -10,8 +10,11 @@ component
   font-size: 8px
   overflow: hidden
   display: flex
-  justify-content: end
   column-gap: 0.25em
+  justify-content: end
+
+  &.center
+    justify-content: center
 
   &.midi, .midi &, &.automated, .automated &
     min-width: 4em

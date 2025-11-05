@@ -71,6 +71,7 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
                                 midiLearning={midiLearning}
                                 adapter={adapter}
                                 parameter={parameter}
+                                classList={["center"]}
                                 framed={true} standalone/>
             </RelativeUnitValueDragging>
         </Frag>
