@@ -16,6 +16,7 @@ import {IconSymbol} from "@opendaw/studio-enums"
 import {ClassicWaveform} from "@opendaw/lib-dsp"
 import {EditWrapper} from "@/ui/wrapper/EditWrapper"
 import {WaveformDisplay} from "@/ui/devices/instruments/VaporisateurDeviceEditor/WaveformDisplay"
+import {EnvelopeDisplay} from "@/ui/devices/instruments/VaporisateurDeviceEditor/EnvelopeDisplay"
 
 const className = Html.adoptStyleSheet(css, "editor")
 
@@ -157,7 +158,9 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
                                   <div>{createLabelControlFrag(lfoTargetVolume, 0.5)}</div>
                               </Group>
                               <Group>
-                                  <header/>
+                                  <header>
+                                      <EnvelopeDisplay lifecycle={lifecycle} sustain={sustain}/>
+                                  </header>
                                   <div>{createLabelControlFrag(attack)}</div>
                                   <div>{createLabelControlFrag(decay)}</div>
                                   <div>{createLabelControlFrag(sustain)}</div>

@@ -1,4 +1,4 @@
-import css from "./WaveformDisplay.sass?inline"
+import css from "./Display.sass?inline"
 import {Html} from "@opendaw/lib-dom"
 import {Func, Lifecycle, TAU, Unhandled} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
