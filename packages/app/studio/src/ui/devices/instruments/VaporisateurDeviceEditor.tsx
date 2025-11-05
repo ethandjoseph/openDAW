@@ -1,5 +1,5 @@
 import css from "./VaporisateurDeviceEditor.sass?inline"
-import {Lifecycle} from "@opendaw/lib-std"
+import {isDefined, Lifecycle} from "@opendaw/lib-std"
 import {createElement, Frag, Group} from "@opendaw/lib-jsx"
 import {DeviceEditor} from "@/ui/devices/DeviceEditor.tsx"
 import {MenuItems} from "@/ui/devices/menu-items.ts"
@@ -10,6 +10,11 @@ import {StudioService} from "@/service/StudioService"
 import {InstrumentFactories} from "@opendaw/studio-core"
 import {ParameterLabel} from "@/ui/components/ParameterLabel"
 import {RelativeUnitValueDragging} from "@/ui/wrapper/RelativeUnitValueDragging"
+import {RadioGroup} from "@/ui/components/RadioGroup"
+import {Icon} from "@/ui/components/Icon"
+import {IconSymbol} from "@opendaw/studio-enums"
+import {LFOShape, Waveform} from "@opendaw/lib-dsp"
+import {EditWrapper} from "@/ui/wrapper/EditWrapper"
 
 const className = Html.adoptStyleSheet(css, "editor")
 
@@ -29,6 +34,7 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
         tune,
         unisonCount,
         unisonDetune,
+        unisonStereo,
         glideTime,
         waveform,
         cutoff,
@@ -47,12 +53,14 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
         release,
         voicingMode
     } = adapter.namedParameter
-    const createLabelControlFrag = (parameter: AutomatableParameterFieldAdapter<number>) => (
+    const createLabelControlFrag = (parameter: AutomatableParameterFieldAdapter<number>,
+                                    threshold?: number | ReadonlyArray<number>) => (
         <Frag>
             <h3>{parameter.name}</h3>
             <RelativeUnitValueDragging lifecycle={lifecycle}
                                        editing={editing}
                                        parameter={parameter}
+                                       options={isDefined(threshold) ? {snap: {threshold}} : undefined}
                                        supressValueFlyout={true}>
                 <ParameterLabel lifecycle={lifecycle}
                                 editing={editing}
@@ -61,6 +69,33 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
                                 parameter={parameter}
                                 framed={true} standalone/>
             </RelativeUnitValueDragging>
+        </Frag>
+    )
+    const createWaveformSelector = (parameter: AutomatableParameterFieldAdapter<Waveform | LFOShape>) => (
+        <Frag>
+            <h3>{parameter.name}</h3>
+            <RadioGroup lifecycle={lifecycle}
+                        model={EditWrapper.forAutomatableParameter(editing, parameter)}
+                        style={{fontSize: "9px"}}
+                        elements={[
+                            {
+                                value: Waveform.sine,
+                                element: <Icon symbol={IconSymbol.Sine}/>
+                            },
+                            {
+                                value: Waveform.triangle,
+                                element: <Icon symbol={IconSymbol.Triangle}/>
+                            },
+                            {
+                                value: Waveform.sawtooth,
+                                element: <Icon symbol={IconSymbol.Sawtooth}/>
+                            },
+                            {
+                                value: Waveform.square,
+                                element: <Icon symbol={IconSymbol.Square
+                                }/>
+                            }
+                        ]}/>
         </Frag>
     )
     return (
@@ -72,33 +107,49 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
                           <div className={className}>
                               <Group>
                                   <header/>
-                                  <div>{createLabelControlFrag(waveform)}</div>
-                                  <div>{createLabelControlFrag(octave)}</div>
-                                  <div>{createLabelControlFrag(tune)}</div>
-                                  <div>{createLabelControlFrag(volume)}</div>
+                                  <div>
+                                      <h3>Play-Mode</h3>
+                                      <RadioGroup lifecycle={lifecycle}
+                                                  model={EditWrapper.forAutomatableParameter(editing, voicingMode)}
+                                                  style={{fontSize: "9px"}}
+                                                  elements={[
+                                                      {
+                                                          value: 0,
+                                                          element: <span>MONO</span>
+                                                      },
+                                                      {
+                                                          value: 1,
+                                                          element: <span>POLY</span>
+                                                      }
+                                                  ]}/>
+                                  </div>
+                                  <div>{createLabelControlFrag(glideTime)}</div>
+                                  <div>{createLabelControlFrag(unisonCount)}</div>
+                                  <div>{createLabelControlFrag(unisonDetune, 0.5)}</div>
+                                  <div>{createLabelControlFrag(unisonStereo)}</div>
                               </Group>
                               <Group>
                                   <header/>
-                                  <div>{createLabelControlFrag(voicingMode)}</div>
-                                  <div>{createLabelControlFrag(glideTime)}</div>
-                                  <div>{createLabelControlFrag(unisonCount)}</div>
-                                  <div>{createLabelControlFrag(unisonDetune)}</div>
+                                  <div>{createWaveformSelector(waveform)}</div>
+                                  <div>{createLabelControlFrag(octave)}</div>
+                                  <div>{createLabelControlFrag(tune, 0.5)}</div>
+                                  <div>{createLabelControlFrag(volume)}</div>
                               </Group>
                               <Group>
                                   <header/>
                                   <div>{createLabelControlFrag(cutoff)}</div>
                                   <div>{createLabelControlFrag(resonance)}</div>
-                                  <div>{createLabelControlFrag(filterEnvelope)}</div>
-                                  <div>{createLabelControlFrag(filterKeyboard)}</div>
-                                  <div>{createLabelControlFrag(filterOrder)}</div>
+                                  <div>{createLabelControlFrag(filterEnvelope, 0.5)}</div>
+                                  <div>{createLabelControlFrag(filterKeyboard, 0.5)}</div>
+                                  <div>{createLabelControlFrag(filterOrder, 0.5)}</div>
                               </Group>
                               <Group>
                                   <header/>
-                                  <div>{createLabelControlFrag(lfoWaveform)}</div>
+                                  <div>{createWaveformSelector(lfoWaveform)}</div>
                                   <div>{createLabelControlFrag(lfoRate)}</div>
-                                  <div>{createLabelControlFrag(lfoTargetTune)}</div>
-                                  <div>{createLabelControlFrag(lfoTargetCutoff)}</div>
-                                  <div>{createLabelControlFrag(lfoTargetVolume)}</div>
+                                  <div>{createLabelControlFrag(lfoTargetTune, 0.5)}</div>
+                                  <div>{createLabelControlFrag(lfoTargetCutoff, 0.5)}</div>
+                                  <div>{createLabelControlFrag(lfoTargetVolume, 0.5)}</div>
                               </Group>
                               <Group>
                                   <header/>

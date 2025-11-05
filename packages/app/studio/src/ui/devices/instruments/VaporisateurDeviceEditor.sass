@@ -2,7 +2,7 @@
 
 component
   display: grid
-  grid-template-columns: repeat(6, 3.5em)
+  grid-template-columns: repeat(6, 3.75em)
   column-gap: 2px
   row-gap: 4px
   align-content: start
@@ -12,7 +12,7 @@ component
     > *:first-child
       grid-column: 1
       grid-row: span 1
-      border-radius: 8px
+      border-radius: 4px
       outline: 0.5px solid hsla(200, 40%, 70%, 0.12)
 
     > div
@@ -25,5 +25,6 @@ component
 
       > h3
         font-size: 9px
+        letter-spacing: 0.5px
         text-align: center
         color: var(--color-orange)

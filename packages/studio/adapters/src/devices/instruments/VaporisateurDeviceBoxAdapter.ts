@@ -67,15 +67,15 @@ export class VaporisateurDeviceBoxAdapter implements InstrumentDeviceBoxAdapter 
             filterOrder: this.#parametric.createParameter(
                 box.filterOrder,
                 Vaporisateur.FILTER_ORDER_VALUE_MAPPING,
-                Vaporisateur.FILTER_ORDER_STRING_MAPPING, "Filter Order"),
+                Vaporisateur.FILTER_ORDER_STRING_MAPPING, "Flt. Order"),
             cutoff: this.#parametric.createParameter(
                 box.cutoff,
                 Vaporisateur.CUTOFF_VALUE_MAPPING,
-                Vaporisateur.CUTOFF_STRING_MAPPING, "Cutoff"),
+                Vaporisateur.CUTOFF_STRING_MAPPING, "Flt. Cutoff"),
             resonance: this.#parametric.createParameter(
                 box.resonance,
                 ValueMapping.exponential(0.01, 10.0),
-                StringMapping.numeric({unit: "q", fractionDigits: 3}), "Resonance"),
+                StringMapping.numeric({unit: "q", fractionDigits: 3}), "Flt. Q"),
             attack: this.#parametric.createParameter(
                 box.attack,
                 ValueMapping.exponential(0.001, 5.0),
@@ -95,11 +95,11 @@ export class VaporisateurDeviceBoxAdapter implements InstrumentDeviceBoxAdapter 
             filterEnvelope: this.#parametric.createParameter(
                 box.filterEnvelope,
                 ValueMapping.bipolar(),
-                StringMapping.percent({fractionDigits: 1}), "Filter env", 0.5),
+                StringMapping.percent({fractionDigits: 1}), "Flt. Env.", 0.5),
             filterKeyboard: this.#parametric.createParameter(
                 box.filterKeyboard,
                 ValueMapping.bipolar(),
-                StringMapping.percent({fractionDigits: 1}), "Filter Kbd.", 0.5),
+                StringMapping.percent({fractionDigits: 1}), "Flt. Kbd.", 0.5),
             voicingMode: this.#parametric.createParameter(
                 box.voicingMode,
                 ValueMapping.values(VoiceModes),
