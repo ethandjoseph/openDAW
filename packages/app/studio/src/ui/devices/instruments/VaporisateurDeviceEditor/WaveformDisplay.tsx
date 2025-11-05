@@ -18,7 +18,7 @@ export const WaveformDisplay = ({lifecycle, adapter}: Construct) => {
         <canvas className={className} onInit={canvas => {
             const painter = lifecycle.own(new CanvasPainter(canvas, painter => {
                 const {context, actualWidth, actualHeight, devicePixelRatio} = painter
-                const padding = devicePixelRatio * 4
+                const padding = devicePixelRatio * 2
                 const top = padding
                 const bottom = actualHeight - padding
                 const valueToY = (value: number) => bottom + (top - bottom) * (0.5 * (value + 1.0))

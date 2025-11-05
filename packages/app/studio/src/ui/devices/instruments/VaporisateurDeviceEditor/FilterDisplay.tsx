@@ -17,24 +17,32 @@ type Construct = {
 
 export const FilterDisplay = ({lifecycle, cutoff, resonance, order}: Construct) => {
     const coeff = new BiquadCoeff()
+    let frequency = new Float32Array(0)
+    let magResponse = new Float32Array(0)
+    let phaseResponse = new Float32Array(0)
     return (
         <canvas className={className} onInit={canvas => {
             const painter = lifecycle.own(new CanvasPainter(canvas, painter => {
                 const {context, actualWidth, actualHeight, devicePixelRatio} = painter
-                const padding = devicePixelRatio * 4
+                const oversampling = 4
+                const invOversampling = 1.0 / oversampling
+                const oversampledWidth = actualWidth * oversampling
+                const padding = devicePixelRatio * 2
                 const top = padding
                 const bottom = actualHeight - padding
-                const minDb = -60.0
-                const maxDb = +12.0
-                const gainToY = (value: number) => bottom + (top - bottom) * (gainToDb(value) - minDb) / (maxDb - minDb)
+                const minDb = -24.0
+                const maxDb = +24.0
+                const o = order.getControlledValue()
+                const gainToY = (value: number) => bottom + (top - bottom) * (gainToDb(value) * o - minDb) / (maxDb - minDb)
                 const sf = 48000
-                coeff.setLowpassParams(cutoff.getControlledValue() / sf, resonance.getControlledValue())
-                const frequency = new Float32Array(actualWidth)
-                const magResponse = new Float32Array(actualWidth)
-                const phaseResponse = new Float32Array(actualWidth)
-
-                for (let x = 0; x < actualWidth; x++) {
-                    const freq = Vaporisateur.CUTOFF_VALUE_MAPPING.y(x / actualWidth)
+                coeff.setLowpassParams(cutoff.getControlledValue() / sf, resonance.getControlledValue() / (o ** 1.25))
+                if (frequency.length !== oversampledWidth) {
+                    frequency = new Float32Array(oversampledWidth)
+                    magResponse = new Float32Array(oversampledWidth)
+                    phaseResponse = new Float32Array(oversampledWidth)
+                }
+                for (let x = 0; x < oversampledWidth; x++) {
+                    const freq = Vaporisateur.CUTOFF_VALUE_MAPPING.y(x / oversampledWidth)
                     frequency[x] = freq / sf
                 }
 
@@ -43,10 +51,10 @@ export const FilterDisplay = ({lifecycle, cutoff, resonance, order}: Construct) 
                 context.lineWidth = devicePixelRatio
                 const path = new Path2D()
                 path.moveTo(0, gainToY(magResponse[0]))
-                for (let x = 1; x < actualWidth; x++) {
+                for (let x = 1; x < oversampledWidth; x++) {
                     const y = gainToY(magResponse[x])
                     if (y >= bottom) {break}
-                    path.lineTo(x, y)
+                    path.lineTo(x * invOversampling, y)
                 }
                 context.strokeStyle = "hsla(200, 83%, 60%, 0.75)"
                 context.stroke(path)

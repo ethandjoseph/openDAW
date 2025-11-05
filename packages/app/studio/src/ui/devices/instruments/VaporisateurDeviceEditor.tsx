@@ -1,6 +1,6 @@
 import css from "./VaporisateurDeviceEditor.sass?inline"
 import {isDefined, Lifecycle} from "@opendaw/lib-std"
-import {createElement, Frag, Group} from "@opendaw/lib-jsx"
+import {createElement, Frag} from "@opendaw/lib-jsx"
 import {DeviceEditor} from "@/ui/devices/DeviceEditor.tsx"
 import {MenuItems} from "@/ui/devices/menu-items.ts"
 import {AutomatableParameterFieldAdapter, DeviceHost, VaporisateurDeviceBoxAdapter} from "@opendaw/studio-adapters"
@@ -18,6 +18,7 @@ import {EditWrapper} from "@/ui/wrapper/EditWrapper"
 import {WaveformDisplay} from "@/ui/devices/instruments/VaporisateurDeviceEditor/WaveformDisplay"
 import {EnvelopeDisplay} from "@/ui/devices/instruments/VaporisateurDeviceEditor/EnvelopeDisplay"
 import {FilterDisplay} from "@/ui/devices/instruments/VaporisateurDeviceEditor/FilterDisplay"
+import {Logo} from "@/ui/devices/instruments/VaporisateurDeviceEditor/Logo"
 
 const className = Html.adoptStyleSheet(css, "editor")
 
@@ -108,8 +109,8 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
                       populateMenu={parent => MenuItems.forAudioUnitInput(parent, service, deviceHost)}
                       populateControls={() => (
                           <div className={className}>
-                              <Group>
-                                  <div/>
+                              <div style={{display: "contents"}}>
+                                  <Logo/>
                                   <div>
                                       <h3>Play-Mode</h3>
                                       <RadioGroup lifecycle={lifecycle}
@@ -130,8 +131,8 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
                                   <div>{createLabelControlFrag(unisonCount)}</div>
                                   <div>{createLabelControlFrag(unisonDetune, 0.5)}</div>
                                   <div>{createLabelControlFrag(unisonStereo)}</div>
-                              </Group>
-                              <Group>
+                              </div>
+                              <div style={{display: "contents"}}>
                                   <header>
                                       <WaveformDisplay lifecycle={lifecycle} adapter={waveform}/>
                                   </header>
@@ -139,8 +140,8 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
                                   <div>{createLabelControlFrag(octave)}</div>
                                   <div>{createLabelControlFrag(tune, 0.5)}</div>
                                   <div>{createLabelControlFrag(volume)}</div>
-                              </Group>
-                              <Group>
+                              </div>
+                              <div style={{display: "contents"}}>
                                   <header>
                                       <FilterDisplay lifecycle={lifecycle}
                                                      cutoff={cutoff}
@@ -152,8 +153,8 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
                                   <div>{createLabelControlFrag(filterEnvelope, 0.5)}</div>
                                   <div>{createLabelControlFrag(filterKeyboard, 0.5)}</div>
                                   <div>{createLabelControlFrag(filterOrder, 0.5)}</div>
-                              </Group>
-                              <Group>
+                              </div>
+                              <div style={{display: "contents"}}>
                                   <header>
                                       <WaveformDisplay lifecycle={lifecycle} adapter={lfoWaveform}/>
                                   </header>
@@ -162,8 +163,8 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
                                   <div>{createLabelControlFrag(lfoTargetTune, 0.5)}</div>
                                   <div>{createLabelControlFrag(lfoTargetCutoff, 0.5)}</div>
                                   <div>{createLabelControlFrag(lfoTargetVolume, 0.5)}</div>
-                              </Group>
-                              <Group>
+                              </div>
+                              <div style={{display: "contents"}}>
                                   <header>
                                       <EnvelopeDisplay lifecycle={lifecycle} sustain={sustain}/>
                                   </header>
@@ -171,7 +172,7 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
                                   <div>{createLabelControlFrag(decay)}</div>
                                   <div>{createLabelControlFrag(sustain)}</div>
                                   <div>{createLabelControlFrag(release)}</div>
-                              </Group>
+                              </div>
                           </div>
                       )}
                       populateMeter={() => (

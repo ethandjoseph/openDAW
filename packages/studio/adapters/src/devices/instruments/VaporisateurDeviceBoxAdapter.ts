@@ -131,15 +131,15 @@ export class VaporisateurDeviceBoxAdapter implements InstrumentDeviceBoxAdapter 
             lfoTargetTune: this.#parametric.createParameter(
                 box.lfo.targetTune,
                 ValueMapping.bipolar(),
-                StringMapping.percent({fractionDigits: 1}), "⦿ Tune", 0.5),
+                StringMapping.percent({fractionDigits: 1}), "Tune ⦿", 0.5),
             lfoTargetVolume: this.#parametric.createParameter(
                 box.lfo.targetVolume,
                 ValueMapping.bipolar(),
-                StringMapping.percent({fractionDigits: 1}), "⦿ Volume", 0.5),
+                StringMapping.percent({fractionDigits: 1}), "Volume ⦿", 0.5),
             lfoTargetCutoff: this.#parametric.createParameter(
                 box.lfo.targetCutoff,
                 ValueMapping.bipolar(),
-                StringMapping.percent({fractionDigits: 1}), "⦿ Cutoff", 0.5)
+                StringMapping.percent({fractionDigits: 1}), "Cutoff ⦿", 0.5)
         } as const
     }
 }
