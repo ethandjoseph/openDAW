@@ -1,11 +1,11 @@
 import {asDefined, panic, Terminable, UUID} from "@opendaw/lib-std"
 import {DragAndDrop} from "@/ui/DragAndDrop"
 import {AnyDragData} from "@/ui/AnyDragData"
-import {AudioUnitBoxAdapter, Devices} from "@opendaw/studio-adapters"
+import {AudioBusBoxAdapter, AudioUnitBoxAdapter, Devices} from "@opendaw/studio-adapters"
 import {InsertMarker} from "@/ui/components/InsertMarker"
 import {EffectFactories, InstrumentBox, InstrumentFactories, InstrumentFactory, Project} from "@opendaw/studio-core"
 import {IndexedBox} from "@opendaw/lib-box"
-import {BoxVisitor, CaptureAudioBox, CaptureMidiBox} from "@opendaw/studio-boxes"
+import {AudioBusBox, BoxVisitor, CaptureAudioBox, CaptureMidiBox} from "@opendaw/studio-boxes"
 
 export namespace DevicePanelDragAndDrop {
     export const install = (project: Project,
@@ -26,9 +26,14 @@ export namespace DevicePanelDragAndDrop {
                 if (type === "audio-effect") {
                     container = audioEffectsContainer
                 } else if (type === "midi-effect") {
-                    if (deviceHost.inputAdapter.mapOr(input => input.accepts !== "midi", true)) {return false}
+                    if (deviceHost.inputAdapter.mapOr(input => input.accepts !== "midi", true)) {
+                        return false
+                    }
                     container = midiEffectsContainer
                 } else if (type === "instrument" && deviceHost.isAudioUnit) {
+                    if (deviceHost.inputAdapter.mapOr(input => input instanceof AudioBusBoxAdapter, false)) {
+                        return false
+                    }
                     instrumentContainer.style.opacity = "0.5"
                     return true
                 } else {
@@ -52,10 +57,15 @@ export namespace DevicePanelDragAndDrop {
                 if (type !== "midi-effect" && type !== "audio-effect" && type !== "instrument") {return}
                 const editingDeviceChain = userEditingManager.audioUnit.get()
                 if (editingDeviceChain.isEmpty()) {return}
-                const deviceHost = boxAdapters.adapterFor(editingDeviceChain.unwrap().box, Devices.isHost)
+                const deviceHost = boxAdapters.adapterFor(editingDeviceChain.unwrap("editingDeviceChain isEmpty").box, Devices.isHost)
                 if (type === "instrument" && deviceHost instanceof AudioUnitBoxAdapter) {
                     const inputField = deviceHost.inputField
-                    console.debug(`Replace '${inputField.pointerHub.incoming().at(0)?.box.name ?? "no input"} with '${dragData.device}'`)
+                    const inputBox = inputField.pointerHub.incoming().at(0)?.box
+                    console.debug(`Replace '${inputBox?.name ?? "no input"} with '${dragData.device}'`)
+                    if (inputBox instanceof AudioBusBox) {
+                        console.debug("Input is a bus. Will not replace.")
+                        return
+                    }
                     editing.modify(() => {
                         inputField.pointerHub.incoming().forEach(pointer => pointer.box.delete())
                         const {create, defaultIcon, defaultName}: InstrumentFactory =
@@ -70,7 +80,7 @@ export namespace DevicePanelDragAndDrop {
                             visitSoundfontDeviceBox: () => CaptureMidiBox.create(boxGraph, UUID.generate()),
                             visitTapeDeviceBox: () => CaptureAudioBox.create(boxGraph, UUID.generate())
                         }))
-                        deviceHost.box.capture.targetVertex.unwrap().box.delete()
+                        deviceHost.box.capture.targetVertex.ifSome(({box}) => box.delete())
                         deviceHost.box.capture.refer(captureBox)
                     })
                     return
