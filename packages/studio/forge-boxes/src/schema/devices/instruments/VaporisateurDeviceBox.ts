@@ -32,7 +32,8 @@ export const VaporisateurDeviceBox: BoxSchema<Pointers> = DeviceFactory.createIn
             name: "VaporisateurLFO",
             fields: {
                 1: {type: "int32", name: "waveform", pointerRules: DefaultParameterPointerRules},
-                2: {type: "float32", name: "rate", pointerRules: DefaultParameterPointerRules, value: 1.0},
+                2: {type: "float32", name: "rate", pointerRules: DefaultParameterPointerRules, value: 0},
+                3: {type: "boolean", name: "sync", pointerRules: DefaultParameterPointerRules, value: false},
                 10: {type: "float32", name: "target-tune", pointerRules: DefaultParameterPointerRules},
                 11: {type: "float32", name: "target-cutoff", pointerRules: DefaultParameterPointerRules},
                 12: {type: "float32", name: "target-volume", pointerRules: DefaultParameterPointerRules}
