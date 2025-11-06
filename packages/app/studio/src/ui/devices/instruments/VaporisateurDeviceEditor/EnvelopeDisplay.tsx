@@ -44,8 +44,8 @@ export const EnvelopeDisplay = ({lifecycle, sustain, receiver, address}: Constru
                 path.lineTo(actualWidth, valueToY(0.0))
                 path.lineTo(0, valueToY(0.0))
                 const gradient = context.createLinearGradient(0, top, 0, bottom)
-                gradient.addColorStop(0.0, "hsla(200, 83%, 60%, 0.12)")
-                gradient.addColorStop(1.0, "hsla(200, 83%, 60%, 0.00)")
+                gradient.addColorStop(0.0, "hsla(200, 83%, 60%, 0.2)")
+                gradient.addColorStop(1.0, "hsla(200, 83%, 60%, 0.0)")
                 context.fillStyle = gradient
                 context.fill(path)
                 context.beginPath()
