@@ -36,9 +36,9 @@ export const renderMarkdown = (element: HTMLElement, text: string) => {
     })
     element.querySelectorAll("code").forEach(code => {
         code.title = "Click to copy to clipboard"
-        code.onclick = () => {
+        code.onclick = async () => {
             if (isDefined(code.textContent)) {
-                navigator.clipboard.writeText(code.textContent)
+                await navigator.clipboard.writeText(code.textContent)
                 alert("Copied to clipboard")
             }
         }

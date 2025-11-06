@@ -37,11 +37,12 @@ export const ManualPage: PageFactory<StudioService> = ({service, path}: PageCont
                 </nav>
             </aside>
             <div className="manual">
-                <Await factory={() => fetch(`${path ?? "index"}.md?uuid=${service.buildInfo.uuid}`).then(x => x.text())}
-                       failure={(error) => `Unknown request (${error.reason})`}
-                       loading={() => <ThreeDots/>}
-                       success={text => <Markdown text={text}/>}
-                />
+                {path === "/manuals/" ? (<p>Select a topic in the side bar...</p>) : (<Await
+                    factory={() => fetch(`${path ?? "index"}.md?uuid=${service.buildInfo.uuid}`).then(x => x.text())}
+                    failure={(error) => `Unknown request (${error.reason})`}
+                    loading={() => <ThreeDots/>}
+                    success={text => <Markdown text={text}/>}
+                />)}
             </div>
         </div>
     )
