@@ -1,8 +1,9 @@
 import {Xml} from "@opendaw/lib-xml"
 import {asDefined, isDefined, panic, UUID} from "@opendaw/lib-std"
 import {FileReferenceSchema, MetaDataSchema, ProjectSchema} from "@opendaw/lib-dawproject"
-import {Project} from "../project/Project"
+import {Project} from "../project"
 import {DawProjectExporter} from "./DawProjectExporter"
+import {ExternalLib} from "../ExternalLib"
 
 export namespace DawProject {
     export type Resource = { uuid: UUID.Bytes, path: string, name: string, buffer: ArrayBuffer }
@@ -12,12 +13,12 @@ export namespace DawProject {
         fromUUID(uuid: UUID.Bytes): Resource
     }
 
-    export const decode = async (buffer: ArrayBuffer | NonSharedBuffer): Promise<{
+    export const decode = async (buffer: ArrayBuffer | Buffer<ArrayBuffer>): Promise<{
         metaData: MetaDataSchema,
         project: ProjectSchema,
         resources: ResourceProvider
     }> => {
-        const {default: JSZip} = await import("jszip")
+        const JSZip = await ExternalLib.JSZip()
         const zip = await JSZip.loadAsync(buffer)
         const metaDataXml = await zip.file("metadata.xml")?.async("string")
         const metaData = isDefined(metaDataXml) ? Xml.parse(metaDataXml, MetaDataSchema) : Xml.element({}, MetaDataSchema)
@@ -44,7 +45,7 @@ export namespace DawProject {
     }
 
     export const encode = async (project: Project, metaData: MetaDataSchema): Promise<ArrayBuffer> => {
-        const {default: JSZip} = await import("jszip")
+        const JSZip = await ExternalLib.JSZip()
         const zip = new JSZip()
         const projectSchema = DawProjectExporter.write(project, {
             write: (path: string, buffer: ArrayBuffer): FileReferenceSchema => {

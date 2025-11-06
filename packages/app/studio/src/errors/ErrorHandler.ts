@@ -7,6 +7,8 @@ import {Surface} from "@/ui/surface/Surface.tsx"
 import {Dialogs} from "@/ui/components/dialogs.tsx"
 import {BuildInfo} from "@/BuildInfo"
 
+const extensionErrors = ["script-src blocked eval", "extension"]
+
 export class ErrorHandler {
     readonly #terminator = new Terminator()
 
@@ -35,7 +37,8 @@ export class ErrorHandler {
                 Dialogs.info({headline: "Warning", message: reason.message}).then(EmptyExec)
                 return false
             }
-            if (error.message?.includes("script-src blocked eval")) {
+            const isExtension = extensionErrors.includes(error.message ?? "")
+            if (isExtension) {
                 event.preventDefault()
                 Dialogs.info({
                     headline: "Warning",
@@ -65,8 +68,9 @@ export class ErrorHandler {
             }).then(console.info, console.warn)
         }
         console.error(scope, error.name, error.message, error.stack)
+        const isExtension = extensionErrors.includes(error.message ?? "")
         const probablyHasExtension = document.scripts.length > 1
-            || error.message?.includes("script-src blocked eval") === true
+            || isExtension
             || error.stack?.includes("chrome-extension://") === true
         if (Surface.isAvailable()) {
             Dialogs.error({

@@ -8,14 +8,13 @@ import {FilePickerAcceptTypes} from "../FilePickerAcceptTypes"
 import {OpenSoundfontAPI} from "./OpenSoundfontAPI"
 import {AssetService} from "../AssetService"
 import type {SoundFont2} from "soundfont2"
+import {ExternalLib} from "../ExternalLib"
 
 export class SoundfontService extends AssetService<Soundfont> {
     protected readonly namePlural: string = "Soundfonts"
     protected readonly nameSingular: string = "Soundfont"
     protected readonly boxType: Class<Box> = SoundfontFileBox
     protected readonly filePickerOptions: FilePickerOptions = FilePickerAcceptTypes.SoundfontFiles
-
-    readonly #soundFont2 = Promises.memoizeAsync(() => import ("soundfont2"))
 
     #local: Option<Array<Soundfont>> = Option.None
     #remote: Option<ReadonlyArray<Soundfont>> = Option.None
@@ -85,7 +84,7 @@ export class SoundfontService extends AssetService<Soundfont> {
     }
 
     async #createSoundFont2(buffer: ArrayBuffer): Promise<SoundFont2> {
-        const {SoundFont2} = await this.#soundFont2()
+        const SoundFont2 = await ExternalLib.SoundFont2()
         return new SoundFont2(new Uint8Array(buffer))
     }
 }

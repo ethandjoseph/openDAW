@@ -9,11 +9,12 @@ import {Workers} from "../Workers"
 import {SampleStorage} from "../samples"
 import type JSZip from "jszip"
 import {SoundfontStorage} from "../soundfont"
+import {ExternalLib} from "../ExternalLib"
 
 export namespace ProjectBundle {
     export const encode = async ({uuid, project, meta, cover}: ProjectProfile,
                                  progress: MutableObservableValue<unitValue>): Promise<ArrayBuffer> => {
-        const {default: JSZip} = await import("jszip")
+        const JSZip = await ExternalLib.JSZip()
         const zip = new JSZip()
         zip.file("version", "1")
         zip.file("uuid", uuid, {binary: true})
@@ -53,7 +54,7 @@ export namespace ProjectBundle {
     export const decode = async (env: ProjectEnv,
                                  arrayBuffer: ArrayBuffer,
                                  openProfileUUID?: UUID.Bytes): Promise<ProjectProfile> => {
-        const {default: JSZip} = await import("jszip")
+        const JSZip = await ExternalLib.JSZip()
         const zip = await JSZip.loadAsync(arrayBuffer)
         if (await asDefined(zip.file("version")).async("text") !== "1") {
             return panic("Unknown bundle version")
