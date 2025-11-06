@@ -48,7 +48,11 @@ export const WaveformDisplay = ({lifecycle, adapter}: Construct) => {
                 context.stroke(path)
                 path.lineTo(actualWidth, centerY)
                 path.lineTo(0, centerY)
-                context.fillStyle = "hsla(200, 83%, 60%, 0.08)"
+                const gradient = context.createLinearGradient(0, top, 0, bottom)
+                gradient.addColorStop(0.0, "hsla(200, 83%, 60%, 0.12)")
+                gradient.addColorStop(0.5, "hsla(200, 83%, 60%, 0.00)")
+                gradient.addColorStop(1.0, "hsla(200, 83%, 60%, 0.12)")
+                context.fillStyle = gradient
                 context.fill(path)
                 context.beginPath()
                 context.moveTo(0, centerY)
