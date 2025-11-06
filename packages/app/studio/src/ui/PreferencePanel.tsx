@@ -13,9 +13,10 @@ type Construct = {
     lifecycle: Lifecycle
 }
 
-const Labels: Record<keyof Preferences, string> = {
+const Labels: { [K in keyof Preferences]: string } = {
     "auto-open-clips": "Always open clip view",
     "auto-create-output-compressor": "Automatically add compressor to main output",
+    "dragging-use-pointer-lock": "Use Pointer Lock when dragging close to window edges",
     "footer-show-fps-meter": "🪲 Show FPS meter",
     "footer-show-build-infos": "🪲 Show Build Informations"
 }
@@ -23,7 +24,9 @@ const Labels: Record<keyof Preferences, string> = {
 export const PreferencePanel = ({lifecycle}: Construct) => {
     return (
         <div className={className}>
-            {Object.entries(Preferences.values).map(([key, value]) => {
+            {Object.keys(Labels).map(key => {
+                const pKey = key as keyof Preferences
+                const value = Preferences.values[pKey]
                 switch (typeof value) {
                     case "boolean": {
                         const pKey = key as keyof Preferences

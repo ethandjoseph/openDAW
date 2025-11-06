@@ -25,7 +25,11 @@ export namespace Dragging {
         multiTouch?: boolean
         immediate?: boolean
         permanentUpdates?: boolean
+        pointerLock?: boolean
+        pointerLockThreshold?: number
     }
+
+    export let usePointerLock = false
 
     export const attach = <T extends PointerCaptureTarget>(target: T,
                                                            factory: Func<PointerEvent, Option<Process>>,
@@ -41,6 +45,28 @@ export namespace Dragging {
             event.stopPropagation()
             event.stopImmediatePropagation()
             target.setPointerCapture(pointerId)
+
+            // Pointer lock configuration
+            const usePointerLock = options?.pointerLock !== false && Dragging.usePointerLock
+            const threshold = options?.pointerLockThreshold ?? 16
+            const targetElement = target instanceof Element ? target : null
+            let pointerLockActive = false
+
+            const requestPointerLockIfNeeded = (clientX: number, clientY: number): void => {
+                if (!usePointerLock || targetElement === null || pointerLockActive) {return}
+
+                // Check if the pointer is near window edges
+                const nearLeft = clientX < threshold
+                const nearRight = clientX > window.innerWidth - threshold
+                const nearTop = clientY < threshold
+                const nearBottom = clientY > window.innerHeight - threshold
+
+                if (nearLeft || nearRight || nearTop || nearBottom) {
+                    targetElement.requestPointerLock?.()
+                    pointerLockActive = true
+                }
+            }
+
             const moveEvent = {
                 clientX: event.clientX,
                 clientY: event.clientY,
@@ -55,8 +81,15 @@ export namespace Dragging {
                 processCycle.own(AnimationFrame.add(() => process.update(moveEvent)))
                 processCycle.own(Events.subscribe(target, "pointermove", (event: PointerEvent) => {
                     if (event.pointerId === pointerId) {
-                        moveEvent.clientX = event.clientX
-                        moveEvent.clientY = event.clientY
+                        // Accumulate movement deltas into clientX/Y when the pointer is locked
+                        if (targetElement !== null && document.pointerLockElement === targetElement) {
+                            moveEvent.clientX += event.movementX
+                            moveEvent.clientY += event.movementY
+                        } else {
+                            moveEvent.clientX = event.clientX
+                            moveEvent.clientY = event.clientY
+                            requestPointerLockIfNeeded(event.clientX, event.clientY)
+                        }
                         moveEvent.altKey = event.altKey
                         moveEvent.shiftKey = event.shiftKey
                         moveEvent.ctrlKey = Keyboard.isControlKey(event)
@@ -65,8 +98,15 @@ export namespace Dragging {
             } else {
                 processCycle.own(Events.subscribe(target, "pointermove", (event: PointerEvent) => {
                     if (event.pointerId === pointerId) {
-                        moveEvent.clientX = event.clientX
-                        moveEvent.clientY = event.clientY
+                        // Accumulate movement deltas into clientX/Y when the pointer is locked
+                        if (targetElement !== null && document.pointerLockElement === targetElement) {
+                            moveEvent.clientX += event.movementX
+                            moveEvent.clientY += event.movementY
+                        } else {
+                            moveEvent.clientX = event.clientX
+                            moveEvent.clientY = event.clientY
+                            requestPointerLockIfNeeded(event.clientX, event.clientY)
+                        }
                         moveEvent.altKey = event.altKey
                         moveEvent.shiftKey = event.shiftKey
                         moveEvent.ctrlKey = Keyboard.isControlKey(event)
@@ -75,6 +115,9 @@ export namespace Dragging {
                 }))
             }
             const cancel = () => {
+                if (pointerLockActive && targetElement !== null && document.pointerLockElement === targetElement) {
+                    document.exitPointerLock()
+                }
                 process.cancel?.call(process)
                 process.finally?.call(process)
                 processCycle.terminate()
@@ -83,6 +126,9 @@ export namespace Dragging {
             processCycle.ownAll(
                 Events.subscribe(target, "pointerup", (event: PointerEvent) => {
                     if (event.pointerId === pointerId) {
+                        if (pointerLockActive && targetElement !== null && document.pointerLockElement === targetElement) {
+                            document.exitPointerLock()
+                        }
                         process.approve?.call(process)
                         process.finally?.call(process)
                         processCycle.terminate()

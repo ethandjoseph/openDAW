@@ -35,7 +35,7 @@ import {AudioOutputDevice} from "@/audio/AudioOutputDevice"
 import {FooterLabel} from "@/service/FooterLabel"
 import {RouteLocation} from "@opendaw/lib-jsx"
 import {PPQN} from "@opendaw/lib-dsp"
-import {Browser, ConsoleCommands} from "@opendaw/lib-dom"
+import {Browser, ConsoleCommands, Dragging} from "@opendaw/lib-dom"
 import {Promises} from "@opendaw/lib-runtime"
 import {ExportStemsConfiguration} from "@opendaw/studio-adapters"
 import {Address} from "@opendaw/lib-box"
@@ -141,6 +141,7 @@ export class StudioService implements ProjectEnv {
         this.#configLocalStorage()
         this.#configBeforeUnload()
         this.#checkRecovery()
+        this.#listenPreferences()
     }
 
     get sampleRate(): number {return this.audioContext.sampleRate}
@@ -422,5 +423,9 @@ export class StudioService implements ProjectEnv {
                 this.#projectProfileService.setValue(optProfile)
             }
         }, EmptyExec)
+    }
+
+    #listenPreferences(): void {
+        Preferences.catchupAndSubscribe(value => Dragging.usePointerLock = value, "dragging-use-pointer-lock")
     }
 }

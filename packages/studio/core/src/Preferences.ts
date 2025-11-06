@@ -5,7 +5,8 @@ const PreferencesSchema = z.object({
     "auto-open-clips": z.boolean().default(false),
     "auto-create-output-compressor": z.boolean().default(true),
     "footer-show-fps-meter": z.boolean().default(false),
-    "footer-show-build-infos": z.boolean().default(false)
+    "footer-show-build-infos": z.boolean().default(false),
+    "dragging-use-pointer-lock": z.boolean().default(false),
 })
 
 export type Preferences = z.infer<typeof PreferencesSchema>
