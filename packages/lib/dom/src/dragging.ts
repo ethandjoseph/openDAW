@@ -1,4 +1,4 @@
-import {Func, isDefined, Option, safeRead, Terminable, Terminator} from "@opendaw/lib-std"
+import {Func, int, isDefined, Option, safeRead, Terminable, Terminator} from "@opendaw/lib-std"
 import {Browser} from "./browser"
 import {AnimationFrame} from "./frames"
 import {Events, PointerCaptureTarget} from "./events"
@@ -37,7 +37,7 @@ export namespace Dragging {
             const option: Option<Process> = factory(event)
             if (option.isEmpty()) {return}
             const process: Process = option.unwrap()
-            const pointerId: number = event.pointerId
+            const pointerId: int = event.pointerId
             event.stopPropagation()
             event.stopImmediatePropagation()
             target.setPointerCapture(pointerId)

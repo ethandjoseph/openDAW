@@ -97,12 +97,12 @@ export namespace ValueGuide {
         }
 
         begin(value: unitValue): void {
-            if (this.#enabled) {this.#x = this.valueToX(value)}
+            this.#x = this.#enabled ? this.valueToX(value) : value
             this.#value = value
         }
 
         moveBy(delta: number): void {
-            assert(!isNaN(this.#value), () => "value has never been set")
+            assert(isFinite(this.#value) && isFinite(this.#x), () => "value has never been set (moveBy)")
             this.#x += delta / this.#length * this.#ratio
             this.#value = this.#enabled ? this.xToValue(this.#x) : clamp(this.#x, 0.0, 1.0)
         }
@@ -110,7 +110,7 @@ export namespace ValueGuide {
         ratio(value: number): void {this.#ratio = value}
 
         value(): unitValue {
-            assert(!isNaN(this.#value), () => "value has never been set")
+            assert(isFinite(this.#value), () => "value has never been set (value)")
             return this.#value
         }
 
