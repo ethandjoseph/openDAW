@@ -5,7 +5,7 @@ component
   flex: 1
   display: flex
   flex-direction: column
-  line-height: 1.5em
+  line-height: 1.25em
   padding: 0 0.25em
   position: relative
   overflow: hidden
@@ -13,15 +13,16 @@ component
   @include colors.panel-background
 
   > div.filter
-    font-size: 1.25em
+    font-size: 1rem
     display: flex
     align-items: center
-    height: 2em
+    height: 2rem
     column-gap: 0.25em
     margin-bottom: 0.5em
     grid-column: 1 / -1
 
   > div.content
+    font-size: 11px
     flex: 1 0 0
     display: grid
     grid-template-columns: 1fr auto auto auto
@@ -60,7 +61,6 @@ component
 
   header > span
     color: var(--color-blue)
-    line-height: 1.75em
 
     &.right
       text-align: right
