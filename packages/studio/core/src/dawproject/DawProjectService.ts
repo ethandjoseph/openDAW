@@ -41,15 +41,23 @@ export class DawProjectService {
     }
 
     async exportDawproject(profile: ProjectProfile): Promise<void> {
+        const dialog = RuntimeNotifier.progress({headline: "Exporting DawProject..."})
         const {project, meta} = profile
         const {status, error, value: zip} = await Promises.tryCatch(DawProject.encode(project, Xml.element({
             title: meta.name,
             year: new Date().getFullYear().toString(),
             website: "https://opendaw.studio"
         }, MetaDataSchema)))
+        dialog.terminate()
         if (status === "rejected") {
             return RuntimeNotifier.info({headline: "Export Error", message: String(error)})
         } else {
+            const approved = await RuntimeNotifier.approve({
+                headline: "Save DawProject?",
+                message: "",
+                approveText: "Save"
+            })
+            if (!approved) {return}
             const {status, error} = await Promises.tryCatch(Files.save(zip,
                 {types: [FilePickerAcceptTypes.DawprojectFileType]}))
             if (status === "rejected" && !Errors.isAbort(error)) {
