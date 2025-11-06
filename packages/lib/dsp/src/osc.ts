@@ -97,14 +97,15 @@ export class BandLimitedOscillator {
 
             case ClassicWaveform.triangle:
                 for (let i = fromIndex; i < toIndex; i++) {
-                    const phaseInc = freqBuffer[i] * this.#invSampleRate
                     const t = this.#phase % 1.0
+                    const inc = freqBuffer[i] * this.#invSampleRate
                     let sq = t < 0.5 ? 1.0 : -1.0
-                    sq += this.#polyBLEP(t, phaseInc)
-                    sq -= this.#polyBLEP((t + 0.5) % 1.0, phaseInc)
-                    this.#integrator += sq * (4.0 * phaseInc)
+                    sq += this.#polyBLEP(t, inc)
+                    sq -= this.#polyBLEP((t + 0.5) % 1.0, inc)
+                    this.#integrator += sq * (4.0 * inc)
+                    this.#integrator *= 0.9995 // leak DC
                     output[i] = this.#integrator
-                    this.#phase += phaseInc
+                    this.#phase += inc
                 }
                 break
         }
