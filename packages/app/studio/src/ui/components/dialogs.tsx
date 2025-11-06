@@ -32,6 +32,7 @@ export namespace Dialogs {
         abortSignal?: AbortSignal
         excludeOk?: boolean
         cancelable?: boolean
+        growWidth?: boolean
     }
 
     type Info = {
@@ -45,7 +46,10 @@ export namespace Dialogs {
     }
 
     export const show = async (
-        {headline, content, okText, buttons, origin, abortSignal, excludeOk, cancelable}: Default): Promise<void> => {
+        {
+            headline, content, okText, buttons, origin,
+            abortSignal, excludeOk, cancelable, growWidth
+        }: Default): Promise<void> => {
         const actualButtons: Array<Button> = isDefined(buttons) ? [...buttons] : []
         if (excludeOk !== true) {
             actualButtons.push({
@@ -64,7 +68,8 @@ export namespace Dialogs {
             <Dialog headline={headline ?? "Dialog"}
                     icon={IconSymbol.System}
                     cancelable={cancelable !== false}
-                    buttons={actualButtons}>
+                    buttons={actualButtons}
+                    growWidth={growWidth}>
                 <div style={{padding: "1em 0", color: Colors.dark}}>{content}</div>
             </Dialog>
         )

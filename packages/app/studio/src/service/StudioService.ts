@@ -426,6 +426,7 @@ export class StudioService implements ProjectEnv {
     }
 
     #listenPreferences(): void {
-        Preferences.catchupAndSubscribe(value => Dragging.usePointerLock = value, "dragging-use-pointer-lock")
+        Preferences.catchupAndSubscribe(value =>
+            Dragging.usePointerLock = value && Browser.isChrome(), "dragging-use-pointer-lock")
     }
 }

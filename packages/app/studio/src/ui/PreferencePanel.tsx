@@ -16,7 +16,7 @@ type Construct = {
 const Labels: { [K in keyof Preferences]: string } = {
     "auto-open-clips": "Always open clip view",
     "auto-create-output-compressor": "Automatically add compressor to main output",
-    "dragging-use-pointer-lock": "Use Pointer Lock when dragging close to window edges",
+    "dragging-use-pointer-lock": "Use Pointer Lock when dragging close to window edges [Chrome only]",
     "footer-show-fps-meter": "🪲 Show FPS meter",
     "footer-show-build-infos": "🪲 Show Build Informations"
 }

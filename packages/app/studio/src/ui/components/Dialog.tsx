@@ -26,14 +26,15 @@ type Construct = {
     cancelable?: boolean
     buttons?: ReadonlyArray<Button>
     style?: Partial<CSSStyleDeclaration>
+    growWidth?: boolean
     error?: boolean
 }
 
 export const Dialog = (
-    {headline, icon, onCancel, buttons, cancelable, style, error}: Construct, children: JsxValue) => {
+    {headline, icon, onCancel, buttons, cancelable, style, growWidth, error}: Construct, children: JsxValue) => {
     const lifecycle = new Terminator()
     const dialog: HTMLDialogElement = (
-        <dialog className={Html.buildClassList(className, error && "error")} style={style}>
+        <dialog className={Html.buildClassList(className, error && "error", growWidth && "grow-width")} style={style}>
             <h1><Icon symbol={icon}/> <span>{headline}</span></h1>
             {children}
             <footer>

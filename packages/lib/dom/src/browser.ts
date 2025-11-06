@@ -8,6 +8,7 @@ export namespace Browser {
     export const isLocalHost = () => hasLocation && location.host.includes("localhost")
     export const isMacOS = () => hasNavigator && navigator.userAgent.includes("Mac OS X")
     export const isWindows = () => hasNavigator && navigator.userAgent.includes("Windows")
+    export const isChrome = () => hasNavigator && /chrome|chromium|crios/.test(navigator.userAgent.toLowerCase()) && !/edg|opera|opr/.test(navigator.userAgent.toLowerCase())
     export const isFirefox = () => hasNavigator && navigator.userAgent.toLowerCase().includes("firefox")
     export const isWeb = () => !isTauriApp()
     export const isVitest = typeof process !== "undefined" && process.env?.VITEST === "true"

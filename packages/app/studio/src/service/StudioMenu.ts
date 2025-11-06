@@ -198,7 +198,8 @@ export const populateStudioMenu = (service: StudioService) => {
                             const lifecycle = new Terminator()
                             await Promises.tryCatch(Dialogs.show({
                                 headline: "Preferences",
-                                content: PreferencePanel({lifecycle})
+                                content: PreferencePanel({lifecycle}),
+                                growWidth: true
                             }))
                             lifecycle.terminate()
                         })
