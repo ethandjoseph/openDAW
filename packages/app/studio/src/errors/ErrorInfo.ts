@@ -7,9 +7,15 @@ export type ErrorInfo = {
 }
 
 export namespace ErrorInfo {
+    const MAX_STACK_SIZE = 1000
+
     export const extract = (event: Event): ErrorInfo => {
         if (event instanceof ErrorEvent && event.error instanceof Error) {
-            return {name: event.error.name || "Error", message: event.error.message, stack: event.error.stack}
+            return {
+                name: event.error.name || "Error",
+                message: event.error.message,
+                stack: event.error.stack?.slice(0, MAX_STACK_SIZE)
+            }
         } else if (event instanceof PromiseRejectionEvent) {
             let reason = event.reason
             if (reason instanceof Error) {
@@ -19,14 +25,14 @@ export namespace ErrorInfo {
                         throw reason
                     } catch (error) {
                         if (error instanceof Error) {
-                            reason = {...reason, stack: error.stack}
+                            reason = {...reason, stack: error.stack?.slice(0, MAX_STACK_SIZE)}
                         }
                     }
                 }
                 return {
                     name: reason.name || "UnhandledRejection",
                     message: reason.message,
-                    stack: reason.stack
+                    stack: reason.stack?.slice(0, MAX_STACK_SIZE)
                 }
             } else {
                 return {

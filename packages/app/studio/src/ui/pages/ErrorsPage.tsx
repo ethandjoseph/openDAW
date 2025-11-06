@@ -4,9 +4,10 @@ import {StudioService} from "@/service/StudioService.ts"
 import {Events, Html} from "@opendaw/lib-dom"
 import {Entry, ErrorEntry} from "@/ui/pages/errors/ErrorEntry"
 import {Promises, Wait} from "@opendaw/lib-runtime"
+import {Colors} from "@opendaw/studio-core"
 
 const className = Html.adoptStyleSheet(css, "ErrorsPage")
-const loadLimit = 10
+const loadLimit = 100
 
 export const ErrorsPage: PageFactory<StudioService> = ({lifecycle}: PageContext<StudioService>) => {
     let offset = 0
@@ -21,6 +22,11 @@ export const ErrorsPage: PageFactory<StudioService> = ({lifecycle}: PageContext<
             <h1>Errors</h1>
             <p>This page shows all errors reported from users running openDAW in production, helping us identify and fix
                 issues.</p>
+            <code onInit={async element => {
+                element.textContent = "loading status..."
+                element.textContent = await fetch("https://logs.opendaw.studio/status.php").then(x => x.json())
+                    .then(x => Object.entries(x).map(([key, value]) => `${key}: ${value}`).join(", "))
+            }} style={{fontSize: "10px", marginBottom: "1em", color: Colors.blue}}/>
             <Await
                 factory={() => loadMore()}
                 failure={(error) => `Unknown request (${error.reason})`}
