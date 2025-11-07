@@ -126,6 +126,7 @@ export namespace InstrumentFactories {
                 box.voicingMode.setInitValue(VoicingMode.Polyphonic)
                 box.waveform.setInitValue(ClassicWaveform.saw)
                 box.lfo.rate.setInitValue(1.0)
+                box.oscillators.fields()[0].volume.setInitValue(0)
                 box.oscillators.fields()[1].volume.setInitValue(Number.NEGATIVE_INFINITY)
                 box.oscillators.fields()[1].waveform.setInitValue(ClassicWaveform.saw)
                 box.host.refer(host)

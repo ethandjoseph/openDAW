@@ -23,8 +23,8 @@ import {VaporisateurDeviceProcessor} from "./VaporisateurDeviceProcessor"
 // We can do this because there is no multi-threading within the processor
 const [
     oscABuffer, oscBBuffer, freqBuffer, freqBufferA, freqBufferB,
-    vcaBuffer, lfoBuffer, cutoffBuffer, oscSumBuffer
-] = Arrays.create(() => new Float32Array(RenderQuantum), 9)
+    envBuffer, vcaBuffer, lfoBuffer, cutoffBuffer, oscSumBuffer
+] = Arrays.create(() => new Float32Array(RenderQuantum), 10)
 
 export class VaporisateurVoice implements Voice {
     readonly device: VaporisateurDeviceProcessor
@@ -120,11 +120,12 @@ export class VaporisateurVoice implements Voice {
         for (let i = fromIndex; i < toIndex; i++) {
             // apply lfo
             const lfo = lfoBuffer[i]
-            vcaBuffer[i] += lfo * lfo_target_volume
             cutoffBuffer[i] = flt_cutoff
                 + this.filter_keyboard_delta
                 + vcaBuffer[i] * flt_env_amount
                 + lfo * lfo_target_cutoff
+            // apply gain
+            vcaBuffer[i] *= clampUnit(gain + lfo * lfo_target_volume)
             // compute frequencies
             const frequency = freqBuffer[i] * (2.0 ** (lfo * lfo_target_tune))
             freqBufferA[i] = frequency * frequencyAMultiplier
@@ -136,8 +137,8 @@ export class VaporisateurVoice implements Voice {
 
         for (let i = fromIndex; i < toIndex; i++) {
             oscSumBuffer[i] =
-                oscABuffer[i] * this.gainASmooth.process(gainOscA * gain)
-                + oscBBuffer[i] * this.gainBSmooth.process(gainOscB * gain)
+                oscABuffer[i] * this.gainASmooth.process(gainOscA)
+                + oscBBuffer[i] * this.gainBSmooth.process(gainOscB)
         }
 
         this.filter.order = flt_order
