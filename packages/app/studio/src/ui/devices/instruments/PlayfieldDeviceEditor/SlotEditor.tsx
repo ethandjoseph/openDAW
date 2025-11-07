@@ -16,7 +16,8 @@ import {ParameterLabel} from "@/ui/components/ParameterLabel"
 import {RelativeUnitValueDragging} from "@/ui/wrapper/RelativeUnitValueDragging"
 import {SnapValueThresholdInPixels} from "@/ui/timeline/editors/value/ValueMoveModifier"
 import {Colors} from "@opendaw/studio-core"
-import {IconSymbol} from "@opendaw/studio-enums"
+import {IconSymbol, Pointers} from "@opendaw/studio-enums"
+import {PointerField} from "@opendaw/lib-box"
 
 const className = Html.adoptStyleSheet(css, "SlotEditor")
 
@@ -88,8 +89,10 @@ export const SlotEditor = ({lifecycle, service, adapter}: Construct) => {
                 approve: () => editing.mark()
             } satisfies Dragging.Process)
         }),
-        adapter.box.device.subscribe(() =>
-            userEditingManager.audioUnit.edit(deviceAdapter.audioUnitBoxAdapter().box.editing)),
+        adapter.box.device.subscribe((pointer: PointerField<Pointers.Sample>) => {
+            if (!pointer.isAttached()) {return}
+            userEditingManager.audioUnit.edit(deviceAdapter.audioUnitBoxAdapter().box.editing)
+        }),
         sampleStart.subscribe(waveformPainter.requestUpdate),
         sampleEnd.subscribe(waveformPainter.requestUpdate),
         service.project.liveStreamReceiver.subscribeFloats(adapter.address, array => {
