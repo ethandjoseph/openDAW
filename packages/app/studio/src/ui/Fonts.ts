@@ -3,7 +3,7 @@ import {FontFaceProperties} from "@opendaw/lib-dom"
 export const Fonts = {
     Rubik: <FontFaceProperties>{
         "font-family": "Rubik",
-        "font-weight": 300,
+        "font-weight": 400,
         "font-style": "normal",
         "src": "/fonts/rubik.woff2"
     },
