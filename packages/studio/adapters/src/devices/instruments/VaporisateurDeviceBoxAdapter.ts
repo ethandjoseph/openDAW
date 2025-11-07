@@ -48,22 +48,42 @@ export class VaporisateurDeviceBoxAdapter implements InstrumentDeviceBoxAdapter 
     #wrapParameters(box: VaporisateurDeviceBox) {
         const VoiceModes = [VoicingMode.Monophonic, VoicingMode.Polyphonic]
         return {
-            volume: this.#parametric.createParameter(
-                box.volume,
-                ValueMapping.DefaultDecibel,
-                StringMapping.numeric({unit: "db", fractionDigits: 1}), "Volume"),
-            octave: this.#parametric.createParameter(
-                box.octave,
-                ValueMapping.linearInteger(-3, 3),
-                StringMapping.numeric({unit: "oct"}), "Octave", 0.5),
-            tune: this.#parametric.createParameter(
-                box.tune,
-                ValueMapping.linear(-1200.0, +1200.0),
-                StringMapping.numeric({unit: "ct", fractionDigits: 0}), "Tune", 0.5),
-            waveform: this.#parametric.createParameter(
-                box.waveform,
-                ValueMapping.linearInteger(0, 3),
-                StringMapping.indices("", ["Sine", "Triangle", "Sawtooth", "Square"]), "Osc Shape"),
+            oscillators: box.oscillators.fields().map(osc => ({
+                waveform: this.#parametric.createParameter(
+                    osc.waveform,
+                    ValueMapping.linearInteger(0, 3),
+                    StringMapping.indices("", ["Sine", "Triangle", "Sawtooth", "Square"]), "Waveform"),
+                volume: this.#parametric.createParameter(
+                    osc.volume,
+                    ValueMapping.DefaultDecibel,
+                    StringMapping.numeric({unit: "db", fractionDigits: 1}), "Volume"),
+                octave: this.#parametric.createParameter(
+                    osc.octave,
+                    ValueMapping.linearInteger(-3, 3),
+                    StringMapping.numeric({unit: "oct"}), "Octave", 0.5),
+                tune: this.#parametric.createParameter(
+                    osc.tune,
+                    ValueMapping.linear(-1200.0, +1200.0),
+                    StringMapping.numeric({unit: "ct", fractionDigits: 0}), "Tune", 0.5)
+            })),
+            noise: {
+                volume: this.#parametric.createParameter(
+                    box.noise.volume,
+                    ValueMapping.DefaultDecibel,
+                    StringMapping.numeric({unit: "db", fractionDigits: 1}), "Volume"),
+                attack: this.#parametric.createParameter(
+                    box.noise.attack,
+                    ValueMapping.exponential(0.001, 5.0),
+                    StringMapping.numeric({unit: "s", fractionDigits: 3}), "Attack"),
+                hold: this.#parametric.createParameter(
+                    box.noise.hold,
+                    ValueMapping.exponential(0.001, 5.0),
+                    StringMapping.numeric({unit: "s", fractionDigits: 3}), "Hold"),
+                release: this.#parametric.createParameter(
+                    box.noise.release,
+                    ValueMapping.exponential(0.001, 5.0),
+                    StringMapping.numeric({unit: "s", fractionDigits: 3}), "Release")
+            },
             filterOrder: this.#parametric.createParameter(
                 box.filterOrder,
                 Vaporisateur.FILTER_ORDER_VALUE_MAPPING,
@@ -115,11 +135,11 @@ export class VaporisateurDeviceBoxAdapter implements InstrumentDeviceBoxAdapter 
             unisonDetune: this.#parametric.createParameter(
                 box.unisonDetune,
                 ValueMapping.exponential(1.0, 1200.0),
-                StringMapping.numeric({unit: "ct", fractionDigits: 0}), "Uni. Detune", 0.0),
+                StringMapping.numeric({unit: "ct", fractionDigits: 0}), "Detune", 0.0),
             unisonStereo: this.#parametric.createParameter(
                 box.unisonStereo,
                 ValueMapping.unipolar(),
-                StringMapping.percent({fractionDigits: 0}), "Uni. Stereo", 0.0),
+                StringMapping.percent({fractionDigits: 0}), "Stereo", 0.0),
             lfoWaveform: this.#parametric.createParameter(
                 box.lfo.waveform,
                 Vaporisateur.LFO_WAVEFORM_VALUE_MAPPING,

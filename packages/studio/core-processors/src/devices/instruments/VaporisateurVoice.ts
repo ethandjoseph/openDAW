@@ -22,17 +22,21 @@ import {VaporisateurDeviceProcessor} from "./VaporisateurDeviceProcessor"
 
 // We can do this because there is no multi-threading within the processor
 const [
-    outBuffer, vcaBuffer, lfoBuffer, freqBuffer, cutoffBuffer
-] = Arrays.create(() => new Float32Array(RenderQuantum), 5)
+    oscABuffer, oscBBuffer, freqBuffer, freqBufferA, freqBufferB,
+    vcaBuffer, lfoBuffer, cutoffBuffer, oscSumBuffer
+] = Arrays.create(() => new Float32Array(RenderQuantum), 9)
 
 export class VaporisateurVoice implements Voice {
     readonly device: VaporisateurDeviceProcessor
-    readonly osc: BandLimitedOscillator
+    readonly oscA: BandLimitedOscillator
+    readonly oscB: BandLimitedOscillator
     readonly lfo: LFO
     readonly filter: ModulatedBiquad
     readonly env: Adsr
     readonly glide: Glide
-    readonly gainSmooth: Smooth
+    readonly gainASmooth: Smooth
+    readonly gainBSmooth: Smooth
+    readonly gainVcaSmooth: Smooth
 
     #event: Id<NoteEvent> = InaccessibleProperty("NoteEvent not set")
     #gain: unitValue = 1.0
@@ -45,7 +49,8 @@ export class VaporisateurVoice implements Voice {
     constructor(device: VaporisateurDeviceProcessor) {
         this.device = device
 
-        this.osc = new BandLimitedOscillator(sampleRate)
+        this.oscA = new BandLimitedOscillator(sampleRate)
+        this.oscB = new BandLimitedOscillator(sampleRate)
         this.lfo = new LFO(sampleRate)
         this.filter = new ModulatedBiquad(Vaporisateur.MIN_CUTOFF, Vaporisateur.MAX_CUTOFF, sampleRate)
         this.filter.order = 1
@@ -53,7 +58,9 @@ export class VaporisateurVoice implements Voice {
         this.env.set(this.device.env_attack, this.device.env_decay, this.device.env_sustain, this.device.env_release)
         this.env.gateOn()
         this.glide = new Glide()
-        this.gainSmooth = new Smooth(0.003, sampleRate)
+        this.gainASmooth = new Smooth(0.003, sampleRate)
+        this.gainBSmooth = new Smooth(0.003, sampleRate)
+        this.gainVcaSmooth = new Smooth(0.003, sampleRate)
     }
 
     start(event: Id<NoteEvent>, frequency: number, gain: unitValue, spread: bipolar): void {
@@ -77,13 +84,16 @@ export class VaporisateurVoice implements Voice {
 
     process(output: AudioBuffer, {bpm}: Block, fromIndex: int, toIndex: int): boolean {
         const {
-            gain: deviceGain,
-            osc_waveform,
+            gainOscA,
+            gainOscB,
+            oscA_waveform,
+            oscB_waveform,
             flt_cutoff,
             flt_resonance,
             flt_env_amount,
             flt_order,
-            frequencyMultiplier,
+            frequencyAMultiplier,
+            frequencyBMultiplier,
             parameterLfoShape,
             parameterLfoRate,
             parameterLfoTargetTune,
@@ -92,13 +102,13 @@ export class VaporisateurVoice implements Voice {
             parameterUnisonDetune,
             parameterUnisonStereo
         } = this.device
-        const gain = velocityToGain(this.#event.velocity) * this.#gain * deviceGain
+        const gain = velocityToGain(this.#event.velocity) * this.#gain
         const detune = 2.0 ** (this.#spread * (parameterUnisonDetune.getValue() / 1200.0))
         const panning = this.#spread * parameterUnisonStereo.getValue()
         const [gainL, gainR] = StereoMatrix.panningToGains(panning, StereoMatrix.Mixing.Linear)
         const [outL, outR] = output.channels()
 
-        freqBuffer.fill(frequencyMultiplier * detune, fromIndex, toIndex)
+        freqBuffer.fill(detune, fromIndex, toIndex)
         this.glide.process(freqBuffer, bpm, fromIndex, toIndex)
         this.lfo.fill(lfoBuffer, parameterLfoShape.getValue(), parameterLfoRate.getValue(), fromIndex, toIndex)
         this.env.process(vcaBuffer, fromIndex, toIndex)
@@ -107,25 +117,35 @@ export class VaporisateurVoice implements Voice {
         const lfo_target_cutoff = parameterLfoTargetCutoff.getValue()
         const lfo_target_volume = parameterLfoTargetVolume.getValue()
 
-        // apply lfo
         for (let i = fromIndex; i < toIndex; i++) {
+            // apply lfo
             const lfo = lfoBuffer[i]
             vcaBuffer[i] += lfo * lfo_target_volume
             cutoffBuffer[i] = flt_cutoff
                 + this.filter_keyboard_delta
                 + vcaBuffer[i] * flt_env_amount
                 + lfo * lfo_target_cutoff
-            freqBuffer[i] *= 2.0 ** (lfo * lfo_target_tune)
+            // compute frequencies
+            const frequency = freqBuffer[i] * (2.0 ** (lfo * lfo_target_tune))
+            freqBufferA[i] = frequency * frequencyAMultiplier
+            freqBufferB[i] = frequency * frequencyBMultiplier
         }
 
-        this.osc.generateFromFrequencies(outBuffer, freqBuffer, osc_waveform, fromIndex, toIndex)
-
-        this.filter.order = flt_order
-        this.filter.process(outBuffer, outBuffer, cutoffBuffer, flt_resonance, fromIndex, toIndex)
+        this.oscA.generateFromFrequencies(oscABuffer, freqBufferA, oscA_waveform, fromIndex, toIndex)
+        this.oscB.generateFromFrequencies(oscBBuffer, freqBufferB, oscB_waveform, fromIndex, toIndex)
 
         for (let i = fromIndex; i < toIndex; i++) {
-            const vca = this.gainSmooth.process(clampUnit(vcaBuffer[i] * gain))
-            const out = outBuffer[i] * vca
+            oscSumBuffer[i] =
+                oscABuffer[i] * this.gainASmooth.process(gainOscA * gain)
+                + oscBBuffer[i] * this.gainBSmooth.process(gainOscB * gain)
+        }
+
+        this.filter.order = flt_order
+        this.filter.process(oscSumBuffer, oscSumBuffer, cutoffBuffer, flt_resonance, fromIndex, toIndex)
+
+        for (let i = fromIndex; i < toIndex; i++) {
+            const vca = this.gainVcaSmooth.process(clampUnit(vcaBuffer[i]))
+            const out = oscSumBuffer[i] * vca
             outL[i] += out * gainL
             outR[i] += out * gainR
             if (this.env.complete && vca < SILENCE_THRESHOLD) {return true}

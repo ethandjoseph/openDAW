@@ -42,7 +42,8 @@ export const VaporisateurDeviceBox: BoxSchema<Pointers> = DeviceFactory.createIn
     },
     40: {
         type: "array", name: "oscillators", length: 2, element: {
-            type: "object", name: "osc", class: {
+            type: "object",
+            class: {
                 name: "VaporisateurOsc",
                 fields: {
                     1: {type: "int32", name: "waveform", pointerRules: DefaultParameterPointerRules},
@@ -50,6 +51,19 @@ export const VaporisateurDeviceBox: BoxSchema<Pointers> = DeviceFactory.createIn
                     3: {type: "int32", name: "octave", pointerRules: DefaultParameterPointerRules, value: 0},
                     4: {type: "float32", name: "tune", pointerRules: DefaultParameterPointerRules}
                 }
+            }
+        }
+    },
+    50: {
+        type: "object",
+        name: "noise",
+        class: {
+            name: "VaporisateurNoise",
+            fields: {
+                1: {type: "float32", name: "attack", pointerRules: DefaultParameterPointerRules, value: 0.001},
+                2: {type: "float32", name: "hold", pointerRules: DefaultParameterPointerRules, value: 0.001},
+                3: {type: "float32", name: "release", pointerRules: DefaultParameterPointerRules, value: 0.001},
+                4: {type: "float32", name: "volume", pointerRules: DefaultParameterPointerRules, value: 0.001}
             }
         }
     },

@@ -10,14 +10,14 @@ export class BandLimitedOscillator {
         this.#invSampleRate = 1.0 / sampleRate
     }
 
-    generate(buffer: Float32Array, frequency: number, waveform: ClassicWaveform, fromIndex: number, toIndex: number): void {
+    generate(output: Float32Array, frequency: number, waveform: ClassicWaveform, fromIndex: number, toIndex: number): void {
         const phaseInc = frequency * this.#invSampleRate
 
         switch (waveform) {
             case ClassicWaveform.sine:
                 for (let i = fromIndex; i < toIndex; i++) {
                     const t = this.#phase % 1.0
-                    buffer[i] = Math.sin(2.0 * Math.PI * t)
+                    output[i] = Math.sin(2.0 * Math.PI * t)
                     this.#phase += phaseInc
                 }
                 break
@@ -27,7 +27,7 @@ export class BandLimitedOscillator {
                     const t = this.#phase % 1.0
                     let out = 2.0 * t - 1.0
                     out -= this.#polyBLEP(t, phaseInc)
-                    buffer[i] = out
+                    output[i] = out
                     this.#phase += phaseInc
                 }
                 break
@@ -38,7 +38,7 @@ export class BandLimitedOscillator {
                     let out = t < 0.5 ? 1.0 : -1.0
                     out += this.#polyBLEP(t, phaseInc)
                     out -= this.#polyBLEP((t + 0.5) % 1.0, phaseInc)
-                    buffer[i] = out
+                    output[i] = out
                     this.#phase += phaseInc
                 }
                 break
@@ -50,7 +50,7 @@ export class BandLimitedOscillator {
                     sq += this.#polyBLEP(t, phaseInc)
                     sq -= this.#polyBLEP((t + 0.5) % 1.0, phaseInc)
                     this.#integrator += sq * (4.0 * phaseInc)
-                    buffer[i] = this.#integrator
+                    output[i] = this.#integrator
                     this.#phase += phaseInc
                 }
                 break

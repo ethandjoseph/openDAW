@@ -2,11 +2,29 @@
 
 component
   display: grid
-  grid-template-columns: 2.75em repeat(5, 3.75em)
+  grid-template-columns: 2.75em 1em repeat(5, 3.75em)
   column-gap: 2px
   row-gap: 2px
   align-content: start
+  position: relative
   @include mixins.Control
+
+  > div.label
+    top: 2px
+    left: 2px
+    width: calc(100% - 4px)
+    height: calc(50% - 4px)
+    position: absolute
+    pointer-events: none
+    font-weight: bolder
+    border-radius: 3px
+    outline: 0.5px solid hsla(200, 40%, 70%, 0.12)
+    outline-offset: 1px
+    z-index: 0
+
+    &.unisono-section
+      grid-row: 1 / 1
+      grid-column: 5 / -1
 
   > div
     > *:first-child
@@ -24,6 +42,7 @@ component
       border-radius: 6px
       outline: 0.5px solid hsla(200, 40%, 70%, 0.08)
       outline-offset: -1px
+      position: relative
 
     > div
       padding: 3px 0 0 0
@@ -39,3 +58,4 @@ component
         letter-spacing: 0.5px
         text-align: center
         color: var(--color-shadow)
+        z-index: 1

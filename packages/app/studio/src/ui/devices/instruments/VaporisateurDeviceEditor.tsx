@@ -1,6 +1,6 @@
 import css from "./VaporisateurDeviceEditor.sass?inline"
-import {isDefined, Lifecycle} from "@opendaw/lib-std"
-import {createElement, Frag} from "@opendaw/lib-jsx"
+import {DefaultObservableValue, int, isDefined, Lifecycle, Terminator} from "@opendaw/lib-std"
+import {createElement, Frag, replaceChildren} from "@opendaw/lib-jsx"
 import {DeviceEditor} from "@/ui/devices/DeviceEditor.tsx"
 import {MenuItems} from "@/ui/devices/menu-items.ts"
 import {AutomatableParameterFieldAdapter, DeviceHost, VaporisateurDeviceBoxAdapter} from "@opendaw/studio-adapters"
@@ -19,6 +19,7 @@ import {WaveformDisplay} from "@/ui/devices/instruments/VaporisateurDeviceEditor
 import {EnvelopeDisplay} from "@/ui/devices/instruments/VaporisateurDeviceEditor/EnvelopeDisplay"
 import {FilterDisplay} from "@/ui/devices/instruments/VaporisateurDeviceEditor/FilterDisplay"
 import {Logo} from "@/ui/devices/instruments/VaporisateurDeviceEditor/Logo"
+import {OscillatorSelector} from "@/ui/devices/instruments/VaporisateurDeviceEditor/OscillatorSelector"
 
 const className = Html.adoptStyleSheet(css, "editor")
 
@@ -33,14 +34,12 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
     const {project} = service
     const {editing, midiLearning, liveStreamReceiver} = project
     const {
-        volume,
-        octave,
-        tune,
+        oscillators,
+        noise,
         unisonCount,
         unisonDetune,
         unisonStereo,
         glideTime,
-        waveform,
         cutoff,
         resonance,
         filterEnvelope,
@@ -57,7 +56,8 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
         release,
         voicingMode
     } = adapter.namedParameter
-    const createLabelControlFrag = (parameter: AutomatableParameterFieldAdapter<number>,
+    const createLabelControlFrag = (lifecycle: Lifecycle,
+                                    parameter: AutomatableParameterFieldAdapter<number>,
                                     threshold?: number | ReadonlyArray<number>) => (
         <Frag>
             <h3>{parameter.name}</h3>
@@ -76,7 +76,8 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
             </RelativeUnitValueDragging>
         </Frag>
     )
-    const createWaveformSelector = (parameter: AutomatableParameterFieldAdapter<ClassicWaveform>) => (
+    const createWaveformSelector = (lifecycle: Lifecycle,
+                                    parameter: AutomatableParameterFieldAdapter<ClassicWaveform>) => (
         <Frag>
             <h3>{parameter.name}</h3>
             <RadioGroup lifecycle={lifecycle}
@@ -103,6 +104,7 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
                         ]}/>
         </Frag>
     )
+    const oscSelector = lifecycle.own(new DefaultObservableValue<int>(0))
     return (
         <DeviceEditor lifecycle={lifecycle}
                       project={project}
@@ -110,8 +112,10 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
                       populateMenu={parent => MenuItems.forAudioUnitInput(parent, service, deviceHost)}
                       populateControls={() => (
                           <div className={className}>
+                              <div className="label unisono-section"/>
                               <div style={{display: "contents"}}>
                                   <Logo/>
+                                  <div/>
                                   <div>
                                       <h3>Play-Mode</h3>
                                       <RadioGroup lifecycle={lifecycle}
@@ -128,19 +132,64 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
                                                       }
                                                   ]}/>
                                   </div>
-                                  <div>{createLabelControlFrag(glideTime)}</div>
-                                  <div>{createLabelControlFrag(unisonCount)}</div>
-                                  <div>{createLabelControlFrag(unisonDetune, 0.5)}</div>
-                                  <div>{createLabelControlFrag(unisonStereo)}</div>
+                                  <div>{createLabelControlFrag(lifecycle, glideTime)}</div>
+                                  <div className="unisono-section">
+                                      {createLabelControlFrag(lifecycle, unisonCount)}
+                                  </div>
+                                  <div className="unisono-section">
+                                      {createLabelControlFrag(lifecycle, unisonDetune, 0.5)}
+                                  </div>
+                                  <div className="unisono-section">
+                                      {createLabelControlFrag(lifecycle, unisonStereo)}
+                                  </div>
                               </div>
-                              <div style={{display: "contents"}}>
-                                  <header>
-                                      <WaveformDisplay lifecycle={lifecycle} adapter={waveform}/>
-                                  </header>
-                                  <div>{createWaveformSelector(waveform)}</div>
-                                  <div>{createLabelControlFrag(octave)}</div>
-                                  <div>{createLabelControlFrag(tune, 0.5)}</div>
-                                  <div>{createLabelControlFrag(volume)}</div>
+                              <div style={{display: "contents"}} onInit={element => {
+                                  const oscLifecycle = lifecycle.own(new Terminator())
+                                  lifecycle.own(oscSelector.catchupAndSubscribe(owner => {
+                                      oscLifecycle.terminate()
+                                      const sourceIndex = owner.getValue()
+                                      replaceChildren(element, sourceIndex === 2 ? (
+                                          <Frag>
+                                              <header>
+
+                                              </header>
+                                              <OscillatorSelector lifecycle={oscLifecycle} oscIndex={oscSelector}/>
+                                              <div>
+                                                  {createLabelControlFrag(oscLifecycle, noise.attack)}
+                                              </div>
+                                              <div>
+                                                  {createLabelControlFrag(oscLifecycle, noise.hold)}
+                                              </div>
+                                              <div>
+                                                  {createLabelControlFrag(oscLifecycle, noise.release)}
+                                              </div>
+                                              <div>
+                                                  {createLabelControlFrag(oscLifecycle, noise.volume)}
+                                              </div>
+                                          </Frag>
+                                      ) : (
+                                          <Frag>
+                                              <header>
+                                                  <WaveformDisplay lifecycle={oscLifecycle}
+                                                                   adapter={oscillators[sourceIndex].waveform}/>
+                                              </header>
+                                              <OscillatorSelector lifecycle={oscLifecycle} oscIndex={oscSelector}/>
+                                              <div>
+                                                  {createWaveformSelector(oscLifecycle, oscillators[sourceIndex].waveform)}
+                                              </div>
+                                              <div>
+                                                  {createLabelControlFrag(oscLifecycle, oscillators[sourceIndex].octave)}
+                                              </div>
+                                              <div>
+                                                  {createLabelControlFrag(oscLifecycle, oscillators[sourceIndex].tune, 0.5)}
+                                              </div>
+                                              <div>
+                                                  {createLabelControlFrag(oscLifecycle, oscillators[sourceIndex].volume)}
+                                              </div>
+                                          </Frag>
+                                      ))
+                                  }))
+                              }}>
                               </div>
                               <div style={{display: "contents"}}>
                                   <header>
@@ -149,21 +198,23 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
                                                      resonance={resonance}
                                                      order={filterOrder}/>
                                   </header>
-                                  <div>{createLabelControlFrag(cutoff)}</div>
-                                  <div>{createLabelControlFrag(resonance)}</div>
-                                  <div>{createLabelControlFrag(filterEnvelope, 0.5)}</div>
-                                  <div>{createLabelControlFrag(filterKeyboard, 0.5)}</div>
-                                  <div>{createLabelControlFrag(filterOrder, 0.5)}</div>
+                                  <div/>
+                                  <div>{createLabelControlFrag(lifecycle, cutoff)}</div>
+                                  <div>{createLabelControlFrag(lifecycle, resonance)}</div>
+                                  <div>{createLabelControlFrag(lifecycle, filterEnvelope, 0.5)}</div>
+                                  <div>{createLabelControlFrag(lifecycle, filterKeyboard, 0.5)}</div>
+                                  <div>{createLabelControlFrag(lifecycle, filterOrder, 0.5)}</div>
                               </div>
                               <div style={{display: "contents"}}>
                                   <header>
                                       <WaveformDisplay lifecycle={lifecycle} adapter={lfoWaveform}/>
                                   </header>
-                                  <div>{createWaveformSelector(lfoWaveform)}</div>
-                                  <div>{createLabelControlFrag(lfoRate)}</div>
-                                  <div>{createLabelControlFrag(lfoTargetTune, 0.5)}</div>
-                                  <div>{createLabelControlFrag(lfoTargetCutoff, 0.5)}</div>
-                                  <div>{createLabelControlFrag(lfoTargetVolume, 0.5)}</div>
+                                  <div/>
+                                  <div>{createWaveformSelector(lifecycle, lfoWaveform)}</div>
+                                  <div>{createLabelControlFrag(lifecycle, lfoRate)}</div>
+                                  <div>{createLabelControlFrag(lifecycle, lfoTargetTune, 0.5)}</div>
+                                  <div>{createLabelControlFrag(lifecycle, lfoTargetCutoff, 0.5)}</div>
+                                  <div>{createLabelControlFrag(lifecycle, lfoTargetVolume, 0.5)}</div>
                               </div>
                               <div style={{display: "contents"}}>
                                   <header>
@@ -172,10 +223,11 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
                                                        receiver={liveStreamReceiver}
                                                        address={adapter.address.append(0)}/>
                                   </header>
-                                  <div>{createLabelControlFrag(attack)}</div>
-                                  <div>{createLabelControlFrag(decay)}</div>
-                                  <div>{createLabelControlFrag(sustain)}</div>
-                                  <div>{createLabelControlFrag(release)}</div>
+                                  <div/>
+                                  <div>{createLabelControlFrag(lifecycle, attack)}</div>
+                                  <div>{createLabelControlFrag(lifecycle, decay)}</div>
+                                  <div>{createLabelControlFrag(lifecycle, sustain)}</div>
+                                  <div>{createLabelControlFrag(lifecycle, release)}</div>
                               </div>
                           </div>
                       )}
