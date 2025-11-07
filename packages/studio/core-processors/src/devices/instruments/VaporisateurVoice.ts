@@ -14,7 +14,7 @@ import {
     StereoMatrix,
     velocityToGain
 } from "@opendaw/lib-dsp"
-import {Arrays, bipolar, clampUnit, Id, InaccessibleProperty, int, unitValue} from "@opendaw/lib-std"
+import {bipolar, clampUnit, Id, InaccessibleProperty, int, mint, unitValue} from "@opendaw/lib-std"
 import {Voice} from "../../voicing/Voice"
 import {Block} from "../../processing"
 import {Vaporisateur} from "@opendaw/studio-adapters"
@@ -23,8 +23,8 @@ import {VaporisateurDeviceProcessor} from "./VaporisateurDeviceProcessor"
 // We can do this because there is no multi-threading within the processor
 const [
     oscABuffer, oscBBuffer, freqBuffer, freqBufferA, freqBufferB,
-    envBuffer, vcaBuffer, lfoBuffer, cutoffBuffer, oscSumBuffer
-] = Arrays.create(() => new Float32Array(RenderQuantum), 10)
+    vcaBuffer, lfoBuffer, cutoffBuffer, oscSumBuffer
+] = mint(Float32Array, RenderQuantum)
 
 export class VaporisateurVoice implements Voice {
     readonly device: VaporisateurDeviceProcessor
