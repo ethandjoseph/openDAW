@@ -1,13 +1,13 @@
-import {BoxSchema} from "@opendaw/lib-box-forge"
+import {BoxSchema, deprecated} from "@opendaw/lib-box-forge"
 import {Pointers, VoicingMode} from "@opendaw/studio-enums"
 import {DefaultParameterPointerRules} from "../../std/Defaults"
 import {DeviceFactory} from "../../std/DeviceFactory"
 
 export const VaporisateurDeviceBox: BoxSchema<Pointers> = DeviceFactory.createInstrument("VaporisateurDeviceBox", {
-    10: {type: "float32", name: "volume", pointerRules: DefaultParameterPointerRules, value: -6.0},
-    11: {type: "int32", name: "octave", pointerRules: DefaultParameterPointerRules},
-    12: {type: "float32", name: "tune", pointerRules: DefaultParameterPointerRules},
-    13: {type: "int32", name: "waveform", pointerRules: DefaultParameterPointerRules},
+    10: {type: "float32", name: "volume", deprecated, pointerRules: DefaultParameterPointerRules, value: -6.0},
+    11: {type: "int32", name: "octave", deprecated, pointerRules: DefaultParameterPointerRules},
+    12: {type: "float32", name: "tune", deprecated, pointerRules: DefaultParameterPointerRules},
+    13: {type: "int32", name: "waveform", deprecated, pointerRules: DefaultParameterPointerRules},
     14: {type: "float32", name: "cutoff", pointerRules: DefaultParameterPointerRules},
     15: {type: "float32", name: "resonance", pointerRules: DefaultParameterPointerRules},
     16: {type: "float32", name: "attack", pointerRules: DefaultParameterPointerRules},
@@ -37,6 +37,19 @@ export const VaporisateurDeviceBox: BoxSchema<Pointers> = DeviceFactory.createIn
                 10: {type: "float32", name: "target-tune", pointerRules: DefaultParameterPointerRules},
                 11: {type: "float32", name: "target-cutoff", pointerRules: DefaultParameterPointerRules},
                 12: {type: "float32", name: "target-volume", pointerRules: DefaultParameterPointerRules}
+            }
+        }
+    },
+    40: {
+        type: "array", name: "oscillators", length: 2, element: {
+            type: "object", name: "osc", class: {
+                name: "VaporisateurOsc",
+                fields: {
+                    1: {type: "int32", name: "waveform", pointerRules: DefaultParameterPointerRules},
+                    2: {type: "float32", name: "volume", pointerRules: DefaultParameterPointerRules, value: 0.0},
+                    3: {type: "int32", name: "octave", pointerRules: DefaultParameterPointerRules, value: 0},
+                    4: {type: "float32", name: "tune", pointerRules: DefaultParameterPointerRules}
+                }
             }
         }
     },

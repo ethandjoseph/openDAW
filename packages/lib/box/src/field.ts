@@ -27,6 +27,7 @@ export type FieldConstruct<T extends PointerTypes> = {
     fieldKey: FieldKey
     fieldName: string
     pointerRules: PointerRules<T>
+    deprecated: boolean
 }
 
 export class Field<P extends PointerTypes = PointerTypes, F extends Fields = Fields> implements Vertex<P, F> {
@@ -38,12 +39,14 @@ export class Field<P extends PointerTypes = PointerTypes, F extends Fields = Fie
     readonly #fieldKey: short
     readonly #fieldName: string
     readonly #pointerRules: PointerRules<P>
+    readonly #deprecated: boolean
 
-    protected constructor({parent, fieldKey, fieldName, pointerRules}: FieldConstruct<P>) {
+    protected constructor({parent, fieldKey, fieldName, pointerRules, deprecated}: FieldConstruct<P>) {
         this.#parent = parent
         this.#fieldKey = fieldKey
         this.#fieldName = fieldName
         this.#pointerRules = pointerRules
+        this.#deprecated = deprecated
 
         if (pointerRules.mandatory) {this.graph.edges().watchVertex(this)}
     }
@@ -58,6 +61,7 @@ export class Field<P extends PointerTypes = PointerTypes, F extends Fields = Fie
     get fieldKey(): short {return this.#fieldKey}
     get fieldName(): string {return this.#fieldName}
     get pointerRules(): PointerRules<P> {return this.#pointerRules}
+    get deprecated(): boolean {return this.#deprecated}
 
     @Lazy
     get pointerHub(): PointerHub {return new PointerHub(this)}

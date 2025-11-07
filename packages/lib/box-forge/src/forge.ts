@@ -361,6 +361,7 @@ class ClassWriter<E extends PointerTypes> {
         }
         const pointerRules = this.#printReferencablePointerRules(field)
         const type = field.type
+        const deprecated = field.deprecated === true
         switch (type) {
             case "field":
                 assert(!pointerRules.isEmpty, "A field must have pointers")
@@ -369,7 +370,7 @@ class ClassWriter<E extends PointerTypes> {
                     fieldName,
                     importPath: BOX_LIBRARY,
                     className: "Field",
-                    ctorParams: [this.#writeFieldConstruct(fieldKey, fieldName, pointerRules)],
+                    ctorParams: [this.#writeFieldConstruct(fieldKey, fieldName, pointerRules, deprecated)],
                     new: "Field.hook",
                     type: `Field<${pointerRules.union}>`
                 }
@@ -387,7 +388,7 @@ class ClassWriter<E extends PointerTypes> {
                     className,
                     new: `${className}.create`,
                     type: pointerRules.isEmpty ? `${className}` : `${className}<${pointerRules.union}>`,
-                    ctorParams: [this.#writeFieldConstruct(fieldKey, fieldName, pointerRules),
+                    ctorParams: [this.#writeFieldConstruct(fieldKey, fieldName, pointerRules, deprecated),
                         type === "string" ? field.value === undefined ? "" : `"${field.value}"` : field.value]
                 }
             case "pointer":
@@ -400,7 +401,7 @@ class ClassWriter<E extends PointerTypes> {
                     new: "PointerField.create",
                     type: `PointerField<${(this.#generator.pointers().print(field.pointerType))}>`,
                     ctorParams: [
-                        this.#writeFieldConstruct(fieldKey, fieldName, pointerRules),
+                        this.#writeFieldConstruct(fieldKey, fieldName, pointerRules, deprecated),
                         this.#generator.pointers().print(field.pointerType),
                         String(field.mandatory)
                     ]
@@ -418,7 +419,7 @@ class ClassWriter<E extends PointerTypes> {
                     new: "ArrayField.create",
                     type: `ArrayField<${element.type}>`,
                     ctorParams: [
-                        this.#writeFieldConstruct(fieldKey, fieldName, pointerRules),
+                        this.#writeFieldConstruct(fieldKey, fieldName, pointerRules, deprecated),
                         elementEdgeConstrainsPrinter.isEmpty
                             ? `construct => ${element.new}(${["construct",
                                 ...element.ctorParams.slice(1)]})`
@@ -439,7 +440,7 @@ class ClassWriter<E extends PointerTypes> {
                     className,
                     new: `${className}.create`,
                     type: className,
-                    ctorParams: [this.#writeFieldConstruct(fieldKey, fieldName, pointerRules)]
+                    ctorParams: [this.#writeFieldConstruct(fieldKey, fieldName, pointerRules, deprecated)]
                 }
             }
             case "reserved":
@@ -449,11 +450,10 @@ class ClassWriter<E extends PointerTypes> {
         }
     }
 
-    #writeFieldConstruct(fieldKey: FieldKey, fieldName: string, {
-        array,
-        mandatory,
-        isEmpty
-    }: PointerRulesPrinter): string {
+    #writeFieldConstruct(fieldKey: FieldKey,
+                         fieldName: string,
+                         {array, mandatory, isEmpty}: PointerRulesPrinter,
+                         deprecated: boolean): string {
         let pointerRules: string
         if (isEmpty) {
             this.#imports.add(BOX_LIBRARY, "NoPointers")
@@ -461,7 +461,7 @@ class ClassWriter<E extends PointerTypes> {
         } else {
             pointerRules = `pointerRules: {accepts: [${array}], mandatory: ${mandatory}}`
         }
-        return `{${[`parent: this`, `fieldKey: ${fieldKey}`, `fieldName: "${fieldName}"`, pointerRules].join(",")}}`
+        return `{${[`parent: this`, `fieldKey: ${fieldKey}`, `fieldName: "${fieldName}", deprecated: ${deprecated}`, pointerRules].join(",")}}`
     }
 
     #writeEdgeProperty({array, mandatory, isEmpty}: PointerRulesPrinter): string {

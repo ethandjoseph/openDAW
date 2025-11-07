@@ -120,9 +120,13 @@ export abstract class PrimitiveField<
         this.#value = newValue
         this.graph.onPrimitiveValueUpdate(this, oldValue, newValue)
     }
-    writeValue(output: ByteArrayOutput, value: V): void {this.serialization().encode(output, value)}
+    writeValue(output: ByteArrayOutput, value: V): void {
+        assert(!this.deprecated, "PrimitiveField.write: deprecated field")
+        this.serialization().encode(output, value)
+    }
     readValue(input: ByteArrayInput): V {return this.serialization().decode(input)}
     toJSON(): Optional<JSONValue> {
+        if (this.deprecated) {return undefined}
         const value = this.getValue()
         return ArrayBuffer.isView(value) ? panic("not implemented") : value
     }
@@ -142,8 +146,12 @@ export class BooleanField<E extends PointerTypes = UnreferenceableType> extends 
     equals(value: boolean): boolean {return this.getValue() === value}
     clamp(value: boolean): boolean {return value}
     read(input: DataInput): void {this.setValue(input.readBoolean())}
-    write(output: DataOutput): void {output.writeBoolean(this.getValue())}
+    write(output: DataOutput): void {
+        assert(!this.deprecated, "BooleanField.write: deprecated field")
+        output.writeBoolean(this.getValue())
+    }
     fromJSON(value: JSONValue): void {
+        if (this.deprecated) {return}
         if (typeof value === "boolean") {
             this.setValue(value)
         } else {
@@ -163,8 +171,14 @@ export class Float32Field<E extends PointerTypes = UnreferenceableType> extends 
     equals(value: float): boolean {return this.getValue() === value}
     clamp(value: float): float {return Float.toFloat32(value)}
     read(input: DataInput): void {this.setValue(input.readFloat())}
-    write(output: DataOutput): void {output.writeFloat(this.getValue())}
+
+    write(output: DataOutput): void {
+        assert(!this.deprecated, "FLoat32Field.write: deprecated field")
+        output.writeFloat(this.getValue())
+    }
+
     fromJSON(value: JSONValue): void {
+        if (this.deprecated) {return}
         if (typeof value === "number") {
             this.setValue(value)
         } else {
@@ -184,8 +198,12 @@ export class Int32Field<E extends PointerTypes = UnreferenceableType> extends Pr
     equals(value: int): boolean {return this.getValue() === value}
     clamp(value: int): int {return Integer.toInt(value)}
     read(input: DataInput): void {this.setValue(input.readInt())}
-    write(output: DataOutput): void {output.writeInt(this.getValue())}
+    write(output: DataOutput): void {
+        assert(!this.deprecated, "Int32Field.write: deprecated field")
+        output.writeInt(this.getValue())
+    }
     fromJSON(value: JSONValue): void {
+        if (this.deprecated) {return}
         if (typeof value === "number" && value === Math.floor(value)
             && value >= Integer.MIN_VALUE && value <= Integer.MAX_VALUE) {
             this.setValue(value)
@@ -206,8 +224,12 @@ export class StringField<E extends PointerTypes = UnreferenceableType> extends P
     equals(value: string): boolean {return this.getValue() === value}
     clamp(value: string): string {return value}
     read(input: DataInput): void {this.setValue(input.readString())}
-    write(output: DataOutput): void {output.writeString(this.getValue())}
+    write(output: DataOutput): void {
+        assert(!this.deprecated, "StringField.write: deprecated field")
+        output.writeString(this.getValue())
+    }
     fromJSON(value: JSONValue): void {
+        if (this.deprecated) {return}
         if (typeof value === "string") {
             this.setValue(value)
         } else {
@@ -235,12 +257,18 @@ export class ByteArrayField<E extends PointerTypes = UnreferenceableType> extend
         this.setValue(bytes)
     }
     write(output: DataOutput): void {
+        assert(!this.deprecated, "ByteArrayField.write: deprecated field")
         const bytes: Readonly<Int8Array> = this.getValue()
         output.writeInt(bytes.length)
         output.writeBytes(bytes)
     }
-    toJSON(): Optional<JSONValue> {return Array.from(this.getValue().values())}
+    toJSON(): Optional<JSONValue> {
+        if (this.deprecated) {return undefined}
+        return Array.from(this.getValue().values())
+    }
+
     fromJSON(value: JSONValue): void {
+        if (this.deprecated) {return}
         if (Array.isArray(value) && value.every(number => typeof number === "number")) {
             this.setValue(new Int8Array(value))
         } else {

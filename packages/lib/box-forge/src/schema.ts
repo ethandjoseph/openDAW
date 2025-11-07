@@ -11,6 +11,8 @@ export interface PrimitiveTypes {
 
 export const reserved = Object.freeze({type: "reserved", name: ""} as const)
 
+export const deprecated = true
+
 type ReservedType = typeof reserved
 
 export const reserveMany = <Keys extends int[]>(..._keys: Keys): Record<Keys[int], ReservedType> =>
@@ -63,13 +65,14 @@ export type PrimitiveFieldSchema<E extends PointerTypes> = Referencable<E> & {
 export type FieldSchema<E extends PointerTypes> = Required<Referencable<E>> & {
     type: "field"
 }
-export type AnyField<E extends PointerTypes> =
-    | FieldSchema<E>
-    | PointerFieldSchema<E>
-    | PrimitiveFieldSchema<E>
-    | ArrayFieldSchema<E>
-    | ObjectSchema<E>
-    | typeof reserved
+export type AnyField<E extends PointerTypes> = (
+        | FieldSchema<E>
+        | PointerFieldSchema<E>
+        | PrimitiveFieldSchema<E>
+        | ArrayFieldSchema<E>
+        | ObjectSchema<E>
+        | typeof reserved)
+    & { deprecated?: true }
 
 // utility methods to build schema
 //

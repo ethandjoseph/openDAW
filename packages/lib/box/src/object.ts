@@ -48,6 +48,7 @@ export abstract class ObjectField<FIELDS extends Fields> extends Field<Unreferen
     write(output: DataOutput): void {Serializer.writeFields(output, this.#fields)}
 
     toJSON(): Optional<JSONValue> {
+        if (this.deprecated) {return undefined}
         return Object.entries(this.#fields).reduce((result: Record<string, Optional<JSONValue>>, [key, field]) => {
             result[key] = field.toJSON()
             return result
@@ -55,6 +56,7 @@ export abstract class ObjectField<FIELDS extends Fields> extends Field<Unreferen
     }
 
     fromJSON(record: JSONValue): void {
+        if (this.deprecated) {return}
         if (isRecord(record)) {
             Object.entries(record).forEach(([key, value]) => {
                 const field: Field = this.#fields[parseInt(key) as FieldKey]

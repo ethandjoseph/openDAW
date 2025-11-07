@@ -34,7 +34,8 @@ export class ArrayField<FIELD extends Field = Field>
             parent: this,
             fieldKey: index,
             fieldName: String(index),
-            pointerRules: NoPointers
+            pointerRules: NoPointers,
+            deprecated: construct.deprecated
         }), length)
     }
 
@@ -56,12 +57,21 @@ export class ArrayField<FIELD extends Field = Field>
     }
 
     read(input: DataInput): void {this.#fields.forEach(field => field.read(input))}
-    write(output: DataOutput): void {this.#fields.forEach(field => field.write(output))}
+
+    write(output: DataOutput): void {
+        this.#fields.filter(field => !field.deprecated)
+            .forEach(field => field.write(output))
+    }
 
     size(): int {return this.#fields.length}
 
-    toJSON(): Optional<JSONValue> {return Object.values(this.#fields).map((field) => field.toJSON() ?? null)}
+    toJSON(): Optional<JSONValue> {
+        if (this.deprecated) {return undefined}
+        return Object.values(this.#fields).map((field) => field.toJSON() ?? null)
+    }
+
     fromJSON(values: JSONValue): void {
+        if (this.deprecated) {return}
         if (Array.isArray(values)) {
             values.forEach((value, index) => this.#fields[index].fromJSON(value))
         } else {

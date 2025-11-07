@@ -4,7 +4,7 @@ import {assert, ByteArrayInput, ByteArrayOutput, DataInput, DataOutput, isUndefi
 export namespace Serializer {
     const MAGIC_HEADER = 0x464c4453
     export const writeFields = <FIELDS extends Fields>(output: DataOutput, fields: FIELDS) => {
-        const entries = Object.entries(fields)
+        const entries = Object.entries(fields).filter(([_, field]) => !field.deprecated)
         output.writeInt(MAGIC_HEADER)
         output.writeShort(entries.length)
         entries.forEach(([key, field]) => {

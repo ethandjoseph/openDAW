@@ -142,6 +142,7 @@ export class PointerField<P extends PointerTypes = PointerTypes> extends Field<U
     }
 
     write(output: DataOutput) {
+        assert(!this.deprecated, "PointerField.write: deprecated field")
         PointerField.#encoder.match({
             none: () => this.#targetAddress,
             some: encoder => encoder.map(this)
@@ -155,6 +156,7 @@ export class PointerField<P extends PointerTypes = PointerTypes> extends Field<U
     }
 
     toJSON(): Optional<JSONValue> {
+        if (this.deprecated) {return undefined}
         return PointerField.#encoder
             .match({
                 none: () => this.#targetAddress,
@@ -166,6 +168,7 @@ export class PointerField<P extends PointerTypes = PointerTypes> extends Field<U
     }
 
     fromJSON(value: JSONValue): void {
+        if (this.deprecated) {return}
         if (isNull(value) || typeof value === "string") {
             const address = Option.wrap(isNull(value) ? null : Address.decode(value))
             this.targetAddress = PointerField.#decoder.match({
