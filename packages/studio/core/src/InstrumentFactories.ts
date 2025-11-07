@@ -125,6 +125,7 @@ export namespace InstrumentFactories {
                 box.release.setInitValue(0.5)
                 box.voicingMode.setInitValue(VoicingMode.Polyphonic)
                 box.waveform.setInitValue(ClassicWaveform.saw)
+                box.lfo.rate.setInitValue(1.0)
                 box.host.refer(host)
                 box.version.setValue(1) // for removing the -15db in voice
             })
