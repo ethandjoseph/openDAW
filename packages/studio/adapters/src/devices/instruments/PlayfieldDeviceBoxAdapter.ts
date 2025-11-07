@@ -34,7 +34,6 @@ export class PlayfieldDeviceBoxAdapter implements InstrumentDeviceBoxAdapter {
     get box(): PlayfieldDeviceBox {return this.#box}
     get uuid(): UUID.Bytes {return this.#box.address.uuid}
     get address(): Address {return this.#box.address}
-    get notesAddress(): Address {return this.#box.address.append(1000)}
     get labelField(): StringField {return this.#box.label}
     get iconField(): StringField {return this.#box.icon}
     get defaultTrackType(): TrackType {return TrackType.Notes}
