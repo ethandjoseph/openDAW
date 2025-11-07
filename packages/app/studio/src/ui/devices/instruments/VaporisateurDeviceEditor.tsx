@@ -137,7 +137,8 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
             </AutomatableControl>
         </Frag>
     )
-    const bindWaveformParameter = (lifecycle: Lifecycle, parameter: AutomatableParameterFieldAdapter<ClassicWaveform>) => {
+    const bindWaveformParameter = (lifecycle: Lifecycle,
+                                   parameter: AutomatableParameterFieldAdapter<ClassicWaveform>) => {
         const func = new DefaultObservableValue<Func<number, number>>(identity)
         lifecycle.own(parameter.catchupAndSubscribe(owner => {
             const waveform = owner.getControlledValue()

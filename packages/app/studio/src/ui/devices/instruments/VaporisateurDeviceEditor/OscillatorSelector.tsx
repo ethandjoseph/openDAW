@@ -11,7 +11,7 @@ type Construct = {
 }
 
 export const OscillatorSelector = ({lifecycle, oscIndex}: Construct) => {
-    const labels = ["A", "B", "N"]
+    const labels = ["A", "B"]
     return (
         <div className={className}>
             {(() => {
