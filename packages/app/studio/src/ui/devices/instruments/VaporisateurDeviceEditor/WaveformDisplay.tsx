@@ -1,16 +1,14 @@
 import css from "./Display.sass?inline"
 import {Html} from "@opendaw/lib-dom"
-import {Func, Lifecycle, TAU, Unhandled} from "@opendaw/lib-std"
+import {Func, Lifecycle, ObservableValue} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {CanvasPainter} from "@/ui/canvas/painter"
-import {AutomatableParameterFieldAdapter} from "@opendaw/studio-adapters"
-import {ClassicWaveform} from "@opendaw/lib-dsp"
 
 const className = Html.adoptStyleSheet(css, "Display")
 
 type Construct = {
     lifecycle: Lifecycle
-    adapter: AutomatableParameterFieldAdapter<ClassicWaveform>
+    adapter: ObservableValue<Func<number, number>>
 }
 
 export const WaveformDisplay = ({lifecycle, adapter}: Construct) => {
@@ -23,21 +21,7 @@ export const WaveformDisplay = ({lifecycle, adapter}: Construct) => {
                 const bottom = actualHeight - padding
                 const valueToY = (value: number) => bottom + (top - bottom) * (0.5 * (value + 1.0))
                 const centerY = valueToY(0.0)
-                const fx = ((): Func<number, number> => {
-                    const waveform = adapter.getControlledValue()
-                    switch (waveform) {
-                        case ClassicWaveform.sine:
-                            return (x: number) => Math.sin(x * TAU)
-                        case ClassicWaveform.triangle:
-                            return (x: number) => 1.0 - 4.0 * Math.abs(x - 0.5)
-                        case ClassicWaveform.saw:
-                            return (x: number) => 2.0 * x - 1.0
-                        case ClassicWaveform.square:
-                            return (x: number) => x < 0.5 ? 1.0 : -1.0
-                        default:
-                            return Unhandled(waveform)
-                    }
-                })()
+                const fx = adapter.getValue()
                 context.lineWidth = devicePixelRatio
                 const path = new Path2D()
                 path.moveTo(0, valueToY(fx(0)))

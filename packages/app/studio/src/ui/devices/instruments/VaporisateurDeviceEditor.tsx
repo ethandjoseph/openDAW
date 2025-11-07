@@ -1,5 +1,16 @@
 import css from "./VaporisateurDeviceEditor.sass?inline"
-import {DefaultObservableValue, int, isDefined, Lifecycle, Terminator} from "@opendaw/lib-std"
+import {
+    DefaultObservableValue,
+    Func,
+    identity,
+    int,
+    isDefined,
+    Lifecycle,
+    ObservableValue,
+    TAU,
+    Terminator,
+    Unhandled
+} from "@opendaw/lib-std"
 import {createElement, Frag, replaceChildren} from "@opendaw/lib-jsx"
 import {DeviceEditor} from "@/ui/devices/DeviceEditor.tsx"
 import {MenuItems} from "@/ui/devices/menu-items.ts"
@@ -20,6 +31,7 @@ import {EnvelopeDisplay} from "@/ui/devices/instruments/VaporisateurDeviceEditor
 import {FilterDisplay} from "@/ui/devices/instruments/VaporisateurDeviceEditor/FilterDisplay"
 import {Logo} from "@/ui/devices/instruments/VaporisateurDeviceEditor/Logo"
 import {OscillatorSelector} from "@/ui/devices/instruments/VaporisateurDeviceEditor/OscillatorSelector"
+import {AutomatableControl} from "@/ui/components/AutomatableControl"
 
 const className = Html.adoptStyleSheet(css, "editor")
 
@@ -28,6 +40,21 @@ type Construct = {
     service: StudioService
     adapter: VaporisateurDeviceBoxAdapter
     deviceHost: DeviceHost
+}
+
+const smoothNoise = (x: number, frequency: number): number => {
+    const p = x * frequency
+    const i0 = Math.floor(p)
+    const i1 = i0 + 1
+    const t = p - i0
+    const fade = t * t * (3.0 - 2.0 * t)
+    const hash = (n: number): number => {
+        const v = Math.sin(n * 127.1) * 43758.5453123
+        return (v - Math.floor(v)) * 2.0 - 1.0
+    }
+    const n0 = hash(i0)
+    const n1 = hash(i1)
+    return n0 + (n1 - n0) * fade
 }
 
 export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHost}: Construct) => {
@@ -80,31 +107,57 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
                                     parameter: AutomatableParameterFieldAdapter<ClassicWaveform>) => (
         <Frag>
             <h3>{parameter.name}</h3>
-            <RadioGroup lifecycle={lifecycle}
-                        model={EditWrapper.forAutomatableParameter(editing, parameter)}
-                        style={{fontSize: "9px"}}
-                        elements={[
-                            {
-                                value: ClassicWaveform.sine,
-                                element: <Icon symbol={IconSymbol.Sine}/>
-                            },
-                            {
-                                value: ClassicWaveform.triangle,
-                                element: <Icon symbol={IconSymbol.Triangle}/>
-                            },
-                            {
-                                value: ClassicWaveform.saw,
-                                element: <Icon symbol={IconSymbol.Sawtooth}/>
-                            },
-                            {
-                                value: ClassicWaveform.square,
-                                element: <Icon symbol={IconSymbol.Square
-                                }/>
-                            }
-                        ]}/>
+            <AutomatableControl lifecycle={lifecycle}
+                                editing={editing}
+                                midiLearning={midiLearning}
+                                adapter={adapter}
+                                parameter={parameter}>
+                <RadioGroup lifecycle={lifecycle}
+                            model={EditWrapper.forAutomatableParameter(editing, parameter)}
+                            style={{fontSize: "9px"}}
+                            elements={[
+                                {
+                                    value: ClassicWaveform.sine,
+                                    element: <Icon symbol={IconSymbol.Sine}/>
+                                },
+                                {
+                                    value: ClassicWaveform.triangle,
+                                    element: <Icon symbol={IconSymbol.Triangle}/>
+                                },
+                                {
+                                    value: ClassicWaveform.saw,
+                                    element: <Icon symbol={IconSymbol.Sawtooth}/>
+                                },
+                                {
+                                    value: ClassicWaveform.square,
+                                    element: <Icon symbol={IconSymbol.Square
+                                    }/>
+                                }
+                            ]}/>
+            </AutomatableControl>
         </Frag>
     )
-    const oscSelector = lifecycle.own(new DefaultObservableValue<int>(0))
+    const bindWaveformParameter = (lifecycle: Lifecycle, parameter: AutomatableParameterFieldAdapter<ClassicWaveform>) => {
+        const func = new DefaultObservableValue<Func<number, number>>(identity)
+        lifecycle.own(parameter.catchupAndSubscribe(owner => {
+            const waveform = owner.getControlledValue()
+            switch (waveform) {
+                case ClassicWaveform.sine:
+                    return func.setValue((x: number) => Math.sin(x * TAU))
+                case ClassicWaveform.triangle:
+                    return func.setValue((x: number) => 1.0 - 4.0 * Math.abs(x - 0.5))
+                case ClassicWaveform.saw:
+                    return func.setValue((x: number) => 2.0 * x - 1.0)
+                case ClassicWaveform.square:
+                    return func.setValue((x: number) => x < 0.5 ? 1.0 : -1.0)
+                default:
+                    return Unhandled(waveform)
+            }
+        }))
+        return func
+    }
+    const oscIndex = lifecycle.own(new DefaultObservableValue<int>(0))
+    const noiseTable = ObservableValue.seal<Func<number, number>>(x => smoothNoise(x, 32))
     return (
         <DeviceEditor lifecycle={lifecycle}
                       project={project}
@@ -145,15 +198,16 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
                               </div>
                               <div style={{display: "contents"}} onInit={element => {
                                   const oscLifecycle = lifecycle.own(new Terminator())
-                                  lifecycle.own(oscSelector.catchupAndSubscribe(owner => {
+                                  lifecycle.own(oscIndex.catchupAndSubscribe(owner => {
                                       oscLifecycle.terminate()
                                       const sourceIndex = owner.getValue()
                                       replaceChildren(element, sourceIndex === 2 ? (
                                           <Frag>
                                               <header>
-
+                                                  <WaveformDisplay lifecycle={oscLifecycle}
+                                                                   adapter={noiseTable}/>
                                               </header>
-                                              <OscillatorSelector lifecycle={oscLifecycle} oscIndex={oscSelector}/>
+                                              <OscillatorSelector lifecycle={oscLifecycle} oscIndex={oscIndex}/>
                                               <div>
                                                   {createLabelControlFrag(oscLifecycle, noise.attack)}
                                               </div>
@@ -171,20 +225,25 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
                                           <Frag>
                                               <header>
                                                   <WaveformDisplay lifecycle={oscLifecycle}
-                                                                   adapter={oscillators[sourceIndex].waveform}/>
+                                                                   adapter={bindWaveformParameter(oscLifecycle,
+                                                                       oscillators[sourceIndex].waveform)}/>
                                               </header>
-                                              <OscillatorSelector lifecycle={oscLifecycle} oscIndex={oscSelector}/>
+                                              <OscillatorSelector lifecycle={oscLifecycle} oscIndex={oscIndex}/>
                                               <div>
-                                                  {createWaveformSelector(oscLifecycle, oscillators[sourceIndex].waveform)}
+                                                  {createWaveformSelector(oscLifecycle,
+                                                      oscillators[sourceIndex].waveform)}
                                               </div>
                                               <div>
-                                                  {createLabelControlFrag(oscLifecycle, oscillators[sourceIndex].octave)}
+                                                  {createLabelControlFrag(oscLifecycle,
+                                                      oscillators[sourceIndex].octave)}
                                               </div>
                                               <div>
-                                                  {createLabelControlFrag(oscLifecycle, oscillators[sourceIndex].tune, 0.5)}
+                                                  {createLabelControlFrag(oscLifecycle,
+                                                      oscillators[sourceIndex].tune, 0.5)}
                                               </div>
                                               <div>
-                                                  {createLabelControlFrag(oscLifecycle, oscillators[sourceIndex].volume)}
+                                                  {createLabelControlFrag(oscLifecycle,
+                                                      oscillators[sourceIndex].volume)}
                                               </div>
                                           </Frag>
                                       ))
@@ -207,7 +266,8 @@ export const VaporisateurDeviceEditor = ({lifecycle, service, adapter, deviceHos
                               </div>
                               <div style={{display: "contents"}}>
                                   <header>
-                                      <WaveformDisplay lifecycle={lifecycle} adapter={lfoWaveform}/>
+                                      <WaveformDisplay lifecycle={lifecycle}
+                                                       adapter={bindWaveformParameter(lifecycle, lfoWaveform)}/>
                                   </header>
                                   <div/>
                                   <div>{createWaveformSelector(lifecycle, lfoWaveform)}</div>

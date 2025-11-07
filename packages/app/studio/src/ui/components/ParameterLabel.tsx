@@ -24,28 +24,26 @@ export const ParameterLabel = (
     {
         lifecycle, editing, midiLearning, adapter, parameter,
         classList, framed, standalone
-    }: Construct): HTMLLabelElement => {
-    return (
-        <label className={Html.buildClassList(className, framed && "framed", ...classList ?? [])}
-               onInit={element => {
-                   const onValueChange = (adapter: AutomatableParameterFieldAdapter) => {
-                       const printValue = adapter.stringMapping.x(
-                           adapter.valueMapping.y(adapter.getControlledUnitValue()))
-                       element.textContent = printValue.value
-                       element.setAttribute("unit", printValue.unit)
-                   }
-                   lifecycle.ownAll(
-                       standalone === true
-                           ? attachParameterContextMenu(editing, midiLearning,
-                               adapter.deviceHost().audioUnitBoxAdapter().tracks, parameter, element)
-                           : Terminable.Empty,
-                       parameter.catchupAndSubscribeControlSources({
-                           onControlSourceAdd: (source: ControlSource) => element.classList.add(source),
-                           onControlSourceRemove: (source: ControlSource) => element.classList.remove(source)
-                       }),
-                       parameter.subscribe(onValueChange)
-                   )
-                   onValueChange(parameter)
-               }}/>
-    )
-}
+    }: Construct): HTMLLabelElement => (
+    <label className={Html.buildClassList(className, framed && "framed", ...classList ?? [])}
+           onInit={element => {
+               const onValueChange = (adapter: AutomatableParameterFieldAdapter) => {
+                   const printValue = adapter.stringMapping.x(
+                       adapter.valueMapping.y(adapter.getControlledUnitValue()))
+                   element.textContent = printValue.value
+                   element.setAttribute("unit", printValue.unit)
+               }
+               lifecycle.ownAll(
+                   standalone === true
+                       ? attachParameterContextMenu(editing, midiLearning,
+                           adapter.deviceHost().audioUnitBoxAdapter().tracks, parameter, element)
+                       : Terminable.Empty,
+                   parameter.catchupAndSubscribeControlSources({
+                       onControlSourceAdd: (source: ControlSource) => element.classList.add(source),
+                       onControlSourceRemove: (source: ControlSource) => element.classList.remove(source)
+                   }),
+                   parameter.subscribe(onValueChange)
+               )
+               onValueChange(parameter)
+           }}/>
+)
