@@ -2,7 +2,6 @@ import {
     Arrays,
     ByteArrayOutput,
     Func,
-    Option,
     panic,
     Procedure,
     safeExecute,
@@ -18,8 +17,6 @@ import {
     AudioUnitBox,
     BoxIO,
     BoxVisitor,
-    CompressorDeviceBox,
-    GrooveShuffleBox,
     RootBox,
     TimelineBox,
     TrackBox,
@@ -43,7 +40,6 @@ import {
     VertexSelection
 } from "@opendaw/studio-adapters"
 import {LiveStreamBroadcaster, LiveStreamReceiver} from "@opendaw/lib-fusion"
-import {AudioUnitType, IconSymbol} from "@opendaw/studio-enums"
 import {ProjectEnv} from "./ProjectEnv"
 import {Mixer} from "../Mixer"
 import {ProjectApi} from "./ProjectApi"
@@ -65,57 +61,14 @@ export type ProjectCreateOptions = {
 // Main Entry Point for a Project
 export class Project implements BoxAdaptersContext, Terminable, TerminableOwner {
     static new(env: ProjectEnv, options?: ProjectCreateOptions): Project {
-        const boxGraph = new BoxGraph<BoxIO.TypeMap>(Option.wrap(BoxIO.create))
-        const isoString = new Date().toISOString()
-        console.debug(`New Project created on ${isoString}`)
-        boxGraph.beginTransaction()
-        const grooveShuffleBox = GrooveShuffleBox.create(boxGraph, UUID.generate(), box => {
-            box.label.setValue("Groove Shuffle")
-        })
-        const rootBox = RootBox.create(boxGraph, UUID.generate(), box => {
-            box.groove.refer(grooveShuffleBox)
-            box.created.setValue(isoString)
-        })
-        const primaryAudioBus = AudioBusBox.create(boxGraph, UUID.generate(), box => {
-            box.collection.refer(rootBox.audioBusses)
-            box.label.setValue("Output")
-            box.icon.setValue(IconSymbol.toName(IconSymbol.SpeakerHeadphone))
-            box.color.setValue(/*Colors.blue*/ "hsl(189, 100%, 65%)") // TODO
-        })
-        const primaryAudioOutputUnit = AudioUnitBox.create(boxGraph, UUID.generate(), box => {
-            box.type.setValue(AudioUnitType.Output)
-            box.collection.refer(rootBox.audioUnits)
-            box.output.refer(rootBox.outputDevice)
-            box.index.setValue(0)
-        })
-        if (Preferences.values["auto-create-output-compressor"]) {
-            CompressorDeviceBox.create(boxGraph, UUID.generate(), box => {
-                box.label.setValue("Compressor")
-                box.index.setValue(0)
-                box.host.refer(primaryAudioOutputUnit.audioEffects)
-                box.threshold.setValue(0)
-                box.ratio.setValue(24)
-            })
-        }
-        const timelineBox = TimelineBox.create(boxGraph, UUID.generate())
-        rootBox.timeline.refer(timelineBox.root)
-        primaryAudioBus.output.refer(primaryAudioOutputUnit.input)
-        const userInterfaceBoxes: Array<UserInterfaceBox> = []
         const createDefaultUser = options?.noDefaultUser !== true
-        if (createDefaultUser) {
-            const userInterfaceBox = UserInterfaceBox.create(boxGraph, UUID.generate())
-            userInterfaceBox.root.refer(rootBox.users)
-            userInterfaceBoxes.push(userInterfaceBox)
-        }
-        boxGraph.endTransaction()
-        const project = new Project(env, boxGraph, {
-            rootBox,
-            primaryAudioBus,
-            primaryAudioOutputUnit,
-            userInterfaceBoxes,
-            timelineBox
+        const createOutputCompressor = Preferences.values["auto-create-output-compressor"]
+        const {boxGraph, mandatoryBoxes} = ProjectSkeleton.empty({
+            createOutputCompressor,
+            createDefaultUser
         })
-        if (createDefaultUser) {project.follow(userInterfaceBoxes[0])}
+        const project = new Project(env, boxGraph, mandatoryBoxes)
+        if (createDefaultUser) {project.follow(mandatoryBoxes.userInterfaceBoxes[0])}
         return project
     }
 

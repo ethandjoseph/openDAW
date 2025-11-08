@@ -13,5 +13,5 @@ export interface EffectFactory {
     readonly separatorBefore: boolean
     readonly type: "audio" | "midi"
 
-    create(project: Project, unit: Field<EffectPointerType>, index: int): EffectBox
+    create(project: Project, host: Field<EffectPointerType>, index: int): EffectBox
 }

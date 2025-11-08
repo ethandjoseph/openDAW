@@ -8,11 +8,12 @@ import ExampleScript from "./code-editor/script.txt?raw"
 import {Button} from "@/ui/components/Button"
 import {Icon} from "@/ui/components/Icon"
 import {IconSymbol} from "@opendaw/studio-enums"
-import {RuntimeNotifier} from "@opendaw/lib-std"
+import {Api, InstrumentMap} from "@opendaw/studio-core/script/Api"
+import {InstrumentFactories, Project} from "@opendaw/studio-core"
 
 const className = Html.adoptStyleSheet(css, "CodeEditorPage")
 
-export const CodeEditorPage: PageFactory<StudioService> = ({lifecycle}: PageContext<StudioService>) => {
+export const CodeEditorPage: PageFactory<StudioService> = ({lifecycle, service}: PageContext<StudioService>) => {
     return (
         <div className={className}>
             <Await
@@ -66,13 +67,23 @@ export const CodeEditorPage: PageFactory<StudioService> = ({lifecycle}: PageCont
                                             console.debug(jsCode)
 
                                             // Create openDAW API
-                                            const openDAW = {
-                                                dialog: () => {
-                                                    RuntimeNotifier.info({
-                                                        headline: "Script Executed",
-                                                        message: "It works!"
+                                            const openDAW: Api = new class implements Api {
+                                                readonly #project: Project
+
+                                                constructor() {
+                                                    this.#project = Project.new(service)
+                                                }
+
+                                                createInstrument<I extends keyof InstrumentMap>(instrument: I): InstrumentMap[I] {
+                                                    this.#project.editing.modify(() => {
+                                                        this.#project.api.createAnyInstrument(InstrumentFactories.Named[instrument])
                                                     })
-                                                    return true
+                                                    return {} as InstrumentMap[I]
+                                                }
+
+                                                build(): void {
+                                                    service.projectProfileService.setProject(this.#project, "Scripted")
+                                                    service.switchScreen("default")
                                                 }
                                             }
 

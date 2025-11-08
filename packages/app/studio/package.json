@@ -32,7 +32,6 @@
     "monaco-editor": "^0.54.0"
   },
   "devDependencies": {
-    "vite-plugin-monaco-editor": "^1.1.0",
     "@opendaw/eslint-config": "^0.0.20",
     "@opendaw/typescript-config": "^0.0.20",
     "@types/markdown-it": "^14.1.2",

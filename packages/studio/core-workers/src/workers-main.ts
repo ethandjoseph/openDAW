@@ -5,5 +5,6 @@ const messenger: Messenger = Messenger.for(self)
 
 OpfsWorker.init(messenger)
 SamplePeakWorker.install(messenger)
+// TODO ScriptExecutor.install(messenger)
 
 messenger.channel("initialize").send("ready")

@@ -30,10 +30,10 @@ export namespace EffectFactories {
         description: "Generates rhythmic note sequences from chords",
         separatorBefore: false,
         type: "midi",
-        create: ({boxGraph}, unit, index) => ArpeggioDeviceBox.create(boxGraph, UUID.generate(), box => {
+        create: ({boxGraph}, hostField, index) => ArpeggioDeviceBox.create(boxGraph, UUID.generate(), box => {
             box.label.setValue("Arpeggio")
             box.index.setValue(index)
-            box.host.refer(unit)
+            box.host.refer(hostField)
         })
     }
 
@@ -43,10 +43,10 @@ export namespace EffectFactories {
         description: "Shifts the pitch of incoming notes",
         separatorBefore: false,
         type: "midi",
-        create: ({boxGraph}, unit, index) => PitchDeviceBox.create(boxGraph, UUID.generate(), box => {
+        create: ({boxGraph}, hostField, index) => PitchDeviceBox.create(boxGraph, UUID.generate(), box => {
             box.label.setValue("Pitch")
             box.index.setValue(index)
-            box.host.refer(unit)
+            box.host.refer(hostField)
         })
     }
 
@@ -57,10 +57,10 @@ export namespace EffectFactories {
         manualPage: "manuals/devices/midi/velocity",
         separatorBefore: false,
         type: "midi",
-        create: ({boxGraph}, unit, index) => VelocityDeviceBox.create(boxGraph, UUID.generate(), box => {
+        create: ({boxGraph}, hostField, index) => VelocityDeviceBox.create(boxGraph, UUID.generate(), box => {
             box.label.setValue("Velocity")
             box.index.setValue(index)
-            box.host.refer(unit)
+            box.host.refer(hostField)
         })
     }
 
@@ -70,7 +70,7 @@ export namespace EffectFactories {
         description: "Distorts space and time",
         separatorBefore: false,
         type: "midi",
-        create: ({boxGraph, rootBoxAdapter}, unit, index): ZeitgeistDeviceBox => {
+        create: ({boxGraph, rootBoxAdapter}, hostField, index): ZeitgeistDeviceBox => {
             const useGlobal = false // TODO First Zeitgeist should be true
             const shuffleBox = useGlobal
                 ? rootBoxAdapter.groove.box
@@ -82,7 +82,7 @@ export namespace EffectFactories {
                 box.label.setValue("Zeitgeist")
                 box.groove.refer(shuffleBox)
                 box.index.setValue(index)
-                box.host.refer(unit)
+                box.host.refer(hostField)
             })
         }
     }
@@ -93,11 +93,11 @@ export namespace EffectFactories {
         description: "Computes a stereo transformation matrix with volume, panning, phase inversion and stereo width.",
         separatorBefore: false,
         type: "audio",
-        create: ({boxGraph}, unit, index): StereoToolDeviceBox =>
+        create: ({boxGraph}, hostField, index): StereoToolDeviceBox =>
             StereoToolDeviceBox.create(boxGraph, UUID.generate(), box => {
                 box.label.setValue("Stereo Tool")
                 box.index.setValue(index)
-                box.host.refer(unit)
+                box.host.refer(hostField)
             })
     }
 
@@ -107,11 +107,11 @@ export namespace EffectFactories {
         description: "Echoes the input signal with time-based repeats",
         separatorBefore: false,
         type: "audio",
-        create: ({boxGraph}, unit, index): DelayDeviceBox =>
+        create: ({boxGraph}, hostField, index): DelayDeviceBox =>
             DelayDeviceBox.create(boxGraph, UUID.generate(), box => {
                 box.label.setValue("Delay")
                 box.index.setValue(index)
-                box.host.refer(unit)
+                box.host.refer(hostField)
             })
     }
 
@@ -121,11 +121,11 @@ export namespace EffectFactories {
         description: "Reduces the dynamic range by attenuating signals above a threshold",
         separatorBefore: false,
         type: "audio",
-        create: ({boxGraph}, unit, index): CompressorDeviceBox =>
+        create: ({boxGraph}, hostField, index): CompressorDeviceBox =>
             CompressorDeviceBox.create(boxGraph, UUID.generate(), box => {
                 box.label.setValue("Compressor")
                 box.index.setValue(index)
-                box.host.refer(unit)
+                box.host.refer(hostField)
             })
     }
 
@@ -135,12 +135,12 @@ export namespace EffectFactories {
         description: "Simulates space and depth with reflections",
         separatorBefore: false,
         type: "audio",
-        create: ({boxGraph}, unit, index): ReverbDeviceBox =>
+        create: ({boxGraph}, hostField, index): ReverbDeviceBox =>
             ReverbDeviceBox.create(boxGraph, UUID.generate(), box => {
                 box.label.setValue("Reverb")
                 box.preDelay.setInitValue(0.001)
                 box.index.setValue(index)
-                box.host.refer(unit)
+                box.host.refer(hostField)
             })
     }
 
@@ -150,11 +150,11 @@ export namespace EffectFactories {
         description: "Degrates the audio signal",
         separatorBefore: false,
         type: "audio",
-        create: ({boxGraph}, unit, index): CrusherDeviceBox =>
+        create: ({boxGraph}, hostField, index): CrusherDeviceBox =>
             CrusherDeviceBox.create(boxGraph, UUID.generate(), box => {
                 box.label.setValue("Crusher")
                 box.index.setValue(index)
-                box.host.refer(unit)
+                box.host.refer(hostField)
             })
     }
 
@@ -164,11 +164,11 @@ export namespace EffectFactories {
         description: "Folds the signal back into audio-range",
         separatorBefore: false,
         type: "audio",
-        create: ({boxGraph}, unit, index): FoldDeviceBox =>
+        create: ({boxGraph}, hostField, index): FoldDeviceBox =>
             FoldDeviceBox.create(boxGraph, UUID.generate(), box => {
                 box.label.setValue("Fold")
                 box.index.setValue(index)
-                box.host.refer(unit)
+                box.host.refer(hostField)
             })
     }
 
@@ -178,11 +178,11 @@ export namespace EffectFactories {
         description: "Shape rhythm and space through volume and pan.",
         separatorBefore: false,
         type: "audio",
-        create: ({boxGraph}, unit, index): TidalDeviceBox =>
+        create: ({boxGraph}, hostField, index): TidalDeviceBox =>
             TidalDeviceBox.create(boxGraph, UUID.generate(), box => {
                 box.label.setValue("Tidal")
                 box.index.setValue(index)
-                box.host.refer(unit)
+                box.host.refer(hostField)
             })
     }
 
@@ -192,11 +192,11 @@ export namespace EffectFactories {
         description: "Shapes the frequency balance of the sound",
         separatorBefore: false,
         type: "audio",
-        create: ({boxGraph}, unit, index): RevampDeviceBox =>
+        create: ({boxGraph}, hostField, index): RevampDeviceBox =>
             RevampDeviceBox.create(boxGraph, UUID.generate(), box => {
                 EffectParameterDefaults.defaultRevampDeviceBox(box)
                 box.index.setValue(index)
-                box.host.refer(unit)
+                box.host.refer(hostField)
             })
     }
 
@@ -206,7 +206,7 @@ export namespace EffectFactories {
         description: "",
         separatorBefore: true,
         type: "audio",
-        create: ({boxGraph, rootBox, userEditingManager}, unit, index): ModularDeviceBox => {
+        create: ({boxGraph, rootBox, userEditingManager}, hostField, index): ModularDeviceBox => {
             const moduleSetupBox = ModularBox.create(boxGraph, UUID.generate(), box => {
                 box.collection.refer(rootBox.modularSetups)
                 box.label.setValue("Modular")
@@ -233,7 +233,7 @@ export namespace EffectFactories {
                 box.label.setValue("Modular")
                 box.modularSetup.refer(moduleSetupBox.device)
                 box.index.setValue(index)
-                box.host.refer(unit)
+                box.host.refer(hostField)
             })
         }
     }

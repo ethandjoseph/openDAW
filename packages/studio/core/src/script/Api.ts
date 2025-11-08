@@ -1,3 +1,5 @@
+import {InstrumentFactories} from "../InstrumentFactories"
+
 export interface Instrument {}
 
 export interface Vaporisateur extends Instrument {/*TODO Add specific methods and props*/}
@@ -6,25 +8,22 @@ export interface Playfield extends Instrument {/*TODO Add specific methods and p
 
 export interface Nano extends Instrument {/*TODO Add specific methods and props*/}
 
+export interface Soundfont extends Instrument {/*TODO Add specific methods and props*/}
+
 export interface Tape extends Instrument {/*TODO Add specific methods and props*/}
 
-interface InstrumentMap extends MIDIPortEventMap {
+export interface MIDIOutput extends Instrument {/*TODO Add specific methods and props*/}
+
+export type InstrumentMap = {
     "Vaporisateur": Vaporisateur
     "Playfield": Playfield
     "Nano": Nano
     "Tape": Tape
+    "Soundfont": Soundfont
+    "MIDIOutput": MIDIOutput
 }
 
-export interface AudioUnit {}
-
-export interface AudioUnitInstrument extends AudioUnit {
-    createInstrument: <I extends keyof InstrumentMap>(instrument: I) => InstrumentMap[I]
-}
-
-export interface AudioUnitMap {
-    "instrument": AudioUnitInstrument
-}
-
-export interface ScriptEditorApi {
-    createAudioUnit: <K extends keyof AudioUnitMap>(type: K) => AudioUnitMap[K]
+export interface Api {
+    createInstrument<I extends InstrumentFactories.Keys>(instrument: I): InstrumentMap[I]
+    build(): void
 }
