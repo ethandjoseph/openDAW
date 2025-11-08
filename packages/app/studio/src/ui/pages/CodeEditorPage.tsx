@@ -8,8 +8,7 @@ import ExampleScript from "./code-editor/script.txt?raw"
 import {Button} from "@/ui/components/Button"
 import {Icon} from "@/ui/components/Icon"
 import {IconSymbol} from "@opendaw/studio-enums"
-import {Api, InstrumentMap} from "@opendaw/studio-core/script/Api"
-import {InstrumentFactories, Project} from "@opendaw/studio-core"
+import {ApiImplementation} from "@/ui/pages/code-editor/ApiImplemenation"
 
 const className = Html.adoptStyleSheet(css, "CodeEditorPage")
 
@@ -65,32 +64,9 @@ export const CodeEditorPage: PageFactory<StudioService> = ({lifecycle, service}:
                                             const jsCode = emitOutput.outputFiles[0].text
                                             console.debug("Compiled JavaScript:")
                                             console.debug(jsCode)
-
-                                            // Create openDAW API
-                                            const openDAW: Api = new class implements Api {
-                                                readonly #project: Project
-
-                                                constructor() {
-                                                    this.#project = Project.new(service)
-                                                }
-
-                                                createInstrument<I extends keyof InstrumentMap>(instrument: I): InstrumentMap[I] {
-                                                    this.#project.editing.modify(() => {
-                                                        this.#project.api.createAnyInstrument(InstrumentFactories.Named[instrument])
-                                                    })
-                                                    return {} as InstrumentMap[I]
-                                                }
-
-                                                build(): void {
-                                                    service.projectProfileService.setProject(this.#project, "Scripted")
-                                                    service.switchScreen("default")
-                                                }
-                                            }
-
-                                            // Execute in sandboxed environment
                                             try {
                                                 const scriptFunction = new Function("openDAW", jsCode)
-                                                scriptFunction(openDAW)
+                                                scriptFunction(new ApiImplementation(service))
                                                 console.debug("Script executed successfully")
                                             } catch (execError) {
                                                 console.error("Runtime error:", execError)

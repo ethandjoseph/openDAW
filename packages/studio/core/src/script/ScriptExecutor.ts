@@ -15,7 +15,7 @@ export const install = (messenger: Messenger) =>
             return panic("Not implemented")
         }
 
-        build(): void {
+        create(): void {
             return panic("Not implemented")
         }
     })

@@ -25,5 +25,5 @@ export type InstrumentMap = {
 
 export interface Api {
     createInstrument<I extends InstrumentFactories.Keys>(instrument: I): InstrumentMap[I]
-    build(): void
+    create(): void
 }
