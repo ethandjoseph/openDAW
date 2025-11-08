@@ -149,6 +149,8 @@ export const populateStudioMenu = (service: StudioService) => {
                                     selectable: service.hasProfile
                                 }).setTriggerProcedure(() => service.projectProfileService.saveFile()),
                                 MenuItem.header({label: "Pages", icon: IconSymbol.Box}),
+                                MenuItem.default({label: "・ Script Editor"})
+                                    .setTriggerProcedure(() => RouteLocation.get().navigateTo("/code")),
                                 MenuItem.default({label: "・ Icons"})
                                     .setTriggerProcedure(() => RouteLocation.get().navigateTo("/icons")),
                                 MenuItem.default({label: "・ Components"})

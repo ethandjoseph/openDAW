@@ -1,34 +1,31 @@
-import {Await, createElement, PageContext, PageFactory} from "@opendaw/lib-jsx"
-import {Html} from "@opendaw/lib-dom"
 import css from "./CodeEditorPage.sass?inline"
+import {Events, Html} from "@opendaw/lib-dom"
+import {Await, createElement, PageContext, PageFactory} from "@opendaw/lib-jsx"
 import {StudioService} from "@/service/StudioService.ts"
 import {ThreeDots} from "@/ui/spinner/ThreeDots"
-import type {Monaco} from "./monacoSetup"
+import type {Monaco} from "./code-editor/monaco-setup"
+import ExampleScript from "./code-editor/script.txt?raw"
+import {Button} from "@/ui/components/Button"
+import {Icon} from "@/ui/components/Icon"
+import {IconSymbol} from "@opendaw/studio-enums"
+import {RuntimeNotifier} from "@opendaw/lib-std"
 
 const className = Html.adoptStyleSheet(css, "CodeEditorPage")
 
-export const CodeEditorPage: PageFactory<StudioService> = ({}: PageContext<StudioService>) => {
+export const CodeEditorPage: PageFactory<StudioService> = ({lifecycle}: PageContext<StudioService>) => {
     return (
         <div className={className}>
-            <h1>CodeEditor</h1>
             <Await
-                factory={() => import("./monacoSetup").then(m => m.monaco)}
+                factory={() => import("./code-editor/monaco-setup").then(({monaco}) => monaco)}
                 failure={({retry, reason}) => (<p onclick={retry}>{reason}</p>)}
                 loading={() => ThreeDots()}
                 success={(monaco: Monaco) => {
                     const container = (<div className="monaco-editor"/>)
-
-                    // Create a model first with a proper URI
-                    const modelUri = monaco.Uri.parse('file:///main.ts')
-                    const model = monaco.editor.createModel(
-                        `// openDAW code editor (based on monaco-editor)
-// your code won't be executed yet
-openDAW.play()
-`,
-                        'typescript',
-                        modelUri
-                    )
-
+                    const modelUri = monaco.Uri.parse("file:///main.ts")
+                    let model = monaco.editor.getModel(modelUri)
+                    if (!model) {
+                        model = monaco.editor.createModel(ExampleScript, "typescript", modelUri)
+                    }
                     const editor = monaco.editor.create(container, {
                         model: model,
                         theme: "vs-dark",
@@ -36,9 +33,69 @@ openDAW.play()
                         suggestOnTriggerCharacters: true,
                         quickSuggestions: true
                     })
-
+                    const allowed = ["c", "v", "x", "a", "z", "y"]
+                    lifecycle.ownAll(
+                        Events.subscribe(container, "keydown", event => {
+                            if ((event.ctrlKey || event.metaKey) && allowed.includes(event.key.toLowerCase())) {
+                                return // Let Monaco handle these
+                            }
+                            event.stopPropagation()
+                        }),
+                        Events.subscribe(container, "keyup", event => {
+                            if ((event.ctrlKey || event.metaKey) && allowed.includes(event.key.toLowerCase())) {
+                                return // Let Monaco handle these
+                            }
+                            event.stopPropagation()
+                        }),
+                        Events.subscribe(container, "keypress", event => event.stopPropagation())
+                    )
                     requestAnimationFrame(() => editor.focus())
-                    return container
+                    return (
+                        <div>
+                            <header>
+                                <Button lifecycle={lifecycle} onClick={async () => {
+                                    try {
+                                        const worker = await monaco.languages.typescript.getTypeScriptWorker()
+                                        const client = await worker(model.uri)
+
+                                        const emitOutput = await client.getEmitOutput(model.uri.toString())
+
+                                        if (emitOutput.outputFiles.length > 0) {
+                                            const jsCode = emitOutput.outputFiles[0].text
+                                            console.debug("Compiled JavaScript:")
+                                            console.debug(jsCode)
+
+                                            // Create openDAW API
+                                            const openDAW = {
+                                                dialog: () => {
+                                                    RuntimeNotifier.info({
+                                                        headline: "Script Executed",
+                                                        message: "It works!"
+                                                    })
+                                                    return true
+                                                }
+                                            }
+
+                                            // Execute in sandboxed environment
+                                            try {
+                                                const scriptFunction = new Function("openDAW", jsCode)
+                                                scriptFunction(openDAW)
+                                                console.debug("Script executed successfully")
+                                            } catch (execError) {
+                                                console.error("Runtime error:", execError)
+                                            }
+                                        } else {
+                                            console.error("No output files generated")
+                                        }
+                                    } catch (error) {
+                                        console.error("Compilation error:", error)
+                                    }
+                                }}><span>Run Script</span> <Icon symbol={IconSymbol.Play}/>
+                                </Button>
+                            </header>
+                            {container}
+                        </div>
+                    )
                 }}/>
         </div>
     )

@@ -1,12 +1,12 @@
-import * as monaco from 'monaco-editor'
-import 'monaco-editor/esm/vs/language/typescript/monaco.contribution'
-import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker'
-import TsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker'
+import * as monaco from "monaco-editor"
+import "monaco-editor/esm/vs/language/typescript/monaco.contribution"
+import EditorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker"
+import TsWorker from "monaco-editor/esm/vs/language/typescript/ts.worker?worker"
 
 // CRITICAL: Set up worker environment with proper Vite worker imports
 self.MonacoEnvironment = {
     getWorker(_, label) {
-        if (label === 'typescript' || label === 'javascript') {
+        if (label === "typescript" || label === "javascript") {
             return new TsWorker()
         }
         return new EditorWorker()
@@ -26,7 +26,7 @@ tsDefaults.setCompilerOptions({
     checkJs: false,
     strict: true,
     jsx: monaco.languages.typescript.JsxEmit.Preserve,
-    noEmit: true,
+    noEmit: false,  // CHANGED: was true by default, must be false to emit
     esModuleInterop: true,
     allowSyntheticDefaultImports: true
 })
@@ -35,18 +35,17 @@ tsDefaults.setDiagnosticsOptions({
     noSemanticValidation: false,
     noSyntaxValidation: false,
     noSuggestionDiagnostics: false,
-    onlyVisible: false,  // Add this
-    diagnosticCodesToIgnore: []  // Add this
+    onlyVisible: false,
+    diagnosticCodesToIgnore: []
 })
 
 // Add openDAW type definitions
 tsDefaults.addExtraLib(
     `declare namespace openDAW {
-    function play(): void
-    function stop(): void
+    function dialog(): void
 }`,
-    'ts:opendaw.d.ts'
+    "ts:opendaw.d.ts"
 )
 
-export { monaco }
+export {monaco}
 export type Monaco = typeof monaco

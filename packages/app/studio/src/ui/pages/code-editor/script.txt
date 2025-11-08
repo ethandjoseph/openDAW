@@ -1,0 +1,2 @@
+// openDAW code editor (based on monaco-editor)
+openDAW.dialog()
