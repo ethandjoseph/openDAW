@@ -1,6 +1,7 @@
 import {readFileSync, writeFileSync} from "fs"
 import {resolve} from "path"
 import {defineConfig} from "vite"
+import monacoEditorPlugin from "vite-plugin-monaco-editor"
 import crossOriginIsolation from "vite-plugin-cross-origin-isolation"
 import viteCompression from "vite-plugin-compression"
 import {BuildInfo} from "./src/BuildInfo"
@@ -57,6 +58,9 @@ export default defineConfig(({command}) => {
             crossOriginIsolation(),
             viteCompression({
                 algorithm: "brotliCompress"
+            }),
+            monacoEditorPlugin({
+                languageWorkers: ["editorWorkerService", "typescript"]
             }),
             {
                 name: "generate-date-json",

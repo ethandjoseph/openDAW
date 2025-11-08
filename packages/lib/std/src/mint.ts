@@ -38,32 +38,30 @@ interface MintFunction {
 export const mint: MintFunction = <T, Args extends any[]>(
     Constructor: AnyConstructor<T, Args>,
     ...args: Args
-): T[] => {
-    return new Proxy([] as any, {
-        get(target, prop) {
-            if (typeof prop === "string") {
-                const index = Number(prop)
-                if (!isNaN(index) && index >= 0 && Number.isInteger(index)) {
-                    return new Constructor(...args)
-                }
+): T[] => new Proxy([] as any, {
+    get(target, prop) {
+        if (typeof prop === "string") {
+            const index = Number(prop)
+            if (!isNaN(index) && index >= 0 && Number.isInteger(index)) {
+                return new Constructor(...args)
             }
-            if (prop === Symbol.iterator) {
-                return function* () {
-                    while (true) {
-                        yield new Constructor(...args)
-                    }
-                }
-            }
-            return target[prop as any]
-        },
-        has(target, prop) {
-            if (typeof prop === "string") {
-                const index = Number(prop)
-                if (!isNaN(index) && index >= 0) {
-                    return true
-                }
-            }
-            return prop in target
         }
-    }) as T[]
-}
+        if (prop === Symbol.iterator) {
+            return function* () {
+                while (true) {
+                    yield new Constructor(...args)
+                }
+            }
+        }
+        return target[prop as any]
+    },
+    has(target, prop) {
+        if (typeof prop === "string") {
+            const index = Number(prop)
+            if (!isNaN(index) && index >= 0) {
+                return true
+            }
+        }
+        return prop in target
+    }
+}) as T[]
