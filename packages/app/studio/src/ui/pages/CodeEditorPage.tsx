@@ -11,6 +11,7 @@ import {IconSymbol} from "@opendaw/studio-enums"
 import {RuntimeNotifier} from "@opendaw/lib-std"
 import {ApiImplementation, ProjectSkeleton} from "@opendaw/studio-adapters"
 import {Project} from "@opendaw/studio-core"
+import {PPQN} from "@opendaw/lib-dsp"
 
 const className = Html.adoptStyleSheet(css, "CodeEditorPage")
 
@@ -71,12 +72,15 @@ export const CodeEditorPage: PageFactory<StudioService> = ({lifecycle, service}:
                                         const client = await worker(model.uri)
                                         const emitOutput = await client.getEmitOutput(model.uri.toString())
                                         if (emitOutput.outputFiles.length > 0) {
-                                            const jsCode = emitOutput.outputFiles[0].text
+                                            const jsCode = emitOutput.outputFiles[0].text.replace(/^["']use strict["'];?/, "")
                                             console.debug("Compiled JavaScript:")
                                             console.debug(jsCode)
+                                            const globals = {
+                                                PPQN: PPQN
+                                            }
                                             try {
-                                                const scriptFunction = new Function("openDAW", jsCode)
-                                                scriptFunction(apiImplementation)
+                                                const scriptFunction = new Function("openDAW", "globals", `with (globals) {${jsCode}}`)
+                                                scriptFunction(apiImplementation, globals)
                                                 console.debug("Script executed successfully")
                                             } catch (execError) {
                                                 await RuntimeNotifier.info({
