@@ -9,6 +9,7 @@ import {Button} from "@/ui/components/Button"
 import {Icon} from "@/ui/components/Icon"
 import {IconSymbol} from "@opendaw/studio-enums"
 import {ApiImplementation} from "@/ui/pages/code-editor/ApiImplemenation"
+import {RuntimeNotifier} from "@opendaw/lib-std"
 
 const className = Html.adoptStyleSheet(css, "CodeEditorPage")
 
@@ -69,13 +70,22 @@ export const CodeEditorPage: PageFactory<StudioService> = ({lifecycle, service}:
                                                 scriptFunction(new ApiImplementation(service))
                                                 console.debug("Script executed successfully")
                                             } catch (execError) {
-                                                console.error("Runtime error:", execError)
+                                                await RuntimeNotifier.info({
+                                                    headline: "Runtime Error",
+                                                    message: String(execError)
+                                                })
                                             }
                                         } else {
-                                            console.error("No output files generated")
+                                            await RuntimeNotifier.info({
+                                                headline: "Compilor Error",
+                                                message: "No output files generated"
+                                            })
                                         }
                                     } catch (error) {
-                                        console.error("Compilation error:", error)
+                                        await RuntimeNotifier.info({
+                                            headline: "Compilation Error",
+                                            message: String(error)
+                                        })
                                     }
                                 }}><span>Run Script</span> <Icon symbol={IconSymbol.Play}/>
                                 </Button>

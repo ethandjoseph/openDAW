@@ -1,6 +1,7 @@
 import {InstrumentFactories} from "@opendaw/studio-adapters"
-import {Api, InstrumentMap, Project, ProjectFactory} from "@opendaw/studio-core"
+import {Api, InstrumentMap, NoteTrack, Project, ProjectFactory} from "@opendaw/studio-core"
 import {StudioService} from "@/service/StudioService"
+import {panic} from "@opendaw/lib-std"
 
 export class ApiImplementation implements Api {
     readonly #service: StudioService
@@ -17,7 +18,14 @@ export class ApiImplementation implements Api {
                 project.editing.modify(() => {
                     project.api.createAnyInstrument(InstrumentFactories.Named[instrument])
                 })
-                return {} as InstrumentMap[I]
+                switch (instrument) {
+                    case "Vaporisateur":
+                        return {
+                            createNoteTrack: (): NoteTrack => panic("Not yet implemented")
+                        }
+                    default:
+                        return {} as InstrumentMap[I]
+                }
             },
             render: (projectName?: string): void => {
                 this.#service.projectProfileService.setProject(project, projectName ?? "Scripted")
