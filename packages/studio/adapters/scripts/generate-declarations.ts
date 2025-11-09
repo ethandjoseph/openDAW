@@ -3,11 +3,13 @@ import * as fs from "fs"
 import * as path from "path"
 
 const rootDir = path.resolve(__dirname, "..")
-const apiFilePath = path.join(rootDir, "src/script/Api.ts")
-const ppqnFilePath = path.join(rootDir, "../../lib/dsp/src/ppqn.ts")
+const inputFiles = [
+    "src/script/Api.ts",
+    "../../lib/dsp/src/chords.ts",
+    "../../lib/dsp/src/ppqn.ts",
+].map(f => path.join(rootDir, f))
 
-// Create a program with both files
-const program = ts.createProgram([apiFilePath, ppqnFilePath], {
+const program = ts.createProgram(inputFiles, {
     target: ts.ScriptTarget.ES2020,
     module: ts.ModuleKind.ESNext,
     declaration: true,
@@ -15,35 +17,24 @@ const program = ts.createProgram([apiFilePath, ppqnFilePath], {
     skipLibCheck: true,
 })
 
-let ppqnDeclarations = ""
-let apiDeclarations = ""
+const decls: string[] = []
 
-// Emit declarations
 program.emit(undefined, (fileName, data) => {
-    if (fileName.endsWith("ppqn.d.ts")) {
-        ppqnDeclarations = data
-    } else if (fileName.endsWith("Api.d.ts")) {
-        apiDeclarations = data
-    }
+    if (fileName.endsWith(".d.ts")) decls.push(data)
 })
 
-console.log("Generated ppqn declarations")
-console.log("Generated Api declarations")
+const cleanup = (src: string) =>
+    src
+        .replace(/\bexport\s+/g, "")
+        .replace(/import[^;]+;/g, "")
+        .replace(/import\([^)]+\)\./g, "")
+        .replace(/export\s*\{[^}]+\}[^;]*;/g, "")
+        .replace(/^\s*[\r\n]+/gm, "") // remove blank lines
+        .trim()
 
-// Combine and clean
-let declarations = ppqnDeclarations
-    .replace(/export /g, "")
-    .replace(/import[^;]+;/g, "")
-    .replace(/import\([^)]+\)\./g, "") // Remove import("...").Type references
+const declarations =
+    decls.map(cleanup).filter(Boolean).join("\n") +
+    "\n\ndeclare const openDAW: Api;\n"
 
-declarations += "\n" + apiDeclarations
-    .replace(/export /g, "")
-    .replace(/import[^;]+;/g, "")
-    .replace(/export \{[^}]+\}[^;]*;/g, "")
-
-declarations += "\n\ndeclare const openDAW: Api;\n"
-
-const outputPath = path.join(rootDir, "src/script/Declarations.d.ts")
-fs.writeFileSync(outputPath, declarations)
-
+fs.writeFileSync(path.join(rootDir, "src/script/Declarations.d.ts"), declarations)
 console.log("✓ Generated declarations")

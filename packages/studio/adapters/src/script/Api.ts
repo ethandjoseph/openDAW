@@ -1,8 +1,8 @@
 import type {ppqn} from "@opendaw/lib-dsp"
-import {PPQN} from "@opendaw/lib-dsp"
+import {Chord, PPQN} from "@opendaw/lib-dsp"
 import {byte, unitValue} from "@opendaw/lib-std"
 
-export {PPQN, ppqn}
+export {PPQN, ppqn, Chord}
 
 export type NoteRegionParams = {
     position: ppqn

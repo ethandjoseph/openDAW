@@ -1,5 +1,5 @@
 import {RuntimeNotifier} from "@opendaw/lib-std"
-import {PPQN} from "@opendaw/lib-dsp"
+import {Chord, PPQN} from "@opendaw/lib-dsp"
 import {Api, ApiImplementation, ProjectSkeleton} from "@opendaw/studio-adapters"
 import {Project} from "@opendaw/studio-core"
 import {StudioService} from "@/service/StudioService"
@@ -28,7 +28,7 @@ export class Executor {
         console.debug(jsCode)
         try {
             const globals = {
-                PPQN: PPQN
+                PPQN, Chord
             }
             const scriptFunction = new Function("openDAW", "globals", `with (globals) {${jsCode}}`)
             scriptFunction(this.#api, globals)
