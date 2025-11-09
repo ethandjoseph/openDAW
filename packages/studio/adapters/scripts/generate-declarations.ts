@@ -4,83 +4,46 @@ import * as path from "path"
 
 const rootDir = path.resolve(__dirname, "..")
 const apiFilePath = path.join(rootDir, "src/script/Api.ts")
+const ppqnFilePath = path.join(rootDir, "../../lib/dsp/src/ppqn.ts")
 
-const sourceFile = ts.createSourceFile(
-    apiFilePath,
-    fs.readFileSync(apiFilePath, "utf-8"),
-    ts.ScriptTarget.Latest,
-    true
-)
+// Create a program with both files
+const program = ts.createProgram([apiFilePath, ppqnFilePath], {
+    target: ts.ScriptTarget.ES2020,
+    module: ts.ModuleKind.ESNext,
+    declaration: true,
+    emitDeclarationOnly: true,
+    skipLibCheck: true,
+})
 
-let declarations = ""
-const reexports = new Map<string, string>()
+let ppqnDeclarations = ""
+let apiDeclarations = ""
 
-// Find imports in Api.ts
-ts.forEachChild(sourceFile, node => {
-    if (ts.isImportDeclaration(node) && ts.isStringLiteral(node.moduleSpecifier)) {
-        const modulePath = node.moduleSpecifier.text
-        const importClause = node.importClause
-
-        if (importClause?.namedBindings && ts.isNamedImports(importClause.namedBindings)) {
-            ts.forEachChild(importClause.namedBindings, el => {
-                if (ts.isImportSpecifier(el)) {
-                    reexports.set(el.name.text, modulePath)
-                }
-            })
-        }
+// Emit declarations
+program.emit(undefined, (fileName, data) => {
+    if (fileName.endsWith("ppqn.d.ts")) {
+        ppqnDeclarations = data
+    } else if (fileName.endsWith("Api.d.ts")) {
+        apiDeclarations = data
     }
 })
 
-const printer = ts.createPrinter()
+console.log("Generated ppqn declarations")
+console.log("Generated Api declarations")
 
-// Resolve imports
-for (const [name, modulePath] of Array.from(reexports)) {
-    console.log(`\nResolving ${name} from ${modulePath}...`)
+// Combine and clean
+let declarations = ppqnDeclarations
+    .replace(/export /g, "")
+    .replace(/import[^;]+;/g, "")
+    .replace(/import\([^)]+\)\./g, "") // Remove import("...").Type references
 
-    if (modulePath === "@opendaw/lib-dsp") {
-        // Load the ppqn.ts file directly
-        const ppqnFilePath = path.join(rootDir, "../../lib/dsp/src/ppqn.ts")
+declarations += "\n" + apiDeclarations
+    .replace(/export /g, "")
+    .replace(/import[^;]+;/g, "")
+    .replace(/export \{[^}]+\}[^;]*;/g, "")
 
-        console.log("Loading:", ppqnFilePath)
-
-        if (fs.existsSync(ppqnFilePath)) {
-            const sourceCode = fs.readFileSync(ppqnFilePath, "utf-8")
-            const ppqnFile = ts.createSourceFile(ppqnFilePath, sourceCode, ts.ScriptTarget.Latest, true)
-
-            console.log("Searching for", name, "in ppqn.ts")
-
-            ts.forEachChild(ppqnFile, node => {
-                if (ts.isVariableStatement(node)) {
-                    const decl = node.declarationList.declarations[0]
-                    if (ts.isIdentifier(decl.name) && decl.name.text === name) {
-                        console.log("FOUND variable:", name)
-                        const text = printer.printNode(ts.EmitHint.Unspecified, node, ppqnFile)
-                        declarations += text.replace(/export /, "declare ") + "\n\n"
-                    }
-                }
-
-                if (ts.isTypeAliasDeclaration(node) && node.name.text === name) {
-                    console.log("FOUND type:", name)
-                    const text = printer.printNode(ts.EmitHint.Unspecified, node, ppqnFile)
-                    declarations += text.replace(/export /, "") + "\n\n"
-                }
-            })
-        }
-    }
-}
-
-// Add Api.ts declarations
-ts.forEachChild(sourceFile, node => {
-    if ((ts.isInterfaceDeclaration(node) || ts.isTypeAliasDeclaration(node)) &&
-        node.modifiers?.some(m => m.kind === ts.SyntaxKind.ExportKeyword)) {
-        const text = printer.printNode(ts.EmitHint.Unspecified, node, sourceFile)
-        declarations += text.replace(/export /, "") + "\n\n"
-    }
-})
-
-declarations += "\ndeclare const openDAW: Api;\n"
+declarations += "\n\ndeclare const openDAW: Api;\n"
 
 const outputPath = path.join(rootDir, "src/script/Declarations.d.ts")
 fs.writeFileSync(outputPath, declarations)
 
-console.log("\n✓ Generated declarations")
+console.log("✓ Generated declarations")

@@ -6,8 +6,8 @@ import {int} from "@opendaw/lib-std"
 export type ppqn = number
 
 const Quarter = 960 as const
-const Bar = Quarter << 2 // 3_840
-const SemiQuaver = Quarter >>> 2 // 240
+const Bar: ppqn = Quarter << 2 // 3_840
+const SemiQuaver: ppqn = Quarter >>> 2 // 240
 const fromSignature = (nominator: int, denominator: int) => Math.floor(Bar / denominator) * nominator
 const toParts = (ppqn: ppqn, nominator: int = 4, denominator: int = 4) => {
     const lowerPulses = fromSignature(1, denominator)
