@@ -1,6 +1,3 @@
-// test/setup.ts
-(globalThis as any).AudioWorkletNode ??= class {}
-
 import {describe, it} from "vitest"
 import {fileURLToPath} from "url"
 import * as path from "node:path"
