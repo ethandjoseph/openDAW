@@ -48,9 +48,8 @@ export interface TapeInstrument extends Instrument {/*TODO Add specific methods 
 
 export interface MIDIOutputInstrument extends MIDIInstrument {/*TODO Add specific methods and props*/}
 
-export interface ProjectFactory {
+export interface Project {
     createInstrument<KEY extends keyof InstrumentMap>(name: KEY): InstrumentMap[KEY]
-    create(projectName?: string): void
 }
 
 export type InstrumentMap = {
@@ -63,6 +62,7 @@ export type InstrumentMap = {
 }
 
 export interface Api {
-    createProjectFactory(): ProjectFactory
+    newProject(): Project
+    showProject(project: Project, name?: string): void
     exitEditor(): void
 }

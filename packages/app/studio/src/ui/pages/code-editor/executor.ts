@@ -13,7 +13,13 @@ export class Executor {
                 const project = Project.skeleton(service, skeleton)
                 service.projectProfileService.setProject(project, name ?? "Scripted")
             },
-            exitEditor: () => service.switchScreen("default")
+            exitEditor: () => {
+                if (service.hasProfile) {
+                    service.switchScreen("default")
+                } else {
+                    service.switchScreen("dashboard")
+                }
+            }
         })
     }
 

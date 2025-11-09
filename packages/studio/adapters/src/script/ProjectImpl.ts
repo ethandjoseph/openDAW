@@ -11,7 +11,7 @@ import {
     InstrumentMap,
     InstrumentOptions,
     InstrumentProduct,
-    ProjectFactory,
+    Project,
     ProjectQueries,
     ProjectSkeleton,
     TrackType
@@ -19,7 +19,7 @@ import {
 import {ApiEnvironment} from "./ApiImpl"
 import {MIDIInstrumentImpl} from "./MIDIInstrumentImpl"
 
-export class ProjectFactoryImpl implements ProjectFactory {
+export class ProjectImpl implements Project {
     readonly #env: ApiEnvironment
     readonly #skeleton: ProjectSkeleton
 
@@ -36,9 +36,7 @@ export class ProjectFactoryImpl implements ProjectFactory {
         return new MIDIInstrumentImpl(this.#skeleton, instrumentBox, audioUnitBox) as InstrumentMap[I]
     }
 
-    create(projectName?: string): void {
-        this.#env.buildProject(this.#skeleton, projectName)
-    }
+    get skeleton(): ProjectSkeleton {return this.#skeleton}
 
     #createInstrument<A, INST extends InstrumentBox>(
         {create, defaultIcon, defaultName, trackType}: InstrumentFactory<A, INST>,
