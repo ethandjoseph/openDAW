@@ -8,6 +8,7 @@ import {BuildInfo} from "./src/BuildInfo"
 export default defineConfig(({command}) => {
     const uuid = generateUUID()
     console.debug(uuid)
+
     const env = process.env.NODE_ENV as BuildInfo["env"]
     const date = Date.now()
     return {
@@ -17,6 +18,7 @@ export default defineConfig(({command}) => {
             }
         },
         optimizeDeps: {
+            include: ["monaco-editor"],
             exclude: ["@ffmpeg/ffmpeg", "@ffmpeg/util"]
         },
         build: {

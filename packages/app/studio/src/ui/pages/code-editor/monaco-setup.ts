@@ -1,21 +1,21 @@
-import * as monaco from "monaco-editor"
-import "monaco-editor/esm/vs/language/typescript/monaco.contribution"
+import * as monaco from "monaco-editor/esm/vs/editor/editor.api"
+import "monaco-editor/esm/vs/basic-languages/typescript/typescript.contribution"
+import "monaco-editor/esm/vs/language/typescript/tsMode"
 import EditorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker"
 import TsWorker from "monaco-editor/esm/vs/language/typescript/ts.worker?worker"
 import declarations from "@opendaw/studio-adapters/script/Declarations?raw"
 import libTypedArrays from "./typed-arrays.d.ts?raw"
 
-// noinspection JSUnusedGlobalSymbols
 self.MonacoEnvironment = {
-    getWorker(_, label) {
-        console.debug("getWorker:", _, label)
-        return label === "typescript" || label === "javascript" ? new TsWorker() : new EditorWorker()
+    getWorker(_: string, label: string) {
+        console.debug("getWorker:", label)
+        return label === "typescript" || label === "javascript"
+            ? new TsWorker()
+            : new EditorWorker()
     }
 }
 
-// Configure TypeScript defaults
 const tsDefaults = monaco.languages.typescript.typescriptDefaults
-
 tsDefaults.setEagerModelSync(true)
 
 tsDefaults.setCompilerOptions({
@@ -42,10 +42,11 @@ tsDefaults.setDiagnosticsOptions({
 
 tsDefaults.addExtraLib(libTypedArrays, "file:///lib.typedarrays.d.ts")
 tsDefaults.addExtraLib(declarations, "ts:opendaw.d.ts")
-tsDefaults.addExtraLib(`
-declare const console: Console
-declare const Math: Math
-`, "ts:libs.d.ts")
+tsDefaults.addExtraLib(
+    `declare const console: Console
+     declare const Math: Math`,
+    "ts:libs.d.ts"
+)
 
 export {monaco}
 export type Monaco = typeof monaco
