@@ -4,6 +4,7 @@ import {ProjectSkeleton} from "../project/ProjectSkeleton"
 
 export interface ApiEnvironment {
     buildProject(skeleton: ProjectSkeleton, name?: string): void
+    exitEditor(): void
 }
 
 export class ApiImplementation implements Api {
@@ -17,4 +18,6 @@ export class ApiImplementation implements Api {
             createOutputCompressor: false
         }))
     }
+
+    exitEditor(): void {this.#env.exitEditor()}
 }

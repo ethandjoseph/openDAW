@@ -10,4 +10,5 @@ const factory = openDAW.createProjectFactory()
 const instrument = factory.createInstrument("Nano")
 const noteTrack = instrument.createNoteTrack()
 noteTrack.createNoteRegion({position: 0, duration: PPQN.fromSignature(16, 4)}) // 4 bars long in 4/4
-factory.render("example")
+factory.create("example")
+openDAW.exitEditor()

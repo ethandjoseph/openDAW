@@ -36,7 +36,7 @@ export class ProjectFactoryImpl implements ProjectFactory {
         return new MIDIInstrumentImpl(this.#skeleton, instrumentBox, audioUnitBox) as InstrumentMap[I]
     }
 
-    render(projectName?: string): void {
+    create(projectName?: string): void {
         this.#env.buildProject(this.#skeleton, projectName)
     }
 

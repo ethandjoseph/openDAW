@@ -8,20 +8,12 @@ import {Button} from "@/ui/components/Button"
 import {Icon} from "@/ui/components/Icon"
 import {IconSymbol} from "@opendaw/studio-enums"
 import {RuntimeNotifier} from "@opendaw/lib-std"
-import {ApiImplementation, ProjectSkeleton} from "@opendaw/studio-adapters"
-import {Project} from "@opendaw/studio-core"
-import {PPQN} from "@opendaw/lib-dsp"
+import {Executor} from "@/ui/pages/code-editor/executor"
 
 const className = Html.adoptStyleSheet(css, "CodeEditorPage")
 
 export const CodeEditorPage: PageFactory<StudioService> = ({lifecycle, service}: PageContext<StudioService>) => {
-    const apiImplementation = new ApiImplementation({
-        buildProject: (skeleton: ProjectSkeleton, name?: string): void => {
-            const project = Project.skeleton(service, skeleton)
-            service.projectProfileService.setProject(project, name ?? "Scripted")
-            service.switchScreen("default")
-        }
-    })
+    const executor = new Executor(service)
     return (
         <div className={className}>
             <Await
@@ -73,22 +65,9 @@ export const CodeEditorPage: PageFactory<StudioService> = ({lifecycle, service}:
                                         const client = await worker(model.uri)
                                         const emitOutput = await client.getEmitOutput(model.uri.toString())
                                         if (emitOutput.outputFiles.length > 0) {
-                                            const jsCode = emitOutput.outputFiles[0].text.replace(/^["']use strict["'];?/, "")
-                                            console.debug("Compiled JavaScript:")
-                                            console.debug(jsCode)
-                                            const globals = {
-                                                PPQN: PPQN
-                                            }
-                                            try {
-                                                const scriptFunction = new Function("openDAW", "globals", `with (globals) {${jsCode}}`)
-                                                scriptFunction(apiImplementation, globals)
-                                                console.debug("Script executed successfully")
-                                            } catch (execError) {
-                                                await RuntimeNotifier.info({
-                                                    headline: "Runtime Error",
-                                                    message: String(execError)
-                                                })
-                                            }
+                                            const jsCode = emitOutput.outputFiles[0].text
+                                                .replace(/^["']use strict["'];?/, "")
+                                            await executor.run(jsCode)
                                         } else {
                                             await RuntimeNotifier.info({
                                                 headline: "Compilor Error",
