@@ -1,7 +1,7 @@
-import {Xml} from "@opendaw/lib-xml"
 import {asDefined, isDefined, panic, UUID} from "@opendaw/lib-std"
+import {Xml} from "@opendaw/lib-xml"
 import {FileReferenceSchema, MetaDataSchema, ProjectSchema} from "@opendaw/lib-dawproject"
-import {Project} from "../project"
+import {ProjectSkeleton, SampleLoaderManager} from "@opendaw/studio-adapters"
 import {DawProjectExporter} from "./DawProjectExporter"
 import {ExternalLib} from "../ExternalLib"
 
@@ -44,10 +44,12 @@ export namespace DawProject {
         }
     }
 
-    export const encode = async (project: Project, metaData: MetaDataSchema): Promise<ArrayBuffer> => {
+    export const encode = async (skeleton: ProjectSkeleton,
+                                 sampleManager: SampleLoaderManager,
+                                 metaData: MetaDataSchema): Promise<ArrayBuffer> => {
         const JSZip = await ExternalLib.JSZip()
         const zip = new JSZip()
-        const projectSchema = DawProjectExporter.write(project.skeleton, project.sampleManager, {
+        const projectSchema = DawProjectExporter.write(skeleton, sampleManager, {
             write: (path: string, buffer: ArrayBuffer): FileReferenceSchema => {
                 zip.file(path, buffer)
                 return Xml.element({path, external: false}, FileReferenceSchema)
