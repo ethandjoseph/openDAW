@@ -1,3 +1,4 @@
 // openDAW code editor (based on monaco-editor)
-openDAW.createInstrument("Nano")
-openDAW.create()
+const factory = openDAW.createProjectFactory()
+factory.createInstrument("Nano")
+factory.render("example")

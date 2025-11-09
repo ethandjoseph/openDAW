@@ -14,6 +14,11 @@ export interface Tape extends Instrument {/*TODO Add specific methods and props*
 
 export interface MIDIOutput extends Instrument {/*TODO Add specific methods and props*/}
 
+export interface ProjectFactory {
+    createInstrument<I extends InstrumentFactories.Keys>(instrument: I): InstrumentMap[I]
+    render(projectName?: string): void
+}
+
 export type InstrumentMap = {
     "Vaporisateur": Vaporisateur
     "Playfield": Playfield
@@ -24,6 +29,5 @@ export type InstrumentMap = {
 }
 
 export interface Api {
-    createInstrument<I extends InstrumentFactories.Keys>(instrument: I): InstrumentMap[I]
-    create(): void
+    createProjectFactory(): ProjectFactory
 }

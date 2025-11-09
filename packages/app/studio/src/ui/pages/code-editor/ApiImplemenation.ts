@@ -1,26 +1,28 @@
-import {InstrumentMap} from "@opendaw/studio-core/script/Api"
 import {InstrumentFactories} from "@opendaw/studio-adapters"
-import {Project} from "@opendaw/studio-core"
+import {Api, InstrumentMap, Project, ProjectFactory} from "@opendaw/studio-core"
 import {StudioService} from "@/service/StudioService"
 
-export class ApiImplementation {
+export class ApiImplementation implements Api {
     readonly #service: StudioService
-    readonly #project: Project
 
     constructor(service: StudioService) {
         this.#service = service
-        this.#project = Project.new(service)
     }
 
-    createInstrument<I extends keyof InstrumentMap>(instrument: I): InstrumentMap[I] {
-        this.#project.editing.modify(() => {
-            this.#project.api.createAnyInstrument(InstrumentFactories.Named[instrument])
-        })
-        return {} as InstrumentMap[I]
-    }
+    createProjectFactory(): ProjectFactory {
+        const project = Project.new(this.#service)
 
-    create(): void {
-        this.#service.projectProfileService.setProject(this.#project, "Scripted")
-        this.#service.switchScreen("default")
+        return {
+            createInstrument: <I extends InstrumentFactories.Keys>(instrument: I): InstrumentMap[I] => {
+                project.editing.modify(() => {
+                    project.api.createAnyInstrument(InstrumentFactories.Named[instrument])
+                })
+                return {} as InstrumentMap[I]
+            },
+            render: (projectName?: string): void => {
+                this.#service.projectProfileService.setProject(project, projectName ?? "Scripted")
+                this.#service.switchScreen("default")
+            }
+        }
     }
 }

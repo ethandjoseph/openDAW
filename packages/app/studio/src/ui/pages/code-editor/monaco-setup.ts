@@ -4,13 +4,11 @@ import EditorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker"
 import TsWorker from "monaco-editor/esm/vs/language/typescript/ts.worker?worker"
 import openDAWApiSource from "@opendaw/studio-core/script/Api?raw"
 
+// noinspection JSUnusedGlobalSymbols
 self.MonacoEnvironment = {
     getWorker(_, label) {
         console.debug("getWorker:", _, label)
-        if (label === "typescript" || label === "javascript") {
-            return new TsWorker()
-        }
-        return new EditorWorker()
+        return label === "typescript" || label === "javascript" ? new TsWorker() : new EditorWorker()
     }
 }
 
@@ -46,7 +44,7 @@ const declarations = openDAWApiSource
         .replace(/InstrumentFactories\.Keys/g, "keyof InstrumentMap") // Replace with keyof InstrumentMap
     + "\n\ndeclare const openDAW: Api;"
 
-console.log("Monaco declarations:", declarations)
+console.debug("Monaco declarations:", declarations)
 
 tsDefaults.addExtraLib(declarations, "ts:opendaw.d.ts")
 
