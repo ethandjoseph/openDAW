@@ -1,6 +1,8 @@
 import {asDefined, asInstanceOf, Color, ifDefined, isInstanceOf, Maybe, Option, UUID} from "@opendaw/lib-std"
 import {Xml} from "@opendaw/lib-xml"
 import {dbToGain, PPQN} from "@opendaw/lib-dsp"
+import {AddressIdEncoder, BooleanField, Field} from "@opendaw/lib-box"
+import {Html} from "@opendaw/lib-dom"
 import {
     ApplicationSchema,
     ArrangementSchema,
@@ -30,7 +32,6 @@ import {
     WarpSchema,
     WarpsSchema
 } from "@opendaw/lib-dawproject"
-import {AddressIdEncoder, BooleanField, Field} from "@opendaw/lib-box"
 import {AudioUnitType} from "@opendaw/studio-enums"
 import {
     AudioFileBox,
@@ -43,19 +44,17 @@ import {
     TrackBox,
     ValueRegionBox
 } from "@opendaw/studio-boxes"
-import {Project} from "../project"
+import {ColorCodes, DeviceBoxUtils, ProjectSkeleton, SampleLoaderManager} from "@opendaw/studio-adapters"
 import {AudioUnitExportLayout} from "./AudioUnitExportLayout"
-import {Html} from "@opendaw/lib-dom"
-import {ColorCodes, DeviceBoxUtils} from "@opendaw/studio-adapters"
 import {DeviceIO} from "./DeviceIO"
 import {WavFile} from "../WavFile"
 
 export namespace DawProjectExporter {
     export interface ResourcePacker {write(path: string, buffer: ArrayBufferLike): FileReferenceSchema}
 
-    export const write = (project: Project, resourcePacker: ResourcePacker) => {
+    export const write = (skeleton: ProjectSkeleton, sampleManager: SampleLoaderManager, resourcePacker: ResourcePacker) => {
         const ids = new AddressIdEncoder()
-        const {boxGraph, timelineBox, rootBox, sampleManager} = project
+        const {boxGraph, mandatoryBoxes: {timelineBox, rootBox}} = skeleton
         const audioUnits: ReadonlyArray<AudioUnitBox> = rootBox.audioUnits.pointerHub.incoming()
             .map(({box}) => asInstanceOf(box, AudioUnitBox))
             .sort((a, b) => a.index.getValue() - b.index.getValue())

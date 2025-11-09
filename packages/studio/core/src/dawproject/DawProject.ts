@@ -47,7 +47,7 @@ export namespace DawProject {
     export const encode = async (project: Project, metaData: MetaDataSchema): Promise<ArrayBuffer> => {
         const JSZip = await ExternalLib.JSZip()
         const zip = new JSZip()
-        const projectSchema = DawProjectExporter.write(project, {
+        const projectSchema = DawProjectExporter.write(project.skeleton, project.sampleManager, {
             write: (path: string, buffer: ArrayBuffer): FileReferenceSchema => {
                 zip.file(path, buffer)
                 return Xml.element({path, external: false}, FileReferenceSchema)
