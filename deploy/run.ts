@@ -9,29 +9,13 @@ const config = {
     password: process.env.SFTP_PASSWORD
 } as const
 
-const DRY_RUN = process.env.DRY_RUN === "1" || process.argv.includes("--dry")
-console.info(`DRY_RUN: ${DRY_RUN}`)
-const env = Object.entries({
-    SFTP_HOST: process.env.SFTP_HOST,
-    SFTP_PORT: process.env.SFTP_PORT,
-    SFTP_USERNAME: process.env.SFTP_USERNAME,
-    SFTP_PASSWORD: process.env.SFTP_PASSWORD,
-    DISCORD_WEBHOOK: process.env.DISCORD_WEBHOOK
-})
-const missing = env.filter(([, v]) => !v).map(([k]) => k)
-if (missing.length > 0) {
-    throw new Error(`Missing secrets/vars: ${missing.join(", ")}`)
-}
-if (DRY_RUN) {
-    console.log("✅ All secrets & variables are set. Nothing was uploaded (dry-run).")
-    process.exit(0)
-}
 const sftp = new SftpClient()
-
 const distDir = "./packages/app/studio/dist"
 const buildInfoPath = "./packages/app/studio/public/build-info.json"
+const htaccessBasePath = "./packages/app/studio/public/.htaccess"
 
 const readBuildInfo = () => JSON.parse(fs.readFileSync(buildInfoPath, "utf8"))
+
 const uploadDirectory = async (localDir: string, remoteDir: string) => {
         for (const file of fs.readdirSync(localDir)) {
             const localPath = path.join(localDir, file)
@@ -50,7 +34,7 @@ const uploadDirectory = async (localDir: string, remoteDir: string) => {
 ;(async () => {
     await sftp.connect(config)
 
-    const {uuid} = readBuildInfo()
+    const {uuid, date} = readBuildInfo()
     const releaseDir = `/releases/${uuid}`
     console.log("creating", releaseDir)
     await sftp.mkdir(releaseDir, true).catch(() => {})
@@ -58,18 +42,37 @@ const uploadDirectory = async (localDir: string, remoteDir: string) => {
     console.log("uploading dist...")
     await uploadDirectory(distDir, releaseDir)
 
-    const htaccess = [
-        "RewriteEngine On",
-        `RewriteRule ^(.*)$ ${releaseDir}/$1 [L]`,
-        ""
-    ].join("\n")
+    // merge base .htaccess with redirect block
+    const base = fs.readFileSync(htaccessBasePath, "utf8")
+    const redirectBlock =
+        `\n# --------------------------------------------------\n` +
+        `# ACTIVE RELEASE REDIRECT\n` +
+        `RewriteRule ^(.*)$ ${releaseDir}/$1 [L]\n` +
+        `# --------------------------------------------------\n`
+    const merged = base.replace(/^RewriteBase/m, redirectBlock + "RewriteBase") || base + redirectBlock
 
-    const localTmp = "./.htaccess-test"
-    fs.writeFileSync(localTmp, htaccess)
-    await sftp.put(localTmp, "/.htaccess-test")
-    fs.unlinkSync(localTmp)
+    const tmpFile = "./.htaccess"
+    fs.writeFileSync(tmpFile, merged)
+    await sftp.put(tmpFile, "/.htaccess")
+    fs.unlinkSync(tmpFile)
 
     await sftp.end()
-    console.log("✅ Test release uploaded to", releaseDir)
-    console.log("ℹ️  To activate: rename /.htaccess-test → /.htaccess")
+    console.log(`✅ Release uploaded and activated: ${releaseDir}`)
+
+    const webhookUrl = process.env.DISCORD_WEBHOOK
+    if (webhookUrl) {
+        const now = Math.floor(Date.now() / 1000)
+        const content =
+            `🚀 **openDAW** deployed <https://opendaw.studio> using release \`${uuid}\` <t:${now}:R>.`
+        try {
+            const response = await fetch(webhookUrl, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({content})
+            })
+            console.log("Discord:", response.status)
+        } catch (err) {
+            console.warn("Discord post failed:", err)
+        }
+    }
 })()
