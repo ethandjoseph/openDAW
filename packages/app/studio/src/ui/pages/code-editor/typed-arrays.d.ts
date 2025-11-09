@@ -97,3 +97,53 @@ declare class BigUint64Array extends TypedArray {
     constructor(length: number);
     constructor(array: ArrayLike<bigint> | ArrayBuffer)
 }
+
+declare class Array<T> {
+    readonly length: number
+    [index: number]: T
+
+    constructor()
+    constructor(length: number)
+    constructor(...items: T[])
+
+    at(index: number): T | undefined
+    concat(...items: (T | ConcatArray<T>)[]): T[]
+    copyWithin(target: number, start: number, end?: number): this
+    entries(): IterableIterator<[number, T]>
+    every(callbackfn: (value: T, index: number, array: T[]) => boolean): boolean
+    fill(value: T, start?: number, end?: number): this
+    filter(callbackfn: (value: T, index: number, array: T[]) => boolean): T[]
+    find(callbackfn: (value: T, index: number, array: T[]) => boolean): T | undefined
+    findIndex(callbackfn: (value: T, index: number, array: T[]) => boolean): number
+    flat<U>(this: U[][], depth?: number): U[]
+    flatMap<U>(callbackfn: (value: T, index: number, array: T[]) => U | readonly U[]): U[]
+    forEach(callbackfn: (value: T, index: number, array: T[]) => void): void
+    includes(value: T, fromIndex?: number): boolean
+    indexOf(value: T, fromIndex?: number): number
+    join(separator?: string): string
+    keys(): IterableIterator<number>
+    lastIndexOf(value: T, fromIndex?: number): number
+    map<U>(callbackfn: (value: T, index: number, array: T[]) => U): U[]
+    pop(): T | undefined
+    push(...items: T[]): number
+    reduce(callbackfn: (prev: T, curr: T, index: number, array: T[]) => T): T
+    reduceRight(callbackfn: (prev: T, curr: T, index: number, array: T[]) => T): T
+    reverse(): this
+    shift(): T | undefined
+    slice(start?: number, end?: number): T[]
+    some(callbackfn: (value: T, index: number, array: T[]) => boolean): boolean
+    sort(compareFn?: (a: T, b: T) => number): this
+    splice(start: number, deleteCount?: number, ...items: T[]): T[]
+    toLocaleString(): string
+    toString(): string
+    unshift(...items: T[]): number
+    values(): IterableIterator<T>
+    [Symbol.iterator](): IterableIterator<T>
+    [Symbol.unscopables](): Record<string, boolean>
+}
+
+interface ConcatArray<T> {
+    readonly length: number
+    [n: number]: T
+    concat(...items: ConcatArray<T>[]): T[]
+}

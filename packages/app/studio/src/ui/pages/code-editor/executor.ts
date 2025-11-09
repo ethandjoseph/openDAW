@@ -21,12 +21,14 @@ export class Executor {
         console.debug("Compiled JavaScript:")
         console.debug(jsCode)
         try {
+            const globals = {
+                PPQN: PPQN
+            }
             const scriptFunction = new Function("openDAW", "globals", `with (globals) {${jsCode}}`)
-            scriptFunction(this.#api, {
-                PPQN
-            })
+            scriptFunction(this.#api, globals)
             console.debug("Script executed successfully")
         } catch (execError) {
+            console.warn(execError)
             await RuntimeNotifier.info({
                 headline: "Runtime Error",
                 message: String(execError)

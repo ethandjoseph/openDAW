@@ -1,5 +1,6 @@
 import type {ppqn} from "@opendaw/lib-dsp"
 import {PPQN} from "@opendaw/lib-dsp"
+import {byte, unitValue} from "@opendaw/lib-std"
 
 export {PPQN, ppqn}
 
@@ -14,8 +15,15 @@ export type NoteRegionParams = {
     hue?: number
 }
 
+export type NoteEventParams = {
+    position: ppqn
+    duration?: ppqn
+    pitch: byte
+    velocity?: unitValue
+}
+
 export interface NoteRegion {
-    // createNoteEvent(pitch: byte, velocity: unitValue): void
+    createNoteEvent(params: NoteEventParams): void
 }
 
 export interface NoteTrack {

@@ -3,6 +3,7 @@ import {NoteEventCollectionBox, NoteRegionBox, TrackBox} from "@opendaw/studio-b
 import {NoteRegion, NoteRegionParams, NoteTrack} from "./Api"
 import {ProjectSkeleton} from "../project/ProjectSkeleton"
 import {ColorCodes} from "../factories/ColorCodes"
+import {NoteRegionImpl} from "./NoteRegionImpl"
 
 export class NoteTrackImpl implements NoteTrack {
     readonly #skeleton: ProjectSkeleton
@@ -15,13 +16,13 @@ export class NoteTrackImpl implements NoteTrack {
 
     createNoteRegion({
                          position, duration,
-                         loopOffset, loopDuration,
-                         eventOffset, mute, name, hue
+                         loopOffset, loopDuration, eventOffset,
+                         mute, name, hue
                      }: NoteRegionParams): NoteRegion {
         const {boxGraph} = this.#skeleton
         boxGraph.beginTransaction()
         const events = NoteEventCollectionBox.create(boxGraph, UUID.generate())
-        NoteRegionBox.create(boxGraph, UUID.generate(), box => {
+        const region = NoteRegionBox.create(boxGraph, UUID.generate(), box => {
             box.position.setValue(position)
             box.label.setValue(name ?? "Notes")
             box.hue.setValue(hue ?? ColorCodes.forTrackType(this.#trackBox.type.getValue()))
@@ -34,6 +35,6 @@ export class NoteTrackImpl implements NoteTrack {
             box.regions.refer(this.#trackBox.regions)
         })
         boxGraph.endTransaction()
-        return {}
+        return new NoteRegionImpl(boxGraph, region)
     }
 }
