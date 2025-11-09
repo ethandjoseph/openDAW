@@ -1,7 +1,7 @@
-import {TrackType} from "@opendaw/studio-adapters"
-import {IconSymbol, Pointers} from "@opendaw/studio-enums"
 import {BoxGraph, Field} from "@opendaw/lib-box"
+import {IconSymbol, Pointers} from "@opendaw/studio-enums"
 import {BoxIO} from "@opendaw/studio-boxes"
+import {TrackType} from "../index"
 import {InstrumentBox} from "./InstrumentBox"
 
 export interface InstrumentFactory<A = any, INST extends InstrumentBox = InstrumentBox> {

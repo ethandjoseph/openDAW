@@ -4,12 +4,11 @@ import {createElement} from "@opendaw/lib-jsx"
 import {DeviceEditor} from "@/ui/devices/DeviceEditor.tsx"
 import {Tape} from "@/ui/devices/instruments/TapeDeviceEditor/Tape.tsx"
 import {Timeline} from "@/ui/devices/instruments/TapeDeviceEditor/Timeline.tsx"
-import {AudioUnitTracks, DeviceHost, TapeDeviceBoxAdapter} from "@opendaw/studio-adapters"
+import {AudioUnitTracks, DeviceHost, InstrumentFactories, TapeDeviceBoxAdapter} from "@opendaw/studio-adapters"
 import {MenuItems} from "@/ui/devices/menu-items.ts"
 import {DevicePeakMeter} from "@/ui/devices/panel/DevicePeakMeter.tsx"
 import {Html} from "@opendaw/lib-dom"
 import {StudioService} from "@/service/StudioService"
-import {InstrumentFactories} from "@opendaw/studio-core"
 
 const className = Html.adoptStyleSheet(css, "TapeDeviceEditor")
 

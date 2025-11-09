@@ -1,9 +1,16 @@
 import {asDefined, panic, Terminable, UUID} from "@opendaw/lib-std"
 import {DragAndDrop} from "@/ui/DragAndDrop"
 import {AnyDragData} from "@/ui/AnyDragData"
-import {AudioBusBoxAdapter, AudioUnitBoxAdapter, Devices} from "@opendaw/studio-adapters"
+import {
+    AudioBusBoxAdapter,
+    AudioUnitBoxAdapter,
+    Devices,
+    InstrumentBox,
+    InstrumentFactories,
+    InstrumentFactory
+} from "@opendaw/studio-adapters"
 import {InsertMarker} from "@/ui/components/InsertMarker"
-import {EffectFactories, InstrumentBox, InstrumentFactories, InstrumentFactory, Project} from "@opendaw/studio-core"
+import {EffectFactories, Project} from "@opendaw/studio-core"
 import {IndexedBox} from "@opendaw/lib-box"
 import {AudioBusBox, BoxVisitor, CaptureAudioBox, CaptureMidiBox} from "@opendaw/studio-boxes"
 

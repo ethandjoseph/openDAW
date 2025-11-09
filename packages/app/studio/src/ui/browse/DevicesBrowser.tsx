@@ -2,17 +2,16 @@ import css from "./DevicesBrowser.sass?inline"
 import {isDefined, isInstanceOf, Lifecycle, Objects, panic, UUID} from "@opendaw/lib-std"
 import {Html} from "@opendaw/lib-dom"
 import {createElement, RouteLocation} from "@opendaw/lib-jsx"
+import {ModularBox} from "@opendaw/studio-boxes"
+import {DeviceHost, Devices, InstrumentFactories} from "@opendaw/studio-adapters"
+import {EffectFactories, EffectFactory, Project} from "@opendaw/studio-core"
 import {StudioService} from "@/service/StudioService.ts"
 import {DragAndDrop} from "@/ui/DragAndDrop"
 import {DragDevice} from "@/ui/AnyDragData"
 import {TextTooltip} from "@/ui/surface/TextTooltip"
-import {DeviceHost, Devices} from "@opendaw/studio-adapters"
-import {EffectFactories, EffectFactory, InstrumentFactories, Project} from "@opendaw/studio-core"
-import {ModularBox} from "@opendaw/studio-boxes"
-import {Icon} from "../components/Icon"
 import {ContextMenu} from "@/ui/ContextMenu"
 import {MenuItem} from "@/ui/model/menu-item"
-import PlayfieldAttachment = InstrumentFactories.PlayfieldAttachment
+import {Icon} from "../components/Icon"
 
 const className = Html.adoptStyleSheet(css, "DevicesBrowser")
 
@@ -145,7 +144,7 @@ const createEffectList = <
     }</ul>
 )
 
-const DefaultPlayfieldAttachment: PlayfieldAttachment = [
+const DefaultPlayfieldAttachment: InstrumentFactories.PlayfieldAttachment = [
     {
         note: 60,
         uuid: UUID.parse("8bb2c6e8-9a6d-4d32-b7ec-1263594ef367"),

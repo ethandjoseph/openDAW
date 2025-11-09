@@ -64,11 +64,16 @@ import {
     UnknownMidiEffectDeviceBox,
     UserInterfaceBox
 } from "@opendaw/studio-boxes"
-import {CaptureBox, DeviceBoxUtils, ProjectSkeleton, TrackType} from "@opendaw/studio-adapters"
+import {
+    CaptureBox,
+    DeviceBoxUtils,
+    InstrumentBox,
+    InstrumentFactories,
+    ProjectSkeleton,
+    TrackType
+} from "@opendaw/studio-adapters"
 import {DawProject} from "./DawProject"
-import {InstrumentBox} from "../InstrumentBox"
 import {AudioUnitOrdering} from "../AudioUnitOrdering"
-import {InstrumentFactories} from "../InstrumentFactories"
 import {ColorCodes} from "../ColorCodes"
 import {DeviceIO} from "./DeviceIO"
 import {BuiltinDevices} from "./BuiltinDevices"

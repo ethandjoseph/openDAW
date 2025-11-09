@@ -1,8 +1,8 @@
 import {asInstanceOf, assert, Errors, Option, Terminable, Terminator} from "@opendaw/lib-std"
 import {Promises} from "@opendaw/lib-runtime"
-import {AudioUnitBox} from "@opendaw/studio-boxes"
 import {AudioUnitType} from "@opendaw/studio-enums"
-import {InstrumentFactories} from "../InstrumentFactories"
+import {AudioUnitBox} from "@opendaw/studio-boxes"
+import {InstrumentFactories} from "@opendaw/studio-adapters"
 import {Project} from "../project"
 
 export class Recording {

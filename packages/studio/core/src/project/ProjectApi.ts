@@ -34,17 +34,17 @@ import {
     CaptureBox,
     EffectPointerType,
     IndexedAdapterCollectionListener,
+    InstrumentBox,
+    InstrumentFactory,
+    InstrumentOptions,
+    InstrumentProduct,
     TrackType
 } from "@opendaw/studio-adapters"
 import {Project} from "./Project"
-import {InstrumentFactory} from "../InstrumentFactory"
-import {InstrumentProduct} from "../InstrumentProduct"
-import {InstrumentOptions} from "../InstrumentOptions"
 import {EffectFactory} from "../EffectFactory"
 import {ColorCodes} from "../ColorCodes"
 import {EffectBox} from "../EffectBox"
 import {AudioUnitOrdering} from "../AudioUnitOrdering"
-import {InstrumentBox} from "../InstrumentBox"
 
 export type ClipRegionOptions = {
     name?: string

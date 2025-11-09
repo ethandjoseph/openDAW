@@ -14,11 +14,15 @@ import {
 import {createElement, Frag, replaceChildren} from "@opendaw/lib-jsx"
 import {DeviceEditor} from "@/ui/devices/DeviceEditor.tsx"
 import {MenuItems} from "@/ui/devices/menu-items.ts"
-import {AutomatableParameterFieldAdapter, DeviceHost, VaporisateurDeviceBoxAdapter} from "@opendaw/studio-adapters"
+import {
+    AutomatableParameterFieldAdapter,
+    DeviceHost,
+    InstrumentFactories,
+    VaporisateurDeviceBoxAdapter
+} from "@opendaw/studio-adapters"
 import {DevicePeakMeter} from "@/ui/devices/panel/DevicePeakMeter.tsx"
 import {Html} from "@opendaw/lib-dom"
 import {StudioService} from "@/service/StudioService"
-import {InstrumentFactories} from "@opendaw/studio-core"
 import {ParameterLabel} from "@/ui/components/ParameterLabel"
 import {RelativeUnitValueDragging} from "@/ui/wrapper/RelativeUnitValueDragging"
 import {RadioGroup} from "@/ui/components/RadioGroup"

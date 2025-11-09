@@ -3,7 +3,7 @@ import {asInstanceOf, Lifecycle} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {DeviceEditor} from "@/ui/devices/DeviceEditor.tsx"
 import {MenuItems} from "@/ui/devices/menu-items.ts"
-import {DeviceHost, NanoDeviceBoxAdapter} from "@opendaw/studio-adapters"
+import {DeviceHost, InstrumentFactories, NanoDeviceBoxAdapter} from "@opendaw/studio-adapters"
 import {IconSymbol} from "@opendaw/studio-enums"
 import {ControlBuilder} from "@/ui/devices/ControlBuilder.tsx"
 import {DevicePeakMeter} from "@/ui/devices/panel/DevicePeakMeter.tsx"
@@ -12,7 +12,6 @@ import {AudioFileBox} from "@opendaw/studio-boxes"
 import {Icon} from "@/ui/components/Icon"
 import {SampleSelector, SampleSelectStrategy} from "@/ui/devices/SampleSelector"
 import {StudioService} from "@/service/StudioService"
-import {InstrumentFactories} from "@opendaw/studio-core"
 
 const className = Html.adoptStyleSheet(css, "NanoDeviceEditor")
 

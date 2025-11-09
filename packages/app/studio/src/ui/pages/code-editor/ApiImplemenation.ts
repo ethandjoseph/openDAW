@@ -1,5 +1,6 @@
 import {InstrumentMap} from "@opendaw/studio-core/script/Api"
-import {InstrumentFactories, Project} from "@opendaw/studio-core"
+import {InstrumentFactories} from "@opendaw/studio-adapters"
+import {Project} from "@opendaw/studio-core"
 import {StudioService} from "@/service/StudioService"
 
 export class ApiImplementation {

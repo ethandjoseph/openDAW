@@ -1,6 +1,6 @@
-import {AudioData, SampleMetaData} from "@opendaw/studio-adapters"
+import {AudioData, InstrumentFactories, SampleMetaData} from "@opendaw/studio-adapters"
 import {Arrays, Progress, UUID} from "@opendaw/lib-std"
-import {InstrumentFactories, Project, SampleStorage, Workers} from "@opendaw/studio-core"
+import {Project, SampleStorage, Workers} from "@opendaw/studio-core"
 import {SamplePeaks} from "@opendaw/lib-fusion"
 import {estimateBpm, PPQN} from "@opendaw/lib-dsp"
 import {AudioFileBox, AudioRegionBox} from "@opendaw/studio-boxes"

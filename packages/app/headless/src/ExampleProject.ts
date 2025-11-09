@@ -1,7 +1,8 @@
 // noinspection PointlessArithmeticExpressionJS
 
 import {PPQN} from "@opendaw/lib-dsp"
-import {EffectFactories, InstrumentFactories, Project, ProjectEnv} from "@opendaw/studio-core"
+import {InstrumentFactories} from "@opendaw/studio-adapters"
+import {EffectFactories, Project, ProjectEnv} from "@opendaw/studio-core"
 
 const {Bar, Quarter} = PPQN
 

@@ -1,4 +1,4 @@
-import {InstrumentFactories} from "../InstrumentFactories"
+import {InstrumentFactories} from "@opendaw/studio-adapters"
 
 export interface Instrument {}
 
