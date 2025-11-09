@@ -9,9 +9,9 @@ import {
     TimelineBox,
     UserInterfaceBox
 } from "@opendaw/studio-boxes"
-import {ProjectMandatoryBoxes} from "../index"
 import {Option, UUID} from "@opendaw/lib-std"
 import {AudioUnitType, IconSymbol} from "@opendaw/studio-enums"
+import {ProjectMandatoryBoxes} from "./ProjectMandatoryBoxes"
 
 export type ProjectSkeleton = {
     boxGraph: BoxGraph<BoxIO.TypeMap>,

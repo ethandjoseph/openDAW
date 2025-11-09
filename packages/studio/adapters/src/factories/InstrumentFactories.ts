@@ -13,9 +13,9 @@ import {
 import {byte, isDefined, UUID} from "@opendaw/lib-std"
 import {ClassicWaveform} from "@opendaw/lib-dsp"
 import {BoxGraph, Field} from "@opendaw/lib-box"
-import {TrackType} from "../index"
 import {IconSymbol, Pointers, VoicingMode} from "@opendaw/studio-enums"
 import {InstrumentFactory} from "./InstrumentFactory"
+import {TrackType} from "../timeline/TrackType"
 
 export namespace InstrumentFactories {
     export const Tape: InstrumentFactory<void, TapeDeviceBox> = {

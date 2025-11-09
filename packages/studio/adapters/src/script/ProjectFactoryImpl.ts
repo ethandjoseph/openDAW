@@ -15,7 +15,7 @@ import {
     ProjectQueries,
     ProjectSkeleton,
     TrackType
-} from "../index"
+} from "@opendaw/studio-adapters"
 import {ApiEnvironment} from "./ApiImpl"
 import {MIDIInstrumentImpl} from "./MIDIInstrumentImpl"
 

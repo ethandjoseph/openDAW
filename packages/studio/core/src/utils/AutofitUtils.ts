@@ -1,8 +1,8 @@
-import {Project} from "../index"
 import {AnyRegionBoxAdapter, AudioRegionBoxAdapter, TrackBoxAdapter} from "@opendaw/studio-adapters"
 import {AudioPlayback} from "@opendaw/studio-enums"
 import {PPQN} from "@opendaw/lib-dsp"
 import {ArrayMultimap, isNull, Iterables, Nullable} from "@opendaw/lib-std"
+import {Project} from "../project"
 
 export namespace AutofitUtils {
     // Since we do not have an unsynchronized playback, we are going to change the region that has 'autofit' enabled.
