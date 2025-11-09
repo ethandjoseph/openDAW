@@ -1,6 +1,6 @@
 import css from "./OutputSelector.sass?inline"
 import {assert, DefaultObservableValue, Lifecycle, StringComparator, UUID} from "@opendaw/lib-std"
-import {AudioUnitBoxAdapter} from "@opendaw/studio-adapters"
+import {AudioBusFactory, AudioUnitBoxAdapter, Colors} from "@opendaw/studio-adapters"
 import {AudioUnitType, IconSymbol} from "@opendaw/studio-enums"
 import {createElement, DomElement, Frag} from "@opendaw/lib-jsx"
 import {IconCartridge} from "@/ui/components/Icon.tsx"
@@ -8,7 +8,7 @@ import {Html} from "@opendaw/lib-dom"
 import {MenuItem} from "@/ui/model/menu-item"
 import {showNewAudioBusOrAuxDialog} from "@/ui/dialogs"
 import {MenuButton} from "@/ui/components/MenuButton"
-import {Colors, Project} from "@opendaw/studio-core"
+import {Project} from "@opendaw/studio-core"
 
 const className = Html.adoptStyleSheet(css, "OutputSelector")
 
@@ -66,7 +66,7 @@ export const ChannelOutputSelector = ({lifecycle, project, adapter}: Construct) 
                                     showNewAudioBusOrAuxDialog("Bus", ({name, icon}) =>
                                         project.editing.modify(() => {
                                             assert(project.masterBusBox.isAttached(), "master not attached")
-                                            const audioBusBox = project.api.createAudioBus(
+                                            const audioBusBox = AudioBusFactory.create(project.skeleton,
                                                 name, icon, AudioUnitType.Bus, Colors.orange)
                                             adapter.box.output.refer(audioBusBox.input)
                                         }), IconSymbol.AudioBus)),

@@ -24,7 +24,7 @@ import {ProgressBar} from "@/ui/components/ProgressBar.tsx"
 import {TextInput} from "../components/TextInput"
 import {SearchInput} from "../components/SearchInput"
 import {Html} from "@opendaw/lib-dom"
-import {Colors} from "@opendaw/studio-core"
+import {Colors} from "@opendaw/studio-adapters"
 
 const className = Html.adoptStyleSheet(css, "ComponentsPage")
 

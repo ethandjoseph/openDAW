@@ -5,7 +5,7 @@ import {Address} from "@opendaw/lib-box"
 import {gainToDb} from "@opendaw/lib-dsp"
 import {LiveStreamReceiver} from "@opendaw/lib-fusion"
 import {Html} from "@opendaw/lib-dom"
-import {Colors} from "@opendaw/studio-core"
+import {Colors} from "@opendaw/studio-adapters"
 
 const className = Html.adoptStyleSheet(css, "DevicePeakMeter")
 

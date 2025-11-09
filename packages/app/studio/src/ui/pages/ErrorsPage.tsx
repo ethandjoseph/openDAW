@@ -4,7 +4,7 @@ import {StudioService} from "@/service/StudioService.ts"
 import {Events, Html} from "@opendaw/lib-dom"
 import {Entry, ErrorEntry} from "@/ui/pages/errors/ErrorEntry"
 import {Promises, Wait} from "@opendaw/lib-runtime"
-import {Colors} from "@opendaw/studio-core"
+import {Colors} from "@opendaw/studio-adapters"
 
 const className = Html.adoptStyleSheet(css, "ErrorsPage")
 const loadLimit = 100

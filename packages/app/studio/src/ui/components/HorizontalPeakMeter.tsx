@@ -3,7 +3,7 @@ import {AnimationFrame, Html} from "@opendaw/lib-dom"
 import {Arrays, Lifecycle, ValueMapping} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {CanvasPainter} from "@/ui/canvas/painter"
-import {Colors} from "@opendaw/studio-core"
+import {Colors} from "@opendaw/studio-adapters"
 
 const className = Html.adoptStyleSheet(css, "PeakVolumeSlider")
 

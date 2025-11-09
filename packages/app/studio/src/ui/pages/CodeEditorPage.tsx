@@ -4,16 +4,24 @@ import {Await, createElement, PageContext, PageFactory} from "@opendaw/lib-jsx"
 import {StudioService} from "@/service/StudioService.ts"
 import {ThreeDots} from "@/ui/spinner/ThreeDots"
 import type {Monaco} from "./code-editor/monaco-setup"
-import ExampleScript from "./code-editor/script.txt?raw"
+import ExampleScript from "./code-editor/example.ts?raw"
 import {Button} from "@/ui/components/Button"
 import {Icon} from "@/ui/components/Icon"
 import {IconSymbol} from "@opendaw/studio-enums"
-import {ApiImplementation} from "@/ui/pages/code-editor/ApiImplemenation"
 import {RuntimeNotifier} from "@opendaw/lib-std"
+import {ApiImplementation, ProjectSkeleton} from "@opendaw/studio-adapters"
+import {Project} from "@opendaw/studio-core"
 
 const className = Html.adoptStyleSheet(css, "CodeEditorPage")
 
 export const CodeEditorPage: PageFactory<StudioService> = ({lifecycle, service}: PageContext<StudioService>) => {
+    const apiImplementation = new ApiImplementation({
+        buildProject: (skeleton: ProjectSkeleton, name?: string): void => {
+            const project = Project.skeleton(service, skeleton)
+            service.projectProfileService.setProject(project, name ?? "Scripted")
+            service.switchScreen("default")
+        }
+    })
     return (
         <div className={className}>
             <Await
@@ -25,7 +33,9 @@ export const CodeEditorPage: PageFactory<StudioService> = ({lifecycle, service}:
                     const modelUri = monaco.Uri.parse("file:///main.ts")
                     let model = monaco.editor.getModel(modelUri)
                     if (!model) {
-                        model = monaco.editor.createModel(ExampleScript, "typescript", modelUri)
+                        model = monaco.editor.createModel(
+                            ExampleScript.substring(ExampleScript.indexOf("//")),
+                            "typescript", modelUri)
                     }
                     const editor = monaco.editor.create(container, {
                         model: model,
@@ -56,18 +66,17 @@ export const CodeEditorPage: PageFactory<StudioService> = ({lifecycle, service}:
                             <header>
                                 <Button lifecycle={lifecycle} onClick={async () => {
                                     try {
+                                        // TODO Await these once for the page
                                         const worker = await monaco.languages.typescript.getTypeScriptWorker()
                                         const client = await worker(model.uri)
-
                                         const emitOutput = await client.getEmitOutput(model.uri.toString())
-
                                         if (emitOutput.outputFiles.length > 0) {
                                             const jsCode = emitOutput.outputFiles[0].text
                                             console.debug("Compiled JavaScript:")
                                             console.debug(jsCode)
                                             try {
                                                 const scriptFunction = new Function("openDAW", jsCode)
-                                                scriptFunction(new ApiImplementation(service))
+                                                scriptFunction(apiImplementation)
                                                 console.debug("Script executed successfully")
                                             } catch (execError) {
                                                 await RuntimeNotifier.info({

@@ -1,7 +1,7 @@
 import {StringMapping, ValueMapping} from "@opendaw/lib-std"
 import {ClassicWaveform} from "@opendaw/lib-dsp"
 
-export const Vaporisateur = (() => {
+export const VaporisateurSettings = (() => {
     const MIN_CUTOFF = 20.0
     const MAX_CUTOFF = 20_000.0
     const FILTER_ORDER_VALUES = [1, 2, 3, 4]

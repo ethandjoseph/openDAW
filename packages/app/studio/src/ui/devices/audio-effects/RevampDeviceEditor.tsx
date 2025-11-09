@@ -1,5 +1,5 @@
 import css from "./RevampDeviceEditor.sass?inline"
-import {DeviceHost, Parameters, RevampDeviceBoxAdapter} from "@opendaw/studio-adapters"
+import {Colors, DeviceHost, Parameters, RevampDeviceBoxAdapter} from "@opendaw/studio-adapters"
 import {asDefined, int, Lifecycle} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {DeviceEditor} from "@/ui/devices/DeviceEditor.tsx"
@@ -27,7 +27,7 @@ import {ControlIndicator} from "@/ui/components/ControlIndicator"
 import {attachParameterContextMenu} from "@/ui/menu/automation"
 import {Html} from "@opendaw/lib-dom"
 import {StudioService} from "@/service/StudioService"
-import {Colors, EffectFactories} from "@opendaw/studio-core"
+import {EffectFactories} from "@opendaw/studio-core"
 
 const className = Html.adoptStyleSheet(css, "RevampDeviceEditor")
 

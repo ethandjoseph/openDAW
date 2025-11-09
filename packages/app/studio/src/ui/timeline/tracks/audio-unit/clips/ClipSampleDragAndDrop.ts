@@ -6,7 +6,7 @@ import {CreateParameters, TimelineDragAndDrop} from "@/ui/timeline/tracks/audio-
 import {ClipCaptureTarget} from "./ClipCapturing"
 import {ClipWidth} from "@/ui/timeline/tracks/audio-unit/clips/constants"
 import {StudioService} from "@/service/StudioService"
-import {ColorCodes} from "@opendaw/studio-core"
+import {ColorCodes} from "@opendaw/studio-adapters"
 
 export class ClipSampleDragAndDrop extends TimelineDragAndDrop<ClipCaptureTarget> {
     constructor(service: StudioService, capturing: ElementCapturing<ClipCaptureTarget>) {

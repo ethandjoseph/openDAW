@@ -1,6 +1,6 @@
 import css from "./ChannelStrip.sass?inline"
 import {EmptyExec, Lifecycle, Terminable, UUID} from "@opendaw/lib-std"
-import {AudioUnitBoxAdapter} from "@opendaw/studio-adapters"
+import {AudioUnitBoxAdapter, ColorCodes, Colors} from "@opendaw/studio-adapters"
 import {AudioUnitType, IconSymbol} from "@opendaw/studio-enums"
 import {createElement, DomElement, Frag, Inject} from "@opendaw/lib-jsx"
 import {VolumeSlider} from "@/ui/components/VolumeSlider.tsx"
@@ -25,7 +25,7 @@ import {DragAndDrop} from "../DragAndDrop"
 import {Events, Html} from "@opendaw/lib-dom"
 import {TextTooltip} from "@/ui/surface/TextTooltip"
 import {AudioOutputSelector} from "./AudioOutputSelector"
-import {ChannelStripView, ColorCodes, Colors} from "@opendaw/studio-core"
+import {ChannelStripView} from "@opendaw/studio-core"
 
 const className = Html.adoptStyleSheet(css, "ChannelStrip")
 

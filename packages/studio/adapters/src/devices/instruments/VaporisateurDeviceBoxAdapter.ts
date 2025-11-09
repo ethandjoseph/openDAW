@@ -7,7 +7,7 @@ import {ParameterAdapterSet} from "../../ParameterAdapterSet"
 import {TrackType} from "../../timeline/TrackType"
 import {AudioUnitBoxAdapter} from "../../audio-unit/AudioUnitBoxAdapter"
 import {VoicingMode} from "@opendaw/studio-enums"
-import {Vaporisateur} from "./Vaporisateur"
+import {VaporisateurSettings} from "./VaporisateurSettings"
 
 export class VaporisateurDeviceBoxAdapter implements InstrumentDeviceBoxAdapter {
     readonly type = "instrument"
@@ -86,12 +86,12 @@ export class VaporisateurDeviceBoxAdapter implements InstrumentDeviceBoxAdapter 
             },
             filterOrder: this.#parametric.createParameter(
                 box.filterOrder,
-                Vaporisateur.FILTER_ORDER_VALUE_MAPPING,
-                Vaporisateur.FILTER_ORDER_STRING_MAPPING, "Flt. Order"),
+                VaporisateurSettings.FILTER_ORDER_VALUE_MAPPING,
+                VaporisateurSettings.FILTER_ORDER_STRING_MAPPING, "Flt. Order"),
             cutoff: this.#parametric.createParameter(
                 box.cutoff,
-                Vaporisateur.CUTOFF_VALUE_MAPPING,
-                Vaporisateur.CUTOFF_STRING_MAPPING, "Flt. Cutoff"),
+                VaporisateurSettings.CUTOFF_VALUE_MAPPING,
+                VaporisateurSettings.CUTOFF_STRING_MAPPING, "Flt. Cutoff"),
             resonance: this.#parametric.createParameter(
                 box.resonance,
                 ValueMapping.exponential(0.01, 10.0),
@@ -142,8 +142,8 @@ export class VaporisateurDeviceBoxAdapter implements InstrumentDeviceBoxAdapter 
                 StringMapping.percent({fractionDigits: 0}), "Stereo", 0.0),
             lfoWaveform: this.#parametric.createParameter(
                 box.lfo.waveform,
-                Vaporisateur.LFO_WAVEFORM_VALUE_MAPPING,
-                Vaporisateur.LFO_WAVEFORM_STRING_MAPPING, "LFO Shape", 0.0),
+                VaporisateurSettings.LFO_WAVEFORM_VALUE_MAPPING,
+                VaporisateurSettings.LFO_WAVEFORM_STRING_MAPPING, "LFO Shape", 0.0),
             lfoRate: this.#parametric.createParameter(
                 box.lfo.rate,
                 ValueMapping.exponential(0.0001, 30.0),

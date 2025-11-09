@@ -1,4 +1,0 @@
-// openDAW script editor
-const factory = openDAW.createProjectFactory()
-factory.createInstrument("Nano")
-factory.render("example")

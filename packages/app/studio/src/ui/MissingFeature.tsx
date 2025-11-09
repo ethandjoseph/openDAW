@@ -1,7 +1,7 @@
 import css from "./MissingFeature.sass?inline"
 import {createElement} from "@opendaw/lib-jsx"
 import {Html} from "@opendaw/lib-dom"
-import {Colors} from "@opendaw/studio-core"
+import {Colors} from "@opendaw/studio-adapters"
 
 const className = Html.adoptStyleSheet(css, "MissingFeature")
 

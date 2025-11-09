@@ -13,12 +13,12 @@ import {
     UUID
 } from "@opendaw/lib-std"
 import {NoteEventBox, NoteEventCollectionBox, NoteRegionBox, TrackBox} from "@opendaw/studio-boxes"
-import {AudioUnitBoxAdapter, TrackType} from "@opendaw/studio-adapters"
+import {AudioUnitBoxAdapter, ColorCodes, TrackType} from "@opendaw/studio-adapters"
 import {PPQN, ppqn} from "@opendaw/lib-dsp"
 import {Dialogs} from "@/ui/components/dialogs.tsx"
 import {Promises, Wait} from "@opendaw/lib-runtime"
 import {Files} from "@opendaw/lib-dom"
-import {ColorCodes, Project} from "@opendaw/studio-core"
+import {Project} from "@opendaw/studio-core"
 import {ControlType, MidiFile} from "@opendaw/lib-midi"
 
 export namespace MidiImport {

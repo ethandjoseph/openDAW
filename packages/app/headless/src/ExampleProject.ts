@@ -15,7 +15,7 @@ export const createExampleProject = (env: ProjectEnv): Project => {
         to.setValue(Bar)
         const {trackBox, audioUnitBox} = api.createInstrument(InstrumentFactories.Vaporisateur)
         const noteRegionBox = api.createNoteRegion({
-            trackBox: trackBox,
+            trackBox,
             position: 0,
             duration: Bar,
             loopDuration: Quarter

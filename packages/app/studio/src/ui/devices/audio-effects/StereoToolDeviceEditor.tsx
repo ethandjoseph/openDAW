@@ -1,5 +1,5 @@
 import css from "./StereoToolDeviceEditor.sass?inline"
-import {DeviceHost, StereoToolDeviceBoxAdapter} from "@opendaw/studio-adapters"
+import {Colors, DeviceHost, StereoToolDeviceBoxAdapter} from "@opendaw/studio-adapters"
 import {IconSymbol} from "@opendaw/studio-enums"
 import {Lifecycle} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
@@ -19,7 +19,7 @@ import {MenuItem} from "@/ui/model/menu-item"
 import {StereoMatrix} from "@opendaw/lib-dsp"
 import {MenuItems} from "../menu-items"
 import {StudioService} from "@/service/StudioService"
-import {Colors, EffectFactories} from "@opendaw/studio-core"
+import {EffectFactories} from "@opendaw/studio-core"
 
 const className = Html.adoptStyleSheet(css, "StereoToolDeviceEditor")
 

@@ -1,6 +1,6 @@
 import {AudioUnitType} from "@opendaw/studio-enums"
-import {TrackType} from "@opendaw/studio-adapters"
 import {Colors} from "./Colors"
+import {TrackType} from "../timeline/TrackType"
 
 export namespace ColorCodes {
     export const forAudioType = (type?: AudioUnitType): string => {

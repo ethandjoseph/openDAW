@@ -1,11 +1,10 @@
 import {byte, Notifier, Option, quantizeCeil, quantizeFloor, Terminable, Terminator, UUID} from "@opendaw/lib-std"
 import {PPQN} from "@opendaw/lib-dsp"
 import {NoteEventBox, NoteEventCollectionBox, NoteRegionBox, TrackBox} from "@opendaw/studio-boxes"
-import {NoteSignal, TrackType} from "@opendaw/studio-adapters"
-import {Project} from "../project/Project"
+import {ColorCodes, NoteSignal, TrackType} from "@opendaw/studio-adapters"
+import {Project} from "../project"
 import {Capture} from "./Capture"
 import {RecordTrack} from "./RecordTrack"
-import {ColorCodes} from "../ColorCodes"
 
 export namespace RecordMidi {
     type RecordMidiContext = {

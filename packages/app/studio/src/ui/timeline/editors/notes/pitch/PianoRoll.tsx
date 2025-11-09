@@ -5,10 +5,10 @@ import {CanvasPainter} from "@/ui/canvas/painter.ts"
 import {PitchPositioner} from "@/ui/timeline/editors/notes/pitch/PitchPositioner.ts"
 import {MidiKeys} from "@opendaw/lib-dsp"
 import {ScaleConfig} from "@/ui/timeline/editors/notes/pitch/ScaleConfig.ts"
-import {NoteSignal, NoteStreamReceiver} from "@opendaw/studio-adapters"
+import {Colors, NoteSignal, NoteStreamReceiver} from "@opendaw/studio-adapters"
 import {Dragging, Events, getFontSizeForHeight, Html} from "@opendaw/lib-dom"
 import {Fonts} from "@/ui/Fonts"
-import {CaptureMidi, Colors} from "@opendaw/studio-core"
+import {CaptureMidi} from "@opendaw/studio-core"
 
 const className = Html.adoptStyleSheet(css, "PianoRoll")
 

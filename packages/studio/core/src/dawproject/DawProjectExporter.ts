@@ -43,11 +43,10 @@ import {
     TrackBox,
     ValueRegionBox
 } from "@opendaw/studio-boxes"
-import {Project} from "../project/Project"
+import {Project} from "../project"
 import {AudioUnitExportLayout} from "./AudioUnitExportLayout"
-import {ColorCodes} from "../ColorCodes"
 import {Html} from "@opendaw/lib-dom"
-import {DeviceBoxUtils} from "@opendaw/studio-adapters"
+import {ColorCodes, DeviceBoxUtils} from "@opendaw/studio-adapters"
 import {DeviceIO} from "./DeviceIO"
 import {WavFile} from "../WavFile"
 

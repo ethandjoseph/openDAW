@@ -12,7 +12,6 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./script/Api": "./src/script/Api.ts",
     "./FFmpegWorker": {
       "types": "./dist/ffmpeg/FFmpegWorker.d.ts",
       "default": "./dist/ffmpeg/FFmpegWorker.js"
@@ -23,8 +22,7 @@
   "files": [
     "dist/**",
     "dist/workers-main.js",
-    "dist/processors.js",
-    "src/script/Api.ts"
+    "dist/processors.js"
   ],
   "scripts": {
     "build": "tsc",

@@ -3,11 +3,10 @@ import {Html} from "@opendaw/lib-dom"
 import {createElement, Frag} from "@opendaw/lib-jsx"
 import {Checkbox} from "@/ui/components/Checkbox"
 import {DefaultObservableValue, Lifecycle} from "@opendaw/lib-std"
-import {ExportStemsConfiguration} from "@opendaw/studio-adapters"
+import {ColorCodes, Colors, ExportStemsConfiguration} from "@opendaw/studio-adapters"
 import {AudioUnitType, IconSymbol} from "@opendaw/studio-enums"
 import {Icon} from "@/ui/components/Icon"
 import {TextInput} from "@/ui/components/TextInput"
-import {ColorCodes, Colors} from "@opendaw/studio-core"
 
 const className = Html.adoptStyleSheet(css, "ExportStemsConfigurator")
 

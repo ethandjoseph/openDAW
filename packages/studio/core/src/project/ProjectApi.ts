@@ -1,21 +1,8 @@
-import {
-    asDefined,
-    asInstanceOf,
-    assert,
-    clamp,
-    float,
-    int,
-    Observer,
-    Option,
-    Strings,
-    Subscription,
-    UUID
-} from "@opendaw/lib-std"
+import {assert, clamp, float, int, Observer, Option, Strings, Subscription, UUID} from "@opendaw/lib-std"
 import {ppqn, PPQN} from "@opendaw/lib-dsp"
-import {BoxGraph, Field, IndexedBox, PointerField, StringField} from "@opendaw/lib-box"
-import {AudioUnitType, IconSymbol, Pointers} from "@opendaw/studio-enums"
+import {BoxGraph, Field, IndexedBox, PointerField} from "@opendaw/lib-box"
+import {AudioUnitType, Pointers} from "@opendaw/studio-enums"
 import {
-    AudioBusBox,
     AudioUnitBox,
     CaptureAudioBox,
     CaptureMidiBox,
@@ -31,20 +18,21 @@ import {
 import {
     AnyClipBox,
     AudioUnitBoxAdapter,
+    AudioUnitFactory,
     CaptureBox,
+    ColorCodes,
     EffectPointerType,
     IndexedAdapterCollectionListener,
     InstrumentBox,
     InstrumentFactory,
     InstrumentOptions,
     InstrumentProduct,
+    ProjectQueries,
     TrackType
 } from "@opendaw/studio-adapters"
 import {Project} from "./Project"
 import {EffectFactory} from "../EffectFactory"
-import {ColorCodes} from "../ColorCodes"
 import {EffectBox} from "../EffectBox"
-import {AudioUnitOrdering} from "../AudioUnitOrdering"
 
 export type ClipRegionOptions = {
     name?: string
@@ -99,11 +87,9 @@ export class ProjectApi {
         const {name, icon, index} = options
         const {boxGraph, rootBox, userEditingManager} = this.#project
         assert(rootBox.isAttached(), "rootBox not attached")
-        const existingNames = rootBox.audioUnits.pointerHub.incoming().map(({box}) => {
-            const inputBox = asDefined(asInstanceOf(box, AudioUnitBox).input.pointerHub.incoming().at(0)).box
-            return "label" in inputBox && inputBox.label instanceof StringField ? inputBox.label.getValue() : "N/A"
-        })
-        const audioUnitBox = this.#createAudioUnit(AudioUnitType.Instrument, this.#trackTypeToCapture(boxGraph, trackType), index)
+        const existingNames = ProjectQueries.existingInstrumentNames(rootBox)
+        const audioUnitBox = AudioUnitFactory.create(this.#project.skeleton,
+            AudioUnitType.Instrument, this.#trackTypeToCapture(boxGraph, trackType), index)
         const uniqueName = Strings.getUniqueName(existingNames, name ?? defaultName)
         const iconSymbol = icon ?? defaultIcon
         const instrumentBox = create(boxGraph, audioUnitBox.input, uniqueName, iconSymbol, options.attachment)
@@ -119,31 +105,6 @@ export class ProjectApi {
 
     createAnyInstrument(factory: InstrumentFactory<any, any>): InstrumentProduct<InstrumentBox> {
         return this.createInstrument(factory)
-    }
-
-    createAudioBus(name: string,
-                   icon: IconSymbol,
-                   type: AudioUnitType,
-                   color: string): AudioBusBox {
-        console.debug(`createAudioBus '${name}', type: ${type}, color: ${color}`)
-        const {rootBox, boxGraph} = this.#project
-        assert(rootBox.isAttached(), "rootBox not attached")
-        const uuid = UUID.generate()
-        const audioBusBox = AudioBusBox.create(boxGraph, uuid, box => {
-            box.collection.refer(rootBox.audioBusses)
-            box.label.setValue(name)
-            box.icon.setValue(IconSymbol.toName(icon))
-            box.color.setValue(color)
-        })
-        const audioUnitBox = this.#createAudioUnit(type, Option.None)
-        TrackBox.create(boxGraph, UUID.generate(), box => {
-            box.tracks.refer(audioUnitBox.tracks)
-            box.target.refer(audioUnitBox)
-            box.index.setValue(0)
-            box.type.setValue(TrackType.Undefined)
-        })
-        audioBusBox.output.refer(audioUnitBox.input)
-        return audioBusBox
     }
 
     insertEffect(field: Field<EffectPointerType>, factory: EffectFactory, insertIndex: int = Number.MAX_SAFE_INTEGER): EffectBox {
@@ -275,19 +236,6 @@ export class ProjectApi {
         audioUnitBox.delete()
     }
 
-    #createAudioUnit(type: AudioUnitType, capture: Option<CaptureBox>, index?: int): AudioUnitBox {
-        const {boxGraph, rootBox, masterBusBox} = this.#project
-        const insertIndex = index ?? this.#sortAudioUnitOrdering(type)
-        console.debug(`createAudioUnit type: ${type}, insertIndex: ${insertIndex}`)
-        return AudioUnitBox.create(boxGraph, UUID.generate(), box => {
-            box.collection.refer(rootBox.audioUnits)
-            box.output.refer(masterBusBox.input)
-            box.index.setValue(insertIndex)
-            box.type.setValue(type)
-            capture.ifSome(capture => box.capture.refer(capture))
-        })
-    }
-
     #createTrack({field, target, trackType, insertIndex}: {
         field: Field<Pointers.TrackCollection>,
         target?: Field<Pointers.Automation>,
@@ -301,21 +249,6 @@ export class ProjectApi {
             box.tracks.refer(field)
             box.target.refer(target ?? field.box)
         })
-    }
-
-    #sortAudioUnitOrdering(type: AudioUnitType): int {
-        const {rootBox} = this.#project
-        const boxes = IndexedBox.collectIndexedBoxes(rootBox.audioUnits, AudioUnitBox)
-        const order: int = AudioUnitOrdering[type]
-        let index = 0 | 0
-        for (; index < boxes.length; index++) {
-            if (AudioUnitOrdering[boxes[index].type.getValue()] > order) {break}
-        }
-        const insertIndex = index
-        while (index < boxes.length) {
-            boxes[index].index.setValue(++index)
-        }
-        return insertIndex
     }
 
     #trackTypeToCapture(boxGraph: BoxGraph, trackType: TrackType): Option<CaptureBox> {

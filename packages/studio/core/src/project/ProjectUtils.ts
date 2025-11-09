@@ -1,5 +1,5 @@
 import {ppqn} from "@opendaw/lib-dsp"
-import {AnyRegionBox, UnionBoxTypes} from "@opendaw/studio-adapters"
+import {AnyRegionBox, AudioUnitOrdering, UnionBoxTypes} from "@opendaw/studio-adapters"
 import {Project} from "./Project"
 import {
     Arrays,
@@ -25,7 +25,6 @@ import {
     TrackBox
 } from "@opendaw/studio-boxes"
 import {Address, Box, BoxGraph, IndexedBox, PointerField} from "@opendaw/lib-box"
-import {AudioUnitOrdering} from "../AudioUnitOrdering"
 
 export namespace ProjectUtils {
     type UUIDMapper = { source: UUID.Bytes, target: UUID.Bytes }

@@ -2,7 +2,7 @@ import * as monaco from "monaco-editor"
 import "monaco-editor/esm/vs/language/typescript/monaco.contribution"
 import EditorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker"
 import TsWorker from "monaco-editor/esm/vs/language/typescript/ts.worker?worker"
-import openDAWApiSource from "@opendaw/studio-core/script/Api?raw"
+import declarations from "@opendaw/studio-adapters/script/Declarations?raw"
 
 // noinspection JSUnusedGlobalSymbols
 self.MonacoEnvironment = {
@@ -37,14 +37,6 @@ tsDefaults.setDiagnosticsOptions({
     onlyVisible: false,
     diagnosticCodesToIgnore: []
 })
-
-const declarations = openDAWApiSource
-        .replace(/export /g, "") // Remove all 'export' keywords
-        .replace(/import\s+{[^}]+}\s+from\s+[^\n]+/g, "") // Remove import statements
-        .replace(/InstrumentFactories\.Keys/g, "keyof InstrumentMap") // Replace with keyof InstrumentMap
-    + "\n\ndeclare const openDAW: Api;"
-
-console.debug("Monaco declarations:", declarations)
 
 tsDefaults.addExtraLib(declarations, "ts:opendaw.d.ts")
 

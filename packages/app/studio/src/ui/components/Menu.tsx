@@ -6,7 +6,7 @@ import {Icon} from "@/ui/components/Icon.tsx"
 import {Surface} from "@/ui/surface/Surface.tsx"
 import {IconSymbol} from "@opendaw/studio-enums"
 import {AnimationFrame, Events, Html} from "@opendaw/lib-dom"
-import {Colors} from "@opendaw/studio-core"
+import {Colors} from "@opendaw/studio-adapters"
 
 const className = Html.adoptStyleSheet(css, "menu")
 

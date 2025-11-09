@@ -6,10 +6,10 @@ import {LKR} from "@/ui/devices/constants"
 import {Column} from "@/ui/devices/Column"
 import {Icon} from "@/ui/components/Icon"
 import {IconSymbol} from "@opendaw/studio-enums"
-import {StereoToolDeviceBoxAdapter} from "@opendaw/studio-adapters"
+import {Colors, StereoToolDeviceBoxAdapter} from "@opendaw/studio-adapters"
 import {gainToDb} from "@opendaw/lib-dsp"
 import {Runtime} from "@opendaw/lib-runtime"
-import {Colors, Project} from "@opendaw/studio-core"
+import {Project} from "@opendaw/studio-core"
 
 const className = Html.adoptStyleSheet(css, "AutoGainButton")
 

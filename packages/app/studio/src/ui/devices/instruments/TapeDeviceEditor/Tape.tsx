@@ -3,7 +3,7 @@ import {createElement, Frag} from "@opendaw/lib-jsx"
 import {ppqn, PPQN} from "@opendaw/lib-dsp"
 import {AudioUnitTracks} from "@opendaw/studio-adapters"
 import {deferNextFrame} from "@opendaw/lib-dom"
-import {Colors} from "@opendaw/studio-core"
+import {Colors} from "@opendaw/studio-adapters"
 
 const tapeVelocity = 13.0 / PPQN.Bar // TapeDeviceEditor speed 4.76 cm/s converted into svg coordinates
 const rEmpty = 15

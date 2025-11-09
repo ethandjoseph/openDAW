@@ -2,7 +2,7 @@ import css from "./Meters.sass?inline"
 import {AnimationFrame, Html} from "@opendaw/lib-dom"
 import {clampUnit, Lifecycle} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
-import {Colors} from "@opendaw/studio-core"
+import {Colors} from "@opendaw/studio-adapters"
 import {Vertical} from "@/ui/devices/audio-effects/CompressorDeviceEditor/Vertical"
 
 const className = Html.adoptStyleSheet(css, "Meters")

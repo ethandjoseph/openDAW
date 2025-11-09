@@ -6,7 +6,8 @@ import {Surface} from "@/ui/surface/Surface"
 import {AnimationFrame, Events, Html} from "@opendaw/lib-dom"
 import {Runtime} from "@opendaw/lib-runtime"
 import {FooterLabel} from "@/service/FooterLabel"
-import {Colors, Preferences, ProjectMeta} from "@opendaw/studio-core"
+import {Preferences, ProjectMeta} from "@opendaw/studio-core"
+import {Colors} from "@opendaw/studio-adapters"
 import {UserCounter} from "@/UserCounter"
 
 const className = Html.adoptStyleSheet(css, "footer")

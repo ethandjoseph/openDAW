@@ -3,7 +3,7 @@ import {deferNextFrame, Html} from "@opendaw/lib-dom"
 import {ppqn, PPQN} from "@opendaw/lib-dsp"
 import {createElement} from "@opendaw/lib-jsx"
 import {AudioUnitTracks} from "@opendaw/studio-adapters"
-import {Colors} from "@opendaw/studio-core"
+import {Colors} from "@opendaw/studio-adapters"
 
 type Construct = {
     lifecycle: Lifecycle

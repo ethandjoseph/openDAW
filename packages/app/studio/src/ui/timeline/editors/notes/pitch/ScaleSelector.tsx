@@ -6,7 +6,7 @@ import {MidiKeys} from "@opendaw/lib-dsp"
 import {MenuItem} from "@/ui/model/menu-item.ts"
 import {ScaleConfig} from "@/ui/timeline/editors/notes/pitch/ScaleConfig.ts"
 import {Html} from "@opendaw/lib-dom"
-import {Colors} from "@opendaw/studio-core"
+import {Colors} from "@opendaw/studio-adapters"
 
 const className = Html.adoptStyleSheet(css, "ScaleSelector")
 

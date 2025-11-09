@@ -15,6 +15,7 @@ import {NoteEditor} from "@/ui/timeline/editors/notes/NoteEditor.tsx"
 import {
     AudioClipBoxAdapter,
     AudioRegionBoxAdapter,
+    Colors,
     NoteClipBoxAdapter,
     NoteRegionBoxAdapter,
     ValueClipBoxAdapter,
@@ -23,7 +24,7 @@ import {
 import {Box, PointerField, Vertex} from "@opendaw/lib-box"
 import {SnapSelector} from "@/ui/timeline/SnapSelector.tsx"
 import {Snapping} from "@/ui/timeline/Snapping.ts"
-import {Colors, TimelineRange} from "@opendaw/studio-core"
+import {TimelineRange} from "@opendaw/studio-core"
 import {TimeAxis} from "@/ui/timeline/TimeAxis.tsx"
 import {TimelineRangeSlider} from "@/ui/timeline/TimelineRangeSlider.tsx"
 import {ValueEventsEditor} from "./value/ValueEventsEditor.tsx"

@@ -1,13 +1,13 @@
+import {UUID} from "@opendaw/lib-std"
+import {PPQN} from "@opendaw/lib-dsp"
 import {AudioRegionBox} from "@opendaw/studio-boxes"
+import {ColorCodes} from "@opendaw/studio-adapters"
 import {RegionCaptureTarget} from "@/ui/timeline/tracks/audio-unit/regions/RegionCapturing.ts"
 import {ElementCapturing} from "@/ui/canvas/capturing.ts"
-import {PPQN} from "@opendaw/lib-dsp"
-import {UUID} from "@opendaw/lib-std"
 import {RegionClipResolver} from "@/ui/timeline/tracks/audio-unit/regions/RegionClipResolver.ts"
 import {CreateParameters, TimelineDragAndDrop} from "@/ui/timeline/tracks/audio-unit/TimelineDragAndDrop"
 import {Snapping} from "@/ui/timeline/Snapping"
 import {StudioService} from "@/service/StudioService"
-import {ColorCodes} from "@opendaw/studio-core"
 
 export class RegionSampleDragAndDrop extends TimelineDragAndDrop<RegionCaptureTarget> {
     readonly #snapping: Snapping

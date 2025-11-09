@@ -1,6 +1,6 @@
 import css from "./AuxSendGroup.sass?inline"
 import {Lifecycle, SortedSet, StringComparator, Terminator, UUID} from "@opendaw/lib-std"
-import {AudioUnitBoxAdapter, AuxSendBoxAdapter} from "@opendaw/studio-adapters"
+import {AudioBusFactory, AudioUnitBoxAdapter, AuxSendBoxAdapter, Colors} from "@opendaw/studio-adapters"
 import {AudioUnitType, IconSymbol} from "@opendaw/studio-enums"
 import {AuxSend} from "@/ui/mixer/AuxSend.tsx"
 import {createElement} from "@opendaw/lib-jsx"
@@ -10,7 +10,7 @@ import {MenuButton} from "@/ui/components/MenuButton.tsx"
 import {Icon} from "../components/Icon"
 import {showNewAudioBusOrAuxDialog} from "@/ui/dialogs.tsx"
 import {Html} from "@opendaw/lib-dom"
-import {Colors, Project} from "@opendaw/studio-core"
+import {Project} from "@opendaw/studio-core"
 
 const className = Html.adoptStyleSheet(css, "AuxSendGroup")
 
@@ -62,7 +62,8 @@ export const AuxSendGroup = ({lifecycle, project, audioUnitAdapter}: Construct) 
                     .setTriggerProcedure(() => showNewAudioBusOrAuxDialog("FX", ({name, icon}) => {
                         const currentAuxSends = audioUnitAdapter.auxSends.adapters()
                         project.editing.modify(() => {
-                            const audioBusBox = project.api.createAudioBus(name, icon, AudioUnitType.Aux, Colors.green)
+                            const audioBusBox = AudioBusFactory.create(project.skeleton,
+                                name, icon, AudioUnitType.Aux, Colors.green)
                             AuxSendBox.create(project.boxGraph, UUID.generate(), box => {
                                 box.audioUnit.refer(audioUnitAdapter.box.auxSends)
                                 box.targetBus.refer(audioBusBox.input)

@@ -5,9 +5,10 @@ import {createElement} from "@opendaw/lib-jsx"
 import {BoxEditing, Propagation} from "@opendaw/lib-box"
 import {ElementCapturing} from "@/ui/canvas/capturing.ts"
 import {installCursor} from "@/ui/hooks/cursor.ts"
-import {Colors, TimelineRange} from "@opendaw/studio-core"
+import {TimelineRange} from "@opendaw/studio-core"
 import {Snapping} from "@/ui/timeline/Snapping.ts"
 import {LoopArea} from "@opendaw/studio-boxes"
+import {Colors} from "@opendaw/studio-adapters"
 
 const className = Html.adoptStyleSheet(css, "loop-area-editor")
 

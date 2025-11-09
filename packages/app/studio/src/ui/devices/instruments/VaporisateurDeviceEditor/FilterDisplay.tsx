@@ -3,7 +3,7 @@ import {Html} from "@opendaw/lib-dom"
 import {int, Lifecycle} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {CanvasPainter} from "@/ui/canvas/painter"
-import {AutomatableParameterFieldAdapter, Vaporisateur} from "@opendaw/studio-adapters"
+import {AutomatableParameterFieldAdapter, VaporisateurSettings} from "@opendaw/studio-adapters"
 import {BiquadCoeff, gainToDb} from "@opendaw/lib-dsp"
 
 const className = Html.adoptStyleSheet(css, "Display")
@@ -42,7 +42,7 @@ export const FilterDisplay = ({lifecycle, cutoff, resonance, order}: Construct) 
                     phaseResponse = new Float32Array(oversampledWidth)
                 }
                 for (let x = 0; x < oversampledWidth; x++) {
-                    const freq = Vaporisateur.CUTOFF_VALUE_MAPPING.y(x / oversampledWidth)
+                    const freq = VaporisateurSettings.CUTOFF_VALUE_MAPPING.y(x / oversampledWidth)
                     frequency[x] = freq / sf
                 }
 

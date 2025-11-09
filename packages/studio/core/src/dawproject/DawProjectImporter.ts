@@ -65,16 +65,16 @@ import {
     UserInterfaceBox
 } from "@opendaw/studio-boxes"
 import {
+    AudioUnitOrdering,
     CaptureBox,
     DeviceBoxUtils,
     InstrumentBox,
     InstrumentFactories,
     ProjectSkeleton,
+    ColorCodes,
     TrackType
 } from "@opendaw/studio-adapters"
 import {DawProject} from "./DawProject"
-import {AudioUnitOrdering} from "../AudioUnitOrdering"
-import {ColorCodes} from "../ColorCodes"
 import {DeviceIO} from "./DeviceIO"
 import {BuiltinDevices} from "./BuiltinDevices"
 
