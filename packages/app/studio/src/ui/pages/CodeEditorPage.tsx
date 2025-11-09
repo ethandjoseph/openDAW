@@ -3,7 +3,6 @@ import {Events, Html} from "@opendaw/lib-dom"
 import {Await, createElement, PageContext, PageFactory} from "@opendaw/lib-jsx"
 import {StudioService} from "@/service/StudioService.ts"
 import {ThreeDots} from "@/ui/spinner/ThreeDots"
-import type {Monaco} from "./code-editor/monaco-setup"
 import ExampleScript from "./code-editor/example.ts?raw"
 import {Button} from "@/ui/components/Button"
 import {Icon} from "@/ui/components/Icon"
@@ -26,10 +25,12 @@ export const CodeEditorPage: PageFactory<StudioService> = ({lifecycle, service}:
     return (
         <div className={className}>
             <Await
-                factory={() => import("./code-editor/monaco-setup").then(({monaco}) => monaco)}
+                factory={() => Promise.all([
+                    import("./code-editor/monaco-setup").then(({monaco}) => monaco)
+                ])}
                 failure={({retry, reason}) => (<p onclick={retry}>{reason}</p>)}
                 loading={() => ThreeDots()}
-                success={(monaco: Monaco) => {
+                success={([monaco]) => {
                     const container = (<div className="monaco-editor"/>)
                     const modelUri = monaco.Uri.parse("file:///main.ts")
                     let model = monaco.editor.getModel(modelUri)
