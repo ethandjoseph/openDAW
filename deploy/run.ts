@@ -47,6 +47,8 @@ const uploadDirectory = async (localDir: string, remoteDir: string) => {
     const redirectBlock =
         `\n# --------------------------------------------------\n` +
         `# ACTIVE RELEASE REDIRECT\n` +
+        `RewriteCond %{DOCUMENT_ROOT}${releaseDir}/$1 -f [OR]\n` +
+        `RewriteCond %{DOCUMENT_ROOT}${releaseDir}/$1 -d\n` +
         `RewriteRule ^(.*)$ ${releaseDir}/$1 [L]\n` +
         `# --------------------------------------------------\n`
     const merged = base.replace(/^RewriteBase/m, redirectBlock + "RewriteBase") || base + redirectBlock

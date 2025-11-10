@@ -3,6 +3,9 @@ import {Arrays, int} from "@opendaw/lib-std"
 export namespace Chord {
     export const Major: ReadonlyArray<int> = [0, 2, 4, 5, 7, 9, 11]
     export const Minor: ReadonlyArray<int> = [0, 2, 3, 5, 7, 8, 10]
+    export const Minor7: ReadonlyArray<int> = [0, 3, 7, 10]
+    export const Minor9: ReadonlyArray<int> = [0, 3, 7, 10, 14]
+    export const Dominant7: ReadonlyArray<int> = [0, 2, 4, 5, 7, 9, 10]
     export const NoteLabels = ["C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B"]
 
     export const compile = (scale: ReadonlyArray<int>, root: int, variation: int, n: int): ReadonlyArray<int> =>
