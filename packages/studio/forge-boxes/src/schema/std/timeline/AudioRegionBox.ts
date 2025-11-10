@@ -1,5 +1,6 @@
 import {BoxSchema} from "@opendaw/lib-box-forge"
-import {AudioPlayback, Pointers, TimeBase} from "@opendaw/studio-enums"
+import {AudioPlayback, Pointers} from "@opendaw/studio-enums"
+import {TimeBase} from "@opendaw/lib-dsp"
 
 export const AudioRegionBox: BoxSchema<Pointers> = {
     type: "box",

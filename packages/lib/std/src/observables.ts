@@ -5,12 +5,15 @@ import {Func, isDefined, Maybe, Nullable, Procedure, ValueOrProvider} from "./la
 import {Bijective} from "./bijective"
 import {Observer} from "./observers"
 
+export interface ValueOwner<T> {
+    getValue(): T
+}
+
 export interface Observable<VALUE> {
     subscribe(observer: Observer<VALUE>): Subscription
 }
 
-export interface ObservableValue<T> extends Observable<ObservableValue<T>> {
-    getValue(): T
+export interface ObservableValue<T> extends ValueOwner<T>, Observable<ObservableValue<T>> {
     catchupAndSubscribe(observer: Observer<ObservableValue<T>>): Subscription
 }
 
