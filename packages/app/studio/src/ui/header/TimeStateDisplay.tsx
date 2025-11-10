@@ -134,7 +134,7 @@ export const TimeStateDisplay = ({lifecycle, service}: Construct) => {
             }} provider={() => ({unit: "bpm", value: bpmDigit.value})}>
                 {bpmDisplay}
             </DblClckTextInput>
-            <TapButton profileService={profileService}/>
+            <TapButton service={service}/>
             <FlexSpacer pixels={3}/>
             <DblClckTextInput resolversFactory={() => {
                 const resolvers = Promise.withResolvers<string>()
