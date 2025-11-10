@@ -1,0 +1,38 @@
+{
+  "name": "@opendaw/studio-scripting",
+  "version": "0.0.1",
+  "license": "LGPL-3.0-or-later",
+  "publishConfig": {
+    "access": "public"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist/**/*"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "lint": "eslint \"**/*.ts\"",
+    "test": "echo \"No tests to run\""
+  },
+  "dependencies": {
+    "@opendaw/lib-box": "^0.0.47",
+    "@opendaw/lib-dsp": "^0.0.47",
+    "@opendaw/lib-runtime": "^0.0.47",
+    "@opendaw/lib-std": "^0.0.47",
+    "@opendaw/studio-boxes": "^0.0.47",
+    "@opendaw/studio-enums": "^0.0.38",
+    "@opendaw/studio-adapters": "^0.0.48"
+  },
+  "devDependencies": {
+    "@opendaw/eslint-config": "^0.0.20",
+    "@opendaw/typescript-config": "^0.0.20"
+  },
+  "gitHead": "170753973524372d44b7f837ef9058c0ca1660ae"
+}
