@@ -50,7 +50,7 @@ import {UpdateClock} from "./UpdateClock"
 import {PeakBroadcaster} from "./PeakBroadcaster"
 import {Metronome} from "./Metronome"
 import {BlockRenderer} from "./BlockRenderer"
-import {Graph, ppqn, PPQN, TopologicalSort} from "@opendaw/lib-dsp"
+import {ConstantTempoMap, Graph, ppqn, PPQN, TempoMap, TopologicalSort} from "@opendaw/lib-dsp"
 import {SampleManagerWorklet} from "./SampleManagerWorklet"
 import {ClipSequencingAudioContext} from "./ClipSequencingAudioContext"
 import {Communicator, Messenger} from "@opendaw/lib-runtime"
@@ -74,6 +74,7 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
     readonly #audioUnits: SortedSet<UUID.Bytes, AudioUnit>
     readonly #rootBoxAdapter: RootBoxAdapter
     readonly #timelineBoxAdapter: TimelineBoxAdapter
+    readonly #tempoMap: TempoMap
     readonly #parameterFieldAdapters: ParameterFieldAdapters
     readonly #audioGraph: Graph<Processor>
     readonly #audioGraphSorting: TopologicalSort<Processor>
@@ -140,6 +141,7 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
         this.#soundfontManager = new SoundfontManagerWorklet(this.#engineToClient)
         this.#audioUnits = UUID.newSet(unit => unit.adapter.uuid)
         this.#parameterFieldAdapters = new ParameterFieldAdapters()
+        this.#tempoMap = new ConstantTempoMap(timelineBox.bpm)
         this.#boxAdapters = this.#terminator.own(new BoxAdapters(this))
         this.#rootBoxAdapter = this.#boxAdapters.adapterFor(rootBox, RootBoxAdapter)
         this.#timelineBoxAdapter = this.#boxAdapters.adapterFor(timelineBox, TimelineBoxAdapter)
@@ -399,7 +401,7 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
     get rootBoxAdapter(): RootBoxAdapter {return this.#rootBoxAdapter}
     get timelineBoxAdapter(): TimelineBoxAdapter {return this.#timelineBoxAdapter}
     get signatureDuration(): ppqn {return this.timelineBoxAdapter.signatureDuration}
-    get bpm(): number {return this.#timelineBoxAdapter.box.bpm.getValue()}
+    get tempoMap(): TempoMap {return this.#tempoMap}
     get liveStreamBroadcaster(): LiveStreamBroadcaster {return this.#liveStreamBroadcaster}
     get liveStreamReceiver(): never {return panic("Only available in main thread")}
     get parameterFieldAdapters(): ParameterFieldAdapters {return this.#parameterFieldAdapters}

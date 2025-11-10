@@ -2,7 +2,7 @@ import {AudioRegionBox} from "@opendaw/studio-boxes"
 import {int, Maybe, Notifier, Observer, Option, safeExecute, Subscription, Terminator, UUID} from "@opendaw/lib-std"
 import {Pointers} from "@opendaw/studio-enums"
 import {Address, Field, PointerField, Propagation, Update} from "@opendaw/lib-box"
-import {PPQN, ppqn} from "@opendaw/lib-dsp"
+import {ppqn} from "@opendaw/lib-dsp"
 import {TrackBoxAdapter} from "../TrackBoxAdapter"
 import {LoopableRegionBoxAdapter, RegionBoxAdapter, RegionBoxAdapterVisitor} from "../RegionBoxAdapter"
 import {BoxAdaptersContext} from "../../BoxAdaptersContext"
@@ -42,8 +42,11 @@ export class AudioRegionBoxAdapter implements LoopableRegionBoxAdapter<never> {
         this.#isSelected = false
         this.#constructing = true
 
-        // TODO For unsyned audio samples
-        // this.#terminator.own(this.#project.timelineBox.bpm.subscribe(() => this.trackAdapter.unwrapOrNull()?.dispatchChange()))
+        // TODO For unsyned audio regions only
+        this.#terminator.own(context.tempoMap.subscribe(() => {
+            console.debug("tempo changed")
+            this.#changeNotifier.notify()
+        }))
 
         this.#terminator.ownAll(
             this.#box.pointerHub.subscribe({
@@ -106,13 +109,13 @@ export class AudioRegionBoxAdapter implements LoopableRegionBoxAdapter<never> {
     get position(): int {return this.#box.position.getValue()}
     get duration(): int {
         const duration = this.#box.duration.getValue()
-        if (duration === 0) { // signals no synchronization with track bpm
+        /*if (duration === 0) { // signals no synchronization with track bpm
             const fileBoxAdapter = this.#fileAdapter.unwrap("Cannot compute duration without file")
             const startInSeconds = fileBoxAdapter.startInSeconds
             const endInSeconds = fileBoxAdapter.endInSeconds
             const totalInSeconds = endInSeconds - startInSeconds
             return PPQN.secondsToPulses(totalInSeconds, this.#context.bpm)
-        }
+        }*/
         return duration
     }
     get complete(): int {return this.position + this.duration}

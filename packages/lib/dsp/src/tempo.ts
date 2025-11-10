@@ -1,11 +1,11 @@
 import {bpm, ppqn, PPQN, seconds} from "./ppqn"
-import {ObservableValue, Subscription, Terminable} from "@opendaw/lib-std"
+import {Notifier, Observable, ObservableValue, Observer, Subscription, Terminable, Terminator} from "@opendaw/lib-std"
 
 /**
  * Interface for tempo map conversions between musical time (PPQN) and absolute time (seconds/samples).
  * Handles both point conversions and interval conversions (which require integration over a tempo curve).
  */
-export interface TempoMap {
+export interface TempoMap extends Observable<TempoMap> {
     /**
      * Get the tempo at a specific musical position.
      * @param position Position in PPQN
@@ -51,12 +51,21 @@ export interface TempoMap {
  * All conversions are linear since the tempo never changes.
  */
 export class ConstantTempoMap implements TempoMap, Terminable {
-    readonly #subscription: Subscription
+    readonly #terminator = new Terminator()
+    readonly #notifier: Notifier<this>
 
     #tempo: bpm = 120.0
 
     constructor(observableTempo: ObservableValue<bpm>) {
-        this.#subscription = observableTempo.catchupAndSubscribe(owner => this.#tempo = owner.getValue())
+        this.#notifier = this.#terminator.own(new Notifier())
+        this.#terminator.own(observableTempo.subscribe(owner => {
+            this.#tempo = owner.getValue()
+            this.#notifier.notify(this)
+        }))
+    }
+
+    subscribe(observer: Observer<TempoMap>): Subscription {
+        return this.#notifier.subscribe(observer)
     }
 
     getTempoAt(_position: ppqn): bpm {return this.#tempo}
@@ -77,5 +86,5 @@ export class ConstantTempoMap implements TempoMap, Terminable {
         return PPQN.secondsToPulses(toSeconds - fromSeconds, this.#tempo)
     }
 
-    terminate(): void {this.#subscription.terminate()}
+    terminate(): void {this.#notifier.terminate()}
 }

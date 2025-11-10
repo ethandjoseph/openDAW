@@ -1,5 +1,4 @@
 import {DefaultObservableValue, int, Option, panic, RuntimeNotifier, TimeSpan} from "@opendaw/lib-std"
-import {PPQN} from "@opendaw/lib-dsp"
 import {AnimationFrame} from "@opendaw/lib-dom"
 import {Wait} from "@opendaw/lib-runtime"
 import {ExportStemsConfiguration} from "@opendaw/studio-adapters"
@@ -19,7 +18,7 @@ export namespace AudioOfflineRenderer {
         project.timelineBox.loopArea.enabled.setValue(false)
         project.boxGraph.endTransaction()
         const durationInPulses = project.timelineBox.durationInPulses.getValue()
-        const numSamples = PPQN.pulsesToSamples(durationInPulses, project.bpm, sampleRate)
+        const numSamples = Math.ceil(project.tempoMap.intervalToSeconds(0, durationInPulses) * sampleRate)
         const context = new OfflineAudioContext(numStems * 2, numSamples, sampleRate)
         const durationInSeconds = numSamples / sampleRate
         const worklets = await AudioWorklets.createFor(context)
