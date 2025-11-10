@@ -27,6 +27,7 @@ const toParts = (ppqn: ppqn, nominator: int = 4, denominator: int = 4) => {
 
 const secondsToPulses = (seconds: number, bpm: number): ppqn => seconds * bpm / 60.0 * Quarter
 const pulsesToSeconds = (pulses: ppqn, bpm: number): number => (pulses * 60.0 / Quarter) / bpm
+const secondsToBpm = (seconds: number, pulses: ppqn): number => (pulses * 60.0 / Quarter) / seconds
 const samplesToPulses = (samples: number, bpm: number, sampleRate: number): ppqn => secondsToPulses(samples / sampleRate, bpm)
 const pulsesToSamples = (pulses: ppqn, bpm: number, sampleRate: number): number => pulsesToSeconds(pulses, bpm) * sampleRate
 
@@ -38,6 +39,7 @@ export const PPQN = {
     toParts,
     secondsToPulses,
     pulsesToSeconds,
+    secondsToBpm,
     samplesToPulses,
     pulsesToSamples,
     toString: (pulses: ppqn, nominator: int = 4, denominator: int = 4): string => {

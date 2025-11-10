@@ -22,6 +22,7 @@ import {Dragging, Html} from "@opendaw/lib-dom"
 import {FlexSpacer} from "@/ui/components/FlexSpacer.tsx"
 import {Propagation} from "@opendaw/lib-box"
 import {AutofitUtils, ProjectProfile} from "@opendaw/studio-core"
+import {TapButton} from "@/ui/header/TapButton"
 
 const className = Html.adoptStyleSheet(css, "TimeStateDisplay")
 
@@ -133,6 +134,7 @@ export const TimeStateDisplay = ({lifecycle, service}: Construct) => {
             }} provider={() => ({unit: "bpm", value: bpmDigit.value})}>
                 {bpmDisplay}
             </DblClckTextInput>
+            <TapButton profileService={profileService}/>
             <FlexSpacer pixels={3}/>
             <DblClckTextInput resolversFactory={() => {
                 const resolvers = Promise.withResolvers<string>()
