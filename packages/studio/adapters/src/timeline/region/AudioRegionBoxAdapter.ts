@@ -2,7 +2,7 @@ import {AudioRegionBox} from "@opendaw/studio-boxes"
 import {int, Maybe, Notifier, Observer, Option, safeExecute, Subscription, Terminator, UUID} from "@opendaw/lib-std"
 import {Pointers} from "@opendaw/studio-enums"
 import {Address, Field, PointerField, Propagation, Update} from "@opendaw/lib-box"
-import {ppqn} from "@opendaw/lib-dsp"
+import {ppqn, TimeBaseConverter} from "@opendaw/lib-dsp"
 import {TrackBoxAdapter} from "../TrackBoxAdapter"
 import {LoopableRegionBoxAdapter, RegionBoxAdapter, RegionBoxAdapterVisitor} from "../RegionBoxAdapter"
 import {BoxAdaptersContext} from "../../BoxAdaptersContext"
@@ -24,6 +24,9 @@ export class AudioRegionBoxAdapter implements LoopableRegionBoxAdapter<never> {
     readonly #context: BoxAdaptersContext
     readonly #box: AudioRegionBox
 
+    readonly #durationConverter: TimeBaseConverter
+    readonly #loopOffsetConverter: TimeBaseConverter
+    readonly #loopDurationConverter: TimeBaseConverter
     readonly #changeNotifier: Notifier<void>
 
     #fileAdapter: Option<AudioFileBoxAdapter> = Option.None
@@ -37,15 +40,19 @@ export class AudioRegionBoxAdapter implements LoopableRegionBoxAdapter<never> {
         this.#box = box
 
         this.#terminator = new Terminator()
+        const {timeBase, position, duration, loopOffset, loopDuration} = box
+        this.#durationConverter = TimeBaseConverter.aware(context.tempoMap, timeBase, position, duration)
+        this.#loopOffsetConverter = TimeBaseConverter.aware(context.tempoMap, timeBase, position, loopOffset)
+        this.#loopDurationConverter = TimeBaseConverter.aware(context.tempoMap, timeBase, position, loopDuration)
         this.#changeNotifier = new Notifier<void>()
 
         this.#isSelected = false
         this.#constructing = true
 
-        // TODO For unsyned audio regions only
+        // TODO For unsyned audio regions only!
         this.#terminator.own(context.tempoMap.subscribe(() => {
-            console.debug("tempo changed")
-            this.#changeNotifier.notify()
+            console.debug("tempo changed. new duration: ", this.duration)
+            this.#dispatchChange()
         }))
 
         this.#terminator.ownAll(
@@ -106,21 +113,11 @@ export class AudioRegionBoxAdapter implements LoopableRegionBoxAdapter<never> {
 
     get uuid(): UUID.Bytes {return this.#box.address.uuid}
     get address(): Address {return this.#box.address}
-    get position(): int {return this.#box.position.getValue()}
-    get duration(): int {
-        const duration = this.#box.duration.getValue()
-        /*if (duration === 0) { // signals no synchronization with track bpm
-            const fileBoxAdapter = this.#fileAdapter.unwrap("Cannot compute duration without file")
-            const startInSeconds = fileBoxAdapter.startInSeconds
-            const endInSeconds = fileBoxAdapter.endInSeconds
-            const totalInSeconds = endInSeconds - startInSeconds
-            return PPQN.secondsToPulses(totalInSeconds, this.#context.bpm)
-        }*/
-        return duration
-    }
-    get complete(): int {return this.position + this.duration}
-    get loopOffset(): ppqn {return this.#box.loopOffset.getValue()}
-    get loopDuration(): ppqn {return this.#box.loopDuration.getValue()}
+    get position(): ppqn {return this.#box.position.getValue()}
+    get duration(): ppqn {return this.#durationConverter.toPPQN()}
+    get complete(): ppqn {return this.position + this.duration}
+    get loopOffset(): ppqn {return this.#loopOffsetConverter.toPPQN()}
+    get loopDuration(): ppqn {return this.#loopDurationConverter.toPPQN()}
     get offset(): ppqn {return this.position - this.loopOffset}
     get mute(): boolean {return this.#box.mute.getValue()}
     get hue(): int {return this.#box.hue.getValue()}

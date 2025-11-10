@@ -54,7 +54,7 @@ export class ConstantTempoMap implements TempoMap, Terminable {
     readonly #terminator = new Terminator()
     readonly #notifier: Notifier<this>
 
-    #tempo: bpm = 120.0
+    #tempo: bpm
 
     constructor(observableTempo: ObservableValue<bpm>) {
         this.#notifier = this.#terminator.own(new Notifier())
@@ -62,6 +62,7 @@ export class ConstantTempoMap implements TempoMap, Terminable {
             this.#tempo = owner.getValue()
             this.#notifier.notify(this)
         }))
+        this.#tempo = observableTempo.getValue()
     }
 
     subscribe(observer: Observer<TempoMap>): Subscription {

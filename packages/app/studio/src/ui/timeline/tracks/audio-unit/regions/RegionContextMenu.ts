@@ -1,17 +1,17 @@
 import {ElementCapturing} from "@/ui/canvas/capturing.ts"
-import {EmptyExec, Selection, Terminable} from "@opendaw/lib-std"
+import {asInstanceOf, EmptyExec, Selection, Terminable} from "@opendaw/lib-std"
 import {ContextMenu} from "@/ui/ContextMenu.ts"
 import {MenuItem} from "@/ui/model/menu-item.ts"
 import {AnyRegionBoxAdapter, AudioRegionBoxAdapter} from "@opendaw/studio-adapters"
 import {RegionCaptureTarget} from "@/ui/timeline/tracks/audio-unit/regions/RegionCapturing.ts"
-import {TimelineBox} from "@opendaw/studio-boxes"
+import {AudioFileBox, TimelineBox} from "@opendaw/studio-boxes"
 import {Surface} from "@/ui/surface/Surface.tsx"
 import {RegionTransformer} from "@/ui/timeline/tracks/audio-unit/regions/RegionTransformer.ts"
 import {NameValidator} from "@/ui/validator/name.ts"
 import {DebugMenus} from "@/ui/menu/debug"
 import {exportNotesToMidiFile} from "@/ui/timeline/editors/notes/NoteUtils"
 import {ColorMenu} from "@/ui/timeline/ColorMenu"
-import {BPMTools} from "@opendaw/lib-dsp"
+import {BPMTools, TimeBase} from "@opendaw/lib-dsp"
 import {Browser} from "@opendaw/lib-dom"
 import {Dialogs} from "@/ui/components/dialogs.tsx"
 import {StudioService} from "@/service/StudioService"
@@ -121,15 +121,38 @@ export const installRegionContextMenu =
                     MenuItem.default({
                         label: "Unsynchronize",
                         checked: region.type === "audio-region"
-                            && region.box.playback.getValue() !== AudioPlayback.NoSync
+                            && region.box.playback.getValue() === AudioPlayback.NoSync
                     }).setTriggerProcedure(() => {
                         const regions: ReadonlyArray<AudioRegionBoxAdapter> = selection.selected()
                             .filter((region): region is AudioRegionBoxAdapter => region.type === "audio-region")
-                        regions.forEach(({}) => {
-                            // box.playback.setValue(AudioPlayback.NoSync)
-                            // box.timeBase.setValue()
-                            // TODO
-                        })
+                            .filter((region) => region.box.playback.getValue() !== AudioPlayback.NoSync)
+                        if (regions.length === 0) {return}
+                        const {editing, tempoMap} = project
+                        editing.modify(() => regions.forEach(({box}) => {
+                            const {startInSeconds, endInSeconds} =
+                                asInstanceOf(box.file.targetVertex.unwrap("Could not find file").box, AudioFileBox)
+                            const fileDuration = endInSeconds.getValue() - startInSeconds.getValue()
+                            const position = box.position.getValue()
+                            const durationInSeconds = tempoMap.intervalToSeconds(
+                                position,
+                                position + box.duration.getValue()
+                            )
+                            console.debug(">>>", durationInSeconds, fileDuration)
+                            const loopDurationInSeconds = tempoMap.intervalToSeconds(
+                                position,
+                                position + box.loopDuration.getValue()
+                            )
+                            const loopOffsetInSeconds = tempoMap.intervalToSeconds(
+                                position,
+                                position + box.loopOffset.getValue()
+                            )
+                            // Now switch mode and write converted values
+                            box.playback.setValue(AudioPlayback.NoSync)
+                            box.timeBase.setValue(TimeBase.Seconds)
+                            box.duration.setValue(durationInSeconds)
+                            box.loopOffset.setValue(loopOffsetInSeconds)
+                            box.loopDuration.setValue(loopDurationInSeconds)
+                        }))
                     })
                 )),
                 MenuItem.default({

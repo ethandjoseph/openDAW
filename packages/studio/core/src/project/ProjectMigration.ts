@@ -1,5 +1,6 @@
 import {
     AudioFileBox,
+    AudioRegionBox,
     AudioUnitBox,
     BoxVisitor,
     CaptureAudioBox,
@@ -45,6 +46,19 @@ export class ProjectMigration {
                     boxGraph.beginTransaction()
                     startInSeconds.setValue(Float.floatToIntBits(startInSeconds.getValue()))
                     endInSeconds.setValue(Float.floatToIntBits(endInSeconds.getValue()))
+                    boxGraph.endTransaction()
+                }
+            },
+            visitAudioRegionBox: (box: AudioRegionBox): void => {
+                const {duration, loopOffset, loopDuration} = box
+                if (isIntEncodedAsFloat(duration.getValue())
+                    || isIntEncodedAsFloat(loopOffset.getValue())
+                    || isIntEncodedAsFloat(loopDuration.getValue())) {
+                    console.debug("Migrate 'AudioRegionBox' to float")
+                    boxGraph.beginTransaction()
+                    duration.setValue(Float.floatToIntBits(duration.getValue()))
+                    loopOffset.setValue(Float.floatToIntBits(loopOffset.getValue()))
+                    loopDuration.setValue(Float.floatToIntBits(loopDuration.getValue()))
                     boxGraph.endTransaction()
                 }
             },
