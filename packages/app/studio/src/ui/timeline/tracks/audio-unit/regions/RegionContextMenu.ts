@@ -117,7 +117,20 @@ export const installRegionContextMenu =
                             && region.box.playback.getValue() === AudioPlayback.AudioFit
                     }).setTriggerProcedure(() => AutofitUtils.regionsToAutofit(project, selection.selected()
                         .filter((region): region is AudioRegionBoxAdapter => region.type === "audio-region"
-                            && region.box.playback.getValue() !== AudioPlayback.AudioFit)))
+                            && region.box.playback.getValue() !== AudioPlayback.AudioFit))),
+                    MenuItem.default({
+                        label: "Unsynchronize",
+                        checked: region.type === "audio-region"
+                            && region.box.playback.getValue() !== AudioPlayback.NoSync
+                    }).setTriggerProcedure(() => {
+                        const regions: ReadonlyArray<AudioRegionBoxAdapter> = selection.selected()
+                            .filter((region): region is AudioRegionBoxAdapter => region.type === "audio-region")
+                        regions.forEach(({}) => {
+                            // box.playback.setValue(AudioPlayback.NoSync)
+                            // box.timeBase.setValue()
+                            // TODO
+                        })
+                    })
                 )),
                 MenuItem.default({
                     label: "Calc Bpm",

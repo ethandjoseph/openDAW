@@ -1,6 +1,4 @@
 export enum TimeBase {
-    Musical = "musical",
-    Absolute = "absolute",
-    Sample = "sample",
-    SMPTE = "smpte"
+    Musical = "musical", // PPQN
+    Seconds = "seconds",
 }
