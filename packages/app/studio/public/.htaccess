@@ -1,14 +1,3 @@
-# openDAW
-# prototype
-
-# CORS Headers
-Header set Access-Control-Allow-Origin "https://localhost:8080"
-Header set Access-Control-Allow-Methods "GET, POST, OPTIONS, PUT, DELETE"
-Header set Access-Control-Allow-Headers "Authorization, Content-Type, X-Requested-With"
-Header set Access-Control-Allow-Credentials "true"
-Header set Cross-Origin-Opener-Policy "same-origin"
-Header set Cross-Origin-Embedder-Policy "require-corp"
-
 # Enable Brotli Compression for supported files, only if they exist
 RewriteEngine On
 
@@ -22,11 +11,7 @@ RewriteRule ^(.*)$ $1.br [QSA,L]
     Header set Content-Encoding br
 </FilesMatch>
 
-# URL rewriting (if needed)
-RewriteBase /
+# SPA fallback
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^ index.html [QSA,L]
-
-# Redirect /manuals/ to root index.html for SPA handling
-RewriteRule ^manuals/$ /index.html [L]
+RewriteRule ^ index.html [L]

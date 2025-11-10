@@ -12,29 +12,47 @@ const config = {
 const sftp = new SftpClient()
 const distDir = "./packages/app/studio/dist"
 const buildInfoPath = "./packages/app/studio/public/build-info.json"
-const htaccessBasePath = "./packages/app/studio/public/.htaccess"
 
 const readBuildInfo = () => JSON.parse(fs.readFileSync(buildInfoPath, "utf8"))
 
 const uploadDirectory = async (localDir: string, remoteDir: string) => {
-        for (const file of fs.readdirSync(localDir)) {
-            const localPath = path.join(localDir, file)
-            const remotePath = path.posix.join(remoteDir, file)
-            const stat = fs.lstatSync(localPath)
-            if (stat.isDirectory()) {
-                await sftp.mkdir(remotePath, true).catch(() => {})
-                await uploadDirectory(localPath, remotePath)
-            } else {
-                console.log("upload", remotePath)
-                await sftp.put(localPath, remotePath)
-            }
+    for (const file of fs.readdirSync(localDir)) {
+        const localPath = path.join(localDir, file)
+        const remotePath = path.posix.join(remoteDir, file)
+        const stat = fs.lstatSync(localPath)
+        if (stat.isDirectory()) {
+            await sftp.mkdir(remotePath, true).catch(() => {})
+            await uploadDirectory(localPath, remotePath)
+        } else {
+            console.log("upload", remotePath)
+            await sftp.put(localPath, remotePath)
         }
     }
+}
+
+const createRootHtaccess = (releaseDir: string) => `# openDAW
+#
+# CORS Headers
+Header set Access-Control-Allow-Origin "https://localhost:8080"
+Header set Access-Control-Allow-Methods "GET, POST, OPTIONS, PUT, DELETE"
+Header set Access-Control-Allow-Headers "Authorization, Content-Type, X-Requested-With"
+Header set Access-Control-Allow-Credentials "true"
+Header set Cross-Origin-Opener-Policy "same-origin"
+Header set Cross-Origin-Embedder-Policy "require-corp"
+
+RewriteEngine On
+RewriteBase /
+
+# --------------------------------------------------
+# ACTIVE RELEASE REDIRECT
+RewriteRule ^(.*)$ ${releaseDir}/$1 [L]
+# --------------------------------------------------
+`
 
 ;(async () => {
     await sftp.connect(config)
 
-    const {uuid, date} = readBuildInfo()
+    const {uuid} = readBuildInfo()
     const releaseDir = `/releases/${uuid}`
     console.log("creating", releaseDir)
     await sftp.mkdir(releaseDir, true).catch(() => {})
@@ -42,19 +60,11 @@ const uploadDirectory = async (localDir: string, remoteDir: string) => {
     console.log("uploading dist...")
     await uploadDirectory(distDir, releaseDir)
 
-    // merge base .htaccess with redirect block
-    const base = fs.readFileSync(htaccessBasePath, "utf8")
-    const redirectBlock =
-        `\n# --------------------------------------------------\n` +
-        `# ACTIVE RELEASE REDIRECT\n` +
-        `RewriteCond %{DOCUMENT_ROOT}${releaseDir}/$1 -f [OR]\n` +
-        `RewriteCond %{DOCUMENT_ROOT}${releaseDir}/$1 -d\n` +
-        `RewriteRule ^(.*)$ ${releaseDir}/$1 [L]\n` +
-        `# --------------------------------------------------\n`
-    const merged = base.replace(/^RewriteBase/m, redirectBlock + "RewriteBase") || base + redirectBlock
-
+    // Create and upload root .htaccess (redirects to active release)
+    console.log("creating root .htaccess...")
+    const rootHtaccess = createRootHtaccess(releaseDir)
     const tmpFile = "./.htaccess"
-    fs.writeFileSync(tmpFile, merged)
+    fs.writeFileSync(tmpFile, rootHtaccess)
     await sftp.put(tmpFile, "/.htaccess")
     fs.unlinkSync(tmpFile)
 
