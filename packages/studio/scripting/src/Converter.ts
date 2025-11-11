@@ -26,6 +26,10 @@ export namespace Converter {
             const audioUnitBox = AudioUnitFactory.create(skeleton, AudioUnitType.Instrument, capture)
             factory.create(boxGraph, audioUnitBox.input, factory.defaultName, factory.defaultIcon)
 
+            audioUnitBox.mute.setValue(audioUnit.isMuted())
+            audioUnitBox.solo.setValue(audioUnit.isSolo())
+            // TODO audioUnitBox.panning.setValue(audioUnit.getPan())
+
             audioUnit.midiEffects.forEach((effect) => {
                 switch (effect.key) {
                     case "pitch": {

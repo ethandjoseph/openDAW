@@ -26,7 +26,7 @@ TODO:
 */
 // openDAW script editor (very early preview - under heavy construction)
 const project = openDAW.newProject("Hello World")
-const audioUnit = project.addInstrumentUnit("Vaporisateur")
+const audioUnit = project.addInstrumentUnit("Vaporisateur").setMute(true)
 audioUnit.addMIDIEffect("pitch", {octaves: 1, label: "Pitch Up"})
 audioUnit.addMIDIEffect("pitch", {octaves: -1, label: "Pitch Down"})
 const track = audioUnit.addNoteTrack({enabled: true})
