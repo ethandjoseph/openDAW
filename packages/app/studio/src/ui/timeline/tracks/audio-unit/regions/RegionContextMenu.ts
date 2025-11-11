@@ -112,7 +112,7 @@ export const installRegionContextMenu =
                             .filter((region): region is AudioRegionBoxAdapter =>
                                 region.type === "audio-region" && region.playback !== AudioPlayback.Pitch)
                         if (adapters.length === 0) {return}
-                        editing.modify(() => adapters.forEach(region => region.playback = AudioPlayback.Pitch))
+                        editing.modify(() => adapters.forEach(region => region.setPlayback(AudioPlayback.Pitch)))
                     }),
                     MenuItem.default({
                         label: "No Wrap",
@@ -123,7 +123,7 @@ export const installRegionContextMenu =
                             .filter((region): region is AudioRegionBoxAdapter =>
                                 region.type === "audio-region" && region.playback !== AudioPlayback.NoSync)
                         if (adapters.length === 0) {return}
-                        editing.modify(() => adapters.forEach(region => region.playback = AudioPlayback.NoSync))
+                        editing.modify(() => adapters.forEach(region => region.setPlayback(AudioPlayback.NoSync)))
                     })
                 )),
                 MenuItem.default({

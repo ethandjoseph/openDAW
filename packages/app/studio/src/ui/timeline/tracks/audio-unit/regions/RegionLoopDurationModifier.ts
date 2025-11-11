@@ -84,10 +84,10 @@ export class RegionLoopDurationModifier implements RegionModifier {
 
     update({clientX}: Dragging.Event): void {
         const {position, complete, loopOffset, loopDuration} = this.#reference
-        const d = this.#resize ? complete - (position + loopDuration - loopOffset) : 0
+        const delta = this.#resize ? complete - (position + loopDuration - loopOffset) : 0
         const clientRect = this.#element.getBoundingClientRect()
         const deltaDuration = this.#snapping.computeDelta(
-            this.#pointerPulse - d, clientX - clientRect.left, loopDuration)
+            this.#pointerPulse - delta, clientX - clientRect.left, loopDuration)
         let change = false
         if (this.#deltaLoopDuration !== deltaDuration) {
             this.#deltaLoopDuration = deltaDuration
