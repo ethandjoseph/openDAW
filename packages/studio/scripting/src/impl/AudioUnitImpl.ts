@@ -1,4 +1,15 @@
-import {AudioEffects, AudioUnit, GroupAudioUnit, MIDIEffects, NoteTrack, OutputAudioUnit, VolumeValue, PanValue, ValueTrack, Instruments} from "../Api"
+import {
+    AudioEffects,
+    AudioUnit,
+    GroupAudioUnit,
+    Instruments,
+    MIDIEffects,
+    NoteTrack,
+    OutputAudioUnit,
+    PanValue,
+    ValueTrack,
+    VolumeValue
+} from "../Api"
 import {ProjectImpl} from "./ProjectImpl"
 import {NoteTrackImpl} from "./NoteTrackImpl"
 import {ValueTrackImpl} from "./ValueTrackImpl"
@@ -7,26 +18,26 @@ import {PitchEffectImpl} from "./PitchEffectImpl"
 
 export abstract class AudioUnitImpl implements AudioUnit {
     protected project: ProjectImpl
-    
+
     #volume: VolumeValue
     #pan: PanValue
     #mute: boolean
     #solo: boolean
     #output: OutputAudioUnit | GroupAudioUnit | null
-    #audioEffects: Map<string, AudioEffects[keyof AudioEffects]>
-    #midiEffects: Map<string, MIDIEffects[keyof MIDIEffects]>
-    #noteTracks: NoteTrackImpl[]
-    #valueTracks: ValueTrackImpl[]
+    readonly #audioEffects: Array<AudioEffects[keyof AudioEffects]>
+    readonly #midiEffects: Array<MIDIEffects[keyof MIDIEffects]>
+    readonly #noteTracks: NoteTrackImpl[]
+    readonly #valueTracks: ValueTrackImpl[]
 
-    constructor(project: ProjectImpl) {
+    protected constructor(project: ProjectImpl) {
         this.project = project
         this.#volume = "default"
         this.#pan = "center"
         this.#mute = false
         this.#solo = false
         this.#output = null
-        this.#audioEffects = new Map()
-        this.#midiEffects = new Map()
+        this.#audioEffects = []
+        this.#midiEffects = []
         this.#noteTracks = []
         this.#valueTracks = []
     }
@@ -61,7 +72,7 @@ export abstract class AudioUnitImpl implements AudioUnit {
         props?: Partial<AudioEffects[T]>
     ): AudioEffects[T] {
         let effect: AudioEffects[T]
-        
+
         switch (type) {
             case "delay":
                 effect = new DelayEffectImpl(props) as AudioEffects[T]
@@ -69,8 +80,8 @@ export abstract class AudioUnitImpl implements AudioUnit {
             default:
                 throw new Error(`Unknown audio effect type: ${type}`)
         }
-        
-        this.#audioEffects.set(type, effect)
+
+        this.#audioEffects.push(effect)
         return effect
     }
 
@@ -79,7 +90,7 @@ export abstract class AudioUnitImpl implements AudioUnit {
         props?: Partial<MIDIEffects[T]>
     ): MIDIEffects[T] {
         let effect: MIDIEffects[T]
-        
+
         switch (type) {
             case "pitch":
                 effect = new PitchEffectImpl(props) as MIDIEffects[T]
@@ -87,8 +98,8 @@ export abstract class AudioUnitImpl implements AudioUnit {
             default:
                 throw new Error(`Unknown MIDI effect type: ${type}`)
         }
-        
-        this.#midiEffects.set(type, effect)
+
+        this.#midiEffects.push(effect)
         return effect
     }
 
@@ -127,15 +138,15 @@ export abstract class AudioUnitImpl implements AudioUnit {
         return this.#output
     }
 
-    getAudioEffects(): ReadonlyMap<string, AudioEffects[keyof AudioEffects]> {
+    getAudioEffects(): ReadonlyArray<AudioEffects[keyof AudioEffects]> {
         return this.#audioEffects
     }
 
-    getMIDIEffects(): ReadonlyMap<string, MIDIEffects[keyof MIDIEffects]> {
+    get midiEffects(): ReadonlyArray<MIDIEffects[keyof MIDIEffects]> {
         return this.#midiEffects
     }
 
-    getNoteTracks(): ReadonlyArray<NoteTrackImpl> {
+    get noteTracks(): ReadonlyArray<NoteTrackImpl> {
         return this.#noteTracks
     }
 

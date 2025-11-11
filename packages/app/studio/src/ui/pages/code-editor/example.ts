@@ -22,15 +22,18 @@ TODO:
     * AudioUnits without any track should be shown in timeline
 
     This code above will not be seen. The two slashes start the example.
+    Everything you import here, must be exported in the Api too.
 */
 // openDAW script editor (very early preview - under heavy construction)
-const project = openDAW.newProject()
+const project = openDAW.newProject("Hello World")
 const audioUnit = project.addInstrumentUnit("Vaporisateur")
+audioUnit.addMIDIEffect("pitch", {octaves: 1})
+audioUnit.addMIDIEffect("pitch", {octaves: -1})
 const track = audioUnit.addNoteTrack({enabled: true})
 const region = track.addRegion({
     position: 0,
     duration: PPQN.fromSignature(16, 4),
-    label: "Hello World"
+    label: "Scripted Region"
 })
 for (let i = 0; i < 64; i++) {
     region.addEvent({

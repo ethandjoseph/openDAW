@@ -22,7 +22,15 @@ export interface Sendable {
     addSend(props?: Partial<Send>): Send
 }
 
-export interface DelayEffect {
+export interface Effect {
+    enabled: boolean
+}
+
+export interface AudioEffect extends Effect {
+    readonly key: keyof AudioEffects
+}
+
+export interface DelayEffect extends AudioEffect {
     delay: Duration
     feedback: Percent
     cross: Percent
@@ -35,7 +43,12 @@ export interface AudioEffects {
     "delay": DelayEffect
 }
 
-export interface PitchEffect {
+export interface MIDIEffect extends Effect {
+    readonly key: keyof MIDIEffects
+}
+
+export interface PitchEffect extends MIDIEffect {
+    key: keyof MIDIEffects
     octaves: int
     semiTones: int
     cents: float

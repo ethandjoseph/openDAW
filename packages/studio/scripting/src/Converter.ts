@@ -1,8 +1,15 @@
 import {InstrumentAudioUnitImpl, NoteRegionImpl, NoteTrackImpl, ProjectImpl} from "./impl"
 import {AudioUnitFactory, CaptureBox, InstrumentFactories, ProjectSkeleton, TrackType} from "@opendaw/studio-adapters"
 import {AudioUnitType} from "@opendaw/studio-enums"
-import {Option, UUID} from "@opendaw/lib-std"
-import {NoteEventBox, NoteEventCollectionBox, NoteRegionBox, TrackBox} from "@opendaw/studio-boxes"
+import {asInstanceOf, isDefined, Option, UUID} from "@opendaw/lib-std"
+import {
+    AudioUnitBox,
+    NoteEventBox,
+    NoteEventCollectionBox,
+    NoteRegionBox,
+    PitchDeviceBox,
+    TrackBox
+} from "@opendaw/studio-boxes"
 
 export namespace Converter {
     export const toSkeleton = (project: ProjectImpl): ProjectSkeleton => {
@@ -10,7 +17,7 @@ export namespace Converter {
             createDefaultUser: true,
             createOutputCompressor: false
         })
-        const {boxGraph, mandatoryBoxes: {timelineBox}} = skeleton
+        const {boxGraph, mandatoryBoxes: {rootBox, timelineBox, userInterfaceBoxes: [defaultUser]}} = skeleton
         boxGraph.beginTransaction()
         timelineBox.bpm.setValue(project.tempo)
         project.getInstrumentUnits().forEach((audioUnit: InstrumentAudioUnitImpl) => {
@@ -18,8 +25,24 @@ export namespace Converter {
             const capture: Option<CaptureBox> = AudioUnitFactory.trackTypeToCapture(boxGraph, factory.trackType)
             const audioUnitBox = AudioUnitFactory.create(skeleton, AudioUnitType.Instrument, capture)
             factory.create(boxGraph, audioUnitBox.input, factory.defaultName, factory.defaultIcon)
+
+            audioUnit.midiEffects.forEach((effect) => {
+                switch (effect.key) {
+                    case "pitch": {
+                        PitchDeviceBox.create(boxGraph, UUID.generate(), box => {
+                            box.cents.setValue(effect.cents)
+                            box.semiTones.setValue(effect.semiTones)
+                            box.octaves.setValue(effect.octaves)
+                            box.enabled.setValue(effect.enabled)
+                            box.host.refer(audioUnitBox.midiEffects)
+                        })
+                        break
+                    }
+                }
+            })
+
             let trackIndex = 0
-            audioUnit.getNoteTracks().forEach(({enabled, regions}: NoteTrackImpl) => {
+            audioUnit.noteTracks.forEach(({enabled, regions}: NoteTrackImpl) => {
                 const trackBox = TrackBox.create(boxGraph, UUID.generate(), box => {
                     box.type.setValue(TrackType.Notes)
                     box.enabled.setValue(enabled)
@@ -57,6 +80,14 @@ export namespace Converter {
                 })
             })
         })
+        // select the first audio unit as the editing device
+        const firstAudioUnitBox = rootBox.audioUnits.pointerHub.incoming()
+            .map(({box}) => asInstanceOf(box, AudioUnitBox))
+            .sort(({index: a}, {index: b}) => a.getValue() - b.getValue())
+            .at(0)
+        if (isDefined(firstAudioUnitBox)) {
+            defaultUser.editingDeviceChain.refer(firstAudioUnitBox.editing)
+        }
         boxGraph.endTransaction()
         return skeleton
     }
