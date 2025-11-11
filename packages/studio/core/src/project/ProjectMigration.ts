@@ -16,9 +16,9 @@ import {
 } from "@opendaw/studio-boxes"
 import {asDefined, asInstanceOf, clamp, Float, UUID, ValueOwner} from "@opendaw/lib-std"
 import {AudioPlayback, AudioUnitType} from "@opendaw/studio-enums"
-import {PPQN, ProjectSkeleton} from "@opendaw/studio-adapters"
+import {ProjectSkeleton} from "@opendaw/studio-adapters"
 import {Field} from "@opendaw/lib-box"
-import {ppqn, seconds, TimeBase} from "@opendaw/lib-dsp"
+import {PPQN, ppqn, seconds, TimeBase} from "@opendaw/lib-dsp"
 
 const isIntEncodedAsFloat = (v: number) =>
     v > 0 && v < 1e-6 && Number.isFinite(v) && (v / 1.401298464324817e-45) % 1 === 0

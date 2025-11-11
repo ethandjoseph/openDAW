@@ -2,6 +2,7 @@
   "name": "@opendaw/studio-scripting",
   "version": "0.0.1",
   "license": "LGPL-3.0-or-later",
+  "type": "module",
   "publishConfig": {
     "access": "public"
   },
@@ -11,13 +12,16 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
-    }
+    },
+    "./api.declaration": "./src/api.declaration.d.ts"
   },
   "files": [
-    "dist/**/*"
+    "dist/**/*",
+    "src/script/api.declaration.d.ts"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "npm run generate-api && tsc",
+    "generate-api": "ts-node scripts/generate-api.ts",
     "lint": "eslint \"**/*.ts\"",
     "test": "echo \"No tests to run\""
   },

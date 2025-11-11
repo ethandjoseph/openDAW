@@ -2,7 +2,7 @@ import * as monaco from "monaco-editor"
 import "monaco-editor/esm/vs/language/typescript/monaco.contribution"
 import EditorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker"
 import TsWorker from "monaco-editor/esm/vs/language/typescript/ts.worker?worker"
-import declarations from "@opendaw/studio-adapters/script/Declarations?raw"
+import declarations from "@opendaw/studio-scripting/api.declaration?raw"
 import libTypedArrays from "./typed-arrays.d.ts?raw"
 
 // noinspection JSUnusedGlobalSymbols

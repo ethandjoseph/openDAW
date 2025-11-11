@@ -1,6 +1,9 @@
 {
   "extends": "@opendaw/typescript-config/base.json",
   "compilerOptions": {
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "target": "ES2020",
     "lib": [
       "ESNext",
       "DOM",
@@ -13,7 +16,6 @@
   "exclude": [
     "dist",
     "node_modules",
-    "**/*.test.ts",
-    "./scripts/**"
+    "**/*.test.ts"
   ]
 }

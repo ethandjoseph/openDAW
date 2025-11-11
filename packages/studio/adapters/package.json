@@ -11,19 +11,14 @@
     ".": {
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
-    },
-    "./script/Api": "./src/script/Api.ts",
-    "./script/Declarations": "./src/script/Declarations.d.ts"
+    }
   },
   "files": [
-    "dist/**/*",
-    "src/script/Api.ts",
-    "src/script/Declarations.d.ts"
+    "dist/**/*"
   ],
   "scripts": {
     "generate-exports": "node generate-exports.mjs",
-    "generate-declarations": "tsx scripts/generate-declarations.ts",
-    "build": "npm run generate-exports && npm run generate-declarations && tsc",
+    "build": "npm run generate-exports && tsc",
     "lint": "eslint \"**/*.ts\"",
     "test": "echo \"No tests to run\""
   },
