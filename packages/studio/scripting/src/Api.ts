@@ -168,7 +168,7 @@ export interface Project {
 }
 
 export interface Api {
-    addProject(name?: string): Project
+    newProject(name?: string): Project
     getProject(): Promise<Project>
 }
 

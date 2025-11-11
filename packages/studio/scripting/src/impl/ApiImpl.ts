@@ -10,7 +10,7 @@ export interface ApiEnvironment {
 export class ApiImpl implements Api {
     constructor(readonly environment: ApiEnvironment) {}
 
-    addProject(name?: string): Project {
+    newProject(name?: string): Project {
         return new ProjectImpl(this, name ?? `Scripted Project`)
     }
 

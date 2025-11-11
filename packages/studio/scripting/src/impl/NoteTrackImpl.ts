@@ -20,7 +20,7 @@ export class NoteTrackImpl implements NoteTrack {
         return region
     }
 
-    getRegions(): ReadonlyArray<NoteRegionImpl> {
+    get regions(): ReadonlyArray<NoteRegionImpl> {
         return this.#regions
     }
 }

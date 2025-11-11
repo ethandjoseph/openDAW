@@ -1,10 +1,13 @@
-import {NoteRegion, NoteEvent, NoteTrack} from "../Api"
+import {NoteEvent, NoteRegion, NoteTrack} from "../Api"
 import {ppqn} from "@opendaw/lib-dsp"
 import {int} from "@opendaw/lib-std"
 import {NoteEventImpl} from "./NoteEventImpl"
+import {ColorCodes, TrackType} from "@opendaw/studio-adapters"
 
 export class NoteRegionImpl implements NoteRegion {
     readonly track: NoteTrack
+    readonly #events: NoteEventImpl[]
+
     position: ppqn
     duration: ppqn
     mute: boolean
@@ -12,18 +15,16 @@ export class NoteRegionImpl implements NoteRegion {
     hue: int
     loopDuration: ppqn
     loopOffset: ppqn
-    
-    #events: NoteEventImpl[]
 
     constructor(track: NoteTrack, props?: Partial<NoteRegion>) {
         this.track = track
         this.position = props?.position ?? 0.0 as ppqn
         this.duration = props?.duration ?? 0.0 as ppqn
+        this.loopDuration = props?.loopDuration ?? this.duration
+        this.loopOffset = props?.loopOffset ?? 0.0 as ppqn
         this.mute = props?.mute ?? false
         this.label = props?.label ?? ""
-        this.hue = props?.hue ?? 0 as int
-        this.loopDuration = props?.loopDuration ?? 0.0 as ppqn
-        this.loopOffset = props?.loopOffset ?? 0.0 as ppqn
+        this.hue = props?.hue ?? ColorCodes.forTrackType(TrackType.Notes)
         this.#events = []
     }
 
@@ -33,7 +34,5 @@ export class NoteRegionImpl implements NoteRegion {
         return event
     }
 
-    getEvents(): ReadonlyArray<NoteEventImpl> {
-        return this.#events
-    }
+    get events(): ReadonlyArray<NoteEventImpl> {return this.#events}
 }
