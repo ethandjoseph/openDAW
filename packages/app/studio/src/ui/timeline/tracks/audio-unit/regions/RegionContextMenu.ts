@@ -110,6 +110,7 @@ export const installRegionContextMenu =
                     }).setTriggerProcedure(() => editing.modify(() => selection.selected()
                         .filter((region): region is AudioRegionBoxAdapter => region.type === "audio-region"
                             && region.box.playback.getValue() !== AudioPlayback.Pitch)
+                        // FIXME We have reconvert values
                         .forEach(region => region.box.playback.setValue(AudioPlayback.Pitch)))),
                     MenuItem.default({
                         label: "No Wrap",

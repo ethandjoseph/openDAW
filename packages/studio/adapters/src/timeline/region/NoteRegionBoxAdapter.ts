@@ -19,6 +19,7 @@ import {TrackBoxAdapter} from "../TrackBoxAdapter"
 import {LoopableRegionBoxAdapter, RegionBoxAdapter, RegionBoxAdapterVisitor} from "../RegionBoxAdapter"
 import {NoteEventCollectionBoxAdapter} from "../collection/NoteEventCollectionBoxAdapter"
 import {BoxAdaptersContext} from "../../BoxAdaptersContext"
+import {MutableRegion} from "./MutableRegion"
 
 type CopyToParams = {
     track?: Field<Pointers.RegionCollection>
@@ -29,7 +30,8 @@ type CopyToParams = {
     consolidate?: boolean
 }
 
-export class NoteRegionBoxAdapter implements LoopableRegionBoxAdapter<NoteEventCollectionBoxAdapter> {
+export class NoteRegionBoxAdapter
+    implements LoopableRegionBoxAdapter<NoteEventCollectionBoxAdapter>, MutableRegion {
     readonly type = "note-region"
 
     readonly #terminator: Terminator = new Terminator()
@@ -80,6 +82,11 @@ export class NoteRegionBoxAdapter implements LoopableRegionBoxAdapter<NoteEventC
         )
         this.#isConstructing = false
     }
+
+    set position(value: ppqn) {this.#box.position.setValue(value)}
+    set duration(value: ppqn) {this.#box.duration.setValue(value)}
+    set loopOffset(value: ppqn) {this.#box.loopOffset.setValue(value)}
+    set loopDuration(value: ppqn) {this.#box.loopDuration.setValue(value)}
 
     subscribeChange(observer: Observer<void>): Subscription {return this.#changeNotifier.subscribe(observer)}
     accept<R>(visitor: RegionBoxAdapterVisitor<R>): Maybe<R> {return safeExecute(visitor.visitNoteRegionBoxAdapter, this)}

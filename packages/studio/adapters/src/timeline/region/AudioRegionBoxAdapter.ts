@@ -13,12 +13,13 @@ import {
 } from "@opendaw/lib-std"
 import {ppqn, TimeBase, TimeBaseConverter} from "@opendaw/lib-dsp"
 import {Address, Field, PointerField, Propagation, Update} from "@opendaw/lib-box"
-import {Pointers} from "@opendaw/studio-enums"
+import {AudioPlayback, Pointers} from "@opendaw/studio-enums"
 import {AudioRegionBox} from "@opendaw/studio-boxes"
 import {LoopableRegionBoxAdapter, RegionBoxAdapter, RegionBoxAdapterVisitor} from "../RegionBoxAdapter"
 import {TrackBoxAdapter} from "../TrackBoxAdapter"
 import {BoxAdaptersContext} from "../../BoxAdaptersContext"
 import {AudioFileBoxAdapter} from "../../audio/AudioFileBoxAdapter"
+import {MutableRegion} from "./MutableRegion"
 
 type CopyToParams = {
     track?: Field<Pointers.RegionCollection>
@@ -28,7 +29,8 @@ type CopyToParams = {
     loopDuration?: ppqn
 }
 
-export class AudioRegionBoxAdapter implements LoopableRegionBoxAdapter<never> {
+export class AudioRegionBoxAdapter
+    implements LoopableRegionBoxAdapter<never>, MutableRegion {
     readonly type = "audio-region"
 
     readonly #terminator: Terminator
@@ -122,10 +124,7 @@ export class AudioRegionBoxAdapter implements LoopableRegionBoxAdapter<never> {
 
     get isSelected(): boolean {return this.#isSelected}
 
-    terminate() {this.#terminator.terminate()}
-
     get box(): AudioRegionBox {return this.#box}
-
     get uuid(): UUID.Bytes {return this.#box.address.uuid}
     get address(): Address {return this.#box.address}
     get position(): ppqn {return this.#box.position.getValue()}
@@ -155,6 +154,21 @@ export class AudioRegionBoxAdapter implements LoopableRegionBoxAdapter<never> {
             .map(vertex => this.#context.boxAdapters.adapterFor(vertex.box, TrackBoxAdapter))
     }
 
+    set position(value: ppqn) {this.#box.position.setValue(value)}
+    set duration(value: ppqn) {this.#box.duration.setValue(value)}
+    set loopOffset(value: ppqn) {this.#box.loopOffset.setValue(value)}
+    set loopDuration(value: ppqn) {this.#box.loopDuration.setValue(value)}
+
+    get playback(): AudioPlayback {return asEnumValue(this.#box.playback.getValue(), AudioPlayback)}
+    set playback(value: AudioPlayback) {
+        this.#box.playback.setValue(value)
+        if (value === AudioPlayback.NoSync) {
+            this.#box.timeBase.setValue(TimeBase.Seconds)
+        } else {
+            this.#box.timeBase.setValue(TimeBase.Musical)
+        }
+    }
+
     copyTo(params?: CopyToParams): AudioRegionBoxAdapter {
         return this.#context.boxAdapters.adapterFor(AudioRegionBox.create(this.#context.boxGraph, UUID.generate(), box => {
             box.timeBase.setValue(this.#box.timeBase.getValue())
@@ -179,6 +193,9 @@ export class AudioRegionBoxAdapter implements LoopableRegionBoxAdapter<never> {
         // TODO This needs to done by creating a new audio file
         return Option.None
     }
+
+    terminate() {this.#terminator.terminate()}
+
     toString(): string {return `{AudioRegionBoxAdapter ${UUID.toString(this.#box.address.uuid)}}`}
 
     #dispatchChange(): void {

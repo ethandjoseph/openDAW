@@ -9,8 +9,7 @@ import {
     UnionAdapterTypes
 } from "@opendaw/studio-adapters"
 import {Snapping} from "@/ui/timeline/Snapping.ts"
-import {RegionClipResolver} from "@/ui/timeline/tracks/audio-unit/regions/RegionClipResolver.ts"
-import {RegionModifyStrategy} from "@/ui/timeline/tracks/audio-unit/regions/RegionModifyStrategies.ts"
+import {RegionClipResolver, RegionModifyStrategy} from "@opendaw/studio-core"
 import {Dragging} from "@opendaw/lib-dom"
 
 class SelectedModifyStrategy implements RegionModifyStrategy {
@@ -113,7 +112,7 @@ export class RegionDurationModifier implements RegionModifier {
         const result = this.#adapters.map<{ region: AnyLoopableRegionBoxAdapter, duration: ppqn }>(region =>
             ({region, duration: this.#selectedModifyStrategy.readDuration(region)}))
         editing.modify(() => {
-            result.forEach(({region, duration}) => region.box.duration.setValue(duration))
+            result.forEach(({region, duration}) => region.duration = duration)
             solver()
         })
         RegionClipResolver.validateTracks(modifiedTracks)

@@ -1,10 +1,7 @@
 import {int, Iterables, Option, quantizeFloor, unitValue} from "@opendaw/lib-std"
 import {LoopableRegion, ValueEvent} from "@opendaw/lib-dsp"
 import {AudioRegionBoxAdapter, NoteRegionBoxAdapter, ValueRegionBoxAdapter} from "@opendaw/studio-adapters"
-import {
-    RegionModifyStrategies,
-    RegionModifyStrategy
-} from "@/ui/timeline/tracks/audio-unit/regions/RegionModifyStrategies.ts"
+import {RegionModifyStrategies, RegionModifyStrategy, TimelineRange} from "@opendaw/studio-core"
 import {TracksManager} from "@/ui/timeline/tracks/audio-unit/TracksManager.ts"
 import {renderNotes} from "@/ui/timeline/renderer/notes.ts"
 import {RegionBound} from "@/ui/timeline/renderer/env.ts"
@@ -12,7 +9,6 @@ import {renderAudio} from "@/ui/timeline/renderer/audio.ts"
 import {renderValueStream} from "@/ui/timeline/renderer/value.ts"
 import {Context2d} from "@opendaw/lib-dom"
 import {RegionPaintBucket} from "@/ui/timeline/tracks/audio-unit/regions/RegionPaintBucket"
-import {TimelineRange} from "@opendaw/studio-core"
 
 export const renderRegions = (context: CanvasRenderingContext2D,
                               tracks: TracksManager,

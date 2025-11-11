@@ -1,3 +1,5 @@
+import {asDefined, assert, Exec, int, mod, panic} from "@opendaw/lib-std"
+import {Event, EventCollection, ppqn, TimeBase} from "@opendaw/lib-dsp"
 import {
     AnyRegionBoxAdapter,
     AudioRegionBoxAdapter,
@@ -6,9 +8,7 @@ import {
     TrackType,
     UnionAdapterTypes
 } from "@opendaw/studio-adapters"
-import {Event, EventCollection, ppqn, TimeBase} from "@opendaw/lib-dsp"
-import {RegionModifyStrategies} from "@/ui/timeline/tracks/audio-unit/regions/RegionModifyStrategies.ts"
-import {asDefined, assert, Exec, int, mod, panic} from "@opendaw/lib-std"
+import {RegionModifyStrategies} from "./RegionModifyStrategies"
 
 export type ClipTask = {
     type: "delete"

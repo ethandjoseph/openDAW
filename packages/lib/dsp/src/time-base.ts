@@ -1,4 +1,4 @@
-import {asEnumValue, MutableValueOwner, ValueOwner} from "@opendaw/lib-std"
+import {asEnumValue, MutableValueOwner, panic, ValueOwner} from "@opendaw/lib-std"
 import {ppqn, samples, seconds} from "./ppqn"
 import {TempoMap} from "./tempo"
 
@@ -13,6 +13,7 @@ export enum TimeBase {
  */
 export interface TimeBaseConverter {
     toPPQN(): ppqn
+    fromPPQN(ppqn: ppqn): void
     toSeconds(): seconds
     toSamples(sampleRate: number): samples
     rawValue(): number
@@ -59,6 +60,10 @@ class TimeBaseAwareConverter implements TimeBaseConverter {
         return this.#tempoMap.intervalToPPQN(startSeconds, endSeconds)
     }
 
+    fromPPQN(ppqn: ppqn): void {
+        return panic("Implement me")
+    }
+
     toSeconds(): seconds {
         const value = this.#property.getValue()
         if (this.getTimeBase() === TimeBase.Seconds) {return value}
@@ -86,6 +91,10 @@ class TimeBaseMusicalConverter implements TimeBaseConverter {
     }
 
     toPPQN(): ppqn {return this.#property.getValue()}
+
+    fromPPQN(ppqn: ppqn): void {
+        return panic("Implement me")
+    }
 
     toSeconds(): seconds {
         const value = this.#property.getValue()

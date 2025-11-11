@@ -9,8 +9,8 @@ import {
     UnionAdapterTypes
 } from "@opendaw/studio-adapters"
 import {Snapping} from "@/ui/timeline/Snapping.ts"
-import {RegionClipResolver} from "@/ui/timeline/tracks/audio-unit/regions/RegionClipResolver.ts"
-import {RegionModifyStrategy} from "@/ui/timeline/tracks/audio-unit/regions/RegionModifyStrategies.ts"
+import {RegionClipResolver} from "@opendaw/studio-core"
+import {RegionModifyStrategy} from "@opendaw/studio-core"
 import {Dragging} from "@opendaw/lib-dom"
 
 class SelectedModifyStrategy implements RegionModifyStrategy {
@@ -108,8 +108,8 @@ export class RegionLoopDurationModifier implements RegionModifier {
             }))
         editing.modify(() => {
             result.forEach(({region, duration, loopDuration}) => {
-                region.box.duration.setValue(duration)
-                region.box.loopDuration.setValue(loopDuration)
+                region.duration = duration
+                region.loopDuration = loopDuration
             })
             solver()
         })
