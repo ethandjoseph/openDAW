@@ -8,7 +8,6 @@ export * from "./samples"
 export * from "./soundfont"
 export * from "./sync-log"
 export * from "./ui"
-export * from "./utils"
 export * from "./ysync"
 
 export * from "./AudioDevices"

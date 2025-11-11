@@ -4,6 +4,9 @@
 import {int} from "@opendaw/lib-std"
 
 export type ppqn = number
+export type seconds = number
+export type samples = number
+export type bpm = number
 
 const Quarter = 960 as const
 const Bar: ppqn = Quarter << 2 // 3_840
@@ -25,11 +28,11 @@ const toParts = (ppqn: ppqn, nominator: int = 4, denominator: int = 4) => {
     } as const
 }
 
-const secondsToPulses = (seconds: number, bpm: number): ppqn => seconds * bpm / 60.0 * Quarter
-const pulsesToSeconds = (pulses: ppqn, bpm: number): number => (pulses * 60.0 / Quarter) / bpm
-const secondsToBpm = (seconds: number, pulses: ppqn): number => (pulses * 60.0 / Quarter) / seconds
-const samplesToPulses = (samples: number, bpm: number, sampleRate: number): ppqn => secondsToPulses(samples / sampleRate, bpm)
-const pulsesToSamples = (pulses: ppqn, bpm: number, sampleRate: number): number => pulsesToSeconds(pulses, bpm) * sampleRate
+const secondsToPulses = (seconds: seconds, bpm: bpm): ppqn => seconds * bpm / 60.0 * Quarter
+const pulsesToSeconds = (pulses: ppqn, bpm: bpm): seconds => (pulses * 60.0 / Quarter) / bpm
+const secondsToBpm = (seconds: seconds, pulses: ppqn): bpm => (pulses * 60.0 / Quarter) / seconds
+const samplesToPulses = (samples: samples, bpm: bpm, sampleRate: number): ppqn => secondsToPulses(samples / sampleRate, bpm)
+const pulsesToSamples = (pulses: ppqn, bpm: bpm, sampleRate: number): number => pulsesToSeconds(pulses, bpm) * sampleRate
 
 export const PPQN = {
     Bar,

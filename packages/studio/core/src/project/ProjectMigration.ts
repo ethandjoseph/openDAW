@@ -1,5 +1,6 @@
 import {
     AudioFileBox,
+    AudioRegionBox,
     AudioUnitBox,
     BoxVisitor,
     CaptureAudioBox,
@@ -13,17 +14,22 @@ import {
     VaporisateurDeviceBox,
     ZeitgeistDeviceBox
 } from "@opendaw/studio-boxes"
-import {asDefined, asInstanceOf, clamp, Float, UUID} from "@opendaw/lib-std"
-import {AudioUnitType} from "@opendaw/studio-enums"
-import {ProjectSkeleton} from "@opendaw/studio-adapters"
+import {asDefined, asInstanceOf, clamp, Float, UUID, ValueOwner} from "@opendaw/lib-std"
+import {AudioPlayback, AudioUnitType} from "@opendaw/studio-enums"
+import {PPQN, ProjectSkeleton} from "@opendaw/studio-adapters"
 import {Field} from "@opendaw/lib-box"
+import {ppqn, seconds, TimeBase} from "@opendaw/lib-dsp"
 
 const isIntEncodedAsFloat = (v: number) =>
     v > 0 && v < 1e-6 && Number.isFinite(v) && (v / 1.401298464324817e-45) % 1 === 0
 
+const toSeconds = (property: ValueOwner<ppqn>, bpm: number): seconds => {
+    return PPQN.pulsesToSeconds(property.getValue(), bpm)
+}
+
 export class ProjectMigration {
     static migrate({boxGraph, mandatoryBoxes}: ProjectSkeleton): void {
-        const {rootBox} = mandatoryBoxes
+        const {rootBox, timelineBox: {bpm}} = mandatoryBoxes
         if (rootBox.groove.targetAddress.isEmpty()) {
             console.debug("Migrate to global GrooveShuffleBox")
             boxGraph.beginTransaction()
@@ -45,6 +51,35 @@ export class ProjectMigration {
                     boxGraph.beginTransaction()
                     startInSeconds.setValue(Float.floatToIntBits(startInSeconds.getValue()))
                     endInSeconds.setValue(Float.floatToIntBits(endInSeconds.getValue()))
+                    boxGraph.endTransaction()
+                }
+            },
+            visitAudioRegionBox: (box: AudioRegionBox): void => {
+                const {duration, loopOffset, loopDuration, playback} = box
+                if (isIntEncodedAsFloat(duration.getValue())
+                    || isIntEncodedAsFloat(loopOffset.getValue())
+                    || isIntEncodedAsFloat(loopDuration.getValue())) {
+                    console.debug("Migrate 'AudioRegionBox' to float")
+                    boxGraph.beginTransaction()
+                    duration.setValue(Float.floatToIntBits(duration.getValue()))
+                    loopOffset.setValue(Float.floatToIntBits(loopOffset.getValue()))
+                    loopDuration.setValue(Float.floatToIntBits(loopDuration.getValue()))
+                    boxGraph.endTransaction()
+                }
+                if (playback.getValue() === AudioPlayback.AudioFit) {
+                    console.debug("Migrate 'AudioRegionBox' to AudioPlayback.NoSync")
+                    boxGraph.beginTransaction()
+                    const file = asInstanceOf(box.file.targetVertex.unwrap(), AudioFileBox)
+                    const fileDuration = file.endInSeconds.getValue() - file.startInSeconds.getValue()
+                    const currentLoopDurationSeconds = toSeconds(box.loopDuration, bpm.getValue())
+                    const scale = fileDuration / currentLoopDurationSeconds
+                    const currentDurationSeconds = toSeconds(box.duration, bpm.getValue())
+                    const currentLoopOffsetSeconds = toSeconds(box.loopOffset, bpm.getValue())
+                    box.playback.setValue(AudioPlayback.NoSync)
+                    box.timeBase.setValue(TimeBase.Seconds)
+                    box.duration.setValue(currentDurationSeconds * scale)
+                    box.loopDuration.setValue(fileDuration)
+                    box.loopOffset.setValue(currentLoopOffsetSeconds * scale)
                     boxGraph.endTransaction()
                 }
             },

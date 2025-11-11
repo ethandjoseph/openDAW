@@ -9,8 +9,8 @@ import {
     UnionAdapterTypes
 } from "@opendaw/studio-adapters"
 import {Snapping} from "@/ui/timeline/Snapping.ts"
-import {RegionClipResolver} from "@/ui/timeline/tracks/audio-unit/regions/RegionClipResolver.ts"
-import {RegionModifyStrategy} from "@/ui/timeline/tracks/audio-unit/regions/RegionModifyStrategies.ts"
+import {RegionClipResolver} from "@opendaw/studio-core"
+import {RegionModifyStrategy} from "@opendaw/studio-core"
 import {Dragging} from "@opendaw/lib-dom"
 
 class SelectedModifyStrategy implements RegionModifyStrategy {
@@ -84,10 +84,10 @@ export class RegionLoopDurationModifier implements RegionModifier {
 
     update({clientX}: Dragging.Event): void {
         const {position, complete, loopOffset, loopDuration} = this.#reference
-        const d = this.#resize ? complete - (position + loopDuration - loopOffset) : 0
+        const delta = this.#resize ? complete - (position + loopDuration - loopOffset) : 0
         const clientRect = this.#element.getBoundingClientRect()
         const deltaDuration = this.#snapping.computeDelta(
-            this.#pointerPulse - d, clientX - clientRect.left, loopDuration)
+            this.#pointerPulse - delta, clientX - clientRect.left, loopDuration)
         let change = false
         if (this.#deltaLoopDuration !== deltaDuration) {
             this.#deltaLoopDuration = deltaDuration
@@ -108,8 +108,8 @@ export class RegionLoopDurationModifier implements RegionModifier {
             }))
         editing.modify(() => {
             result.forEach(({region, duration, loopDuration}) => {
-                region.box.duration.setValue(duration)
-                region.box.loopDuration.setValue(loopDuration)
+                region.duration = duration
+                region.loopDuration = loopDuration
             })
             solver()
         })

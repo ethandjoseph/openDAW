@@ -15,7 +15,7 @@ import {BPMTools} from "@opendaw/lib-dsp"
 import {Browser} from "@opendaw/lib-dom"
 import {Dialogs} from "@/ui/components/dialogs.tsx"
 import {StudioService} from "@/service/StudioService"
-import {AutofitUtils, TimelineRange} from "@opendaw/studio-core"
+import {TimelineRange} from "@opendaw/studio-core"
 import {AudioPlayback} from "@opendaw/studio-enums"
 
 type Construct = {
@@ -107,17 +107,24 @@ export const installRegionContextMenu =
                         label: "Pitch",
                         checked: region.type === "audio-region"
                             && region.box.playback.getValue() === AudioPlayback.Pitch
-                    }).setTriggerProcedure(() => editing.modify(() => selection.selected()
-                        .filter((region): region is AudioRegionBoxAdapter => region.type === "audio-region"
-                            && region.box.playback.getValue() !== AudioPlayback.Pitch)
-                        .forEach(region => region.box.playback.setValue(AudioPlayback.Pitch)))),
+                    }).setTriggerProcedure(() => {
+                        const adapters = selection.selected()
+                            .filter((region): region is AudioRegionBoxAdapter =>
+                                region.type === "audio-region" && region.playback !== AudioPlayback.Pitch)
+                        if (adapters.length === 0) {return}
+                        editing.modify(() => adapters.forEach(region => region.setPlayback(AudioPlayback.Pitch)))
+                    }),
                     MenuItem.default({
-                        label: "Autofit",
+                        label: "No Wrap",
                         checked: region.type === "audio-region"
-                            && region.box.playback.getValue() === AudioPlayback.AudioFit
-                    }).setTriggerProcedure(() => AutofitUtils.regionsToAutofit(project, selection.selected()
-                        .filter((region): region is AudioRegionBoxAdapter => region.type === "audio-region"
-                            && region.box.playback.getValue() !== AudioPlayback.AudioFit)))
+                            && region.box.playback.getValue() === AudioPlayback.NoSync
+                    }).setTriggerProcedure(() => {
+                        const adapters = selection.selected()
+                            .filter((region): region is AudioRegionBoxAdapter =>
+                                region.type === "audio-region" && region.playback !== AudioPlayback.NoSync)
+                        if (adapters.length === 0) {return}
+                        editing.modify(() => adapters.forEach(region => region.setPlayback(AudioPlayback.NoSync)))
+                    })
                 )),
                 MenuItem.default({
                     label: "Calc Bpm",

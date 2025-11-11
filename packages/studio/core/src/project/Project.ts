@@ -50,7 +50,7 @@ import {EngineWorklet} from "../EngineWorklet"
 import {MidiDevices, MIDILearning} from "../midi"
 import {ProjectValidation} from "./ProjectValidation"
 import {Preferences} from "../Preferences"
-import {PPQN, ppqn} from "@opendaw/lib-dsp"
+import {ConstantTempoMap, PPQN, ppqn, TempoMap} from "@opendaw/lib-dsp"
 
 export type RestartWorklet = { unload: Func<unknown, Promise<unknown>>, load: Procedure<EngineWorklet> }
 
@@ -105,6 +105,7 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
     readonly liveStreamReceiver: LiveStreamReceiver
     readonly midiLearning: MIDILearning
     readonly mixer: Mixer
+    readonly tempoMap: TempoMap
     readonly engine = new EngineFacade()
 
     private constructor(env: ProjectEnv, boxGraph: BoxGraph, {
@@ -126,6 +127,7 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
         this.editing = new BoxEditing(this.boxGraph)
         this.selection = new VertexSelection(this.editing, this.boxGraph)
         this.parameterFieldAdapters = new ParameterFieldAdapters()
+        this.tempoMap = new ConstantTempoMap(this.timelineBox.bpm)
         this.boxAdapters = this.#terminator.own(new BoxAdapters(this))
         this.userEditingManager = new UserEditingManager(this.editing)
         this.liveStreamReceiver = this.#terminator.own(new LiveStreamReceiver())
@@ -177,7 +179,6 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
     spawn(): Terminator {return this.#terminator.spawn()}
 
     get env(): ProjectEnv {return this.#env}
-    get bpm(): number {return this.timelineBox.bpm.getValue()}
     get rootBoxAdapter(): RootBoxAdapter {return this.boxAdapters.adapterFor(this.rootBox, RootBoxAdapter)}
     get timelineBoxAdapter(): TimelineBoxAdapter {return this.boxAdapters.adapterFor(this.timelineBox, TimelineBoxAdapter)}
     get sampleManager(): SampleLoaderManager {return this.#env.sampleManager}

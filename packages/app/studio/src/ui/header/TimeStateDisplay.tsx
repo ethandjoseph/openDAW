@@ -21,7 +21,7 @@ import {MenuItem} from "@/ui/model/menu-item.ts"
 import {Dragging, Html} from "@opendaw/lib-dom"
 import {FlexSpacer} from "@/ui/components/FlexSpacer.tsx"
 import {Propagation} from "@opendaw/lib-box"
-import {AutofitUtils, ProjectProfile} from "@opendaw/studio-core"
+import {ProjectProfile} from "@opendaw/studio-core"
 import {TapButton} from "@/ui/header/TapButton"
 
 const className = Html.adoptStyleSheet(css, "TimeStateDisplay")
@@ -110,9 +110,9 @@ export const TimeStateDisplay = ({lifecycle, service}: Construct) => {
             return Option.wrap({
                 update: (event: Dragging.Event) => {
                     const newValue = clamp(oldValue + (pointer - event.clientY) * 2.0, minBpm, maxBpm)
-                    AutofitUtils.changeBpm(project, newValue, false)
+                    editing.modify(() => project.timelineBox.bpm.setValue(newValue), false)
                 },
-                cancel: () => AutofitUtils.changeBpm(project, oldValue, false),
+                cancel: () => editing.modify(() => project.timelineBox.bpm.setValue(oldValue), false),
                 approve: () => editing.mark()
             })
         }
@@ -125,10 +125,10 @@ export const TimeStateDisplay = ({lifecycle, service}: Construct) => {
             <DblClckTextInput resolversFactory={() => {
                 const resolvers = Promise.withResolvers<string>()
                 resolvers.promise.then((value: string) => {
-                    const bpm = parseFloat(value)
-                    if (isNaN(bpm)) {return}
-                    profileService.getValue().ifSome(({project}) =>
-                        AutofitUtils.changeBpm(project, clamp(bpm, minBpm, maxBpm), true))
+                    const bpmValue = parseFloat(value)
+                    if (isNaN(bpmValue)) {return}
+                    profileService.getValue().ifSome(({project: {editing, timelineBox: {bpm}}}) =>
+                        editing.modify(() => bpm.setValue(clamp(bpmValue, minBpm, maxBpm))))
                 }, EmptyExec)
                 return resolvers
             }} provider={() => ({unit: "bpm", value: bpmDigit.value})}>

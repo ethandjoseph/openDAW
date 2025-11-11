@@ -4,8 +4,7 @@ import {ppqn, RegionCollection} from "@opendaw/lib-dsp"
 import {Snapping} from "@/ui/timeline/Snapping.ts"
 import {BoxEditing} from "@opendaw/lib-box"
 import {TracksManager} from "@/ui/timeline/tracks/audio-unit/TracksManager.ts"
-import {RegionClipResolver} from "@/ui/timeline/tracks/audio-unit/regions/RegionClipResolver.ts"
-import {RegionModifyStrategy} from "@/ui/timeline/tracks/audio-unit/regions/RegionModifyStrategies.ts"
+import {RegionClipResolver, RegionModifyStrategy} from "@opendaw/studio-core"
 import {Dialogs} from "@/ui/components/dialogs.tsx"
 import {Dragging} from "@opendaw/lib-dom"
 import {RegionModifier} from "@/ui/timeline/tracks/audio-unit/regions/RegionModifier"
@@ -173,7 +172,7 @@ export class RegionMoveModifier implements RegionModifier {
                             .refer(this.#manager.getByIndex(adapter.trackBoxAdapter.unwrap().listIndex + this.#deltaIndex)
                                 .unwrap().trackBoxAdapter.box.regions))
                 }
-                adapters.forEach(({box, position}) => box.position.setValue(position + this.#deltaPosition))
+                adapters.forEach((adapter) => adapter.position += this.#deltaPosition)
             }
             solver()
         })

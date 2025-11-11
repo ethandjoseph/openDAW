@@ -21,6 +21,7 @@ import {ValueEventCollectionBoxAdapter} from "../collection/ValueEventCollection
 import {BoxAdaptersContext} from "../../BoxAdaptersContext"
 import {ValueEventCollectionBox, ValueRegionBox} from "@opendaw/studio-boxes"
 import {ValueEventBoxAdapter} from "../event/ValueEventBoxAdapter"
+import {MutableRegion} from "./MutableRegion"
 
 type CopyToParams = {
     track?: Field<Pointers.RegionCollection>
@@ -31,7 +32,8 @@ type CopyToParams = {
     consolidate?: boolean
 }
 
-export class ValueRegionBoxAdapter implements LoopableRegionBoxAdapter<ValueEventCollectionBoxAdapter> {
+export class ValueRegionBoxAdapter
+    implements LoopableRegionBoxAdapter<ValueEventCollectionBoxAdapter>, MutableRegion {
     readonly type = "value-region"
 
     readonly #terminator: Terminator = new Terminator()
@@ -154,6 +156,11 @@ export class ValueRegionBoxAdapter implements LoopableRegionBoxAdapter<ValueEven
     }
     get isMirrowed(): boolean {return this.optCollection.mapOr(adapter => adapter.numOwners > 1, false)}
     get canMirror(): boolean {return true}
+
+    set position(value: ppqn) {this.#box.position.setValue(value)}
+    set duration(value: ppqn) {this.#box.duration.setValue(value)}
+    set loopOffset(value: ppqn) {this.#box.loopOffset.setValue(value)}
+    set loopDuration(value: ppqn) {this.#box.loopDuration.setValue(value)}
 
     copyTo(params?: CopyToParams): ValueRegionBoxAdapter {
         const eventCollection = this.optCollection.unwrap("Cannot make copy without event-collection")
