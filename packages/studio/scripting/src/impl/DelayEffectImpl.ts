@@ -3,6 +3,7 @@ import {DelayEffect, Duration, Percent, VolumeValue} from "../Api"
 export class DelayEffectImpl implements DelayEffect {
     readonly key = "delay" as const
 
+    label: string
     enabled: boolean
     delay: Duration
     feedback: Percent
@@ -12,6 +13,7 @@ export class DelayEffectImpl implements DelayEffect {
     dry: VolumeValue
 
     constructor(props?: Partial<DelayEffect>) {
+        this.label = props?.label ?? "Delay"
         this.enabled = props?.enabled ?? true
         this.delay = props?.delay ?? "1/4"
         this.feedback = props?.feedback ?? 0.5

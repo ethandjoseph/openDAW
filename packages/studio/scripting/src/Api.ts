@@ -24,6 +24,7 @@ export interface Sendable {
 
 export interface Effect {
     enabled: boolean
+    label: string
 }
 
 export interface AudioEffect extends Effect {

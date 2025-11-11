@@ -1,7 +1,5 @@
-import {InstrumentAudioUnitImpl, NoteRegionImpl, NoteTrackImpl, ProjectImpl} from "./impl"
-import {AudioUnitFactory, CaptureBox, InstrumentFactories, ProjectSkeleton, TrackType} from "@opendaw/studio-adapters"
+import {asInstanceOf, isDefined, Option, Unhandled, UUID} from "@opendaw/lib-std"
 import {AudioUnitType} from "@opendaw/studio-enums"
-import {asInstanceOf, isDefined, Option, UUID} from "@opendaw/lib-std"
 import {
     AudioUnitBox,
     NoteEventBox,
@@ -10,6 +8,8 @@ import {
     PitchDeviceBox,
     TrackBox
 } from "@opendaw/studio-boxes"
+import {AudioUnitFactory, CaptureBox, InstrumentFactories, ProjectSkeleton, TrackType} from "@opendaw/studio-adapters"
+import {InstrumentAudioUnitImpl, NoteRegionImpl, NoteTrackImpl, ProjectImpl} from "./impl"
 
 export namespace Converter {
     export const toSkeleton = (project: ProjectImpl): ProjectSkeleton => {
@@ -29,15 +29,17 @@ export namespace Converter {
             audioUnit.midiEffects.forEach((effect) => {
                 switch (effect.key) {
                     case "pitch": {
-                        PitchDeviceBox.create(boxGraph, UUID.generate(), box => {
+                        return PitchDeviceBox.create(boxGraph, UUID.generate(), box => {
                             box.cents.setValue(effect.cents)
                             box.semiTones.setValue(effect.semiTones)
                             box.octaves.setValue(effect.octaves)
                             box.enabled.setValue(effect.enabled)
+                            box.label.setValue(effect.label) // TODO unify?
                             box.host.refer(audioUnitBox.midiEffects)
                         })
-                        break
                     }
+                    default:
+                        return Unhandled(effect.key)
                 }
             })
 
