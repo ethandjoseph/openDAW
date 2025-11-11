@@ -11,7 +11,7 @@ import {
     Terminator,
     UUID
 } from "@opendaw/lib-std"
-import {ppqn, TimeBase, TimeBaseConverter} from "@opendaw/lib-dsp"
+import {LoopableRegion, ppqn, TimeBase, TimeBaseConverter} from "@opendaw/lib-dsp"
 import {Address, Field, PointerField, Propagation, Update} from "@opendaw/lib-box"
 import {AudioPlayback, Pointers} from "@opendaw/studio-enums"
 import {AudioRegionBox} from "@opendaw/studio-boxes"
@@ -165,14 +165,33 @@ export class AudioRegionBoxAdapter
         this.#box.playback.setValue(value)
         if (value === AudioPlayback.NoSync) {
             if (wasMusical) {
-                // Convert BEFORE changing time-base
-                const duration = this.#durationConverter.toSeconds()
-                const loopDuration = this.#loopDurationConverter.toSeconds()
-                const loopOffset = this.#loopOffsetConverter.toSeconds()
-                this.#box.timeBase.setValue(TimeBase.Seconds)
-                this.#box.duration.setValue(duration)
-                this.#box.loopDuration.setValue(loopDuration)
-                this.#box.loopOffset.setValue(loopOffset)
+                const keepCurrentStretch = false
+                if (keepCurrentStretch) {
+                    // Convert BEFORE changing time-base
+                    const duration = this.#durationConverter.toSeconds()
+                    const loopDuration = this.#loopDurationConverter.toSeconds()
+                    const loopOffset = this.#loopOffsetConverter.toSeconds()
+                    this.#box.timeBase.setValue(TimeBase.Seconds)
+                    this.#box.duration.setValue(duration)
+                    this.#box.loopDuration.setValue(loopDuration)
+                    this.#box.loopOffset.setValue(loopOffset)
+                } else {
+                    // Reset to 100% playback speed (original file speed)
+                    const fileDuration = this.file.endInSeconds - this.file.startInSeconds
+
+                    // Calculate the scaling factor from current (tempo-stretched) to original speed
+                    const currentLoopDurationSeconds = this.#loopDurationConverter.toSeconds()
+                    const scale = fileDuration / currentLoopDurationSeconds
+
+                    // Get current values in seconds
+                    const currentDurationSeconds = this.#durationConverter.toSeconds()
+                    const currentLoopOffsetSeconds = this.#loopOffsetConverter.toSeconds()
+
+                    this.#box.timeBase.setValue(TimeBase.Seconds)
+                    this.#box.duration.setValue(currentDurationSeconds * scale)
+                    this.#box.loopDuration.setValue(fileDuration)
+                    this.#box.loopOffset.setValue(currentLoopOffsetSeconds * scale)
+                }
             }
         } else {
             // Switching TO musical (Pitch/Timestretch/AudioFit)
