@@ -110,9 +110,9 @@ export const TimeStateDisplay = ({lifecycle, service}: Construct) => {
             return Option.wrap({
                 update: (event: Dragging.Event) => {
                     const newValue = clamp(oldValue + (pointer - event.clientY) * 2.0, minBpm, maxBpm)
-                    AutofitUtils.changeBpm(project, newValue, false)
+                    editing.modify(() => project.timelineBox.bpm.setValue(newValue), false)
                 },
-                cancel: () => AutofitUtils.changeBpm(project, oldValue, false),
+                cancel: () => editing.modify(() => project.timelineBox.bpm.setValue(oldValue), false),
                 approve: () => editing.mark()
             })
         }

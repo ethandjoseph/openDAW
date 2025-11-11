@@ -1,17 +1,17 @@
 import {ElementCapturing} from "@/ui/canvas/capturing.ts"
-import {asInstanceOf, EmptyExec, Selection, Terminable} from "@opendaw/lib-std"
+import {EmptyExec, Selection, Terminable} from "@opendaw/lib-std"
 import {ContextMenu} from "@/ui/ContextMenu.ts"
 import {MenuItem} from "@/ui/model/menu-item.ts"
 import {AnyRegionBoxAdapter, AudioRegionBoxAdapter} from "@opendaw/studio-adapters"
 import {RegionCaptureTarget} from "@/ui/timeline/tracks/audio-unit/regions/RegionCapturing.ts"
-import {AudioFileBox, TimelineBox} from "@opendaw/studio-boxes"
+import {TimelineBox} from "@opendaw/studio-boxes"
 import {Surface} from "@/ui/surface/Surface.tsx"
 import {RegionTransformer} from "@/ui/timeline/tracks/audio-unit/regions/RegionTransformer.ts"
 import {NameValidator} from "@/ui/validator/name.ts"
 import {DebugMenus} from "@/ui/menu/debug"
 import {exportNotesToMidiFile} from "@/ui/timeline/editors/notes/NoteUtils"
 import {ColorMenu} from "@/ui/timeline/ColorMenu"
-import {BPMTools, TimeBase} from "@opendaw/lib-dsp"
+import {BPMTools} from "@opendaw/lib-dsp"
 import {Browser} from "@opendaw/lib-dom"
 import {Dialogs} from "@/ui/components/dialogs.tsx"
 import {StudioService} from "@/service/StudioService"
@@ -107,46 +107,23 @@ export const installRegionContextMenu =
                         label: "Pitch",
                         checked: region.type === "audio-region"
                             && region.box.playback.getValue() === AudioPlayback.Pitch
-                    }).setTriggerProcedure(() => editing.modify(() => selection.selected()
-                        .filter((region): region is AudioRegionBoxAdapter => region.type === "audio-region"
-                            && region.box.playback.getValue() !== AudioPlayback.Pitch)
-                        // FIXME We have reconvert values
-                        .forEach(region => region.box.playback.setValue(AudioPlayback.Pitch)))),
+                    }).setTriggerProcedure(() => {
+                        const adapters = selection.selected()
+                            .filter((region): region is AudioRegionBoxAdapter =>
+                                region.type === "audio-region" && region.playback !== AudioPlayback.Pitch)
+                        if (adapters.length === 0) {return}
+                        editing.modify(() => adapters.forEach(region => region.playback = AudioPlayback.Pitch))
+                    }),
                     MenuItem.default({
                         label: "No Wrap",
                         checked: region.type === "audio-region"
                             && region.box.playback.getValue() === AudioPlayback.NoSync
                     }).setTriggerProcedure(() => {
-                        const regions: ReadonlyArray<AudioRegionBoxAdapter> = selection.selected()
-                            .filter((region): region is AudioRegionBoxAdapter => region.type === "audio-region")
-                            .filter((region) => region.box.playback.getValue() !== AudioPlayback.NoSync)
-                        if (regions.length === 0) {return}
-                        const {editing, tempoMap} = project
-                        editing.modify(() => regions.forEach(({box}) => {
-                            const {startInSeconds, endInSeconds} =
-                                asInstanceOf(box.file.targetVertex.unwrap("Could not find file").box, AudioFileBox)
-                            const fileDuration = endInSeconds.getValue() - startInSeconds.getValue()
-                            const position = box.position.getValue()
-                            const durationInSeconds = tempoMap.intervalToSeconds(
-                                position,
-                                position + box.duration.getValue()
-                            )
-                            console.debug(">>>", durationInSeconds, fileDuration)
-                            const loopDurationInSeconds = tempoMap.intervalToSeconds(
-                                position,
-                                position + box.loopDuration.getValue()
-                            )
-                            const loopOffsetInSeconds = tempoMap.intervalToSeconds(
-                                position,
-                                position + box.loopOffset.getValue()
-                            )
-                            // Now switch mode and write converted values
-                            box.playback.setValue(AudioPlayback.NoSync)
-                            box.timeBase.setValue(TimeBase.Seconds)
-                            box.duration.setValue(durationInSeconds)
-                            box.loopOffset.setValue(loopOffsetInSeconds)
-                            box.loopDuration.setValue(loopDurationInSeconds)
-                        }))
+                        const adapters = selection.selected()
+                            .filter((region): region is AudioRegionBoxAdapter =>
+                                region.type === "audio-region" && region.playback !== AudioPlayback.NoSync)
+                        if (adapters.length === 0) {return}
+                        editing.modify(() => adapters.forEach(region => region.playback = AudioPlayback.NoSync))
                     })
                 )),
                 MenuItem.default({

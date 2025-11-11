@@ -155,34 +155,56 @@ export class AudioRegionBoxAdapter
     }
 
     set position(value: ppqn) {this.#box.position.setValue(value)}
-    set duration(value: ppqn) {this.#box.duration.setValue(value)}
-    set loopOffset(value: ppqn) {this.#box.loopOffset.setValue(value)}
-    set loopDuration(value: ppqn) {this.#box.loopDuration.setValue(value)}
+    set duration(value: ppqn) {this.#durationConverter.fromPPQN(value)}
+    set loopOffset(value: ppqn) {this.#loopOffsetConverter.fromPPQN(value)}
+    set loopDuration(value: ppqn) {this.#loopDurationConverter.fromPPQN(value)}
 
     get playback(): AudioPlayback {return asEnumValue(this.#box.playback.getValue(), AudioPlayback)}
     set playback(value: AudioPlayback) {
+        const wasMusical = this.timeBase === TimeBase.Musical
         this.#box.playback.setValue(value)
         if (value === AudioPlayback.NoSync) {
-            this.#box.timeBase.setValue(TimeBase.Seconds)
+            if (wasMusical) {
+                // Convert BEFORE changing time-base
+                const duration = this.#durationConverter.toSeconds()
+                const loopDuration = this.#loopDurationConverter.toSeconds()
+                const loopOffset = this.#loopOffsetConverter.toSeconds()
+                this.#box.timeBase.setValue(TimeBase.Seconds)
+                this.#box.duration.setValue(duration)
+                this.#box.loopDuration.setValue(loopDuration)
+                this.#box.loopOffset.setValue(loopOffset)
+            }
         } else {
-            this.#box.timeBase.setValue(TimeBase.Musical)
+            // Switching TO musical (Pitch/Timestretch/AudioFit)
+            if (!wasMusical) {
+                // Convert BEFORE changing time-base
+                const duration = this.#durationConverter.toPPQN()
+                const loopDuration = this.#loopDurationConverter.toPPQN()
+                const loopOffset = this.#loopOffsetConverter.toPPQN()
+                this.#box.timeBase.setValue(TimeBase.Musical)
+                this.#box.duration.setValue(duration)
+                this.#box.loopOffset.setValue(loopOffset)
+                this.#box.loopDuration.setValue(loopDuration)
+            }
         }
     }
 
     copyTo(params?: CopyToParams): AudioRegionBoxAdapter {
-        return this.#context.boxAdapters.adapterFor(AudioRegionBox.create(this.#context.boxGraph, UUID.generate(), box => {
-            box.timeBase.setValue(this.#box.timeBase.getValue())
-            box.position.setValue(params?.position ?? this.#box.position.getValue())
-            box.duration.setValue(params?.duration ?? this.#box.duration.getValue())
-            box.loopOffset.setValue(params?.loopOffset ?? this.#box.loopOffset.getValue())
-            box.loopDuration.setValue(params?.loopDuration ?? this.#box.loopDuration.getValue())
-            box.regions.refer(params?.track ?? this.#box.regions.targetVertex.unwrap())
-            box.file.refer(this.#box.file.targetVertex.unwrap())
-            box.mute.setValue(this.mute)
-            box.hue.setValue(this.hue)
-            box.label.setValue(this.label)
-            box.gain.setValue(this.gain)
-        }), AudioRegionBoxAdapter)
+        return this.#context.boxAdapters.adapterFor(
+            AudioRegionBox.create(this.#context.boxGraph, UUID.generate(), box => {
+                box.timeBase.setValue(this.#box.timeBase.getValue())
+                box.position.setValue(params?.position ?? this.#box.position.getValue())
+                // TODO Respect time-base.
+                box.duration.setValue(params?.duration ?? this.#box.duration.getValue())
+                box.loopOffset.setValue(params?.loopOffset ?? this.#box.loopOffset.getValue())
+                box.loopDuration.setValue(params?.loopDuration ?? this.#box.loopDuration.getValue())
+                box.regions.refer(params?.track ?? this.#box.regions.targetVertex.unwrap())
+                box.file.refer(this.#box.file.targetVertex.unwrap())
+                box.mute.setValue(this.mute)
+                box.hue.setValue(this.hue)
+                box.label.setValue(this.label)
+                box.gain.setValue(this.gain)
+            }), AudioRegionBoxAdapter)
     }
 
     consolidate(): void {

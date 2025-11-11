@@ -1,4 +1,4 @@
-import {asEnumValue, MutableValueOwner, panic, ValueOwner} from "@opendaw/lib-std"
+import {asEnumValue, MutableValueOwner, ValueOwner} from "@opendaw/lib-std"
 import {ppqn, samples, seconds} from "./ppqn"
 import {TempoMap} from "./tempo"
 
@@ -61,7 +61,13 @@ class TimeBaseAwareConverter implements TimeBaseConverter {
     }
 
     fromPPQN(ppqn: ppqn): void {
-        return panic("Implement me")
+        if (this.getTimeBase() === TimeBase.Musical) {
+            this.#property.setValue(ppqn)
+        } else {
+            const position = this.#position.getValue()
+            const seconds = this.#tempoMap.intervalToSeconds(position, position + ppqn)
+            this.#property.setValue(seconds)
+        }
     }
 
     toSeconds(): seconds {
@@ -80,21 +86,18 @@ class TimeBaseAwareConverter implements TimeBaseConverter {
 class TimeBaseMusicalConverter implements TimeBaseConverter {
     readonly #tempoMap: TempoMap
     readonly #position: ValueOwner<ppqn>
-    readonly #property: ValueOwner<number>
+    readonly #property: MutableValueOwner<number>
 
     constructor(tempoMap: TempoMap,
                 position: ValueOwner<ppqn>,
-                property: ValueOwner<number>) {
+                property: MutableValueOwner<number>) {
         this.#property = property
         this.#position = position
         this.#tempoMap = tempoMap
     }
 
     toPPQN(): ppqn {return this.#property.getValue()}
-
-    fromPPQN(ppqn: ppqn): void {
-        return panic("Implement me")
-    }
+    fromPPQN(ppqn: ppqn): void {this.#property.setValue(ppqn)}
 
     toSeconds(): seconds {
         const value = this.#property.getValue()
