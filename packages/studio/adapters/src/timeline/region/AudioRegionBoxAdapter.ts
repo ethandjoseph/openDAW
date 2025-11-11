@@ -1,10 +1,22 @@
-import {AudioRegionBox} from "@opendaw/studio-boxes"
-import {int, Maybe, Notifier, Observer, Option, safeExecute, Subscription, Terminator, UUID} from "@opendaw/lib-std"
-import {Pointers} from "@opendaw/studio-enums"
+import {
+    asEnumValue,
+    int,
+    Maybe,
+    Notifier,
+    Observer,
+    Option,
+    safeExecute,
+    Subscription,
+    Terminable,
+    Terminator,
+    UUID
+} from "@opendaw/lib-std"
+import {ppqn, TimeBase, TimeBaseConverter} from "@opendaw/lib-dsp"
 import {Address, Field, PointerField, Propagation, Update} from "@opendaw/lib-box"
-import {ppqn, TimeBaseConverter} from "@opendaw/lib-dsp"
-import {TrackBoxAdapter} from "../TrackBoxAdapter"
+import {Pointers} from "@opendaw/studio-enums"
+import {AudioRegionBox} from "@opendaw/studio-boxes"
 import {LoopableRegionBoxAdapter, RegionBoxAdapter, RegionBoxAdapterVisitor} from "../RegionBoxAdapter"
+import {TrackBoxAdapter} from "../TrackBoxAdapter"
 import {BoxAdaptersContext} from "../../BoxAdaptersContext"
 import {AudioFileBoxAdapter} from "../../audio/AudioFileBoxAdapter"
 
@@ -30,7 +42,8 @@ export class AudioRegionBoxAdapter implements LoopableRegionBoxAdapter<never> {
     readonly #changeNotifier: Notifier<void>
 
     #fileAdapter: Option<AudioFileBoxAdapter> = Option.None
-    #fileSubscription: Option<Subscription> = Option.None
+    #fileSubscription: Terminable = Terminable.Empty
+    #tempoSubscription: Terminable = Terminable.Empty
 
     #isSelected: boolean
     #constructing: boolean
@@ -49,12 +62,6 @@ export class AudioRegionBoxAdapter implements LoopableRegionBoxAdapter<never> {
         this.#isSelected = false
         this.#constructing = true
 
-        // TODO For unsyned audio regions only!
-        this.#terminator.own(context.tempoMap.subscribe(() => {
-            console.debug("tempo changed. new duration: ", this.duration)
-            this.#dispatchChange()
-        }))
-
         this.#terminator.ownAll(
             this.#box.pointerHub.subscribe({
                 onAdded: () => this.#dispatchChange(),
@@ -63,9 +70,15 @@ export class AudioRegionBoxAdapter implements LoopableRegionBoxAdapter<never> {
             this.#box.file.catchupAndSubscribe((pointerField: PointerField<Pointers.AudioFile>) => {
                 this.#fileAdapter = pointerField.targetVertex.map(vertex =>
                     this.#context.boxAdapters.adapterFor(vertex.box, AudioFileBoxAdapter))
-                this.#fileSubscription.ifSome(subscription => subscription.terminate())
-                this.#fileSubscription = this.#fileAdapter.map(adapter =>
-                    adapter.getOrCreateLoader().subscribe(() => this.#dispatchChange()))
+                this.#fileSubscription.terminate()
+                this.#fileSubscription = this.#fileAdapter.mapOr(adapter =>
+                    adapter.getOrCreateLoader().subscribe(() => this.#dispatchChange()), Terminable.Empty)
+            }),
+            this.#box.timeBase.catchupAndSubscribe(owner => {
+                this.#tempoSubscription.terminate()
+                if (asEnumValue(owner.getValue(), TimeBase) === TimeBase.Seconds) {
+                    this.#tempoSubscription = context.tempoMap.subscribe(() => this.#dispatchChange())
+                }
             }),
             this.#box.subscribe(Propagation.Children, (update: Update) => {
                 if (this.trackBoxAdapter.isEmpty()) {return}
@@ -81,8 +94,10 @@ export class AudioRegionBoxAdapter implements LoopableRegionBoxAdapter<never> {
             }),
             {
                 terminate: (): void => {
-                    this.#fileSubscription.ifSome(subscription => subscription.terminate())
-                    this.#fileSubscription = Option.None
+                    this.#fileSubscription.terminate()
+                    this.#fileSubscription = Terminable.Empty
+                    this.#tempoSubscription.terminate()
+                    this.#tempoSubscription = Terminable.Empty
                 }
             }
         )
@@ -123,6 +138,7 @@ export class AudioRegionBoxAdapter implements LoopableRegionBoxAdapter<never> {
     get hue(): int {return this.#box.hue.getValue()}
     get gain(): number {return this.#box.gain.getValue()}
     get file(): AudioFileBoxAdapter {return this.#fileAdapter.unwrap("Cannot access file.")}
+    get timeBase(): TimeBase {return asEnumValue(this.#box.timeBase.getValue(), TimeBase)}
     get hasCollection() {return this.#fileAdapter.nonEmpty()}
     get optCollection(): Option<never> {return Option.None}
     get label(): string {
@@ -141,10 +157,11 @@ export class AudioRegionBoxAdapter implements LoopableRegionBoxAdapter<never> {
 
     copyTo(params?: CopyToParams): AudioRegionBoxAdapter {
         return this.#context.boxAdapters.adapterFor(AudioRegionBox.create(this.#context.boxGraph, UUID.generate(), box => {
-            box.position.setValue(params?.position ?? this.position)
-            box.duration.setValue(params?.duration ?? this.duration)
-            box.loopOffset.setValue(params?.loopOffset ?? this.loopOffset)
-            box.loopDuration.setValue(params?.loopDuration ?? this.loopDuration)
+            box.timeBase.setValue(this.#box.timeBase.getValue())
+            box.position.setValue(params?.position ?? this.#box.position.getValue())
+            box.duration.setValue(params?.duration ?? this.#box.duration.getValue())
+            box.loopOffset.setValue(params?.loopOffset ?? this.#box.loopOffset.getValue())
+            box.loopDuration.setValue(params?.loopDuration ?? this.#box.loopDuration.getValue())
             box.regions.refer(params?.track ?? this.#box.regions.targetVertex.unwrap())
             box.file.refer(this.#box.file.targetVertex.unwrap())
             box.mute.setValue(this.mute)

@@ -9,6 +9,10 @@ export interface ValueOwner<T> {
     getValue(): T
 }
 
+export interface MutableValueOwner<T> extends ValueOwner<T> {
+    setValue(value: T): void
+}
+
 export interface Observable<VALUE> {
     subscribe(observer: Observer<VALUE>): Subscription
 }
@@ -28,9 +32,7 @@ export namespace ObservableValue {
     }
 }
 
-export interface MutableObservableValue<T> extends ObservableValue<T> {
-    setValue(value: T): void
-}
+export interface MutableObservableValue<T> extends MutableValueOwner<T>, ObservableValue<T> {}
 
 export namespace MutableObservableValue {
     export const False: MutableObservableValue<boolean> =

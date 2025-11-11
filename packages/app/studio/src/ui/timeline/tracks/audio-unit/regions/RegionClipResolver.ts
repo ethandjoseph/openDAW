@@ -1,11 +1,12 @@
 import {
     AnyRegionBoxAdapter,
+    AudioRegionBoxAdapter,
     RegionEditing,
     TrackBoxAdapter,
     TrackType,
     UnionAdapterTypes
 } from "@opendaw/studio-adapters"
-import {Event, EventCollection, ppqn} from "@opendaw/lib-dsp"
+import {Event, EventCollection, ppqn, TimeBase} from "@opendaw/lib-dsp"
 import {RegionModifyStrategies} from "@/ui/timeline/tracks/audio-unit/regions/RegionModifyStrategies.ts"
 import {asDefined, assert, Exec, int, mod, panic} from "@opendaw/lib-std"
 
@@ -28,6 +29,11 @@ export type ClipTask = {
 }
 
 interface Mask extends Event {complete: ppqn}
+
+// AudioRegions in absolute time-domain are allowed to overlap. Their duration changes when the tempo changes,
+// but we do not truncate them to keep the original durations.
+const allowOverlap = (region: AnyRegionBoxAdapter) =>
+    region instanceof AudioRegionBoxAdapter && region.timeBase !== TimeBase.Musical
 
 export class RegionClipResolver {
     static fromSelection(tracks: ReadonlyArray<TrackBoxAdapter>,
@@ -65,7 +71,7 @@ export class RegionClipResolver {
             for (let i = 1; i < array.length; i++) {
                 const next = array[i]
                 assert(next.duration > 0, `duration(${next.duration}) must be positive`)
-                if (prev.complete > next.position) {
+                if (!allowOverlap(prev) && prev.complete > next.position) {
                     return panic("Overlapping detected after clipping")
                 }
                 prev = next
@@ -77,6 +83,41 @@ export class RegionClipResolver {
             }))
             throw error
         }
+    }
+
+    static sortAndJoinMasks(masks: ReadonlyArray<Mask>): ReadonlyArray<Mask> {
+        if (masks.length === 0) {
+            return panic("No clip-masks to solve")
+        }
+
+        if (masks.length === 1) {
+            return [masks[0]]
+        }
+
+        // Sort by position (start time) - create a copy to avoid mutating input
+        const sorted = [...masks].sort(EventCollection.DefaultComparator)
+
+        const merged: Array<Mask> = []
+        let current: Mask = sorted[0]
+
+        for (let i = 1; i < sorted.length; i++) {
+            const next = sorted[i]
+            // Check if the next mask overlaps or is adjacent to the current
+            if (next.position <= current.complete) {
+                // Merge: extend current to cover both ranges
+                current = {
+                    type: "range",
+                    position: current.position,
+                    complete: Math.max(current.complete, next.complete)
+                }
+            } else {
+                // No overlap or adjacency: save current and move to next
+                merged.push(current)
+                current = next
+            }
+        }
+        merged.push(current)
+        return merged
     }
 
     readonly #strategy: RegionModifyStrategies
@@ -99,33 +140,9 @@ export class RegionClipResolver {
     }
 
     #createSolver(): Exec {
-        const tasks = this.#createTasksFromMasks(this.#sortAndJoinMasks())
+        const tasks = this.#createTasksFromMasks(RegionClipResolver.sortAndJoinMasks(this.#masks))
+        this.#masks.length = 0
         return () => this.#executeTasks(tasks)
-    }
-
-    #sortAndJoinMasks(): ReadonlyArray<Mask> {
-        const masks: Array<Mask> = []
-        if (this.#masks.length === 0) {
-            return panic("No clip-masks to solve")
-        } else if (this.#masks.length === 1) {
-            masks.push(this.#masks[0])
-        } else {
-            this.#masks.sort(EventCollection.DefaultComparator)
-            let last: Mask = this.#masks.pop()!
-            while (this.#masks.length > 0) {
-                const prev = this.#masks.pop()!
-                if (prev.complete > last.position) {
-                    return panic("Masks are overlapping")
-                } else if (prev.complete === last.position) {
-                    last = {type: "range", position: prev.position, complete: last.complete}
-                } else {
-                    masks.push(last)
-                    last = prev
-                }
-            }
-            masks.push(last)
-        }
-        return masks
     }
 
     #createTasksFromMasks(masks: ReadonlyArray<Mask>): ReadonlyArray<ClipTask> {

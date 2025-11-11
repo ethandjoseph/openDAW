@@ -1,4 +1,4 @@
-import {asEnumValue, ValueOwner} from "@opendaw/lib-std"
+import {asEnumValue, MutableValueOwner, ValueOwner} from "@opendaw/lib-std"
 import {ppqn, samples, seconds} from "./ppqn"
 import {TempoMap} from "./tempo"
 
@@ -22,14 +22,14 @@ export interface TimeBaseConverter {
 export namespace TimeBaseConverter {
     export function musical(tempoMap: TempoMap,
                             position: ValueOwner<ppqn>,
-                            property: ValueOwner<number>): TimeBaseConverter {
+                            property: MutableValueOwner<number>): TimeBaseConverter {
         return new TimeBaseMusicalConverter(tempoMap, position, property)
     }
 
     export function aware(tempoMap: TempoMap,
                           timeBase: ValueOwner<string>,
                           position: ValueOwner<ppqn>,
-                          property: ValueOwner<number>): TimeBaseConverter {
+                          property: MutableValueOwner<number>): TimeBaseConverter {
         return new TimeBaseAwareConverter(tempoMap, timeBase, position, property)
     }
 }
@@ -38,12 +38,12 @@ class TimeBaseAwareConverter implements TimeBaseConverter {
     readonly #tempoMap: TempoMap
     readonly #timeBase: ValueOwner<string>
     readonly #position: ValueOwner<ppqn>
-    readonly #property: ValueOwner<number>
+    readonly #property: MutableValueOwner<number>
 
     constructor(tempoMap: TempoMap,
                 timeBase: ValueOwner<string>,
                 position: ValueOwner<ppqn>,
-                property: ValueOwner<number>) {
+                property: MutableValueOwner<number>) {
         this.#property = property
         this.#timeBase = timeBase
         this.#position = position

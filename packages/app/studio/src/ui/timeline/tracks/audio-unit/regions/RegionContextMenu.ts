@@ -15,7 +15,7 @@ import {BPMTools, TimeBase} from "@opendaw/lib-dsp"
 import {Browser} from "@opendaw/lib-dom"
 import {Dialogs} from "@/ui/components/dialogs.tsx"
 import {StudioService} from "@/service/StudioService"
-import {AutofitUtils, TimelineRange} from "@opendaw/studio-core"
+import {TimelineRange} from "@opendaw/studio-core"
 import {AudioPlayback} from "@opendaw/studio-enums"
 
 type Construct = {
@@ -112,14 +112,7 @@ export const installRegionContextMenu =
                             && region.box.playback.getValue() !== AudioPlayback.Pitch)
                         .forEach(region => region.box.playback.setValue(AudioPlayback.Pitch)))),
                     MenuItem.default({
-                        label: "Autofit",
-                        checked: region.type === "audio-region"
-                            && region.box.playback.getValue() === AudioPlayback.AudioFit
-                    }).setTriggerProcedure(() => AutofitUtils.regionsToAutofit(project, selection.selected()
-                        .filter((region): region is AudioRegionBoxAdapter => region.type === "audio-region"
-                            && region.box.playback.getValue() !== AudioPlayback.AudioFit))),
-                    MenuItem.default({
-                        label: "Unsynchronize",
+                        label: "No Wrap",
                         checked: region.type === "audio-region"
                             && region.box.playback.getValue() === AudioPlayback.NoSync
                     }).setTriggerProcedure(() => {
