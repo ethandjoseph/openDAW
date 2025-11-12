@@ -1,26 +1,25 @@
 import {StudioService} from "@/service/StudioService"
-import {Communicator, Messenger} from "@opendaw/lib-runtime"
+import {Communicator, Messenger, Promises} from "@opendaw/lib-runtime"
 import {ScriptExecutionProtocol, ScriptHostProtocol} from "@opendaw/studio-scripting"
 import {Project} from "@opendaw/studio-core"
 import {ProjectDecoder} from "@opendaw/studio-adapters"
 import {BoxGraph} from "@opendaw/lib-box"
-import {asDefined, Nullable, Option, RuntimeNotifier} from "@opendaw/lib-std"
+import {Option, RuntimeNotifier} from "@opendaw/lib-std"
 import {BoxIO} from "@opendaw/studio-boxes"
+import scriptWorkerUrl from "@opendaw/studio-scripting/ScriptWorker.js?worker&url"
 
 export class ScriptExecutor implements ScriptExecutionProtocol {
-    static url: Nullable<string> = null
-
     readonly #executor: ScriptExecutionProtocol
 
     constructor(service: StudioService) {
-        const messenger = Messenger.for(new Worker(asDefined(ScriptExecutor.url), {type: "module"}))
+        const messenger = Messenger.for(new Worker(scriptWorkerUrl, {type: "module"}))
         Communicator.executor<ScriptHostProtocol>(messenger.channel("scripting-host"), {
             openProject: (buffer: ArrayBufferLike, name?: string): void => {
                 const boxGraph = new BoxGraph<BoxIO.TypeMap>(Option.wrap(BoxIO.create))
                 boxGraph.fromArrayBuffer(buffer)
                 const mandatoryBoxes = ProjectDecoder.findMandatoryBoxes(boxGraph)
                 const project = Project.skeleton(service, {boxGraph, mandatoryBoxes})
-                service.projectProfileService.setProject(project, name ?? "Scripted")
+                service.projectProfileService.setProject(project, name ?? "Scripted Project")
                 service.switchScreen("default")
             }
         })
@@ -35,7 +34,10 @@ export class ScriptExecutor implements ScriptExecutionProtocol {
 
     async execute(script: string): Promise<void> {
         const progressUpdater = RuntimeNotifier.progress({headline: "Executing Script..."})
-        await this.#executor.execute(script)
+        const {status, error} = await Promises.tryCatch(this.#executor.execute(script))
         progressUpdater.terminate()
+        if (status === "rejected") {
+            await RuntimeNotifier.info({headline: "The script caused an error", message: String(error)})
+        }
     }
 }
