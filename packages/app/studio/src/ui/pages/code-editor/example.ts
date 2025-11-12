@@ -19,22 +19,31 @@ TODO:
     * Add Automation
     * Add Audio (also create audio files by code)
     * Add Clips
+    * Verify outcome
     * AudioUnits without any track should be shown in timeline
-
+    -------------------------------------------------------------------
     This code above will not be seen. The two slashes start the example.
     Everything you import here, must be exported in the Api too.
 */
 // openDAW script editor (very early preview - under heavy construction)
 const project = openDAW.newProject("Hello World")
-const audioUnit = project.addInstrumentUnit("Vaporisateur").setMute(true)
-audioUnit.addMIDIEffect("pitch", {octaves: 1, label: "Pitch Up"})
-audioUnit.addMIDIEffect("pitch", {octaves: -1, label: "Pitch Down"})
-const track = audioUnit.addNoteTrack({enabled: true})
+const vapo = project.addInstrumentUnit("Vaporisateur")
+    .setMute(false)
+    .setSolo(false)
+vapo.addMIDIEffect("pitch", {octaves: 1, label: "Up"})
+vapo.addMIDIEffect("pitch", {octaves: -1, label: "Down"})
+const track = vapo.addNoteTrack({enabled: true})
 const region = track.addRegion({
     position: 0,
     duration: PPQN.fromSignature(16, 4),
     label: "Scripted Region"
 })
+track.addRegion({
+    position: PPQN.fromSignature(16, 4),
+    duration: PPQN.fromSignature(16, 4),
+    label: "Scripted Region", mirror: region
+})
+
 for (let i = 0; i < 64; i++) {
     region.addEvent({
         position: i * PPQN.SemiQuaver,

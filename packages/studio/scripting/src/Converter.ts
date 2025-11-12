@@ -1,4 +1,4 @@
-import {asInstanceOf, isDefined, Option, Unhandled, UUID} from "@opendaw/lib-std"
+import {asDefined, asInstanceOf, isDefined, Option, Unhandled, UUID} from "@opendaw/lib-std"
 import {AudioUnitType} from "@opendaw/studio-enums"
 import {
     AudioUnitBox,
@@ -10,6 +10,7 @@ import {
 } from "@opendaw/studio-boxes"
 import {AudioUnitFactory, CaptureBox, InstrumentFactories, ProjectSkeleton, TrackType} from "@opendaw/studio-adapters"
 import {InstrumentAudioUnitImpl, NoteRegionImpl, NoteTrackImpl, ProjectImpl} from "./impl"
+import {NoteRegion} from "./Api"
 
 export namespace Converter {
     export const toSkeleton = (project: ProjectImpl): ProjectSkeleton => {
@@ -18,6 +19,7 @@ export namespace Converter {
             createOutputCompressor: false
         })
         const {boxGraph, mandatoryBoxes: {rootBox, timelineBox, userInterfaceBoxes: [defaultUser]}} = skeleton
+        const noteCollectionMap: Map<NoteRegion, NoteEventCollectionBox> = new Map()
         boxGraph.beginTransaction()
         timelineBox.bpm.setValue(project.tempo)
         project.getInstrumentUnits().forEach((audioUnit: InstrumentAudioUnitImpl) => {
@@ -56,11 +58,14 @@ export namespace Converter {
                     box.target.refer(audioUnitBox)
                     box.tracks.refer(audioUnitBox.tracks)
                 })
-                regions.forEach(({
-                                     position, duration, loopDuration, loopOffset,
-                                     events, hue, label, mute
-                                 }: NoteRegionImpl) => {
-                    const noteEventCollectionBox = NoteEventCollectionBox.create(boxGraph, UUID.generate())
+                regions.forEach((region: NoteRegionImpl) => {
+                    const {
+                        position, duration, loopDuration, loopOffset, events, hue, label, mute, mirror
+                    } = region
+                    const noteEventCollectionBox = isDefined(mirror)
+                        ? asDefined(noteCollectionMap.get(mirror), "mirror region not found in map")
+                        : NoteEventCollectionBox.create(boxGraph, UUID.generate())
+                    noteCollectionMap.set(region, noteEventCollectionBox)
                     events.forEach(event => {
                         NoteEventBox.create(boxGraph, UUID.generate(), box => {
                             box.position.setValue(event.position)

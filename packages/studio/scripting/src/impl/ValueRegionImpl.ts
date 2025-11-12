@@ -1,29 +1,32 @@
-import {ValueRegion, ValueEvent, ValueTrack} from "../Api"
+import {ValueEvent, ValueRegion, ValueRegionProps, ValueTrack} from "../Api"
 import {ppqn} from "@opendaw/lib-dsp"
 import {int} from "@opendaw/lib-std"
 import {ValueEventImpl} from "./ValueEventImpl"
 
 export class ValueRegionImpl implements ValueRegion {
     readonly track: ValueTrack
+    readonly #events: Array<ValueEventImpl>
+
+    readonly mirror?: ValueRegion
+
     position: ppqn
     duration: ppqn
+    loopDuration: ppqn
+    loopOffset: ppqn
     mute: boolean
     label: string
     hue: int
-    loopDuration: ppqn
-    loopOffset: ppqn
-    
-    #events: ValueEventImpl[]
 
-    constructor(track: ValueTrack, props?: Partial<ValueRegion>) {
+    constructor(track: ValueTrack, props?: ValueRegionProps) {
         this.track = track
-        this.position = props?.position ?? 0.0 as ppqn
-        this.duration = props?.duration ?? 0.0 as ppqn
+        this.mirror = props?.mirror
+        this.position = props?.position ?? 0.0
+        this.duration = props?.duration ?? 0.0
         this.mute = props?.mute ?? false
         this.label = props?.label ?? ""
-        this.hue = props?.hue ?? 0 as int
-        this.loopDuration = props?.loopDuration ?? 0.0 as ppqn
-        this.loopOffset = props?.loopOffset ?? 0.0 as ppqn
+        this.hue = props?.hue ?? 0
+        this.loopDuration = props?.loopDuration ?? 0.0
+        this.loopOffset = props?.loopOffset ?? 0.0
         this.#events = []
     }
 
@@ -33,7 +36,7 @@ export class ValueRegionImpl implements ValueRegion {
         return event
     }
 
-    getEvents(): ReadonlyArray<ValueEventImpl> {
+    get events(): ReadonlyArray<ValueEventImpl> {
         return this.#events
     }
 }

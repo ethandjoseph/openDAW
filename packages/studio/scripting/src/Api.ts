@@ -122,9 +122,11 @@ export interface NoteRegion extends LoopableRegion {
     addEvent(props?: Partial<NoteEvent>): NoteEvent
 }
 
+export type NoteRegionProps = Partial<NoteRegion & { mirror: NoteRegion }>
+
 export interface NoteTrack extends Track {
     readonly audioUnit: InstrumentAudioUnit
-    addRegion(props?: Partial<NoteRegion>): NoteRegion
+    addRegion(props?: NoteRegionProps): NoteRegion
 }
 
 export interface ValueEvent {
@@ -139,9 +141,11 @@ export interface ValueRegion extends LoopableRegion {
     addEvent(props?: Partial<ValueEvent>): ValueEvent
 }
 
+export type ValueRegionProps = Partial<ValueRegion & { mirror: ValueRegion }>
+
 export interface ValueTrack extends Track {
     target: { audioUnit: AudioUnit, parameter: string }
-    addRegion(props?: Partial<ValueRegion>): ValueRegion
+    addRegion(props?: ValueRegionProps): ValueRegion
 }
 
 export interface Instrument {

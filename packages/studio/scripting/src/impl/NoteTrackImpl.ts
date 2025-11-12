@@ -1,4 +1,4 @@
-import {InstrumentAudioUnit, NoteRegion, NoteTrack} from "../Api"
+import {InstrumentAudioUnit, NoteRegion, NoteRegionProps, NoteTrack} from "../Api"
 import {NoteRegionImpl} from "./NoteRegionImpl"
 
 export class NoteTrackImpl implements NoteTrack {
@@ -14,7 +14,7 @@ export class NoteTrackImpl implements NoteTrack {
         this.enabled = props?.enabled ?? true
     }
 
-    addRegion(props?: Partial<NoteRegion>): NoteRegion {
+    addRegion(props?: NoteRegionProps): NoteRegion {
         const region = new NoteRegionImpl(this, props)
         this.#regions.push(region)
         return region
