@@ -3,7 +3,7 @@ import "monaco-editor/esm/vs/language/typescript/monaco.contribution"
 import EditorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker"
 import TsWorker from "monaco-editor/esm/vs/language/typescript/ts.worker?worker"
 import declarations from "@opendaw/studio-scripting/api.declaration?raw"
-import libTypedArrays from "./typed-arrays.d.ts?raw"
+import library from "./library.d.ts?raw"
 
 // noinspection JSUnusedGlobalSymbols
 self.MonacoEnvironment = {
@@ -40,7 +40,7 @@ tsDefaults.setDiagnosticsOptions({
     diagnosticCodesToIgnore: []
 })
 
-tsDefaults.addExtraLib(libTypedArrays, "file:///lib.typedarrays.d.ts")
+tsDefaults.addExtraLib(library, "file:///library.d.ts")
 tsDefaults.addExtraLib(declarations, "ts:opendaw.d.ts")
 tsDefaults.addExtraLib(`
 declare const console: Console

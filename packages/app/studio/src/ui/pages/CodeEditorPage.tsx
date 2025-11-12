@@ -24,7 +24,7 @@ export const CodeEditorPage: PageFactory<StudioService> = ({lifecycle, service}:
                 loading={() => ThreeDots()}
                 success={([monaco]) => {
                     const container = (<div className="monaco-editor"/>)
-                    const modelUri = monaco.Uri.parse("file:///main.ts")
+                    const modelUri = monaco.Uri.parse("file:///main.mts")
                     let model = monaco.editor.getModel(modelUri)
                     if (!model) {
                         model = monaco.editor.createModel(

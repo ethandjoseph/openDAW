@@ -70,4 +70,7 @@ const pitch = vapoUnit.addMIDIEffect("pitch", {octaves: -1, label: "Down"})
         label: "Scripted Region", mirror: region
     })
 }
+console.debug("waiting for 5 seconds")
+const result = await new Promise((resolve) => setTimeout(() => resolve(42), 5000))
+console.debug("Result:", result)
 project.openInStudio()

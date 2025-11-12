@@ -23,11 +23,20 @@ export class Executor {
         console.debug(jsCode)
         try {
             const globals = {
-                PPQN, Chord, Interpolation
+                PPQN, Chord, Interpolation,
+                openDAW: this.#api
             }
-            const scriptFunction = new Function("openDAW", "globals", `with (globals) {${jsCode}}`)
-            scriptFunction(this.#api, globals)
-            console.debug("Script executed successfully")
+            Object.assign(globalThis, globals)
+
+            const blob = new Blob([jsCode], { type: 'text/javascript' })
+            const url = URL.createObjectURL(blob)
+
+            try {
+                await import(url)
+                console.debug("Script executed successfully")
+            } finally {
+                URL.revokeObjectURL(url)
+            }
         } catch (execError) {
             console.warn(execError)
             await RuntimeNotifier.info({
