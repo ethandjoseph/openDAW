@@ -9,9 +9,11 @@ import {AnyDevice} from "./Api"
 import {Box} from "@opendaw/lib-box"
 import {MIDIEffectFactory} from "./MIDIEffectFactory"
 import {AudioEffectFactory} from "./AudioEffectFactory"
+import {Asserts} from "./Asserts"
 
 export namespace ProjectConverter {
     export const toSkeleton = (project: ProjectImpl): ProjectSkeleton => {
+        Asserts.assertNoNaN(project)
         console.time("convert")
         const skeleton = ProjectSkeleton.empty({
             createDefaultUser: true,
