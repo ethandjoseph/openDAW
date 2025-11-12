@@ -1,21 +1,14 @@
-import {Arrays, asInstanceOf, isDefined, Option} from "@opendaw/lib-std"
+import {asInstanceOf, isDefined, Option} from "@opendaw/lib-std"
 import {AudioUnitType} from "@opendaw/studio-enums"
-import {AudioRegionBox, AudioUnitBox, BoxVisitor, TrackBox} from "@opendaw/studio-boxes"
-import {
-    AudioUnitFactory,
-    CaptureBox,
-    InstrumentFactories,
-    ProjectSkeleton,
-    UnionBoxTypes
-} from "@opendaw/studio-adapters"
+import {AudioUnitBox} from "@opendaw/studio-boxes"
+import {AudioUnitFactory, CaptureBox, InstrumentFactories, ProjectSkeleton, Validator} from "@opendaw/studio-adapters"
 import {InstrumentAudioUnitImpl, ProjectImpl} from "./impl"
 import {NoteTrackWriter} from "./NoteTrackWriter"
 import {ValueTrackWriter} from "./ValueTrackWriter"
 import {AnyDevice} from "./Api"
-import {Box, BoxGraph} from "@opendaw/lib-box"
+import {Box} from "@opendaw/lib-box"
 import {MIDIEffectFactory} from "./MIDIEffectFactory"
 import {AudioEffectFactory} from "./AudioEffectFactory"
-import {TimeBase} from "@opendaw/lib-dsp"
 
 export namespace ProjectConverter {
     export const toSkeleton = (project: ProjectImpl): ProjectSkeleton => {
@@ -25,15 +18,17 @@ export namespace ProjectConverter {
             createOutputCompressor: false
         })
         const {boxGraph, mandatoryBoxes: {rootBox, timelineBox, userInterfaceBoxes: [defaultUser]}} = skeleton
+        const {bpm, timeSignature} = project
         let trackIndex = 0
         const devices: Map<AnyDevice, Box> = new Map()
         const noteTrackWriter = new NoteTrackWriter(boxGraph, () => trackIndex++)
         const valueTrackWriter = new ValueTrackWriter(boxGraph, devices, () => trackIndex++)
         boxGraph.beginTransaction()
-        // TODO clamp or throw on invalid values
-        timelineBox.bpm.setValue(project.bpm)
-        timelineBox.signature.nominator.setValue(project.timeSignature.numerator)
-        timelineBox.signature.denominator.setValue(project.timeSignature.denominator)
+        timelineBox.bpm.setValue(Validator.clampBpm(bpm))
+        const [numerator, denominator] = Validator.isTimeSignatureValid(
+            timeSignature.numerator, timeSignature.denominator).result()
+        timelineBox.signature.nominator.setValue(numerator)
+        timelineBox.signature.denominator.setValue(denominator)
         project.instrumentUnits.forEach((audioUnit: InstrumentAudioUnitImpl) => {
             const {
                 instrument, midiEffects, audioEffects, noteTracks, valueTracks,
@@ -63,26 +58,9 @@ export namespace ProjectConverter {
         }
         boxGraph.endTransaction()
         console.timeEnd("convert")
-        if (hasOverlappingRegions(boxGraph)) {
+        if (Validator.hasOverlappingRegions(boxGraph)) {
             throw new Error("Project contains overlapping regions")
         }
         return skeleton
     }
-
-    const hasOverlappingRegions = (boxGraph: BoxGraph): boolean => boxGraph.boxes()
-        .some(box => box.accept<BoxVisitor<boolean>>({
-            visitTrackBox: (box: TrackBox): boolean => {
-                for (const [current, next] of Arrays.iterateAdjacent(box.regions.pointerHub.incoming()
-                    .map(({box}) => UnionBoxTypes.asRegionBox(box))
-                    .sort(({position: a}, {position: b}) => a.getValue() - b.getValue()))) {
-                    if (current instanceof AudioRegionBox && current.timeBase.getValue() === TimeBase.Seconds) {
-                        return false
-                    }
-                    if (current.position.getValue() + current.duration.getValue() > next.position.getValue()) {
-                        return true
-                    }
-                }
-                return false
-            }
-        }) ?? false)
 }

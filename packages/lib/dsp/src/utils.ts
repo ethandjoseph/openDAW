@@ -1,4 +1,4 @@
-import {int, panic, unitValue} from "@opendaw/lib-std"
+import {unitValue} from "@opendaw/lib-std"
 
 const LogDb = Math.log(10.0) / 20.0
 
@@ -17,15 +17,3 @@ export const estimateBpm = (duration: number, maxBpm: number = 180.0): number =>
 }
 export const semitoneToHz = (semitones: number) => 440 * Math.pow(2.0, (semitones - 69.0) / 12.0)
 export const hzToSemitone = (hz: number) => 69.0 + 12.0 * Math.log2(hz / 440.0)
-export const parseTimeSignature = (input: string): [int, int] => {
-    const [first, second] = input.split("/")
-    const numerator = parseInt(first, 10)
-    const denominator = parseInt(second, 10)
-    if (!Number.isInteger(numerator) || !Number.isInteger(denominator)) {
-        return panic("Invalid format. Must be two integers separated by '/'")
-    }
-    if ((denominator & (denominator - 1)) !== 0) {
-        return panic("Denominator must be a power of two")
-    }
-    return [numerator, denominator]
-}

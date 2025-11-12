@@ -1,7 +1,6 @@
 import css from "./TimeStateDisplay.sass?inline"
 import {
     Attempt,
-    Attempts,
     clamp,
     DefaultObservableValue,
     EmptyExec,
@@ -14,7 +13,7 @@ import {
 } from "@opendaw/lib-std"
 import {createElement, Frag, Inject} from "@opendaw/lib-jsx"
 import {StudioService} from "@/service/StudioService.ts"
-import {parseTimeSignature, PPQN} from "@opendaw/lib-dsp"
+import {PPQN} from "@opendaw/lib-dsp"
 import {DblClckTextInput} from "@/ui/wrapper/DblClckTextInput.tsx"
 import {ContextMenu} from "@/ui/ContextMenu.ts"
 import {MenuItem} from "@/ui/model/menu-item.ts"
@@ -23,6 +22,7 @@ import {FlexSpacer} from "@/ui/components/FlexSpacer.tsx"
 import {Propagation} from "@opendaw/lib-box"
 import {ProjectProfile} from "@opendaw/studio-core"
 import {TapButton} from "@/ui/header/TapButton"
+import {Parsing, Validator} from "@opendaw/studio-adapters"
 
 const className = Html.adoptStyleSheet(css, "TimeStateDisplay")
 
@@ -30,9 +30,6 @@ type Construct = {
     lifecycle: Lifecycle
     service: StudioService
 }
-
-const minBpm = 30.0
-const maxBpm = 1000.0
 
 export const TimeStateDisplay = ({lifecycle, service}: Construct) => {
     const barDigits = Inject.value("001")
@@ -109,7 +106,7 @@ export const TimeStateDisplay = ({lifecycle, service}: Construct) => {
             const oldValue = bpmField.getValue()
             return Option.wrap({
                 update: (event: Dragging.Event) => {
-                    const newValue = clamp(oldValue + (pointer - event.clientY) * 2.0, minBpm, maxBpm)
+                    const newValue = Validator.clampBpm(oldValue + (pointer - event.clientY) * 2.0)
                     editing.modify(() => project.timelineBox.bpm.setValue(newValue), false)
                 },
                 cancel: () => editing.modify(() => project.timelineBox.bpm.setValue(oldValue), false),
@@ -128,7 +125,7 @@ export const TimeStateDisplay = ({lifecycle, service}: Construct) => {
                     const bpmValue = parseFloat(value)
                     if (isNaN(bpmValue)) {return}
                     profileService.getValue().ifSome(({project: {editing, timelineBox: {bpm}}}) =>
-                        editing.modify(() => bpm.setValue(clamp(bpmValue, minBpm, maxBpm))))
+                        editing.modify(() => bpm.setValue(Validator.clampBpm(bpmValue))))
                 }, EmptyExec)
                 return resolvers
             }} provider={() => ({unit: "bpm", value: bpmDigit.value})}>
@@ -139,7 +136,7 @@ export const TimeStateDisplay = ({lifecycle, service}: Construct) => {
             <DblClckTextInput resolversFactory={() => {
                 const resolvers = Promise.withResolvers<string>()
                 resolvers.promise.then((value: string) => {
-                    const attempt: Attempt<[int, int]> = Attempts.tryGet(() => parseTimeSignature(value))
+                    const attempt: Attempt<[int, int], string> = Parsing.parseTimeSignature(value)
                     if (attempt.isSuccess()) {
                         const [nominator, denominator] = attempt.result()
                         profileService.getValue()

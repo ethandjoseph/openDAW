@@ -1,4 +1,4 @@
-import {Func, Provider} from "./lang"
+import {Func, panic, Provider} from "./lang"
 import {Option} from "./option"
 
 export interface Attempt<RESULT, FAILURE = unknown> {
@@ -69,7 +69,7 @@ export namespace Attempts {
             readonly failureReason = (): FAILURE => this.reason
             readonly isFailure = (): boolean => true
             readonly isSuccess = (): boolean => false
-            readonly result = (): never => {throw new Error(`No result because '${this.reason}'`)}
+            readonly result = (): never => panic(`'${this.reason}'`)
             readonly map = (): Attempt<never, FAILURE> => this
             readonly flatMap = <_, R>(): Attempt<never, FAILURE | R> => this
             readonly match = <RETURN>(matchable: Matchable<never, FAILURE, RETURN>): RETURN => matchable.err(this.reason)
