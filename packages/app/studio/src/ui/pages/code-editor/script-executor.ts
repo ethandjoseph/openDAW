@@ -4,7 +4,7 @@ import {ScriptExecutionProtocol, ScriptHostProtocol} from "@opendaw/studio-scrip
 import {Project} from "@opendaw/studio-core"
 import {ProjectDecoder} from "@opendaw/studio-adapters"
 import {BoxGraph} from "@opendaw/lib-box"
-import {asDefined, Nullable, Option} from "@opendaw/lib-std"
+import {asDefined, Nullable, Option, RuntimeNotifier} from "@opendaw/lib-std"
 import {BoxIO} from "@opendaw/studio-boxes"
 
 export class ScriptExecutor implements ScriptExecutionProtocol {
@@ -34,6 +34,8 @@ export class ScriptExecutor implements ScriptExecutionProtocol {
     }
 
     async execute(script: string): Promise<void> {
-        return this.#executor.execute(script)
+        const progressUpdater = RuntimeNotifier.progress({headline: "Executing Script..."})
+        await this.#executor.execute(script)
+        progressUpdater.terminate()
     }
 }
