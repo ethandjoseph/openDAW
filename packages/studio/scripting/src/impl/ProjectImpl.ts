@@ -4,11 +4,11 @@ import {InstrumentAudioUnitImpl} from "./InstrumentAudioUnitImpl"
 import {ReturnAudioUnitImpl} from "./ReturnAudioUnitImpl"
 import {GroupAudioUnitImpl} from "./GroupAudioUnitImpl"
 import {ApiImpl} from "./ApiImpl"
-import {Converter} from "../Converter"
+import {ProjectConverter} from "../ProjectConverter"
 import {int} from "@opendaw/lib-std"
 
 export class ProjectImpl implements Project {
-    readonly api: ApiImpl
+    readonly #api: ApiImpl
     readonly output: OutputAudioUnit
 
     name: string
@@ -20,13 +20,15 @@ export class ProjectImpl implements Project {
     #groups: GroupAudioUnitImpl[] = []
 
     constructor(api: ApiImpl, name: string) {
-        this.api = api
+        this.#api = api
         this.name = name
         this.bpm = 120
         this.output = new OutputAudioUnitImpl(this)
     }
 
-    openInStudio(): void {this.api.environment.openProject(Converter.toSkeleton(this), this.name)}
+    openInStudio(): void {
+        this.#api.openProject(ProjectConverter.toSkeleton(this).boxGraph.toArrayBuffer(), this.name)
+    }
 
     addInstrumentUnit<KEY extends keyof Instruments>(name: KEY, props?: Partial<Instruments[KEY]>): InstrumentAudioUnit {
         const unit = new InstrumentAudioUnitImpl(this, name, props)

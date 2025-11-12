@@ -13,11 +13,13 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
-    "./api.declaration": "./src/api.declaration.d.ts"
+    "./api.declaration": "./src/api.declaration.d.ts",
+    "./ScriptWorker.js": "./dist/ScriptWorker.js"
   },
   "files": [
     "dist/**/*",
-    "src/script/api.declaration.d.ts"
+    "src/script/api.declaration.d.ts",
+    "./dist/ScriptWorker.js"
   ],
   "scripts": {
     "build": "npm run generate-api && tsc",

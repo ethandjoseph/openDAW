@@ -1,14 +1,13 @@
 import {Api, Project} from "../Api"
 import {ProjectImpl} from "./ProjectImpl"
 import {panic} from "@opendaw/lib-std"
-import {ProjectSkeleton} from "@opendaw/studio-adapters"
 
-export interface ApiEnvironment {
-    openProject(skeleton: ProjectSkeleton, name: string): void
-}
+import {ScriptHostProtocol} from "../ScriptHostProtocol"
 
-export class ApiImpl implements Api {
-    constructor(readonly environment: ApiEnvironment) {}
+export class ApiImpl implements Api, ScriptHostProtocol {
+    readonly #protocol: ScriptHostProtocol
+
+    constructor(protocol: ScriptHostProtocol) {this.#protocol = protocol}
 
     newProject(name?: string): Project {
         return new ProjectImpl(this, name ?? `Scripted Project`)
@@ -16,5 +15,9 @@ export class ApiImpl implements Api {
 
     async getProject(): Promise<Project> {
         return panic("Not yet implemented")
+    }
+
+    openProject(buffer: ArrayBufferLike, name?: string): void {
+        this.#protocol.openProject(buffer, name)
     }
 }

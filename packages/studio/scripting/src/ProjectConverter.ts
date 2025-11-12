@@ -10,7 +10,7 @@ import {Box} from "@opendaw/lib-box"
 import {MIDIEffectFactory} from "./MIDIEffectFactory"
 import {AudioEffectFactory} from "./AudioEffectFactory"
 
-export namespace Converter {
+export namespace ProjectConverter {
     export const toSkeleton = (project: ProjectImpl): ProjectSkeleton => {
         console.time("convert")
         const skeleton = ProjectSkeleton.empty({

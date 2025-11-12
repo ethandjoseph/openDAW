@@ -42,6 +42,7 @@ export class ValueTrackWriter {
                     const valueEvent = ValueEventBox.create(this.#boxGraph, UUID.generate(), box => {
                         box.position.setValue(event.position)
                         box.value.setValue(event.value)
+                        box.slope.setValue(NaN)
                         box.index.setValue(event.index)
                         box.events.refer(valueEventCollectionBox.events)
                     })

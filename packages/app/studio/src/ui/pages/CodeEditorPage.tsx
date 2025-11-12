@@ -8,12 +8,12 @@ import {Button} from "@/ui/components/Button"
 import {Icon} from "@/ui/components/Icon"
 import {IconSymbol} from "@opendaw/studio-enums"
 import {RuntimeNotifier} from "@opendaw/lib-std"
-import {Executor} from "@/ui/pages/code-editor/executor"
+import {ScriptExecutor} from "@/ui/pages/code-editor/script-executor"
 
 const className = Html.adoptStyleSheet(css, "CodeEditorPage")
 
 export const CodeEditorPage: PageFactory<StudioService> = ({lifecycle, service}: PageContext<StudioService>) => {
-    const executor = new Executor(service)
+    const executor = new ScriptExecutor(service)
     return (
         <div className={className}>
             <Await
@@ -64,7 +64,7 @@ export const CodeEditorPage: PageFactory<StudioService> = ({lifecycle, service}:
                             if (emitOutput.outputFiles.length > 0) {
                                 const jsCode = emitOutput.outputFiles[0].text
                                     .replace(/^["']use strict["'];?/, "")
-                                await executor.run(jsCode)
+                                await executor.execute(jsCode)
                             } else {
                                 await RuntimeNotifier.info({
                                     headline: "Compilor Error",

@@ -130,7 +130,7 @@ export namespace InstrumentFactories {
                 box.oscillators.fields()[1].volume.setInitValue(Number.NEGATIVE_INFINITY)
                 box.oscillators.fields()[1].waveform.setInitValue(ClassicWaveform.saw)
                 box.host.refer(host)
-                box.version.setValue(1) // for removing the -15db in voice
+                box.version.setValue(2) // for removing the -15db in voice and extended osc
             })
     }
 
