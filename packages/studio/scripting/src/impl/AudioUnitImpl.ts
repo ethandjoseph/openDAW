@@ -23,11 +23,11 @@ export abstract class AudioUnitImpl implements AudioUnit {
     readonly #noteTracks: Array<NoteTrackImpl>
     readonly #valueTracks: Array<ValueTrackImpl>
 
+    output: Nullable<OutputAudioUnit | GroupAudioUnit>
     volume: number
     panning: bipolar
     mute: boolean
     solo: boolean
-    output: Nullable<OutputAudioUnit | GroupAudioUnit>
 
     protected constructor(project: ProjectImpl, props?: Partial<AudioUnit>) {
         this.project = project
@@ -36,11 +36,11 @@ export abstract class AudioUnitImpl implements AudioUnit {
         this.#noteTracks = []
         this.#valueTracks = []
 
+        this.output = props?.output === undefined ? project.output : null
         this.volume = props?.volume ?? 0.0
         this.panning = props?.panning ?? 0.0
         this.mute = props?.mute ?? false
         this.solo = props?.solo ?? false
-        this.output = null
     }
 
     addMIDIEffect<T extends keyof MIDIEffects>(type: T, props?: Partial<MIDIEffects[T]>): MIDIEffects[T] {

@@ -4,7 +4,6 @@ import {
     CompressorDeviceBox,
     CrusherDeviceBox,
     DelayDeviceBox,
-    TidalDeviceBox,
     FoldDeviceBox,
     GrooveShuffleBox,
     ModularAudioInputBox,
@@ -16,6 +15,7 @@ import {
     RevampDeviceBox,
     ReverbDeviceBox,
     StereoToolDeviceBox,
+    TidalDeviceBox,
     VelocityDeviceBox,
     ZeitgeistDeviceBox
 } from "@opendaw/studio-boxes"
@@ -182,6 +182,7 @@ export namespace EffectFactories {
             TidalDeviceBox.create(boxGraph, UUID.generate(), box => {
                 box.label.setValue("Tidal")
                 box.index.setValue(index)
+                box.depth.setValue(0.75)
                 box.host.refer(hostField)
             })
     }

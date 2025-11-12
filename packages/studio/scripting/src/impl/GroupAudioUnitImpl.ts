@@ -5,11 +5,16 @@ import {SendImpl} from "./SendImpl"
 
 export class GroupAudioUnitImpl extends AudioUnitImpl implements GroupAudioUnit {
     readonly kind = "group" as const
-    
-    #sends: SendImpl[]
 
-    constructor(project: ProjectImpl) {
-        super(project)
+    readonly #sends: Array<SendImpl>
+
+    label: string
+
+    constructor(project: ProjectImpl, props?: Partial<GroupAudioUnit>) {
+        super(project, props)
+
+        this.label = props?.label ?? "Group"
+
         this.#sends = []
     }
 
@@ -19,7 +24,5 @@ export class GroupAudioUnitImpl extends AudioUnitImpl implements GroupAudioUnit 
         return send
     }
 
-    getSends(): ReadonlyArray<SendImpl> {
-        return this.#sends
-    }
+    get sends(): ReadonlyArray<SendImpl> {return this.#sends}
 }

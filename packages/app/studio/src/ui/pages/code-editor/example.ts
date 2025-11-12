@@ -1,11 +1,11 @@
 import {InaccessibleProperty} from "@opendaw/lib-std"
-import {Api} from "@opendaw/studio-scripting"
 import {Chord, Interpolation, PPQN} from "@opendaw/lib-dsp"
+import {Api} from "@opendaw/studio-scripting"
 
 const openDAW: Api = InaccessibleProperty("Not to be executed.")
 /*
 TODO:
-    * Enable Dialogs
+    * Dialogs or a console
     * Add openDAW.getCurrentProject() <- needs to be send to worker and changes should be revertable
     * Get selections (introduce await to talk back to main-thread?)
     * Start a script-editor with selected items and write boiler-plate code to start modifiying them (typed)
@@ -25,12 +25,14 @@ TODO:
 // openDAW script editor (very early preview - under heavy construction)
 const project = openDAW.newProject("Hello World")
 project.bpm = 125.0
-project.timeSignature.numerator = 3
 const vapoUnit = project.addInstrumentUnit("Vaporisateur")
 vapoUnit.volume = -3.0 // -3db
 vapoUnit.panning = 0.5 // 50% right
 vapoUnit.mute = false
 vapoUnit.solo = false
+const groupUnit = project.addGroupUnit()
+vapoUnit.output = groupUnit
+
 vapoUnit.addMIDIEffect("pitch", {octaves: 1, label: "Up"})
 const pitch = vapoUnit.addMIDIEffect("pitch", {octaves: -1, label: "Down"})
 {
@@ -61,16 +63,5 @@ const pitch = vapoUnit.addMIDIEffect("pitch", {octaves: -1, label: "Down"})
             duration: PPQN.SemiQuaver
         })
     }
-    track.addRegion({
-        position: PPQN.fromSignature(16, 4),
-        duration: PPQN.fromSignature(16, 4),
-        hue: 270,
-        mute: true,
-        loopDuration: PPQN.Bar,
-        label: "Scripted Region", mirror: region
-    })
 }
-console.debug("waiting for one seconds")
-const result = await new Promise((resolve) => setTimeout(() => resolve(42), 1000))
-console.debug("Result:", result)
 project.openInStudio()

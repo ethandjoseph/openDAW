@@ -1,11 +1,11 @@
+import {int} from "@opendaw/lib-std"
 import {GroupAudioUnit, InstrumentAudioUnit, Instruments, OutputAudioUnit, Project, ReturnAudioUnit} from "../Api"
+import {ApiImpl} from "./ApiImpl"
 import {OutputAudioUnitImpl} from "./OutputAudioUnitImpl"
 import {InstrumentAudioUnitImpl} from "./InstrumentAudioUnitImpl"
 import {ReturnAudioUnitImpl} from "./ReturnAudioUnitImpl"
 import {GroupAudioUnitImpl} from "./GroupAudioUnitImpl"
-import {ApiImpl} from "./ApiImpl"
 import {ProjectConverter} from "../ProjectConverter"
-import {int} from "@opendaw/lib-std"
 
 export class ProjectImpl implements Project {
     readonly #api: ApiImpl
@@ -42,8 +42,8 @@ export class ProjectImpl implements Project {
         return unit
     }
 
-    addGroupUnit(): GroupAudioUnit {
-        const unit = new GroupAudioUnitImpl(this)
+    addGroupUnit(props?: Partial<GroupAudioUnit>): GroupAudioUnit {
+        const unit = new GroupAudioUnitImpl(this, props)
         this.#groups.push(unit)
         return unit
     }

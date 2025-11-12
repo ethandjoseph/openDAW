@@ -1,5 +1,5 @@
 import {Chord, Interpolation, PPQN, ppqn} from "@opendaw/lib-dsp"
-import {bipolar, float, int, unitValue} from "@opendaw/lib-std"
+import {bipolar, float, int, Nullable, unitValue} from "@opendaw/lib-std"
 
 export {PPQN, Chord}
 
@@ -57,6 +57,7 @@ export interface MIDIEffects {
 }
 
 export interface AudioUnit {
+    output: Nullable<OutputAudioUnit | GroupAudioUnit>
     volume: number
     panning: bipolar
     mute: boolean
@@ -80,6 +81,8 @@ export interface ReturnAudioUnit extends AudioUnit, Sendable {
 
 export interface GroupAudioUnit extends AudioUnit, Sendable {
     readonly kind: "group"
+
+    label: string
 }
 
 export interface OutputAudioUnit extends AudioUnit {
@@ -175,7 +178,7 @@ export interface Project {
 
     addInstrumentUnit<KEY extends keyof Instruments>(name: KEY, props?: Partial<Instruments[KEY]>): InstrumentAudioUnit
     addReturnUnit(): ReturnAudioUnit
-    addGroupUnit(): GroupAudioUnit
+    addGroupUnit(props?: Partial<GroupAudioUnit>): GroupAudioUnit
 
     openInStudio(): void
 }
