@@ -1,95 +1,45 @@
-import {asDefined, asInstanceOf, isDefined, Option, Unhandled, UUID} from "@opendaw/lib-std"
+import {asInstanceOf, isDefined, Option} from "@opendaw/lib-std"
 import {AudioUnitType} from "@opendaw/studio-enums"
-import {
-    AudioUnitBox,
-    NoteEventBox,
-    NoteEventCollectionBox,
-    NoteRegionBox,
-    PitchDeviceBox,
-    TrackBox
-} from "@opendaw/studio-boxes"
-import {AudioUnitFactory, CaptureBox, InstrumentFactories, ProjectSkeleton, TrackType} from "@opendaw/studio-adapters"
-import {InstrumentAudioUnitImpl, NoteRegionImpl, NoteTrackImpl, ProjectImpl} from "./impl"
-import {NoteRegion} from "./Api"
+import {AudioUnitBox} from "@opendaw/studio-boxes"
+import {AudioUnitFactory, CaptureBox, InstrumentFactories, ProjectSkeleton} from "@opendaw/studio-adapters"
+import {InstrumentAudioUnitImpl, ProjectImpl} from "./impl"
+import {NoteTrackWriter} from "./NoteTrackWriter"
+import {ValueTrackWriter} from "./ValueTrackWriter"
+import {AnyDevice} from "./Api"
+import {Box} from "@opendaw/lib-box"
+import {MIDIEffectFactory} from "./MIDIEffectFactory"
+import {AudioEffectFactory} from "./AudioEffectFactory"
 
 export namespace Converter {
     export const toSkeleton = (project: ProjectImpl): ProjectSkeleton => {
+        console.time("convert")
         const skeleton = ProjectSkeleton.empty({
             createDefaultUser: true,
             createOutputCompressor: false
         })
         const {boxGraph, mandatoryBoxes: {rootBox, timelineBox, userInterfaceBoxes: [defaultUser]}} = skeleton
-        const noteCollectionMap: Map<NoteRegion, NoteEventCollectionBox> = new Map()
+        let trackIndex = 0
+        const devices: Map<AnyDevice, Box> = new Map()
+        const noteTrackWriter = new NoteTrackWriter(boxGraph, () => trackIndex++)
+        const valueTrackWriter = new ValueTrackWriter(boxGraph, devices, () => trackIndex++)
         boxGraph.beginTransaction()
         timelineBox.bpm.setValue(project.tempo)
-        project.getInstrumentUnits().forEach((audioUnit: InstrumentAudioUnitImpl) => {
-            const factory = InstrumentFactories.Named[audioUnit.instrument.name]
+        project.getInstrumentUnits().forEach(({
+                                                  instrument, midiEffects, audioEffects, noteTracks, valueTracks,
+                                                  volume, panning, mute, solo
+                                              }: InstrumentAudioUnitImpl) => {
+            const factory = InstrumentFactories.Named[instrument.name]
             const capture: Option<CaptureBox> = AudioUnitFactory.trackTypeToCapture(boxGraph, factory.trackType)
             const audioUnitBox = AudioUnitFactory.create(skeleton, AudioUnitType.Instrument, capture)
+            audioUnitBox.mute.setValue(mute)
+            audioUnitBox.solo.setValue(solo)
+            audioUnitBox.volume.setValue(volume)
+            audioUnitBox.panning.setValue(panning)
             factory.create(boxGraph, audioUnitBox.input, factory.defaultName, factory.defaultIcon)
-
-            audioUnitBox.mute.setValue(audioUnit.isMuted())
-            audioUnitBox.solo.setValue(audioUnit.isSolo())
-            // TODO audioUnitBox.panning.setValue(audioUnit.getPan())
-
-            audioUnit.midiEffects.forEach((effect) => {
-                switch (effect.key) {
-                    case "pitch": {
-                        return PitchDeviceBox.create(boxGraph, UUID.generate(), box => {
-                            box.cents.setValue(effect.cents)
-                            box.semiTones.setValue(effect.semiTones)
-                            box.octaves.setValue(effect.octaves)
-                            box.enabled.setValue(effect.enabled)
-                            box.label.setValue(effect.label) // TODO unify?
-                            box.host.refer(audioUnitBox.midiEffects)
-                        })
-                    }
-                    default:
-                        return Unhandled(effect.key)
-                }
-            })
-
-            let trackIndex = 0
-            audioUnit.noteTracks.forEach(({enabled, regions}: NoteTrackImpl) => {
-                const trackBox = TrackBox.create(boxGraph, UUID.generate(), box => {
-                    box.type.setValue(TrackType.Notes)
-                    box.enabled.setValue(enabled)
-                    box.index.setValue(trackIndex++)
-                    box.target.refer(audioUnitBox)
-                    box.tracks.refer(audioUnitBox.tracks)
-                })
-                regions.forEach((region: NoteRegionImpl) => {
-                    const {
-                        position, duration, loopDuration, loopOffset, events, hue, label, mute, mirror
-                    } = region
-                    const noteEventCollectionBox = isDefined(mirror)
-                        ? asDefined(noteCollectionMap.get(mirror), "mirror region not found in map")
-                        : NoteEventCollectionBox.create(boxGraph, UUID.generate())
-                    noteCollectionMap.set(region, noteEventCollectionBox)
-                    events.forEach(event => {
-                        NoteEventBox.create(boxGraph, UUID.generate(), box => {
-                            box.position.setValue(event.position)
-                            box.duration.setValue(event.duration)
-                            box.pitch.setValue(event.pitch)
-                            box.cent.setValue(event.cents) // TODO rename to plural
-                            box.velocity.setValue(event.velocity)
-                            box.events.refer(noteEventCollectionBox.events)
-                        })
-                    })
-                    NoteRegionBox.create(boxGraph, UUID.generate(), box => {
-                        box.position.setValue(position)
-                        box.duration.setValue(duration)
-                        box.loopDuration.setValue(loopDuration)
-                        box.loopOffset.setValue(loopOffset)
-                        box.hue.setValue(hue)
-                        box.label.setValue(label)
-                        box.eventOffset.setValue(0) // TODO
-                        box.mute.setValue(mute)
-                        box.regions.refer(trackBox.regions)
-                        box.events.refer(noteEventCollectionBox.owners)
-                    })
-                })
-            })
+            midiEffects.forEach((effect) => devices.set(effect, MIDIEffectFactory.write(boxGraph, audioUnitBox, effect)))
+            audioEffects.forEach((effect) => devices.set(effect, AudioEffectFactory.write(boxGraph, audioUnitBox, effect)))
+            noteTrackWriter.write(audioUnitBox, noteTracks)
+            valueTrackWriter.write(audioUnitBox, valueTracks)
         })
         // select the first audio unit as the editing device
         const firstAudioUnitBox = rootBox.audioUnits.pointerHub.incoming()
@@ -100,6 +50,7 @@ export namespace Converter {
             defaultUser.editingDeviceChain.refer(firstAudioUnitBox.editing)
         }
         boxGraph.endTransaction()
+        console.timeEnd("convert")
         return skeleton
     }
 }

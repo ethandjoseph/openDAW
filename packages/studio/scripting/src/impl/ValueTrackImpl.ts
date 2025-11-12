@@ -1,17 +1,21 @@
-import {AudioEffects, AudioUnit, Instruments, MIDIEffects, ValueRegion, ValueRegionProps, ValueTrack} from "../Api"
+import {AnyDevice, AudioUnit, ValueRegion, ValueRegionProps, ValueTrack} from "../Api"
 import {ValueRegionImpl} from "./ValueRegionImpl"
+import {AudioUnitImpl} from "./AudioUnitImpl"
 
-export class ValueTrackImpl implements ValueTrack {
-    readonly target: { audioUnit: AudioUnit; parameter: string }
+export class ValueTrackImpl<
+    DEVICE extends AnyDevice = AnyDevice, PARAMETER extends keyof DEVICE = keyof DEVICE> implements ValueTrack {
+    readonly audioUnit: AudioUnit
+    readonly device: DEVICE
+    readonly parameter: PARAMETER
     readonly #regions: Array<ValueRegionImpl>
 
     enabled: boolean
 
-    constructor(audioUnit: AudioUnit,
-                target: MIDIEffects[keyof MIDIEffects] | AudioEffects[keyof AudioEffects] | Instruments[keyof Instruments],
-                parameter: string) {
-        this.target = {audioUnit, parameter}
-        this.enabled = true
+    constructor(audioUnit: AudioUnitImpl, device: DEVICE, parameter: PARAMETER, props?: Partial<ValueTrack>) {
+        this.audioUnit = audioUnit
+        this.device = device
+        this.parameter = parameter
+        this.enabled = props?.enabled ?? true
         this.#regions = []
     }
 
@@ -21,7 +25,5 @@ export class ValueTrackImpl implements ValueTrack {
         return region
     }
 
-    getRegions(): ReadonlyArray<ValueRegionImpl> {
-        return this.#regions
-    }
+    get regions(): ReadonlyArray<ValueRegionImpl> {return this.#regions}
 }

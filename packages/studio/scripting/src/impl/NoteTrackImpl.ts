@@ -1,13 +1,14 @@
-import {InstrumentAudioUnit, NoteRegion, NoteRegionProps, NoteTrack} from "../Api"
+import {AudioUnit, NoteRegion, NoteRegionProps, NoteTrack} from "../Api"
 import {NoteRegionImpl} from "./NoteRegionImpl"
+import {AudioUnitImpl} from "./AudioUnitImpl"
 
 export class NoteTrackImpl implements NoteTrack {
-    readonly audioUnit: InstrumentAudioUnit
+    readonly audioUnit: AudioUnit
     readonly #regions: NoteRegionImpl[]
 
     enabled: boolean
 
-    constructor(audioUnit: InstrumentAudioUnit, props?: Partial<NoteTrack>) {
+    constructor(audioUnit: AudioUnitImpl, props?: Partial<NoteTrack>) {
         this.audioUnit = audioUnit
         this.#regions = []
 
@@ -20,7 +21,5 @@ export class NoteTrackImpl implements NoteTrack {
         return region
     }
 
-    get regions(): ReadonlyArray<NoteRegionImpl> {
-        return this.#regions
-    }
+    get regions(): ReadonlyArray<NoteRegionImpl> {return this.#regions}
 }

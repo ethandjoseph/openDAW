@@ -71,7 +71,8 @@ export abstract class Box<P extends PointerTypes = PointerTypes, F extends Field
 
     fields(): ReadonlyArray<Field> {return Object.values(this.#fields)}
     record(): Readonly<Record<string, Field>> {return this.#fields}
-    getField<K extends keyof F>(key: K): F[K] {return asDefined(this.#fields[key])}
+    getField<K extends keyof F>(key: K): F[K] {return asDefined(this.#fields[key],
+        `Field ${String(key)} not found in ${this.toString()}`)}
     optField<K extends keyof F>(key: K): Option<F[K]> {return Option.wrap(this.#fields[key])}
     subscribe(propagation: Propagation, procedure: Procedure<Update>): Subscription {
         return this.graph.subscribeVertexUpdates(propagation, this.address, procedure)

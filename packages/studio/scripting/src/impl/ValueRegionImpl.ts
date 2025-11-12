@@ -2,6 +2,7 @@ import {ValueEvent, ValueRegion, ValueRegionProps, ValueTrack} from "../Api"
 import {ppqn} from "@opendaw/lib-dsp"
 import {int} from "@opendaw/lib-std"
 import {ValueEventImpl} from "./ValueEventImpl"
+import {ColorCodes, TrackType} from "@opendaw/studio-adapters"
 
 export class ValueRegionImpl implements ValueRegion {
     readonly track: ValueTrack
@@ -24,8 +25,8 @@ export class ValueRegionImpl implements ValueRegion {
         this.duration = props?.duration ?? 0.0
         this.mute = props?.mute ?? false
         this.label = props?.label ?? ""
-        this.hue = props?.hue ?? 0
-        this.loopDuration = props?.loopDuration ?? 0.0
+        this.hue = props?.hue ?? ColorCodes.forTrackType(TrackType.Value)
+        this.loopDuration = props?.loopDuration ?? this.duration
         this.loopOffset = props?.loopOffset ?? 0.0
         this.#events = []
     }
