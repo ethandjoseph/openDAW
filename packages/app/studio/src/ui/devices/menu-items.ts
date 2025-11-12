@@ -1,12 +1,12 @@
 import {DeviceHost, Devices, EffectDeviceBoxAdapter, PresetEncoder} from "@opendaw/studio-adapters"
 import {MenuItem} from "@/ui/model/menu-item.ts"
 import {BoxEditing, PrimitiveField, PrimitiveValues, StringField} from "@opendaw/lib-box"
-import {EmptyExec, isInstanceOf, panic} from "@opendaw/lib-std"
+import {EmptyExec, isInstanceOf, panic, RuntimeNotifier} from "@opendaw/lib-std"
 import {Surface} from "@/ui/surface/Surface"
 import {FloatingTextInput} from "@/ui/components/FloatingTextInput"
 import {StudioService} from "@/service/StudioService"
 import {EffectFactories, FilePickerAcceptTypes, Project} from "@opendaw/studio-core"
-import {ModularDeviceBox} from "@opendaw/studio-boxes"
+import {ModularDeviceBox, VaporisateurDeviceBox} from "@opendaw/studio-boxes"
 import {Files} from "@opendaw/lib-dom"
 
 export namespace MenuItems {
@@ -51,8 +51,27 @@ export namespace MenuItems {
                 }),
             MenuItem.default({label: "Load Deprecated Preset..."})
                 .setTriggerProcedure(async () => {
-
-                }),
+                    const files = await Files.open({types: [FilePickerAcceptTypes.JsonFileType]})
+                    if (files.length === 0) {return}
+                    const string = new TextDecoder().decode(await files[0].arrayBuffer())
+                    const json = JSON.parse(string)
+                    if (json["2"] !== "Vaporisateur") {
+                        await RuntimeNotifier.info({
+                            headline: "Cannot Load Preset",
+                            message: "This feature is deprecated (code: 0)."
+                        })
+                    }
+                    delete json["1"]
+                    const input = audioUnit.box.input.pointerHub.incoming().at(0)?.box
+                    if (!isInstanceOf(input, VaporisateurDeviceBox)) {
+                        await RuntimeNotifier.info({
+                            headline: "Cannot Load Preset",
+                            message: "This feature is deprecated (code: 1)."
+                        })
+                        return
+                    }
+                    editing.modify(() => input.fromJSON(json))
+                })
         )
     }
 
