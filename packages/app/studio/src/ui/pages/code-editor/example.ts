@@ -11,7 +11,6 @@ TODO:
     * Start a script-editor with selected items and write boiler-plate code to start modifiying them (typed)
     * Save file for exporting
     * Store project in ProjectStorage
-    * Add a way to create buses and connect them
     * Add a way to query and set values in boxes (typed)
     * Add a way to query available samples and soundfonts
     * Add Audio (also create audio files by code)
@@ -19,7 +18,7 @@ TODO:
     * Verify outcome
     * AudioUnits without any track should be shown in timeline
     -------------------------------------------------------------------
-    This code above will not be seen. The two slashes start the example.
+    This code above will not be exposed. The two slashes start the example.
     Everything you import here, must be exported in the Api and globals too.
 */
 // openDAW script editor (very early preview - under heavy construction)
