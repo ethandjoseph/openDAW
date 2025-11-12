@@ -35,9 +35,9 @@ import {AudioOutputDevice} from "@/audio/AudioOutputDevice"
 import {FooterLabel} from "@/service/FooterLabel"
 import {RouteLocation} from "@opendaw/lib-jsx"
 import {PPQN} from "@opendaw/lib-dsp"
-import {Browser, ConsoleCommands, Dragging} from "@opendaw/lib-dom"
+import {Browser, ConsoleCommands, Dragging, Files} from "@opendaw/lib-dom"
 import {Promises} from "@opendaw/lib-runtime"
-import {ExportStemsConfiguration} from "@opendaw/studio-adapters"
+import {ExportStemsConfiguration, PresetDecoder} from "@opendaw/studio-adapters"
 import {Address} from "@opendaw/lib-box"
 import {
     AudioWorklets,
@@ -47,6 +47,7 @@ import {
     DefaultSoundfontLoaderManager,
     EngineFacade,
     EngineWorklet,
+    FilePickerAcceptTypes,
     Preferences,
     Project,
     ProjectEnv,
@@ -240,8 +241,29 @@ export class StudioService implements ProjectEnv {
                 .setProject(Project.skeleton(this, skeleton), "Dawproject"))
     }
 
-    async exportDawproject(): Promise<void> {
+    async exportDawproject() {
         return this.#projectProfileService.getValue().ifSome(profile => this.#dawProjectService.exportDawproject(profile))
+    }
+
+    async importPreset() {
+        const {
+            status,
+            value: files
+        } = await Promises.tryCatch(Files.open({types: [FilePickerAcceptTypes.PresetFileType]}))
+        if (status === "rejected") {return}
+        if (files.length === 0) {return}
+        const bytes = await files[0].arrayBuffer()
+        console.debug("importing preset", bytes.byteLength)
+        if (this.hasProfile) {
+            const {editing, skeleton} = this.project
+            editing.modify(() => PresetDecoder.decode(bytes, skeleton))
+        } else {
+            const project = Project.new(this)
+            const {editing, skeleton} = project
+            editing.modify(() => PresetDecoder.decode(bytes, skeleton))
+            this.#projectProfileService.setValue(Option.wrap(
+                new ProjectProfile(UUID.generate(), project, ProjectMeta.init("Untitled"), Option.None)))
+        }
     }
 
     runIfProject<R>(procedure: Func<Project, R>): Option<R> {

@@ -1,4 +1,4 @@
-import {DeviceHost, Devices, EffectDeviceBoxAdapter} from "@opendaw/studio-adapters"
+import {DeviceHost, Devices, EffectDeviceBoxAdapter, PresetEncoder} from "@opendaw/studio-adapters"
 import {MenuItem} from "@/ui/model/menu-item.ts"
 import {BoxEditing, PrimitiveField, PrimitiveValues, StringField} from "@opendaw/lib-box"
 import {EmptyExec, isInstanceOf, panic} from "@opendaw/lib-std"
@@ -44,11 +44,15 @@ export namespace MenuItems {
                             if (isInstanceOf(box, ModularDeviceBox)) {service.switchScreen("modular")}
                         })))
                 )),
-            MenuItem.default({label: "Save Preset To JSON..."})
-                .setTriggerProcedure(() => audioUnit.inputAdapter.ifSome(input => {
-                    const jsonString = new TextEncoder().encode(JSON.stringify(input.box.toJSON()))
-                    return Files.save(jsonString.buffer, {types: [FilePickerAcceptTypes.JsonFileType]})
-                }))
+            MenuItem.default({label: "Save Preset..."})
+                .setTriggerProcedure(async () => {
+                    const presetBytes = PresetEncoder.encode(audioUnit.box)
+                    await Files.save(presetBytes as ArrayBuffer, {types: [FilePickerAcceptTypes.PresetFileType]})
+                }),
+            MenuItem.default({label: "Load Deprecated Preset..."})
+                .setTriggerProcedure(async () => {
+
+                }),
         )
     }
 
@@ -59,7 +63,10 @@ export namespace MenuItems {
         MenuItem.default({label, checked: primitive.getValue() === value})
             .setTriggerProcedure(() => editing.modify(() => primitive.setValue(value)))
 
-    export const forEffectDevice = (parent: MenuItem, service: StudioService, host: DeviceHost, device: EffectDeviceBoxAdapter): void => {
+    export const forEffectDevice = (parent: MenuItem,
+                                    service: StudioService,
+                                    host: DeviceHost,
+                                    device: EffectDeviceBoxAdapter): void => {
         const {project} = service
         const {editing} = project
         parent.addMenuItem(
