@@ -1,7 +1,7 @@
 import {asDefined, isDefined, Option, UUID} from "@opendaw/lib-std"
 import {Box} from "@opendaw/lib-box"
 import {AudioUnitType, IconSymbol} from "@opendaw/studio-enums"
-import {AudioBusBox, AudioUnitBox} from "@opendaw/studio-boxes"
+import {AudioBusBox, AudioUnitBox, TrackBox} from "@opendaw/studio-boxes"
 import {AudioUnitFactory, CaptureBox, InstrumentFactories, ProjectSkeleton} from "@opendaw/studio-adapters"
 import {InstrumentAudioUnitImpl} from "./InstrumentAudioUnitImpl"
 import {ProjectImpl} from "./ProjectImpl"
@@ -50,10 +50,17 @@ export class AudioUnitBoxFactory {
             audioEffects.forEach((effect) => devices.set(effect, AudioEffectFactory.write(boxGraph, audioUnitBox, effect)))
             noteTrackWriter.write(audioUnitBox, noteTracks)
             valueTrackWriter.write(audioUnitBox, valueTracks)
+            if (trackIndex === 0) { // create a default track if none exists
+                TrackBox.create(boxGraph, UUID.generate(), box => {
+                    box.type.setValue(factory.trackType)
+                    box.index.setValue(0)
+                    box.target.refer(audioUnitBox)
+                    box.tracks.refer(audioUnitBox.tracks)
+                })
+            }
             audioUnitMap.set(audioUnit, audioUnitBox)
         })
         this.#project.groupUnits.forEach(groupUnit => {
-            console.debug("group unit", groupUnit)
             const audioBusBox = AudioBusBox.create(boxGraph, UUID.generate(), box => {
                 box.collection.refer(rootBox.audioBusses)
                 box.label.setValue(groupUnit.label)
