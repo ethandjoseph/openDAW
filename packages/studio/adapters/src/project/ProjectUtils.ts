@@ -1,15 +1,13 @@
 import {ppqn} from "@opendaw/lib-dsp"
-import {AnyRegionBox, AudioUnitOrdering, UnionBoxTypes} from "@opendaw/studio-adapters"
-import {Project} from "./Project"
 import {
     Arrays,
     asInstanceOf,
     assert,
     ByteArrayInput,
-    int,
     isInstanceOf,
     Option,
     Predicate,
+    Predicates,
     SetMultimap,
     SortedSet,
     UUID
@@ -19,45 +17,53 @@ import {
     AudioUnitBox,
     AuxSendBox,
     BoxIO,
+    BoxVisitor,
     RootBox,
     SelectionBox,
     SoundfontFileBox,
     TrackBox
 } from "@opendaw/studio-boxes"
 import {Address, Box, BoxGraph, IndexedBox, PointerField} from "@opendaw/lib-box"
+import {ProjectSkeleton} from "./ProjectSkeleton"
+import {AnyRegionBox, UnionBoxTypes} from "../unions"
+import {AudioUnitOrdering} from "../factories/AudioUnitOrdering"
 
 export namespace ProjectUtils {
     type UUIDMapper = { source: UUID.Bytes, target: UUID.Bytes }
 
     const isSameGraph: (a: Box, b: Box) => boolean = ({graph: a}, {graph: b}) => a === b
     const compareIndex = (a: IndexedBox, b: IndexedBox) => a.index.getValue() - b.index.getValue()
+    const excludeTimelinePredicate = (box: Box) => box.accept<BoxVisitor<boolean>>({
+        visitTrackBox: (_box: TrackBox): boolean => true
+    }) === true
 
     export const extractAudioUnits = (audioUnitBoxes: ReadonlyArray<AudioUnitBox>,
-                                      targetProject: Project,
-                                      options: { includeAux?: boolean, includeBus?: boolean } = {})
+                                      {boxGraph, mandatoryBoxes: {primaryAudioBus, rootBox}}: ProjectSkeleton,
+                                      options: {
+                                          includeAux?: boolean,
+                                          includeBus?: boolean,
+                                          excludeTimeline?: boolean,
+                                      } = {})
         : ReadonlyArray<AudioUnitBox> => {
         assert(Arrays.satisfy(audioUnitBoxes, isSameGraph), "AudioUnits must share the same BoxGraph")
         // TODO Implement include options.
         assert(!options.includeAux && !options.includeBus, "Options are not yet implemented")
-        const {boxGraph, editing, masterBusBox, rootBox} = targetProject
+        const excludeBox = options?.excludeTimeline === true ? excludeTimelinePredicate : Predicates.alwaysFalse
         const dependencies = audioUnitBoxes
-            .flatMap(box => Array.from(box.graph.dependenciesOf(box, {alwaysFollowMandatory: true}).boxes))
+            .flatMap(box => Array.from(box.graph.dependenciesOf(box, {alwaysFollowMandatory: true, excludeBox}).boxes))
             .filter(box => box.name !== SelectionBox.ClassName && box.name !== AuxSendBox.ClassName)
         const uuidMap = generateTransferMap(
-            audioUnitBoxes, dependencies, rootBox.audioUnits.address.uuid, masterBusBox.address.uuid)
-        editing.modify(() => {
-            console.debug("inTransaction", boxGraph.inTransaction())
-            copy(uuidMap, boxGraph, audioUnitBoxes, dependencies)
-            reorderAudioUnits(uuidMap, audioUnitBoxes, rootBox)
-            console.debug("inTransaction", boxGraph.inTransaction())
-        })
+            audioUnitBoxes, dependencies, rootBox.audioUnits.address.uuid, primaryAudioBus.address.uuid)
+        copy(uuidMap, boxGraph, audioUnitBoxes, dependencies)
+        reorderAudioUnits(uuidMap, audioUnitBoxes, rootBox)
+        console.debug("inTransaction", boxGraph.inTransaction())
         return audioUnitBoxes.map(source => asInstanceOf(rootBox.graph
             .findBox(uuidMap.get(source.address.uuid).target)
             .unwrap("Target Track has not been copied"), AudioUnitBox))
     }
 
     export const extractRegions = (regionBoxes: ReadonlyArray<AnyRegionBox>,
-                                   targetProject: Project,
+                                   {boxGraph, mandatoryBoxes: {primaryAudioBus, rootBox}}: ProjectSkeleton,
                                    insertPosition: ppqn = 0.0): void => {
         assert(Arrays.satisfy(regionBoxes, isSameGraph),
             "Region smust be from the same BoxGraph")
@@ -74,7 +80,6 @@ export namespace ProjectUtils {
         console.debug(`Found ${audioUnitBoxSet.keyCount()} audioUnits`)
         console.debug(`Found ${trackBoxSet.size} tracks`)
         const audioUnitBoxes = [...audioUnitBoxSet.keys()]
-        const {boxGraph, editing, masterBusBox, rootBox} = targetProject
         const excludeBox: Predicate<Box> =
             box => (isInstanceOf(box, TrackBox) && !trackBoxSet.has(box))
                 || (UnionBoxTypes.isRegionBox(box) && !regionBoxSet.has(box))
@@ -82,30 +87,28 @@ export namespace ProjectUtils {
             .flatMap(box => Array.from(box.graph.dependenciesOf(box, {excludeBox, alwaysFollowMandatory: true}).boxes))
             .filter(box => box.name !== SelectionBox.ClassName && box.name !== AuxSendBox.ClassName)
         const uuidMap = generateTransferMap(
-            audioUnitBoxes, dependencies, rootBox.audioUnits.address.uuid, masterBusBox.address.uuid)
-        editing.modify(() => {
-            copy(uuidMap, boxGraph, audioUnitBoxes, dependencies)
-            reorderAudioUnits(uuidMap, audioUnitBoxes, rootBox)
-            // reorder track indices
-            audioUnitBoxSet.forEach((_, trackBoxes) => [...trackBoxes]
-                .sort(compareIndex)
-                .forEach((source: TrackBox, index) => {
-                    const box = boxGraph
-                        .findBox(uuidMap.get(source.address.uuid).target)
-                        .unwrap("Target Track has not been copied")
-                    asInstanceOf(box, TrackBox).index.setValue(index)
-                }))
-            // move new regions to the target position
-            const minPosition = regionBoxes.reduce((min, region) =>
-                Math.min(min, region.position.getValue()), Number.MAX_VALUE)
-            const delta = insertPosition - minPosition
-            regionBoxes.forEach((source: AnyRegionBox) => {
+            audioUnitBoxes, dependencies, rootBox.audioUnits.address.uuid, primaryAudioBus.address.uuid)
+        copy(uuidMap, boxGraph, audioUnitBoxes, dependencies)
+        reorderAudioUnits(uuidMap, audioUnitBoxes, rootBox)
+        // reorder track indices
+        audioUnitBoxSet.forEach((_, trackBoxes) => [...trackBoxes]
+            .sort(compareIndex)
+            .forEach((source: TrackBox, index) => {
                 const box = boxGraph
                     .findBox(uuidMap.get(source.address.uuid).target)
                     .unwrap("Target Track has not been copied")
-                const position = UnionBoxTypes.asRegionBox(box).position
-                position.setValue(position.getValue() + delta)
-            })
+                asInstanceOf(box, TrackBox).index.setValue(index)
+            }))
+        // move new regions to the target position
+        const minPosition = regionBoxes.reduce((min, region) =>
+            Math.min(min, region.position.getValue()), Number.MAX_VALUE)
+        const delta = insertPosition - minPosition
+        regionBoxes.forEach((source: AnyRegionBox) => {
+            const box = boxGraph
+                .findBox(uuidMap.get(source.address.uuid).target)
+                .unwrap("Target Track has not been copied")
+            const position = UnionBoxTypes.asRegionBox(box).position
+            position.setValue(position.getValue() + delta)
         })
     }
 
@@ -182,33 +185,14 @@ export namespace ProjectUtils {
                                audioUnitBoxes: ReadonlyArray<AudioUnitBox>,
                                rootBox: RootBox): void => audioUnitBoxes
         .toSorted(compareIndex)
-        .map(source => ({
-            source, target: asInstanceOf(rootBox.graph
-                .findBox(uuidMap.get(source.address.uuid).target)
-                .unwrap("Target Track has not been copied"), AudioUnitBox)
-        }))
-        .forEach(({source, target}) => {
-            const boxes = IndexedBox.collectIndexedBoxes(rootBox.audioUnits, AudioUnitBox)
-            const sourceExistsInTargetGraph = source.collection.targetVertex.contains(rootBox.audioUnits)
-            if (sourceExistsInTargetGraph) {
-                const newIndex = source.index.getValue() + 1
-                for (let i = newIndex; i < boxes.length; i++) {
-                    boxes[i].index.setValue(i)
-                }
-                target.index.setValue(newIndex)
-            } else {
-                // We append new audioUnits to the end of the list.
-                // That is a bit slow, but we are probably not dealing with too many audioUnits at this point.
-                const order: int = AudioUnitOrdering[target.type.getValue()]
-                let index = 0 | 0
-                for (; index < boxes.length; index++) {
-                    if (AudioUnitOrdering[boxes[index].type.getValue()] > order) {break}
-                }
-                const insertIndex = index
-                while (index < boxes.length) {
-                    boxes[index].index.setValue(++index)
-                }
-                target.index.setValue(insertIndex)
-            }
-        })
+        .map(source => (asInstanceOf(rootBox.graph
+            .findBox(uuidMap.get(source.address.uuid).target)
+            .unwrap("Target Track has not been copied"), AudioUnitBox)))
+        .forEach((target) =>
+            IndexedBox.collectIndexedBoxes(rootBox.audioUnits, AudioUnitBox).toSorted((a, b) => {
+                const orderA = AudioUnitOrdering[a.type.getValue()]
+                const orderB = AudioUnitOrdering[b.type.getValue()]
+                const orderDifference = orderA - orderB
+                return orderDifference === 0 ? b === target ? -1 : 1 : orderDifference
+            }).forEach((box, index) => box.index.setValue(index)))
 }

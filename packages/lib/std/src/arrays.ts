@@ -160,4 +160,12 @@ export class Arrays {
             return record
         }, {} as Record<U, T>)
     }
+
+    static concatArrayBuffers(a: ArrayBufferLike, b: ArrayBufferLike): ArrayBuffer {
+        const result = new ArrayBuffer(a.byteLength + b.byteLength)
+        const view = new Uint8Array(result)
+        view.set(new Uint8Array(a), 0)
+        view.set(new Uint8Array(b), a.byteLength)
+        return result
+    }
 }

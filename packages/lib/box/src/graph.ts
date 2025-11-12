@@ -323,7 +323,7 @@ export class BoxGraph<BoxMap = any> {
         return output.toArrayBuffer()
     }
 
-    fromArrayBuffer(arrayBuffer: ArrayBuffer): void {
+    fromArrayBuffer(arrayBuffer: ArrayBufferLike): void {
         assert(this.#boxes.isEmpty(), "Cannot call fromArrayBuffer if boxes is not empty")
         const input = new ByteArrayInput(arrayBuffer)
         const numBoxes = input.readInt()
