@@ -5,7 +5,7 @@ import {Chord, Interpolation, PPQN} from "@opendaw/lib-dsp"
 const openDAW: Api = InaccessibleProperty("Not to be executed.")
 /*
 TODO:
-    * Put execution into a worker and send back the serialized boxes.
+    * Enable Dialogs
     * Add openDAW.getCurrentProject() <- needs to be send to worker and changes should be revertable
     * Get selections (introduce await to talk back to main-thread?)
     * Start a script-editor with selected items and write boiler-plate code to start modifiying them (typed)

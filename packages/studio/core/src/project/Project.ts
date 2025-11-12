@@ -14,6 +14,7 @@ import {BoxEditing, BoxGraph} from "@opendaw/lib-box"
 import {
     AudioBusBox,
     AudioFileBox,
+    AudioRegionBox,
     AudioUnitBox,
     BoxIO,
     BoxVisitor,
@@ -50,7 +51,7 @@ import {EngineWorklet} from "../EngineWorklet"
 import {MidiDevices, MIDILearning} from "../midi"
 import {ProjectValidation} from "./ProjectValidation"
 import {Preferences} from "../Preferences"
-import {ConstantTempoMap, PPQN, ppqn, TempoMap} from "@opendaw/lib-dsp"
+import {ConstantTempoMap, PPQN, ppqn, TempoMap, TimeBase} from "@opendaw/lib-dsp"
 
 export type RestartWorklet = { unload: Func<unknown, Promise<unknown>>, load: Procedure<EngineWorklet> }
 
@@ -237,6 +238,9 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
                 for (const [current, next] of Arrays.iterateAdjacent(box.regions.pointerHub.incoming()
                     .map(({box}) => UnionBoxTypes.asRegionBox(box))
                     .sort(({position: a}, {position: b}) => a.getValue() - b.getValue()))) {
+                    if (current instanceof AudioRegionBox && current.timeBase.getValue() === TimeBase.Seconds) {
+                        return false
+                    }
                     if (current.position.getValue() + current.duration.getValue() > next.position.getValue()) {
                         return true
                     }
