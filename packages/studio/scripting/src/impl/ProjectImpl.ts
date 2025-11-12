@@ -5,13 +5,15 @@ import {ReturnAudioUnitImpl} from "./ReturnAudioUnitImpl"
 import {GroupAudioUnitImpl} from "./GroupAudioUnitImpl"
 import {ApiImpl} from "./ApiImpl"
 import {Converter} from "../Converter"
+import {int} from "@opendaw/lib-std"
 
 export class ProjectImpl implements Project {
     readonly api: ApiImpl
     readonly output: OutputAudioUnit
 
     name: string
-    tempo: number
+    bpm: number
+    timeSignature: { numerator: int, denominator: int } = {numerator: 4, denominator: 4}
 
     #instruments: InstrumentAudioUnitImpl[] = []
     #returns: ReturnAudioUnitImpl[] = []
@@ -20,16 +22,13 @@ export class ProjectImpl implements Project {
     constructor(api: ApiImpl, name: string) {
         this.api = api
         this.name = name
-        this.tempo = 120
+        this.bpm = 120
         this.output = new OutputAudioUnitImpl(this)
     }
 
     openInStudio(): void {this.api.environment.openProject(Converter.toSkeleton(this), this.name)}
 
-    addInstrumentUnit<KEY extends keyof Instruments>(
-        name: KEY,
-        props?: Partial<Instruments[KEY]>
-    ): InstrumentAudioUnit {
+    addInstrumentUnit<KEY extends keyof Instruments>(name: KEY, props?: Partial<Instruments[KEY]>): InstrumentAudioUnit {
         const unit = new InstrumentAudioUnitImpl(this, name, props)
         this.#instruments.push(unit)
         return unit
@@ -47,15 +46,7 @@ export class ProjectImpl implements Project {
         return unit
     }
 
-    getInstrumentUnits(): ReadonlyArray<InstrumentAudioUnitImpl> {
-        return this.#instruments
-    }
-
-    getReturnUnits(): ReadonlyArray<ReturnAudioUnitImpl> {
-        return this.#returns
-    }
-
-    getGroupUnits(): ReadonlyArray<GroupAudioUnitImpl> {
-        return this.#groups
-    }
+    get instrumentUnits(): ReadonlyArray<InstrumentAudioUnitImpl> {return this.#instruments}
+    get returnUnits(): ReadonlyArray<ReturnAudioUnitImpl> {return this.#returns}
+    get groupUnits(): ReadonlyArray<GroupAudioUnitImpl> {return this.#groups}
 }

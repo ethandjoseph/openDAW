@@ -23,14 +23,19 @@ export namespace Converter {
         const noteTrackWriter = new NoteTrackWriter(boxGraph, () => trackIndex++)
         const valueTrackWriter = new ValueTrackWriter(boxGraph, devices, () => trackIndex++)
         boxGraph.beginTransaction()
-        timelineBox.bpm.setValue(project.tempo)
-        project.getInstrumentUnits().forEach(({
-                                                  instrument, midiEffects, audioEffects, noteTracks, valueTracks,
-                                                  volume, panning, mute, solo
-                                              }: InstrumentAudioUnitImpl) => {
+        // TODO clamp or throw on invalid values
+        timelineBox.bpm.setValue(project.bpm)
+        timelineBox.signature.nominator.setValue(project.timeSignature.numerator)
+        timelineBox.signature.denominator.setValue(project.timeSignature.denominator)
+        project.instrumentUnits.forEach((audioUnit: InstrumentAudioUnitImpl) => {
+            const {
+                instrument, midiEffects, audioEffects, noteTracks, valueTracks,
+                volume, panning, mute, solo
+            } = audioUnit
             const factory = InstrumentFactories.Named[instrument.name]
             const capture: Option<CaptureBox> = AudioUnitFactory.trackTypeToCapture(boxGraph, factory.trackType)
             const audioUnitBox = AudioUnitFactory.create(skeleton, AudioUnitType.Instrument, capture)
+            devices.set(audioUnit, audioUnitBox)
             audioUnitBox.mute.setValue(mute)
             audioUnitBox.solo.setValue(solo)
             audioUnitBox.volume.setValue(volume)

@@ -3,18 +3,9 @@ import {bipolar, float, int, unitValue} from "@opendaw/lib-std"
 
 export {PPQN, Chord}
 
-export type PercentString = `${number}%`
-export type Percent = PercentString | number
-export type DurationUnit = "bars" | "beats" | "ms" | "s"
-export type DurationString = `${number}${DurationUnit}`
-export type Duration = ppqn | DurationString | "1/4" | "1/8" | "1/16" | "1/32"
-export type VolumeString = `${number}dB` | PercentString
-export type VolumeValue = number | VolumeString | "default"
-export type PanValue = number | PercentString | "left" | "right" | "center"
-
 export type Send = {
-    amount: VolumeValue
-    pan: PanValue
+    amount: number
+    pan: bipolar
     mode: "pre" | "post"
 }
 
@@ -26,6 +17,7 @@ export type AnyDevice =
     | MIDIEffects[keyof MIDIEffects]
     | AudioEffects[keyof AudioEffects]
     | Instruments[keyof Instruments]
+    | AudioUnit
 
 export interface Effect {
     enabled: boolean
@@ -178,7 +170,8 @@ export interface Project {
     readonly output: OutputAudioUnit
 
     name: string
-    tempo: number
+    bpm: number
+    timeSignature: { numerator: int, denominator: int }
 
     addInstrumentUnit<KEY extends keyof Instruments>(name: KEY, props?: Partial<Instruments[KEY]>): InstrumentAudioUnit
     addReturnUnit(): ReturnAudioUnit

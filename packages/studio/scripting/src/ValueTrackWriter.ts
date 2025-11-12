@@ -37,6 +37,7 @@ export class ValueTrackWriter {
                     ? asDefined(this.#map.get(mirror), "mirror region not found in map")
                     : ValueEventCollectionBox.create(this.#boxGraph, UUID.generate())
                 this.#map.set(region, valueEventCollectionBox)
+                // TODO verify that events are valid (same position needs index increment)
                 events.forEach(event => {
                     const valueEvent = ValueEventBox.create(this.#boxGraph, UUID.generate(), box => {
                         box.position.setValue(event.position)
