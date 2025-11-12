@@ -58,7 +58,7 @@ export class AudioUnitBoxFactory {
                 box.collection.refer(rootBox.audioBusses)
                 box.label.setValue(groupUnit.label)
                 box.icon.setValue(IconSymbol.toName(IconSymbol.AudioBus))
-                box.color.setValue("var(--color-orange)") // TODO
+                box.color.setValue("var(--color-orange)") // TODO Colors need to be in code and written to CSS
             })
             const audioUnitBox = AudioUnitBox.create(boxGraph, UUID.generate(), box => {
                 box.type.setValue(AudioUnitType.Bus)
@@ -79,7 +79,6 @@ export class AudioUnitBoxFactory {
         audioUnits.forEach((audioUnit: AudioUnit) => {
             const {output} = audioUnit
             const audioBusBox = isDefined(output) ? busMap.get(output) : null
-            console.debug(">", audioUnit, audioBusBox?.output.targetVertex.unwrapOrNull())
             if (isDefined(audioBusBox)) {
                 const audioUnitBox = asDefined(audioUnitMap.get(audioUnit), "audio unit not found in map")
                 audioUnitBox.output.refer(audioBusBox.input)
