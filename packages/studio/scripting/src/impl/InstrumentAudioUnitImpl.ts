@@ -1,13 +1,15 @@
-import {Instrument, InstrumentAudioUnit, Instruments, Send} from "../Api"
+import {AuxAudioUnit, GroupAudioUnit, Instrument, InstrumentAudioUnit, Instruments, Send} from "../Api"
 import {ProjectImpl} from "./ProjectImpl"
 import {AudioUnitImpl} from "./AudioUnitImpl"
 import {SendImpl} from "./SendImpl"
 import {InstrumentImpl} from "./InstrumentImpl"
+import {Arrays} from "@opendaw/lib-std"
 
 export class InstrumentAudioUnitImpl extends AudioUnitImpl implements InstrumentAudioUnit {
     readonly kind = "instrument" as const
-    readonly instrument: InstrumentImpl
-    readonly #sends: SendImpl[]
+    readonly #sends: Array<SendImpl>
+
+    instrument: InstrumentImpl
 
     constructor(project: ProjectImpl, instrumentName: keyof Instruments, props?: Partial<Instruments[keyof Instruments]>) {
         super(project)
@@ -15,18 +17,18 @@ export class InstrumentAudioUnitImpl extends AudioUnitImpl implements Instrument
         this.#sends = []
     }
 
-    setInstrument(name: keyof Instruments): Instrument {
-        // In a real implementation, this would swap out the instrument
+    setInstrument(instrumentName: keyof Instruments, props?: Partial<Instruments[keyof Instruments]>): Instrument {
+        this.instrument = new InstrumentImpl(this, instrumentName, props)
         return this.instrument
     }
 
-    addSend(props?: Partial<Send>): Send {
-        const send = new SendImpl(props)
+    addSend(target: AuxAudioUnit | GroupAudioUnit, props?: Partial<Send>): Send {
+        const send = new SendImpl(target, props)
         this.#sends.push(send)
         return send
     }
 
-    getSends(): ReadonlyArray<SendImpl> {
-        return this.#sends
-    }
+    removeSend(send: Send): void {Arrays.remove(this.#sends, send)}
+
+    get sends(): ReadonlyArray<SendImpl> {return this.#sends}
 }

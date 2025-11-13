@@ -10,7 +10,8 @@ export type Send = {
 }
 
 export interface Sendable {
-    addSend(props?: Partial<Send>): Send
+    addSend(target: AuxAudioUnit | GroupAudioUnit, props?: Partial<Send>): Send
+    removeSend(send: Send): void
 }
 
 export type AnyDevice =
@@ -58,7 +59,7 @@ export interface MIDIEffects {
 
 export interface AudioUnit {
     output: Nullable<OutputAudioUnit | GroupAudioUnit>
-    volume: number
+    volume: number // db
     panning: bipolar
     mute: boolean
     solo: boolean
@@ -75,13 +76,13 @@ export interface InstrumentAudioUnit extends AudioUnit, Sendable {
     setInstrument(name: keyof Instruments): Instrument
 }
 
-export interface ReturnAudioUnit extends AudioUnit, Sendable {
-    readonly kind: "return"
+export interface AuxAudioUnit extends AudioUnit, Sendable {
+    readonly kind: "auxiliary"
+    label: string
 }
 
 export interface GroupAudioUnit extends AudioUnit, Sendable {
     readonly kind: "group"
-
     label: string
 }
 
@@ -177,7 +178,7 @@ export interface Project {
     timeSignature: { numerator: int, denominator: int }
 
     addInstrumentUnit<KEY extends keyof Instruments>(name: KEY, props?: Partial<Instruments[KEY]>): InstrumentAudioUnit
-    addReturnUnit(): ReturnAudioUnit
+    addAuxUnit(): AuxAudioUnit
     addGroupUnit(props?: Partial<GroupAudioUnit>): GroupAudioUnit
 
     openInStudio(): void

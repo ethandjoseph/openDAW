@@ -1,6 +1,6 @@
 import {Chord, Interpolation, PPQN} from "@opendaw/lib-dsp"
+import {Api} from "./Api"
 import {ApiImpl} from "./impl"
-
 import {ScriptHostProtocol} from "./ScriptHostProtocol"
 
 export class ScriptExecutor {

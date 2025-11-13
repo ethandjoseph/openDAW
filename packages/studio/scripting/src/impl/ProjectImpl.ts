@@ -1,9 +1,9 @@
 import {int} from "@opendaw/lib-std"
-import {GroupAudioUnit, InstrumentAudioUnit, Instruments, OutputAudioUnit, Project, ReturnAudioUnit} from "../Api"
+import {AuxAudioUnit, GroupAudioUnit, InstrumentAudioUnit, Instruments, OutputAudioUnit, Project} from "../Api"
 import {ApiImpl} from "./ApiImpl"
 import {OutputAudioUnitImpl} from "./OutputAudioUnitImpl"
 import {InstrumentAudioUnitImpl} from "./InstrumentAudioUnitImpl"
-import {ReturnAudioUnitImpl} from "./ReturnAudioUnitImpl"
+import {AuxAudioUnitImpl} from "./AuxAudioUnitImpl"
 import {GroupAudioUnitImpl} from "./GroupAudioUnitImpl"
 import {ProjectConverter} from "../ProjectConverter"
 
@@ -16,8 +16,8 @@ export class ProjectImpl implements Project {
     timeSignature: { numerator: int, denominator: int } = {numerator: 4, denominator: 4}
 
     #instruments: InstrumentAudioUnitImpl[] = []
-    #returns: ReturnAudioUnitImpl[] = []
-    #groups: GroupAudioUnitImpl[] = []
+    #auxUnits: AuxAudioUnitImpl[] = []
+    #groupUnits: GroupAudioUnitImpl[] = []
 
     constructor(api: ApiImpl, name: string) {
         this.#api = api
@@ -36,19 +36,19 @@ export class ProjectImpl implements Project {
         return unit
     }
 
-    addReturnUnit(): ReturnAudioUnit {
-        const unit = new ReturnAudioUnitImpl(this)
-        this.#returns.push(unit)
+    addAuxUnit(): AuxAudioUnit {
+        const unit = new AuxAudioUnitImpl(this)
+        this.#auxUnits.push(unit)
         return unit
     }
 
     addGroupUnit(props?: Partial<GroupAudioUnit>): GroupAudioUnit {
         const unit = new GroupAudioUnitImpl(this, props)
-        this.#groups.push(unit)
+        this.#groupUnits.push(unit)
         return unit
     }
 
     get instrumentUnits(): ReadonlyArray<InstrumentAudioUnitImpl> {return this.#instruments}
-    get returnUnits(): ReadonlyArray<ReturnAudioUnitImpl> {return this.#returns}
-    get groupUnits(): ReadonlyArray<GroupAudioUnitImpl> {return this.#groups}
+    get auxUnits(): ReadonlyArray<AuxAudioUnitImpl> {return this.#auxUnits}
+    get groupUnits(): ReadonlyArray<GroupAudioUnitImpl> {return this.#groupUnits}
 }

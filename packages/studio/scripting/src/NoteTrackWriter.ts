@@ -1,27 +1,22 @@
 import {NoteRegionImpl, NoteTrackImpl} from "./impl"
-import {asDefined, isDefined, Provider, UUID} from "@opendaw/lib-std"
+import {asDefined, isDefined, UUID} from "@opendaw/lib-std"
 import {AudioUnitBox, NoteEventBox, NoteEventCollectionBox, NoteRegionBox, TrackBox} from "@opendaw/studio-boxes"
 import {TrackType} from "@opendaw/studio-adapters"
 import {BoxGraph} from "@opendaw/lib-box"
 import {NoteRegion} from "./Api"
+import {IndexRef} from "./IndexRef"
 
-export class NoteTrackWriter {
-    readonly #boxGraph: BoxGraph
-    readonly #nextTrackIndex: Provider<int>
-
-    readonly #map: Map<NoteRegion, NoteEventCollectionBox> = new Map()
-
-    constructor(boxGraph: BoxGraph, nextTrackIndex: Provider<int>) {
-        this.#boxGraph = boxGraph
-        this.#nextTrackIndex = nextTrackIndex
-    }
-
-    write(audioUnitBox: AudioUnitBox, noteTracks: ReadonlyArray<NoteTrackImpl>): void {
+export namespace NoteTrackWriter {
+    export const write = (boxGraph: BoxGraph,
+                          audioUnitBox: AudioUnitBox,
+                          noteTracks: ReadonlyArray<NoteTrackImpl>,
+                          indexRef: IndexRef): void => {
+        const map: Map<NoteRegion, NoteEventCollectionBox> = new Map()
         noteTracks.forEach(({enabled, regions}: NoteTrackImpl) => {
-            const trackBox = TrackBox.create(this.#boxGraph, UUID.generate(), box => {
+            const trackBox = TrackBox.create(boxGraph, UUID.generate(), box => {
                 box.type.setValue(TrackType.Notes)
                 box.enabled.setValue(enabled)
-                box.index.setValue(this.#nextTrackIndex())
+                box.index.setValue(indexRef.index++)
                 box.target.refer(audioUnitBox)
                 box.tracks.refer(audioUnitBox.tracks)
             })
@@ -30,11 +25,11 @@ export class NoteTrackWriter {
                     position, duration, loopDuration, loopOffset, events, hue, label, mute, mirror
                 } = region
                 const noteEventCollectionBox = isDefined(mirror)
-                    ? asDefined(this.#map.get(mirror), "mirror region not found in map")
-                    : NoteEventCollectionBox.create(this.#boxGraph, UUID.generate())
-                this.#map.set(region, noteEventCollectionBox)
+                    ? asDefined(map.get(mirror), "mirror region not found in map")
+                    : NoteEventCollectionBox.create(boxGraph, UUID.generate())
+                map.set(region, noteEventCollectionBox)
                 events.forEach(event => {
-                    NoteEventBox.create(this.#boxGraph, UUID.generate(), box => {
+                    NoteEventBox.create(boxGraph, UUID.generate(), box => {
                         box.position.setValue(event.position)
                         box.duration.setValue(event.duration)
                         box.pitch.setValue(event.pitch)
@@ -43,7 +38,7 @@ export class NoteTrackWriter {
                         box.events.refer(noteEventCollectionBox.events)
                     })
                 })
-                NoteRegionBox.create(this.#boxGraph, UUID.generate(), box => {
+                NoteRegionBox.create(boxGraph, UUID.generate(), box => {
                     box.position.setValue(position)
                     box.duration.setValue(duration)
                     box.loopDuration.setValue(loopDuration)

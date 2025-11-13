@@ -1,31 +1,25 @@
 import {ValueRegionImpl, ValueTrackImpl} from "./impl"
-import {asDefined, isDefined, Provider, UUID} from "@opendaw/lib-std"
+import {asDefined, isDefined, UUID} from "@opendaw/lib-std"
 import {AudioUnitBox, TrackBox, ValueEventBox, ValueEventCollectionBox, ValueRegionBox} from "@opendaw/studio-boxes"
 import {InterpolationFieldAdapter, TrackType} from "@opendaw/studio-adapters"
 import {Box, BoxGraph} from "@opendaw/lib-box"
 import {AnyDevice, ValueRegion} from "./Api"
+import {IndexRef} from "./IndexRef"
 
-export class ValueTrackWriter {
-    readonly #boxGraph: BoxGraph
-    readonly #devices: Map<AnyDevice, Box>
-    readonly #nextTrackIndex: Provider<int>
-
-    readonly #map: Map<ValueRegion, ValueEventCollectionBox> = new Map()
-
-    constructor(boxGraph: BoxGraph, devices: Map<AnyDevice, Box>, nextTrackIndex: Provider<int>) {
-        this.#boxGraph = boxGraph
-        this.#devices = devices
-        this.#nextTrackIndex = nextTrackIndex
-    }
-
-    write(audioUnitBox: AudioUnitBox, valueTracks: ReadonlyArray<ValueTrackImpl>): void {
+export namespace ValueTrackWriter {
+    export const write = (boxGraph: BoxGraph,
+                          devices: Map<AnyDevice, Box>,
+                          audioUnitBox: AudioUnitBox,
+                          valueTracks: ReadonlyArray<ValueTrackImpl>,
+                          indexRef: IndexRef): void => {
+        const map: Map<ValueRegion, ValueEventCollectionBox> = new Map()
         valueTracks.forEach(({enabled, regions, device, parameter}: ValueTrackImpl) => {
-            const box = asDefined(this.#devices.get(device), `Could not find ${device}`)
+            const box = asDefined(devices.get(device), `Could not find ${device}`)
             const field = box[parameter]
-            const trackBox = TrackBox.create(this.#boxGraph, UUID.generate(), box => {
+            const trackBox = TrackBox.create(boxGraph, UUID.generate(), box => {
                 box.type.setValue(TrackType.Value)
                 box.enabled.setValue(enabled)
-                box.index.setValue(this.#nextTrackIndex())
+                box.index.setValue(indexRef.index++)
                 box.target.refer(field)
                 box.tracks.refer(audioUnitBox.tracks)
             })
@@ -34,12 +28,12 @@ export class ValueTrackWriter {
                     position, duration, loopDuration, loopOffset, events, hue, label, mute, mirror
                 } = region
                 const valueEventCollectionBox = isDefined(mirror)
-                    ? asDefined(this.#map.get(mirror), "mirror region not found in map")
-                    : ValueEventCollectionBox.create(this.#boxGraph, UUID.generate())
-                this.#map.set(region, valueEventCollectionBox)
+                    ? asDefined(map.get(mirror), "mirror region not found in map")
+                    : ValueEventCollectionBox.create(boxGraph, UUID.generate())
+                map.set(region, valueEventCollectionBox)
                 // TODO verify that events are valid (same position needs index increment)
                 events.forEach(event => {
-                    const valueEvent = ValueEventBox.create(this.#boxGraph, UUID.generate(), box => {
+                    const valueEvent = ValueEventBox.create(boxGraph, UUID.generate(), box => {
                         box.position.setValue(event.position)
                         box.value.setValue(event.value)
                         box.slope.setValue(NaN)
@@ -48,7 +42,7 @@ export class ValueTrackWriter {
                     })
                     InterpolationFieldAdapter.write(valueEvent.interpolation, event.interpolation)
                 })
-                ValueRegionBox.create(this.#boxGraph, UUID.generate(), box => {
+                ValueRegionBox.create(boxGraph, UUID.generate(), box => {
                     box.position.setValue(position)
                     box.duration.setValue(duration)
                     box.loopDuration.setValue(loopDuration)

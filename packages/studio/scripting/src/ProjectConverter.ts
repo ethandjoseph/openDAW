@@ -16,14 +16,13 @@ export namespace ProjectConverter {
         const {boxGraph, mandatoryBoxes: {rootBox, timelineBox, userInterfaceBoxes: [defaultUser]}} = skeleton
         const {bpm, timeSignature} = project
 
-        const audioUnitBoxFactory = new AudioUnitBoxFactory(skeleton, project)
         boxGraph.beginTransaction()
         timelineBox.bpm.setValue(Validator.clampBpm(bpm))
         const [numerator, denominator] = Validator.isTimeSignatureValid(
             timeSignature.numerator, timeSignature.denominator).result()
         timelineBox.signature.nominator.setValue(numerator)
         timelineBox.signature.denominator.setValue(denominator)
-        audioUnitBoxFactory.create()
+        AudioUnitBoxFactory.create(skeleton, project)
         // select the first audio unit as the editing device
         const firstAudioUnitBox = rootBox.audioUnits.pointerHub.incoming()
             .map(({box}) => asInstanceOf(box, AudioUnitBox))

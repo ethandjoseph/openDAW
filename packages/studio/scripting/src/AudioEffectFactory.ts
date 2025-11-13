@@ -1,6 +1,7 @@
 import {Box, BoxGraph} from "@opendaw/lib-box"
 import {AudioUnitBox, DelayDeviceBox} from "@opendaw/studio-boxes"
 import {Unhandled, UUID} from "@opendaw/lib-std"
+import {AudioEffects} from "./Api"
 
 export class AudioEffectFactory {
     static write(boxGraph: BoxGraph, audioUnitBox: AudioUnitBox, effect: AudioEffects[keyof AudioEffects]): Box {

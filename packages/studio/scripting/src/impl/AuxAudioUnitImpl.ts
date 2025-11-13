@@ -4,8 +4,8 @@ import {AudioUnitImpl} from "./AudioUnitImpl"
 import {SendImpl} from "./SendImpl"
 import {Arrays} from "@opendaw/lib-std"
 
-export class GroupAudioUnitImpl extends AudioUnitImpl implements GroupAudioUnit {
-    readonly kind = "group" as const
+export class AuxAudioUnitImpl extends AudioUnitImpl implements AuxAudioUnit {
+    readonly kind = "auxiliary" as const
 
     readonly #sends: Array<SendImpl>
 
@@ -14,7 +14,7 @@ export class GroupAudioUnitImpl extends AudioUnitImpl implements GroupAudioUnit 
     constructor(project: ProjectImpl, props?: Partial<GroupAudioUnit>) {
         super(project, props)
 
-        this.label = props?.label ?? "Subgroup"
+        this.label = props?.label ?? "FX Track"
 
         this.#sends = []
     }

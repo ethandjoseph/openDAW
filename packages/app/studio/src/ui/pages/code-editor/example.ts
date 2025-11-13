@@ -38,6 +38,10 @@ const groupUnit = project.addGroupUnit()
 vapoUnit1.output = groupUnit
 vapoUnit2.output = groupUnit
 
+const fxTrack = project.addAuxUnit()
+fxTrack.addAudioEffect("delay")
+vapoUnit1.addSend(fxTrack, {pan: -1.0, amount: -3.0})
+
 vapoUnit1.addMIDIEffect("pitch", {octaves: 1, label: "Up"})
 const pitch = vapoUnit1.addMIDIEffect("pitch", {octaves: -1, label: "Down"})
 {
