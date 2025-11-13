@@ -1,4 +1,4 @@
-import {ValueRegionImpl, ValueTrackImpl} from "./impl"
+import {ValueEventImpl, ValueRegionImpl, ValueTrackImpl} from "./impl"
 import {asDefined, isDefined, UUID} from "@opendaw/lib-std"
 import {AudioUnitBox, TrackBox, ValueEventBox, ValueEventCollectionBox, ValueRegionBox} from "@opendaw/studio-boxes"
 import {InterpolationFieldAdapter, TrackType} from "@opendaw/studio-adapters"
@@ -31,12 +31,11 @@ export namespace ValueTrackWriter {
                     ? asDefined(map.get(mirror), "mirror region not found in map")
                     : ValueEventCollectionBox.create(boxGraph, UUID.generate())
                 map.set(region, valueEventCollectionBox)
-                // TODO verify that events are valid (same position needs index increment)
-                events.forEach(event => {
+                orderValueEvents(events).forEach(event => {
                     const valueEvent = ValueEventBox.create(boxGraph, UUID.generate(), box => {
                         box.position.setValue(event.position)
                         box.value.setValue(event.value)
-                        box.slope.setValue(NaN)
+                        box.slope.setValue(NaN) // deprecated
                         box.index.setValue(event.index)
                         box.events.refer(valueEventCollectionBox.events)
                     })
@@ -55,5 +54,30 @@ export namespace ValueTrackWriter {
                 })
             })
         })
+    }
+
+    const orderValueEvents = (events: ReadonlyArray<ValueEventImpl>): Array<ValueEventImpl> => {
+        if (events.length === 0) return []
+        events.toSorted((a, b) => a.position - b.position)
+        const result: Array<ValueEventImpl> = []
+        let index = 0
+        while (index < events.length) {
+            const position = events[index].position
+            const start = index
+            // Skip to the end of this position group
+            while (index < events.length && events[index].position === position) {
+                index++
+            }
+            const end = index - 1
+            if (start === end) {
+                events[start].index = 0
+                result.push(events[start])
+            } else {
+                events[start].index = 0
+                events[end].index = 1
+                result.push(events[start], events[end])
+            }
+        }
+        return result
     }
 }

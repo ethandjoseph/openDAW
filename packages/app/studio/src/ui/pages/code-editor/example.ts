@@ -63,6 +63,9 @@ const pitch = vapoUnit1.addMIDIEffect("pitch", {octaves: -1, label: "Down"})
     const region = track.addRegion({duration: PPQN.Bar * 4})
     region.addEvent({position: 0, value: 0.5, interpolation: Interpolation.None})
     region.addEvent({position: PPQN.Bar * 2, value: 0.0, interpolation: Interpolation.Curve(0.25)})
+    region.addEvent({position: PPQN.Bar * 3, value: 1.0})
+    region.addEvent({position: PPQN.Bar * 3, value: 0.5})
+    region.addEvent({position: PPQN.Bar * 3, value: 0.0})
     region.addEvent({position: PPQN.Bar * 4, value: 1.0})
 }
 {

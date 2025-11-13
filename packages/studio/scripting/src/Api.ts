@@ -16,7 +16,7 @@ export interface Sendable {
     /**
      * Add a Send to an auxiliary or group unit
      * @param target - The destination unit for the Send
-     * @param props - Send configuration
+     * @param props - Send configuration ({@link Send})
      */
     addSend(target: AuxAudioUnit | GroupAudioUnit, props?: Partial<Send>): Send
     /** Remove an existing Send */
@@ -187,8 +187,6 @@ export interface ValueEvent {
     position: ppqn
     /** Parameter value (0.0 to 1.0) */
     value: unitValue
-    /** Event index for ordering */
-    index: int
     /** Interpolation curve type */
     interpolation: Interpolation
 }

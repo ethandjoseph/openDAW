@@ -35,11 +35,7 @@ export const CodeEditorPage: PageFactory<StudioService> = ({lifecycle, service}:
                         theme: "vs-dark",
                         automaticLayout: true,
                         suggestOnTriggerCharacters: true,
-                        quickSuggestions: true,
-                        definitionLinkOpensInPeek: false,
-                        selectionHighlight: false,
-                        colorDecorators: true,
-                        links: false,
+                        quickSuggestions: true
                     })
                     const allowed = ["c", "v", "x", "a", "z", "y"]
                     lifecycle.ownAll(
