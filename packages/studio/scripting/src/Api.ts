@@ -59,7 +59,9 @@ export interface MIDIEffects {
 
 export interface AudioUnit {
     output: Nullable<OutputAudioUnit | GroupAudioUnit>
-    volume: number // db
+    /** Volume in decibels (dB) */
+    volume: number
+    /** Pan position (-1.0 = full left, 0.0 = center, 1.0 = full right) */
     panning: bipolar
     mute: boolean
     solo: boolean
