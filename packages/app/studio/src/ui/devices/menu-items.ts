@@ -49,29 +49,31 @@ export namespace MenuItems {
                     const presetBytes = PresetEncoder.encode(audioUnit.box)
                     await Files.save(presetBytes as ArrayBuffer, {types: [FilePickerAcceptTypes.PresetFileType]})
                 }),
-            MenuItem.default({label: "Load Deprecated Preset..."})
-                .setTriggerProcedure(async () => {
-                    const files = await Files.open({types: [FilePickerAcceptTypes.JsonFileType]})
-                    if (files.length === 0) {return}
-                    const string = new TextDecoder().decode(await files[0].arrayBuffer())
-                    const json = JSON.parse(string)
-                    if (json["2"] !== "Vaporisateur") {
-                        await RuntimeNotifier.info({
-                            headline: "Cannot Load Preset",
-                            message: "This feature is deprecated (code: 0)."
-                        })
-                    }
-                    delete json["1"]
-                    const input = audioUnit.box.input.pointerHub.incoming().at(0)?.box
-                    if (!isInstanceOf(input, VaporisateurDeviceBox)) {
-                        await RuntimeNotifier.info({
-                            headline: "Cannot Load Preset",
-                            message: "This feature is deprecated (code: 1)."
-                        })
-                        return
-                    }
-                    editing.modify(() => input.fromJSON(json))
-                })
+            MenuItem.default({
+                label: "Load Deprecated Preset...",
+                hidden: location.hash !== "#riffle"
+            }).setTriggerProcedure(async () => {
+                const files = await Files.open({types: [FilePickerAcceptTypes.JsonFileType]})
+                if (files.length === 0) {return}
+                const string = new TextDecoder().decode(await files[0].arrayBuffer())
+                const json = JSON.parse(string)
+                if (json["2"] !== "Vaporisateur") {
+                    await RuntimeNotifier.info({
+                        headline: "Cannot Load Preset",
+                        message: "This feature is deprecated (code: 0)."
+                    })
+                }
+                delete json["1"]
+                const input = audioUnit.box.input.pointerHub.incoming().at(0)?.box
+                if (!isInstanceOf(input, VaporisateurDeviceBox)) {
+                    await RuntimeNotifier.info({
+                        headline: "Cannot Load Preset",
+                        message: "This feature is deprecated (code: 1)."
+                    })
+                    return
+                }
+                editing.modify(() => input.fromJSON(json))
+            })
         )
     }
 
