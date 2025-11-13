@@ -1,10 +1,10 @@
 import {StudioService} from "@/service/StudioService"
 import {Communicator, Messenger, Promises} from "@opendaw/lib-runtime"
 import {ScriptExecutionProtocol, ScriptHostProtocol} from "@opendaw/studio-scripting"
-import {Project} from "@opendaw/studio-core"
-import {ProjectDecoder} from "@opendaw/studio-adapters"
+import {Project, WavFile} from "@opendaw/studio-core"
+import {AudioData, ProjectDecoder} from "@opendaw/studio-adapters"
 import {BoxGraph} from "@opendaw/lib-box"
-import {Errors, Option, RuntimeNotifier} from "@opendaw/lib-std"
+import {Errors, Option, RuntimeNotifier, UUID} from "@opendaw/lib-std"
 import {BoxIO} from "@opendaw/studio-boxes"
 import scriptWorkerUrl from "@opendaw/studio-scripting/ScriptWorker.js?worker&url"
 
@@ -21,7 +21,15 @@ export class ScriptExecutor implements ScriptExecutionProtocol {
                 const project = Project.skeleton(service, {boxGraph, mandatoryBoxes})
                 service.projectProfileService.setProject(project, name ?? "Scripted Project")
                 service.switchScreen("default")
-            }
+            },
+            registerSample: (data: AudioData, name: string): Promise<UUID.Bytes> => service.sampleService.importFile({
+                name, arrayBuffer: WavFile.encodeFloats({
+                    channels: data.frames,
+                    numFrames: data.numberOfFrames,
+                    sampleRate: data.sampleRate,
+                    numberOfChannels: data.numberOfChannels
+                })
+            }).then(({uuid}) => UUID.parse(uuid))
         })
 
         this.#executor = Communicator.sender<ScriptExecutionProtocol>(messenger.channel("scripting-execution"),

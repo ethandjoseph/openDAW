@@ -1,8 +1,8 @@
 import {Api, Project} from "../Api"
 import {ProjectImpl} from "./ProjectImpl"
-import {panic} from "@opendaw/lib-std"
-
+import {panic, UUID} from "@opendaw/lib-std"
 import {ScriptHostProtocol} from "../ScriptHostProtocol"
+import {AudioData} from "@opendaw/studio-adapters"
 
 export class ApiImpl implements Api, ScriptHostProtocol {
     readonly #protocol: ScriptHostProtocol
@@ -19,5 +19,9 @@ export class ApiImpl implements Api, ScriptHostProtocol {
 
     openProject(buffer: ArrayBufferLike, name?: string): void {
         this.#protocol.openProject(buffer, name)
+    }
+
+    registerSample(data: AudioData, name: string): Promise<UUID.Bytes> {
+        return this.#protocol.registerSample(data, name)
     }
 }

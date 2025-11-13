@@ -48,7 +48,7 @@ export class SampleService extends AssetService<Sample> {
             audioData.numberOfChannels) as ArrayBuffer
         const meta: SampleMetaData = {
             bpm: estimateBpm(audioBuffer.duration),
-            name: isUndefined(name) ? "Unnnamed" : name.substring(0, name.lastIndexOf(".")),
+            name: isUndefined(name) ? "Unnnamed" : name,
             duration: audioBuffer.duration,
             sample_rate: audioBuffer.sampleRate,
             origin: "import"

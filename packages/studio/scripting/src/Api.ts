@@ -1,5 +1,6 @@
 import {Chord, Interpolation, PPQN, ppqn} from "@opendaw/lib-dsp"
-import {bipolar, float, int, Nullable, unitValue} from "@opendaw/lib-std"
+import {bipolar, float, int, Nullable, unitValue, UUID} from "@opendaw/lib-std"
+import {AudioData} from "@opendaw/studio-adapters"
 
 export {PPQN, Chord}
 
@@ -95,6 +96,8 @@ export interface AudioUnit {
     addMIDIEffect<T extends keyof MIDIEffects>(type: T, props?: Partial<Omit<MIDIEffects[T], "key">>): MIDIEffects[T]
     /** Add a note track for MIDI events */
     addNoteTrack(props?: Partial<Pick<Track, "enabled">>): NoteTrack
+    /** Add an audio track */
+    addAudioTrack(props?: Partial<Pick<Track, "enabled">>): AudioTrack
     /** Add an automation track for parameter changes */
     addValueTrack<DEVICE extends AnyDevice, PARAMETER extends keyof DEVICE>(
         device: DEVICE, parameter: PARAMETER, props?: Partial<Pick<Track, "enabled">>): ValueTrack
@@ -183,6 +186,16 @@ export interface NoteTrack extends Track {
     addRegion(props?: NoteRegionProps): NoteRegion
 }
 
+export interface AudioRegion extends LoopableRegion {
+    /** The audio track this region belongs to */
+    readonly track: AudioTrack
+}
+
+export interface AudioTrack extends Track {
+    /** Add an audio region to the track */
+    addRegion(uuid: UUID.Bytes, props?: AudioRegion): AudioRegion
+}
+
 export interface ValueEvent {
     /** Position in PPQN */
     position: ppqn
@@ -214,6 +227,8 @@ export interface Instrument {
 
 export interface MIDIInstrument extends Instrument {}
 
+export interface AudioInstrument extends Instrument {}
+
 /** Wavetable synthesizer instrument */
 export interface Vaporisateur extends MIDIInstrument {}
 
@@ -229,12 +244,15 @@ export interface Soundfont extends MIDIInstrument {}
 /** External MIDI output instrument */
 export interface MIDIOutput extends MIDIInstrument {}
 
+export interface Tape extends AudioInstrument {}
+
 export type Instruments = {
     "Vaporisateur": Vaporisateur
     "Playfield": Playfield
     "Nano": Nano
     "Soundfont": Soundfont
     "MIDIOutput": MIDIOutput
+    "Tape": Tape
 }
 
 export interface Project {
@@ -261,6 +279,8 @@ export interface Api {
     newProject(name?: string): Project
     /** Get the current active project */
     getProject(): Promise<Project>
+    /** Creates a sample in the studio **/
+    registerSample(data: AudioData, name: string): Promise<UUID.Bytes>
 }
 
 declare const openDAW: Api

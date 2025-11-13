@@ -3,6 +3,8 @@ import {Communicator, Messenger} from "@opendaw/lib-runtime"
 import {ScriptExecutionProtocol} from "./ScriptExecutionProtocol"
 import {ScriptExecutor} from "./ScriptExecutor"
 import {ScriptHostProtocol} from "./ScriptHostProtocol"
+import {AudioData} from "@opendaw/studio-adapters"
+import {UUID} from "@opendaw/lib-std"
 
 const messenger: Messenger = Messenger.for(self)
 
@@ -10,6 +12,9 @@ const hostProtocol = Communicator.sender<ScriptHostProtocol>(messenger.channel("
     dispatcher => new class implements ScriptHostProtocol {
         openProject(buffer: ArrayBufferLike, name?: string): void {
             dispatcher.dispatchAndForget(this.openProject, buffer, name)
+        }
+        registerSample(data: AudioData, name: string): Promise<UUID.Bytes> {
+            return dispatcher.dispatchAndReturn(this.registerSample, data, name)
         }
     })
 

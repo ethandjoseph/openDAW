@@ -3,16 +3,13 @@ import {Box} from "@opendaw/lib-box"
 import {AudioUnitType, IconSymbol} from "@opendaw/studio-enums"
 import {AudioBusBox, AudioUnitBox, AuxSendBox, TrackBox} from "@opendaw/studio-boxes"
 import {AudioUnitFactory, CaptureBox, InstrumentFactories, ProjectSkeleton} from "@opendaw/studio-adapters"
-import {InstrumentAudioUnitImpl} from "./impl/InstrumentAudioUnitImpl"
-import {ProjectImpl} from "./impl/ProjectImpl"
+import {AuxAudioUnitImpl, GroupAudioUnitImpl, InstrumentAudioUnitImpl, ProjectImpl, SendImpl} from "./impl"
 import {MIDIEffectFactory} from "./MIDIEffectFactory"
 import {AudioEffectFactory} from "./AudioEffectFactory"
 import {NoteTrackWriter} from "./NoteTrackWriter"
 import {ValueTrackWriter} from "./ValueTrackWriter"
 import {AnyDevice, AudioUnit} from "./Api"
-import {SendImpl} from "./impl/SendImpl"
-import {GroupAudioUnitImpl} from "./impl/GroupAudioUnitImpl"
-import {AuxAudioUnitImpl} from "./impl/AuxAudioUnitImpl"
+import {AudioTrackWriter} from "./AudioTrackWriter"
 
 export namespace AudioUnitBoxFactory {
     export const create = (skeleton: ProjectSkeleton, project: ProjectImpl): void => {
@@ -36,7 +33,7 @@ export namespace AudioUnitBoxFactory {
         }
         project.instrumentUnits.forEach((audioUnit: Required<InstrumentAudioUnitImpl>) => {
             const {
-                instrument, midiEffects, audioEffects, noteTracks, valueTracks,
+                instrument, midiEffects, audioEffects, noteTracks, audioTracks, valueTracks,
                 volume, panning, mute, solo, sends
             } = audioUnit
             const factory = InstrumentFactories.Named[instrument.name]
@@ -53,6 +50,7 @@ export namespace AudioUnitBoxFactory {
             audioEffects.forEach((effect) => devices.set(effect, AudioEffectFactory.write(boxGraph, audioUnitBox, effect)))
             const indexRef = {index: 0}
             NoteTrackWriter.write(boxGraph, audioUnitBox, noteTracks, indexRef)
+            AudioTrackWriter.write(boxGraph, audioUnitBox, audioTracks, indexRef)
             ValueTrackWriter.write(boxGraph, devices, audioUnitBox, valueTracks, indexRef)
             if (indexRef.index === 0) { // create a default track if none existed
                 TrackBox.create(boxGraph, UUID.generate(), box => {

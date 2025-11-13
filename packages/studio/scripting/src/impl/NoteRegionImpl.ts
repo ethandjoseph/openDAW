@@ -3,7 +3,6 @@ import {PPQN, ppqn} from "@opendaw/lib-dsp"
 import {int} from "@opendaw/lib-std"
 import {NoteEventImpl} from "./NoteEventImpl"
 import {ColorCodes, TrackType} from "@opendaw/studio-adapters"
-import {Wait} from "@opendaw/lib-runtime"
 
 export class NoteRegionImpl implements NoteRegion {
     readonly track: NoteTrack

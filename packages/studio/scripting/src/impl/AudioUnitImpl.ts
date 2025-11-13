@@ -1,6 +1,7 @@
 import {
     AnyDevice,
     AudioEffects,
+    AudioTrack,
     AudioUnit,
     GroupAudioUnit,
     MIDIEffects,
@@ -14,6 +15,7 @@ import {ValueTrackImpl} from "./ValueTrackImpl"
 import {DelayEffectImpl} from "./DelayEffectImpl"
 import {PitchEffectImpl} from "./PitchEffectImpl"
 import {bipolar, Nullable} from "@opendaw/lib-std"
+import {AudioTrackImpl} from "./AudioTrackImpl"
 
 export abstract class AudioUnitImpl implements AudioUnit {
     protected project: ProjectImpl
@@ -22,6 +24,7 @@ export abstract class AudioUnitImpl implements AudioUnit {
     readonly #midiEffects: Array<MIDIEffects[keyof MIDIEffects]>
     readonly #noteTracks: Array<NoteTrackImpl>
     readonly #valueTracks: Array<ValueTrackImpl>
+    readonly #audioTracks: Array<AudioTrackImpl>
 
     output: Nullable<OutputAudioUnit | GroupAudioUnit>
     volume: number
@@ -34,6 +37,7 @@ export abstract class AudioUnitImpl implements AudioUnit {
         this.#audioEffects = []
         this.#midiEffects = []
         this.#noteTracks = []
+        this.#audioTracks = []
         this.#valueTracks = []
 
         this.output = props?.output === undefined ? project.output : null
@@ -75,6 +79,12 @@ export abstract class AudioUnitImpl implements AudioUnit {
         return track
     }
 
+    addAudioTrack(props?: Partial<AudioTrack>): AudioTrack {
+        const track = new AudioTrackImpl(this, props)
+        this.#audioTracks.push(track)
+        return track
+    }
+
     addValueTrack<DEVICE extends AnyDevice, PARAMETER extends keyof DEVICE>(
         device: DEVICE,
         parameter: PARAMETER, props?: Partial<ValueTrack>): ValueTrack {
@@ -86,5 +96,6 @@ export abstract class AudioUnitImpl implements AudioUnit {
     get audioEffects(): ReadonlyArray<AudioEffects[keyof AudioEffects]> {return this.#audioEffects}
     get midiEffects(): ReadonlyArray<MIDIEffects[keyof MIDIEffects]> {return this.#midiEffects}
     get noteTracks(): ReadonlyArray<NoteTrackImpl> {return this.#noteTracks}
+    get audioTracks(): ReadonlyArray<AudioTrackImpl> {return this.#audioTracks}
     get valueTracks(): ReadonlyArray<ValueTrackImpl> {return this.#valueTracks}
 }
