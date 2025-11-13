@@ -8,7 +8,7 @@ import {Icon} from "@/ui/components/Icon"
 import {IconSymbol} from "@opendaw/studio-enums"
 import {RuntimeNotifier} from "@opendaw/lib-std"
 import {ScriptExecutor} from "@/ui/pages/code-editor/script-executor"
-import StressTestScript from "./code-editor/stresstest.ts?raw"
+import ExampleScript from "./code-editor/example.ts?raw"
 
 const className = Html.adoptStyleSheet(css, "CodeEditorPage")
 
@@ -27,7 +27,7 @@ export const CodeEditorPage: PageFactory<StudioService> = ({lifecycle, service}:
                     const modelUri = monaco.Uri.parse("file:///main.ts")
                     let model = monaco.editor.getModel(modelUri)
                     if (!model) {
-                        const script = StressTestScript.substring(StressTestScript.indexOf("//"))
+                        const script = ExampleScript.substring(ExampleScript.indexOf("//"))
                         model = monaco.editor.createModel(script, "typescript", modelUri)
                     }
                     const editor = monaco.editor.create(container, {

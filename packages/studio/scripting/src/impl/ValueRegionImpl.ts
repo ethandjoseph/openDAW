@@ -3,6 +3,7 @@ import {ppqn} from "@opendaw/lib-dsp"
 import {int} from "@opendaw/lib-std"
 import {ValueEventImpl} from "./ValueEventImpl"
 import {ColorCodes, TrackType} from "@opendaw/studio-adapters"
+import {Wait} from "@opendaw/lib-runtime"
 
 export class ValueRegionImpl implements ValueRegion {
     readonly track: ValueTrack
@@ -35,6 +36,10 @@ export class ValueRegionImpl implements ValueRegion {
         const event = new ValueEventImpl(props)
         this.#events.push(event)
         return event
+    }
+
+    addEvents(events: Array<Partial<ValueEvent>>): void {
+        events.forEach(event => this.addEvent(event))
     }
 
     get events(): ReadonlyArray<ValueEventImpl> {

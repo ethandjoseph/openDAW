@@ -162,7 +162,7 @@ export interface NoteEvent {
     duration: ppqn
     /** MIDI pitch (0-127, where 60 = middle C) */
     pitch: number
-    /** Fine tuning in cents (-100 to +100) */
+    /** Fine-tuning in cents (-100 to +100) */
     cents: number
     /** Note velocity (0.0 to 1.0) */
     velocity: number
@@ -173,6 +173,7 @@ export interface NoteRegion extends LoopableRegion {
     readonly track: NoteTrack
     /** Add a MIDI note event to the region */
     addEvent(props?: Partial<NoteEvent>): NoteEvent
+    addEvents(events: Array<Partial<NoteEvent>>): void
 }
 
 export type NoteRegionProps = Partial<NoteRegion & { mirror: NoteRegion }>
@@ -196,6 +197,7 @@ export interface ValueRegion extends LoopableRegion {
     readonly track: ValueTrack
     /** Add an automation point to the region */
     addEvent(props?: Partial<ValueEvent>): ValueEvent
+    addEvents(events: Array<Partial<ValueEvent>>): void
 }
 
 export type ValueRegionProps = Partial<ValueRegion & { mirror: ValueRegion }>

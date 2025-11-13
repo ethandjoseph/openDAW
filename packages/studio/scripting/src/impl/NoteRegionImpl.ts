@@ -3,6 +3,7 @@ import {PPQN, ppqn} from "@opendaw/lib-dsp"
 import {int} from "@opendaw/lib-std"
 import {NoteEventImpl} from "./NoteEventImpl"
 import {ColorCodes, TrackType} from "@opendaw/studio-adapters"
+import {Wait} from "@opendaw/lib-runtime"
 
 export class NoteRegionImpl implements NoteRegion {
     readonly track: NoteTrack
@@ -34,6 +35,10 @@ export class NoteRegionImpl implements NoteRegion {
         const event = new NoteEventImpl(props)
         this.#events.push(event)
         return event
+    }
+
+    addEvents(events: Array<Partial<NoteEvent>>): void {
+        events.forEach(event => this.addEvent(event))
     }
 
     get events(): ReadonlyArray<NoteEventImpl> {return this.#events}
