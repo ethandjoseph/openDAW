@@ -23,7 +23,7 @@
   ],
   "scripts": {
     "build": "npm run generate-api && tsc",
-    "generate-api": "ts-node scripts/generate-api.ts",
+    "generate-api": "npx tsx scripts/generate-api.ts",
     "lint": "eslint \"**/*.ts\"",
     "test": "echo \"No tests to run\""
   },
