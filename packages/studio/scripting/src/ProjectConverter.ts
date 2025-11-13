@@ -3,7 +3,7 @@ import {AudioUnitBox} from "@opendaw/studio-boxes"
 import {ProjectSkeleton, Validator} from "@opendaw/studio-adapters"
 import {ProjectImpl} from "./impl"
 import {Asserts} from "./Asserts"
-import {AudioUnitBoxFactory} from "./impl/AudioUnitBoxFactory"
+import {AudioUnitBoxFactory} from "./AudioUnitBoxFactory"
 
 export namespace ProjectConverter {
     export const toSkeleton = (project: ProjectImpl): ProjectSkeleton => {

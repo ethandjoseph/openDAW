@@ -46,7 +46,7 @@ vapoUnit2.output = groupUnit
 await new Promise(resolve => setTimeout(resolve, 500))
 
 const fxTrack = project.addAuxUnit()
-fxTrack.addAudioEffect("delay")
+fxTrack.addAudioEffect("delay").delay = 2
 vapoUnit1.addSend(fxTrack, {pan: -1.0, amount: -3.0})
 
 vapoUnit1.addMIDIEffect("pitch", {octaves: 1, label: "Up"})

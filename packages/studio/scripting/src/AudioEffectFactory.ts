@@ -4,7 +4,9 @@ import {Unhandled, UUID} from "@opendaw/lib-std"
 import {AudioEffects} from "./Api"
 
 export class AudioEffectFactory {
-    static write(boxGraph: BoxGraph, audioUnitBox: AudioUnitBox, effect: AudioEffects[keyof AudioEffects]): Box {
+    static write(boxGraph: BoxGraph,
+                 audioUnitBox: AudioUnitBox,
+                 effect: Required<AudioEffects[keyof AudioEffects]>): Box {
         switch (effect.key) {
             case "delay": {
                 return DelayDeviceBox.create(boxGraph, UUID.generate(), box => {

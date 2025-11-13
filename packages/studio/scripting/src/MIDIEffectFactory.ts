@@ -4,7 +4,9 @@ import {AudioUnitBox, PitchDeviceBox} from "@opendaw/studio-boxes"
 import {Unhandled, UUID} from "@opendaw/lib-std"
 
 export class MIDIEffectFactory {
-    static write(boxGraph: BoxGraph, audioUnitBox: AudioUnitBox, effect: MIDIEffects[keyof MIDIEffects]): Box {
+    static write(boxGraph: BoxGraph,
+                 audioUnitBox: AudioUnitBox,
+                 effect: Required<MIDIEffects[keyof MIDIEffects]>): Box {
         switch (effect.key) {
             case "pitch": {
                 return PitchDeviceBox.create(boxGraph, UUID.generate(), box => {

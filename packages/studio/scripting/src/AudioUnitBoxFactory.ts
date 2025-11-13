@@ -3,16 +3,16 @@ import {Box} from "@opendaw/lib-box"
 import {AudioUnitType, IconSymbol} from "@opendaw/studio-enums"
 import {AudioBusBox, AudioUnitBox, AuxSendBox, TrackBox} from "@opendaw/studio-boxes"
 import {AudioUnitFactory, CaptureBox, InstrumentFactories, ProjectSkeleton} from "@opendaw/studio-adapters"
-import {InstrumentAudioUnitImpl} from "./InstrumentAudioUnitImpl"
-import {ProjectImpl} from "./ProjectImpl"
-import {MIDIEffectFactory} from "../MIDIEffectFactory"
-import {AudioEffectFactory} from "../AudioEffectFactory"
-import {NoteTrackWriter} from "../NoteTrackWriter"
-import {ValueTrackWriter} from "../ValueTrackWriter"
-import {AnyDevice, AudioUnit} from "../Api"
-import {SendImpl} from "./SendImpl"
-import {GroupAudioUnitImpl} from "./GroupAudioUnitImpl"
-import {AuxAudioUnitImpl} from "./AuxAudioUnitImpl"
+import {InstrumentAudioUnitImpl} from "./impl/InstrumentAudioUnitImpl"
+import {ProjectImpl} from "./impl/ProjectImpl"
+import {MIDIEffectFactory} from "./MIDIEffectFactory"
+import {AudioEffectFactory} from "./AudioEffectFactory"
+import {NoteTrackWriter} from "./NoteTrackWriter"
+import {ValueTrackWriter} from "./ValueTrackWriter"
+import {AnyDevice, AudioUnit} from "./Api"
+import {SendImpl} from "./impl/SendImpl"
+import {GroupAudioUnitImpl} from "./impl/GroupAudioUnitImpl"
+import {AuxAudioUnitImpl} from "./impl/AuxAudioUnitImpl"
 
 export namespace AudioUnitBoxFactory {
     export const create = (skeleton: ProjectSkeleton, project: ProjectImpl): void => {
@@ -34,7 +34,7 @@ export namespace AudioUnitBoxFactory {
                     // TODO mode "pre" | "post"
                 })])))
         }
-        project.instrumentUnits.forEach((audioUnit: InstrumentAudioUnitImpl) => {
+        project.instrumentUnits.forEach((audioUnit: Required<InstrumentAudioUnitImpl>) => {
             const {
                 instrument, midiEffects, audioEffects, noteTracks, valueTracks,
                 volume, panning, mute, solo, sends
