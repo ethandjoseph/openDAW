@@ -24,12 +24,11 @@ export const CodeEditorPage: PageFactory<StudioService> = ({lifecycle, service}:
                 loading={() => ThreeDots()}
                 success={([monaco]) => {
                     const container = (<div className="monaco-editor"/>)
-                    const modelUri = monaco.Uri.parse("file:///main.mts")
+                    const modelUri = monaco.Uri.parse("file:///main.ts")
                     let model = monaco.editor.getModel(modelUri)
                     if (!model) {
-                        model = monaco.editor.createModel(
-                            ExampleScript.substring(ExampleScript.indexOf("//")),
-                            "typescript", modelUri)
+                        const script = ExampleScript.substring(ExampleScript.indexOf("//"))
+                        model = monaco.editor.createModel(script, "typescript", modelUri)
                     }
                     const editor = monaco.editor.create(container, {
                         model: model,
@@ -57,9 +56,19 @@ export const CodeEditorPage: PageFactory<StudioService> = ({lifecycle, service}:
                     requestAnimationFrame(() => editor.focus())
                     const clickHandler = async () => {
                         try {
-                            // TODO Await these once for the page
                             const worker = await monaco.languages.typescript.getTypeScriptWorker()
                             const client = await worker(model.uri)
+                            const semanticDiagnostics = await client.getSemanticDiagnostics(model.uri.toString())
+                            const syntacticDiagnostics = await client.getSyntacticDiagnostics(model.uri.toString())
+                            const allDiagnostics = [...semanticDiagnostics, ...syntacticDiagnostics]
+                            if (allDiagnostics.length > 0) {
+                                const errors = allDiagnostics.map(d => d.messageText).join("\n")
+                                await RuntimeNotifier.info({
+                                    headline: "Compilation Error",
+                                    message: errors
+                                })
+                                return
+                            }
                             const emitOutput = await client.getEmitOutput(model.uri.toString())
                             if (emitOutput.outputFiles.length > 0) {
                                 const jsCode = emitOutput.outputFiles[0].text
@@ -67,7 +76,7 @@ export const CodeEditorPage: PageFactory<StudioService> = ({lifecycle, service}:
                                 await executor.execute(jsCode)
                             } else {
                                 await RuntimeNotifier.info({
-                                    headline: "Compilor Error",
+                                    headline: "Compiler Error",
                                     message: "No output files generated"
                                 })
                             }

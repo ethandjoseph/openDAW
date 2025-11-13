@@ -22,6 +22,9 @@ TODO:
     Everything you import here, must be exported in the Api and globals too.
 */
 // openDAW script editor (very early preview - under heavy construction)
+
+export {} // allows `await`
+
 const project = openDAW.newProject("Hello World")
 project.bpm = 125.0
 project.output.volume = -6.0
@@ -38,6 +41,9 @@ vapoUnit2.solo = false
 const groupUnit = project.addGroupUnit()
 vapoUnit1.output = groupUnit
 vapoUnit2.output = groupUnit
+
+// You can await promises
+await new Promise(resolve => setTimeout(resolve, 500))
 
 const fxTrack = project.addAuxUnit()
 fxTrack.addAudioEffect("delay")

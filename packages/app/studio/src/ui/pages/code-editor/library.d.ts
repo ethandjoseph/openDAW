@@ -150,7 +150,7 @@ interface ConcatArray<T> {
 
 interface PromiseConstructor {
     readonly prototype: Promise<any>;
-    new <T>(executor: (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void): Promise<T>;
+    new<T>(executor: (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void): Promise<T>;
     all<T extends readonly unknown[] | []>(values: T): Promise<{ -readonly [P in keyof T]: Awaited<T[P]>; }>;
     race<T extends readonly unknown[] | []>(values: T): Promise<Awaited<T[number]>>;
     reject<T = never>(reason?: any): Promise<T>;
@@ -159,4 +159,7 @@ interface PromiseConstructor {
     resolve<T>(value: T | PromiseLike<T>): Promise<Awaited<T>>;
 }
 
-declare var Promise: PromiseConstructor;
+declare var Promise: PromiseConstructor
+
+declare function setInterval(handler: TimerHandler, timeout?: number, ...arguments: any[]): number;
+declare function setTimeout(handler: TimerHandler, timeout?: number, ...arguments: any[]): number;
