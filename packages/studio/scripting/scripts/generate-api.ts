@@ -499,7 +499,7 @@ const monorepoRoot = findMonorepoRoot(__dirname)
 const scriptDir = path.dirname(__filename)
 
 generateFlattenedDeclarations({
-    inputFile: path.resolve(scriptDir, '../src/api.ts'),
+    inputFile: path.resolve(scriptDir, '../src/Api.ts'),
     outputFile: path.resolve(scriptDir, '../src/api.declaration.d.ts'),
     rootDir: monorepoRoot
 })
