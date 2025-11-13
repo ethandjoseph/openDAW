@@ -82,6 +82,7 @@ export namespace AudioUnitBoxFactory {
             audioUnitMap.set(audioUnit, audioUnitBox)
             audioBusBox.output.refer(audioUnitBox.input)
             createSend(audioUnit.sends, audioUnitBox)
+            devices.set(audioUnit, audioUnitBox)
             audioUnit.audioEffects.forEach((effect) =>
                 devices.set(effect, AudioEffectFactory.write(boxGraph, audioUnitBox, effect)))
             ValueTrackWriter.write(boxGraph, devices, audioUnitBox, audioUnit.valueTracks, {index: 0})

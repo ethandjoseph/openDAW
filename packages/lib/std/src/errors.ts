@@ -25,4 +25,29 @@ export namespace Errors {
         isRecord(error) &&
         hasField(error, "name", "string") &&
         hasField(error, "message", "string")
+
+    export const toString = (error: unknown): string => {
+        const truncateStack = (stack: string): string =>
+            stack.split("\n").slice(0, 4).join("\n")
+        if (error instanceof Error) {
+            return truncateStack(error.stack || error.message)
+        }
+        if (typeof error === "string") {
+            return error
+        }
+        if (error && typeof error === "object") {
+            const err = error as any
+            if (err.stack) {
+                return truncateStack(err.stack)
+            }
+            if (err.message) {
+                return err.message
+            }
+            try {
+                return JSON.stringify(error, null, 2)
+            } catch {
+            }
+        }
+        return String(error)
+    }
 }

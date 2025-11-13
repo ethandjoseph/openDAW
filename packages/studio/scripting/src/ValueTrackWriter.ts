@@ -14,7 +14,7 @@ export namespace ValueTrackWriter {
                           indexRef: IndexRef): void => {
         const map: Map<ValueRegion, ValueEventCollectionBox> = new Map()
         valueTracks.forEach(({enabled, regions, device, parameter}: ValueTrackImpl) => {
-            const box = asDefined(devices.get(device), `Could not find ${device}`)
+            const box = asDefined(devices.get(device), `Could not find ${device.constructor.name}`)
             const field = box[parameter]
             const trackBox = TrackBox.create(boxGraph, UUID.generate(), box => {
                 box.type.setValue(TrackType.Value)

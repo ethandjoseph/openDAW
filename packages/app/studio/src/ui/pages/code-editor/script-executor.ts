@@ -4,7 +4,7 @@ import {ScriptExecutionProtocol, ScriptHostProtocol} from "@opendaw/studio-scrip
 import {Project} from "@opendaw/studio-core"
 import {ProjectDecoder} from "@opendaw/studio-adapters"
 import {BoxGraph} from "@opendaw/lib-box"
-import {Option, RuntimeNotifier} from "@opendaw/lib-std"
+import {Errors, Option, RuntimeNotifier} from "@opendaw/lib-std"
 import {BoxIO} from "@opendaw/studio-boxes"
 import scriptWorkerUrl from "@opendaw/studio-scripting/ScriptWorker.js?worker&url"
 
@@ -37,7 +37,8 @@ export class ScriptExecutor implements ScriptExecutionProtocol {
         const {status, error} = await Promises.tryCatch(this.#executor.execute(script))
         progressUpdater.terminate()
         if (status === "rejected") {
-            await RuntimeNotifier.info({headline: "The script caused an error", message: String(error)})
+            console.warn(error)
+            await RuntimeNotifier.info({headline: "The script caused an error", message: Errors.toString(error)})
         }
     }
 }
