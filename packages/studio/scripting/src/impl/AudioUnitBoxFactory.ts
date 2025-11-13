@@ -84,6 +84,7 @@ export namespace AudioUnitBoxFactory {
             createSend(audioUnit.sends, audioUnitBox)
             audioUnit.audioEffects.forEach((effect) =>
                 devices.set(effect, AudioEffectFactory.write(boxGraph, audioUnitBox, effect)))
+            ValueTrackWriter.write(boxGraph, devices, audioUnitBox, audioUnit.valueTracks, {index: 0})
         }
 
         // TODO Colors need to be in code and written to CSS
@@ -96,6 +97,11 @@ export namespace AudioUnitBoxFactory {
         awaitedSends.forEach(([send, box]) =>
             box.targetBus.refer(asDefined(busMap.get(send.target), "Could not find AudioBus").input))
 
+        const {output: {mute, solo, volume, panning}} = project
+        primaryAudioOutputUnit.mute.setValue(mute)
+        primaryAudioOutputUnit.solo.setValue(solo)
+        primaryAudioOutputUnit.volume.setValue(volume)
+        primaryAudioOutputUnit.panning.setValue(panning)
         primaryAudioOutputUnit.index.setValue(audioUnitIndex)
 
         // connect

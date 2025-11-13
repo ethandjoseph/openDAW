@@ -24,6 +24,7 @@ TODO:
 // openDAW script editor (very early preview - under heavy construction)
 const project = openDAW.newProject("Hello World")
 project.bpm = 125.0
+project.output.volume = -6.0
 const vapoUnit1 = project.addInstrumentUnit("Vaporisateur")
 vapoUnit1.volume = -3.0 // -3db
 vapoUnit1.panning = 0.5 // 50% right
