@@ -29,6 +29,9 @@ RewriteEngine On
 RewriteBase /
 
 # --------------------------------------------------
+# Allow extract.php to execute (don't redirect it)
+RewriteRule ^extract\\.php$ - [L]
+
 # ACTIVE RELEASE REDIRECT
 RewriteRule ^(.*)$ ${releaseDir}/$1 [L]
 # --------------------------------------------------
