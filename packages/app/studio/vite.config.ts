@@ -30,7 +30,12 @@ export default defineConfig(({command}) => {
                     format: "es",
                     entryFileNames: `[name].${uuid}.js`,
                     chunkFileNames: `[name].${uuid}.js`,
-                    assetFileNames: `[name].${uuid}.[ext]`
+                    assetFileNames: `[name].${uuid}.[ext]`,
+                    manualChunks(id: string) {
+                        if (id.includes("monaco-editor")) {
+                            return "monaco-bundle"
+                        }
+                    }
                 }
             }
         },
