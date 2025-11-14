@@ -6,11 +6,6 @@ const openDAW: Api = InaccessibleProperty("Not to be executed.")
 
 // openDAW script editor (very early preview - under heavy construction)
 
-// openDAW Beginner Example - Retro Game Music!
-// A catchy 4-bar melody with chords and panning
-// Composed by Claude.ai
-
-// Create a new project
 const project = openDAW.newProject("Retro Game")
 project.bpm = 125.0
 project.output.volume = -6.0
