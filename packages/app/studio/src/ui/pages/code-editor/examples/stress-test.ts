@@ -1,10 +1,11 @@
 import {InaccessibleProperty} from "@opendaw/lib-std"
-import {Interpolation, PPQN} from "@opendaw/lib-dsp"
 import {Api} from "@opendaw/studio-scripting"
+import {Interpolation, PPQN} from "@opendaw/lib-dsp"
 
 const openDAW: Api = InaccessibleProperty("Not to be executed.")
 
-// openDAW Stress Test - Complex Multi-Track Production
+// openDAW script editor (very early preview - under heavy construction)
+// Stress Test - Complex Multi-Track Production
 const project = openDAW.newProject("Ultimate Complexity Test")
 project.bpm = 140.0
 project.timeSignature = {numerator: 7, denominator: 8} // Odd time signature

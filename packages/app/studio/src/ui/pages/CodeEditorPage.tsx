@@ -8,7 +8,21 @@ import {Icon} from "@/ui/components/Icon"
 import {IconSymbol} from "@opendaw/studio-enums"
 import {RuntimeNotifier} from "@opendaw/lib-std"
 import {ScriptExecutor} from "@/ui/pages/code-editor/script-executor"
-import ExampleScript from "./code-editor/example.ts?raw"
+import {MenuButton} from "@/ui/components/MenuButton"
+import {MenuItem} from "@/ui/model/menu-item"
+
+import ScriptSimple from "./code-editor/examples/simple.ts?raw"
+import ScriptRetro from "./code-editor/examples/retro.ts?raw"
+import ScriptAudioRegion from "./code-editor/examples/create-sample.ts?raw"
+import ScriptStressTest from "./code-editor/examples/stress-test.ts?raw"
+
+const truncateImports = (script: string) => script.substring(script.indexOf("//"))
+const Examples = {
+    Simple: truncateImports(ScriptSimple),
+    Retro: truncateImports(ScriptRetro),
+    AudioRegion: truncateImports(ScriptAudioRegion),
+    StressTest: truncateImports(ScriptStressTest)
+}
 
 const className = Html.adoptStyleSheet(css, "CodeEditorPage")
 
@@ -27,8 +41,7 @@ export const CodeEditorPage: PageFactory<StudioService> = ({lifecycle, service}:
                     const modelUri = monaco.Uri.parse("file:///main.ts")
                     let model = monaco.editor.getModel(modelUri)
                     if (!model) {
-                        const script = ExampleScript.substring(ExampleScript.indexOf("//"))
-                        model = monaco.editor.createModel(script, "typescript", modelUri)
+                        model = monaco.editor.createModel(Examples.Simple, "typescript", modelUri)
                     }
                     const editor = monaco.editor.create(container, {
                         model: model,
@@ -102,6 +115,13 @@ export const CodeEditorPage: PageFactory<StudioService> = ({lifecycle, service}:
                                         appearance={{tooltip: "Run script"}}>
                                     <span>Run</span> <Icon symbol={IconSymbol.Play}/>
                                 </Button>
+                                <MenuButton root={MenuItem.root()
+                                    .setRuntimeChildrenProcedure(parent => parent
+                                        .addMenuItem(...Object.entries(Examples)
+                                            .map(([name, example]) => MenuItem.default({label: name})
+                                                .setTriggerProcedure(() => model.setValue(example)))))}>
+                                    <span>Examples</span>
+                                </MenuButton>
                             </header>
                             {container}
                         </div>

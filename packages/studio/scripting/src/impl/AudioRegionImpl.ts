@@ -2,11 +2,14 @@ import {AudioRegion, AudioTrack} from "../Api"
 import {PPQN, ppqn} from "@opendaw/lib-dsp"
 import {int} from "@opendaw/lib-std"
 import {ColorCodes, Sample, TrackType} from "@opendaw/studio-adapters"
+import {AudioPlayback} from "@opendaw/studio-enums"
 
 export class AudioRegionImpl implements AudioRegion {
     readonly track: AudioTrack
 
     sample: Sample
+    playback: AudioPlayback.NoSync | AudioPlayback.Pitch
+
     position: ppqn
     duration: ppqn
     mute: boolean
@@ -18,6 +21,7 @@ export class AudioRegionImpl implements AudioRegion {
     constructor(track: AudioTrack, sample: Sample, props?: Partial<AudioRegion>) {
         this.track = track
         this.sample = sample
+        this.playback = props?.playback ?? AudioPlayback.Pitch
         this.position = props?.position ?? 0.0
         this.duration = props?.duration ?? PPQN.Bar
         this.loopDuration = props?.loopDuration ?? this.duration

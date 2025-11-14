@@ -5,6 +5,8 @@ import {BoxGraph} from "@opendaw/lib-box"
 import {IndexRef} from "./IndexRef"
 import {AudioTrackImpl} from "./impl/AudioTrackImpl"
 import {AudioRegionImpl} from "./impl/AudioRegionImpl"
+import {AudioPlayback} from "@opendaw/studio-enums"
+import {TimeBase} from "@opendaw/lib-dsp"
 
 export namespace AudioTrackWriter {
     export const write = (boxGraph: BoxGraph,
@@ -38,6 +40,10 @@ export namespace AudioTrackWriter {
                     box.mute.setValue(mute)
                     box.regions.refer(trackBox.regions)
                     box.file.refer(fileBox)
+                    box.playback.setValue(region.playback)
+                    box.timeBase.setValue(region.playback === AudioPlayback.NoSync
+                        ? TimeBase.Seconds
+                        : TimeBase.Musical)
                 })
             })
         })

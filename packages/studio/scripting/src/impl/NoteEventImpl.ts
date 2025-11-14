@@ -9,10 +9,10 @@ export class NoteEventImpl implements NoteEvent {
     velocity: number
 
     constructor(props?: Partial<NoteEvent>) {
-        this.position = props?.position ?? 0.0 as ppqn
-        this.duration = props?.duration ?? 0.0 as ppqn
+        this.position = props?.position ?? 0.0
+        this.duration = props?.duration ?? PPQN.SemiQuaver
         this.pitch = props?.pitch ?? 60
         this.cents = props?.cents ?? 0
-        this.velocity = props?.velocity ?? 1
+        this.velocity = props?.velocity ?? 1.0
     }
 }
