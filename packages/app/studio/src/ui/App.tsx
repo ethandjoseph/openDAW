@@ -34,6 +34,7 @@ export const App = (service: StudioService) => {
                     {path: "/imprint", factory: ImprintPage},
                     {path: "/icons", factory: IconsPage},
                     {path: "/code", factory: CodeEditorPage},
+                    {path: "/scripting", factory: CodeEditorPage},
                     {path: "/components", factory: ComponentsPage},
                     {path: "/automation", factory: AutomationPage},
                     {path: "/errors", factory: ErrorsPage},

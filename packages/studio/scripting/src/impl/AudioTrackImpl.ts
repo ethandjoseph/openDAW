@@ -1,7 +1,6 @@
 import {AudioRegion, AudioTrack, AudioUnit} from "../Api"
 import {AudioRegionImpl} from "./AudioRegionImpl"
 import {AudioUnitImpl} from "./AudioUnitImpl"
-import {UUID} from "@opendaw/lib-std"
 
 export class AudioTrackImpl implements AudioTrack {
     readonly audioUnit: AudioUnit
@@ -16,8 +15,8 @@ export class AudioTrackImpl implements AudioTrack {
         this.enabled = props?.enabled ?? true
     }
 
-    addRegion(uuid: UUID.Bytes, props?: AudioRegion): AudioRegion {
-        const region = new AudioRegionImpl(this, uuid, props)
+    addRegion(sample: Sample, props?: Partial<AudioRegion>): AudioRegion {
+        const region = new AudioRegionImpl(this, sample, props)
         this.#regions.push(region)
         return region
     }

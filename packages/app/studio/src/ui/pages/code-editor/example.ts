@@ -1,5 +1,6 @@
 import {InaccessibleProperty} from "@opendaw/lib-std"
 import {Api} from "@opendaw/studio-scripting"
+import {PPQN} from "@opendaw/lib-dsp"
 
 const openDAW: Api = InaccessibleProperty("Not to be executed.")
 /*
@@ -24,13 +25,10 @@ TODO:
 
 export {}
 
-const sampleRate = 48000
 const numberOfFrames = sampleRate
 const frames = new Float32Array(numberOfFrames)
-
 const f0 = 200.0  // starting frequency in Hz
 const f1 = 4000.0 // ending frequency in Hz
-
 for (let i = 0, phase = 0.0; i < numberOfFrames; i++) {
     frames[i] = Math.sin(phase * Math.PI * 2.0)
     const t = i / numberOfFrames
@@ -38,7 +36,7 @@ for (let i = 0, phase = 0.0; i < numberOfFrames; i++) {
     phase += freq / sampleRate
 }
 
-const sampleId = await openDAW.registerSample({
+const sample = await openDAW.addSample({
     frames: [frames],
     numberOfFrames,
     numberOfChannels: 1,
@@ -48,4 +46,5 @@ const sampleId = await openDAW.registerSample({
 const project = openDAW.newProject("Test Audio")
 const tapeUnit = project.addInstrumentUnit("Tape")
 const audioTrack = tapeUnit.addAudioTrack()
-audioTrack.addRegion(sampleId)
+audioTrack.addRegion(sample, {duration: PPQN.samplesToPulses(numberOfFrames, project.bpm, sampleRate)})
+project.openInStudio()

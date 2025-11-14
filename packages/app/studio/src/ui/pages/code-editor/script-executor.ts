@@ -1,10 +1,10 @@
 import {StudioService} from "@/service/StudioService"
 import {Communicator, Messenger, Promises} from "@opendaw/lib-runtime"
-import {ScriptExecutionProtocol, ScriptHostProtocol} from "@opendaw/studio-scripting"
+import {ScriptExecutionContext, ScriptExecutionProtocol, ScriptHostProtocol} from "@opendaw/studio-scripting"
 import {Project, WavFile} from "@opendaw/studio-core"
-import {AudioData, ProjectDecoder} from "@opendaw/studio-adapters"
+import {AudioData, ProjectDecoder, Sample} from "@opendaw/studio-adapters"
 import {BoxGraph} from "@opendaw/lib-box"
-import {Errors, Option, RuntimeNotifier, UUID} from "@opendaw/lib-std"
+import {Errors, Option, RuntimeNotifier} from "@opendaw/lib-std"
 import {BoxIO} from "@opendaw/studio-boxes"
 import scriptWorkerUrl from "@opendaw/studio-scripting/ScriptWorker.js?worker&url"
 
@@ -22,27 +22,27 @@ export class ScriptExecutor implements ScriptExecutionProtocol {
                 service.projectProfileService.setProject(project, name ?? "Scripted Project")
                 service.switchScreen("default")
             },
-            registerSample: (data: AudioData, name: string): Promise<UUID.Bytes> => service.sampleService.importFile({
+            addSample: (data: AudioData, name: string): Promise<Sample> => service.sampleService.importFile({
                 name, arrayBuffer: WavFile.encodeFloats({
                     channels: data.frames,
                     numFrames: data.numberOfFrames,
                     sampleRate: data.sampleRate,
                     numberOfChannels: data.numberOfChannels
                 })
-            }).then(({uuid}) => UUID.parse(uuid))
+            })
         })
 
         this.#executor = Communicator.sender<ScriptExecutionProtocol>(messenger.channel("scripting-execution"),
             dispatcher => new class implements ScriptExecutionProtocol {
-                execute(script: string): Promise<void> {
-                    return dispatcher.dispatchAndReturn(this.execute, script)
+                execute(script: string, context: ScriptExecutionContext): Promise<void> {
+                    return dispatcher.dispatchAndReturn(this.execute, script, context)
                 }
             })
     }
 
-    async execute(script: string): Promise<void> {
+    async execute(script: string, context: ScriptExecutionContext): Promise<void> {
         const progressUpdater = RuntimeNotifier.progress({headline: "Executing Script..."})
-        const {status, error} = await Promises.tryCatch(this.#executor.execute(script))
+        const {status, error} = await Promises.tryCatch(this.#executor.execute(script, context))
         progressUpdater.terminate()
         if (status === "rejected") {
             console.warn(error)

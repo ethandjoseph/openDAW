@@ -151,8 +151,6 @@ export const populateStudioMenu = (service: StudioService) => {
                                     selectable: service.hasProfile
                                 }).setTriggerProcedure(() => service.projectProfileService.saveFile()),
                                 MenuItem.header({label: "Pages", icon: IconSymbol.Box}),
-                                MenuItem.default({label: "・ Script Editor"})
-                                    .setTriggerProcedure(() => RouteLocation.get().navigateTo("/code")),
                                 MenuItem.default({label: "・ Icons"})
                                     .setTriggerProcedure(() => RouteLocation.get().navigateTo("/icons")),
                                 MenuItem.default({label: "・ Components"})
@@ -197,7 +195,9 @@ export const populateStudioMenu = (service: StudioService) => {
                                     })
                             )
                         }),
-                    MenuItem.default({label: "Preferences", separatorBefore: true})
+                    MenuItem.default({label: "Script Editor", separatorBefore: true})
+                        .setTriggerProcedure(() => RouteLocation.get().navigateTo("/scripting")),
+                    MenuItem.default({label: "Preferences"})
                         .setTriggerProcedure(async () => {
                             const lifecycle = new Terminator()
                             await Promises.tryCatch(Dialogs.show({

@@ -477,6 +477,7 @@ export function generateFlattenedDeclarations(options: GeneratorOptions): void {
     processFile(path.resolve(rootDir, inputFile))
 
     output.push('declare const openDAW: Api')
+    output.push('declare const sampleRate: number')
 
     fs.writeFileSync(outputFile, output.join('\n\n'))
     console.log(`\nGenerated flattened declarations: ${outputFile}`)

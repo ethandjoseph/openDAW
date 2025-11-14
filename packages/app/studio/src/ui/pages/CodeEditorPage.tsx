@@ -73,7 +73,9 @@ export const CodeEditorPage: PageFactory<StudioService> = ({lifecycle, service}:
                             if (emitOutput.outputFiles.length > 0) {
                                 const jsCode = emitOutput.outputFiles[0].text
                                     .replace(/^["']use strict["'];?/, "")
-                                await executor.execute(jsCode)
+                                await executor.execute(jsCode, {
+                                    sampleRate: service.audioContext.sampleRate
+                                })
                             } else {
                                 await RuntimeNotifier.info({
                                     headline: "Compiler Error",

@@ -21,10 +21,12 @@ export namespace AudioTrackWriter {
             })
             regions.forEach((region: AudioRegionImpl) => {
                 const {
-                    position, duration, loopDuration, loopOffset, hue, label, mute, uuid
+                    position, duration, loopDuration, loopOffset, hue, label, mute, sample
                 } = region
-                const fileBox = AudioFileBox.create(boxGraph, uuid, box => {
-                    // TODO instead of UUID, we need to return the full package
+                const fileBox = AudioFileBox.create(boxGraph, UUID.parse(sample.uuid), box => {
+                    box.fileName.setValue(sample.name)
+                    box.startInSeconds.setValue(0)
+                    box.endInSeconds.setValue(sample.duration)
                 })
                 AudioRegionBox.create(boxGraph, UUID.generate(), box => {
                     box.position.setValue(position)

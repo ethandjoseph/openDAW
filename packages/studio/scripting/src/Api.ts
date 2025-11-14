@@ -1,8 +1,9 @@
 import {Chord, Interpolation, PPQN, ppqn} from "@opendaw/lib-dsp"
-import {bipolar, float, int, Nullable, unitValue, UUID} from "@opendaw/lib-std"
-import {AudioData} from "@opendaw/studio-adapters"
+import {bipolar, float, int, Nullable, unitValue} from "@opendaw/lib-std"
+import type {AudioData} from "@opendaw/studio-adapters"
+import {Sample} from "@opendaw/studio-adapters"
 
-export {PPQN, Chord}
+export {PPQN, Chord, Sample}
 
 export type Send = {
     /** Send amount in decibels */
@@ -193,7 +194,7 @@ export interface AudioRegion extends LoopableRegion {
 
 export interface AudioTrack extends Track {
     /** Add an audio region to the track */
-    addRegion(uuid: UUID.Bytes, props?: AudioRegion): AudioRegion
+    addRegion(sample: Sample, props?: Partial<AudioRegion>): AudioRegion
 }
 
 export interface ValueEvent {
@@ -280,7 +281,5 @@ export interface Api {
     /** Get the current active project */
     getProject(): Promise<Project>
     /** Creates a sample in the studio **/
-    registerSample(data: AudioData, name: string): Promise<UUID.Bytes>
+    addSample(data: AudioData, name: string): Promise<Sample>
 }
-
-declare const openDAW: Api
