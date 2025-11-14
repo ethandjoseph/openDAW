@@ -51,7 +51,9 @@ RewriteRule ^(.*)$ ${releaseDir}/$1 [L]
     // Upload the single compressed file
     console.log("uploading compressed dist...")
     const remoteTarball = `${releaseDir}/dist.tar.gz`
+    const startTime = Date.now()
     await sftp.put(tarballPath, remoteTarball)
+    console.log(`Upload took ${((Date.now() - startTime) / 1000).toFixed(1)}s`)
 
     // Extract on server via PHP
     console.log("extracting on server via PHP...")
