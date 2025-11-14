@@ -1,5 +1,5 @@
 import {UUID} from "@opendaw/lib-std"
-import {AudioFileBox, AudioRegionBox, AudioUnitBox, TrackBox} from "@opendaw/studio-boxes"
+import {AudioRegionBox, AudioUnitBox, TrackBox} from "@opendaw/studio-boxes"
 import {TrackType} from "@opendaw/studio-adapters"
 import {BoxGraph} from "@opendaw/lib-box"
 import {IndexRef} from "./IndexRef"
@@ -7,6 +7,7 @@ import {AudioTrackImpl} from "./impl/AudioTrackImpl"
 import {AudioRegionImpl} from "./impl/AudioRegionImpl"
 import {AudioPlayback} from "@opendaw/studio-enums"
 import {TimeBase} from "@opendaw/lib-dsp"
+import {AudioFileBoxfactory} from "./AudioFileBoxfactory"
 
 export namespace AudioTrackWriter {
     export const write = (boxGraph: BoxGraph,
@@ -25,11 +26,7 @@ export namespace AudioTrackWriter {
                 const {
                     position, duration, loopDuration, loopOffset, hue, label, mute, sample
                 } = region
-                const fileBox = AudioFileBox.create(boxGraph, UUID.parse(sample.uuid), box => {
-                    box.fileName.setValue(sample.name)
-                    box.startInSeconds.setValue(0)
-                    box.endInSeconds.setValue(sample.duration)
-                })
+                const fileBox = AudioFileBoxfactory.create(boxGraph, sample)
                 AudioRegionBox.create(boxGraph, UUID.generate(), box => {
                     box.position.setValue(position)
                     box.duration.setValue(duration)

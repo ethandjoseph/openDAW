@@ -33,6 +33,7 @@ export namespace ProjectConverter {
         }
         boxGraph.endTransaction()
         console.timeEnd("convert")
+        boxGraph.verifyPointers()
         if (Validator.hasOverlappingRegions(boxGraph)) {
             throw new Error("Project contains overlapping regions")
         }

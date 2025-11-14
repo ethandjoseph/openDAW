@@ -163,3 +163,28 @@ declare var Promise: PromiseConstructor
 
 declare function setInterval(handler: TimerHandler, timeout?: number, ...arguments: any[]): number;
 declare function setTimeout(handler: TimerHandler, timeout?: number, ...arguments: any[]): number;
+
+interface IteratorYieldResult<TYield> {
+    done?: false
+    value: TYield
+}
+interface IteratorReturnResult<TReturn> {
+    done: true
+    value: TReturn
+}
+type IteratorResult<T, TReturn = any> = IteratorYieldResult<T> | IteratorReturnResult<TReturn>
+interface Iterator<T, TReturn = any, TNext = undefined> {
+    next(...args: [] | [TNext]): IteratorResult<T, TReturn>
+    return?(value?: TReturn): IteratorResult<T, TReturn>
+    throw?(e?: any): IteratorResult<T, TReturn>
+}
+interface Iterable<T> {
+    [Symbol.iterator](): Iterator<T>
+}
+interface IterableIterator<T> extends Iterator<T> {
+    [Symbol.iterator](): IterableIterator<T>
+}
+interface SymbolConstructor {
+    readonly iterator: symbol
+}
+declare var Symbol: SymbolConstructor

@@ -10,6 +10,7 @@ import {NoteTrackWriter} from "./NoteTrackWriter"
 import {ValueTrackWriter} from "./ValueTrackWriter"
 import {AnyDevice, AudioUnit} from "./Api"
 import {AudioTrackWriter} from "./AudioTrackWriter"
+import {AudioFileBoxfactory} from "./AudioFileBoxfactory"
 
 export namespace AudioUnitBoxFactory {
     export const create = (skeleton: ProjectSkeleton, project: ProjectImpl): void => {
@@ -45,7 +46,13 @@ export namespace AudioUnitBoxFactory {
             audioUnitBox.solo.setValue(solo)
             audioUnitBox.volume.setValue(volume)
             audioUnitBox.panning.setValue(panning)
-            factory.create(boxGraph, audioUnitBox.input, factory.defaultName, factory.defaultIcon)
+            if (factory === InstrumentFactories.Nano) {
+                const sample = (instrument.props as Nano).sample
+                factory.create(boxGraph, audioUnitBox.input, factory.defaultName, factory.defaultIcon,
+                    AudioFileBoxfactory.create(boxGraph, sample))
+            } else {
+                factory.create(boxGraph, audioUnitBox.input, factory.defaultName, factory.defaultIcon)
+            }
             midiEffects.forEach((effect) => devices.set(effect, MIDIEffectFactory.write(boxGraph, audioUnitBox, effect)))
             audioEffects.forEach((effect) => devices.set(effect, AudioEffectFactory.write(boxGraph, audioUnitBox, effect)))
             const indexRef = {index: 0}

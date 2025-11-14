@@ -39,7 +39,7 @@ export namespace InstrumentFactories {
             })
     }
 
-    export const Nano: InstrumentFactory<void, NanoDeviceBox> = {
+    export const Nano: InstrumentFactory<AudioFileBox, NanoDeviceBox> = {
         defaultName: "Nano",
         defaultIcon: IconSymbol.NanoWave,
         description: "Simple sampler",
@@ -48,14 +48,19 @@ export namespace InstrumentFactories {
                  host: Field<Pointers.InstrumentHost | Pointers.AudioOutput>,
                  name: string,
                  icon: IconSymbol,
-                 _attachment?: void): NanoDeviceBox => {
-            const fileUUID = UUID.parse("c1678daa-4a47-4cba-b88f-4f4e384663c3")
-            const fileDuration = 5.340
-            const audioFileBox: AudioFileBox = boxGraph.findBox<AudioFileBox>(fileUUID)
-                .unwrapOrElse(() => AudioFileBox.create(boxGraph, fileUUID, box => {
-                    box.fileName.setValue("Rhode")
-                    box.endInSeconds.setValue(fileDuration)
-                }))
+                 attachment?: AudioFileBox): NanoDeviceBox => {
+            let audioFileBox: AudioFileBox
+            if (isDefined(attachment)) {
+                audioFileBox = attachment
+            } else {
+                const fileUUID = UUID.parse("c1678daa-4a47-4cba-b88f-4f4e384663c3")
+                const fileDuration = 5.340
+                audioFileBox = boxGraph.findBox<AudioFileBox>(fileUUID)
+                    .unwrapOrElse(() => AudioFileBox.create(boxGraph, fileUUID, box => {
+                        box.fileName.setValue("Rhode")
+                        box.endInSeconds.setValue(fileDuration)
+                    }))
+            }
             return NanoDeviceBox.create(boxGraph, UUID.generate(), box => {
                 box.label.setValue(name)
                 box.icon.setValue(IconSymbol.toName(icon))

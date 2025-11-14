@@ -14,6 +14,7 @@ import {MenuItem} from "@/ui/model/menu-item"
 import ScriptSimple from "./code-editor/examples/simple.ts?raw"
 import ScriptRetro from "./code-editor/examples/retro.ts?raw"
 import ScriptAudioRegion from "./code-editor/examples/create-sample.ts?raw"
+import ScriptNanoWavetable from "./code-editor/examples/nano-wavetable.ts?raw"
 import ScriptStressTest from "./code-editor/examples/stress-test.ts?raw"
 
 const truncateImports = (script: string) => script.substring(script.indexOf("//"))
@@ -21,6 +22,7 @@ const Examples = {
     Simple: truncateImports(ScriptSimple),
     Retro: truncateImports(ScriptRetro),
     AudioRegion: truncateImports(ScriptAudioRegion),
+    NanoWavetable: truncateImports(ScriptNanoWavetable),
     StressTest: truncateImports(ScriptStressTest)
 }
 

@@ -1,4 +1,4 @@
-import {Chord, dbToGain, gainToDb, Interpolation, PPQN} from "@opendaw/lib-dsp"
+import {Chord, dbToGain, FFT, gainToDb, Interpolation, midiToHz, PPQN} from "@opendaw/lib-dsp"
 import {Api} from "./Api"
 import {ApiImpl} from "./impl"
 import {ScriptHostProtocol} from "./ScriptHostProtocol"
@@ -14,7 +14,7 @@ export class ScriptExecutor {
         Object.assign(globalThis, {
             ...context,
             openDAW: this.#api,
-            AudioPlayback, PPQN, Chord, Interpolation, dbToGain, gainToDb
+            AudioPlayback, midiToHz, PPQN, FFT, Chord, Interpolation, dbToGain, gainToDb
         })
         const blob = new Blob([jsCode], {type: "text/javascript"})
         const url = URL.createObjectURL(blob)

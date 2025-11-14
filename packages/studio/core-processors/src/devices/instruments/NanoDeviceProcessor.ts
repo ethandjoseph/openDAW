@@ -112,6 +112,7 @@ class Voice {
     readonly #speed: number = 1.0
 
     #position: number = 0.0
+    #attack: number = (0.003 * sampleRate) | 0
     #envPosition: int = 0 | 0
     #decayPosition: int = Number.POSITIVE_INFINITY
 
@@ -147,7 +148,8 @@ class Voice {
             const intPosition = this.#position | 0
             if (intPosition >= numberOfFrames - 1) {return true}
             const frac = this.#position - intPosition
-            const env = Math.min(1.0 - (this.#envPosition - this.#decayPosition) * releaseInverse, 1.0) ** 2.0
+            const att = this.#envPosition < this.#attack ? this.#envPosition / this.#attack : 1.0
+            const env = (Math.min(1.0 - (this.#envPosition - this.#decayPosition) * releaseInverse, 1.0) * att) ** 2.0
             const l = inpL[intPosition] * (1.0 - frac) + inpL[intPosition + 1] * frac
             const r = inpR[intPosition] * (1.0 - frac) + inpR[intPosition + 1] * frac
             outL[i] += l * gain * env

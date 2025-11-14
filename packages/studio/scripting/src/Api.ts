@@ -1,10 +1,10 @@
-import {Chord, dbToGain, gainToDb, Interpolation, PPQN, ppqn} from "@opendaw/lib-dsp"
+import {Chord, dbToGain, FFT, gainToDb, Interpolation, midiToHz, PPQN, ppqn} from "@opendaw/lib-dsp"
 import {bipolar, float, int, Nullable, unitValue} from "@opendaw/lib-std"
 import type {AudioData} from "@opendaw/studio-adapters"
 import {Sample} from "@opendaw/studio-adapters"
 import {AudioPlayback} from "@opendaw/studio-enums"
 
-export {AudioPlayback, PPQN, Chord, Sample, dbToGain, gainToDb}
+export {AudioPlayback, PPQN, FFT, Chord, Sample, dbToGain, gainToDb, midiToHz}
 
 export type Send = {
     /** Send amount in decibels */
@@ -241,7 +241,9 @@ export interface Vaporisateur extends MIDIInstrument {}
 export interface Playfield extends MIDIInstrument {}
 
 /** Minimal synthesizer instrument */
-export interface Nano extends MIDIInstrument {}
+export interface Nano extends MIDIInstrument {
+    sample: Sample
+}
 
 /** SoundFont (.sf2) player instrument */
 export interface Soundfont extends MIDIInstrument {}
