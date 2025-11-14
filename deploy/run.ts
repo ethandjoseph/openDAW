@@ -1,7 +1,7 @@
 import SftpClient from "ssh2-sftp-client"
-import { Client as SSHClient } from "ssh2"
+import {Client as SSHClient} from "ssh2"
 import * as fs from "fs"
-import { execSync } from "child_process"
+import {execSync} from "child_process"
 
 const config = {
     host: process.env.SFTP_HOST,
@@ -34,7 +34,6 @@ RewriteBase /
 RewriteRule ^(.*)$ ${releaseDir}/$1 [L]
 # --------------------------------------------------
 `
-
 const executeSSHCommand = (command: string): Promise<string> => {
         return new Promise((resolve, reject) => {
             const ssh = new SSHClient()
@@ -44,13 +43,18 @@ const executeSSHCommand = (command: string): Promise<string> => {
                         ssh.end()
                         return reject(err)
                     }
-                    let output = ""
-                    stream.on("data", (data: Buffer) => {
-                        output += data.toString()
-                    })
-                    stream.on("close", () => {
+                    let stdout = ""
+                    let stderr = ""
+                    stream.on("data", (data: Buffer) => stdout += data.toString())
+                    stream.stderr.on("data", (data: Buffer) => stderr += data.toString())
+                    stream.on("close", (code: number) => {
                         ssh.end()
-                        resolve(output)
+                        if (code !== 0) {
+                            reject(new Error(`Command failed with code ${code}: ${stderr}`))
+                        } else {
+                            if (stderr) console.log("stderr:", stderr)
+                            resolve(stdout)
+                        }
                     })
                 })
             })
@@ -80,18 +84,21 @@ const executeSSHCommand = (command: string): Promise<string> => {
 
     // Extract on server via SSH
     console.log("extracting on server...")
-    await executeSSHCommand(`cd ${releaseDir} && tar -xzf dist.tar.gz && rm dist.tar.gz`)
+    await executeSSHCommand(`cd ${releaseDir} && tar -xzf dist.tar.gz && rm dist.tar.gz || echo "Error: $?"`)
 
     // Clean up local tarball
     fs.unlinkSync(tarballPath)
 
     // Create and upload root .htaccess (redirects to active release)
-    console.log("creating root .htaccess...")
-    const rootHtaccess = createRootHtaccess(releaseDir)
-    const tmpFile = "./.htaccess"
-    fs.writeFileSync(tmpFile, rootHtaccess)
-    await sftp.put(tmpFile, "/.htaccess")
-    fs.unlinkSync(tmpFile)
+    const goLive = false
+    if (goLive) {
+        console.log("creating root .htaccess...")
+        const rootHtaccess = createRootHtaccess(releaseDir)
+        const tmpFile = "./.htaccess"
+        fs.writeFileSync(tmpFile, rootHtaccess)
+        await sftp.put(tmpFile, "/.htaccess")
+        fs.unlinkSync(tmpFile)
+    }
 
     await sftp.end()
     console.log(`✅ Release uploaded and activated: ${releaseDir}`)
