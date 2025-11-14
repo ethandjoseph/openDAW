@@ -1,6 +1,7 @@
 import SftpClient from "ssh2-sftp-client"
+import { Client as SSHClient } from "ssh2"
 import * as fs from "fs"
-import * as path from "path"
+import { execSync } from "child_process"
 
 const config = {
     host: process.env.SFTP_HOST,
@@ -14,21 +15,6 @@ const distDir = "./packages/app/studio/dist"
 const buildInfoPath = "./packages/app/studio/public/build-info.json"
 
 const readBuildInfo = () => JSON.parse(fs.readFileSync(buildInfoPath, "utf8"))
-
-const uploadDirectory = async (localDir: string, remoteDir: string) => {
-    for (const file of fs.readdirSync(localDir)) {
-        const localPath = path.join(localDir, file)
-        const remotePath = path.posix.join(remoteDir, file)
-        const stat = fs.lstatSync(localPath)
-        if (stat.isDirectory()) {
-            await sftp.mkdir(remotePath, true).catch(() => {})
-            await uploadDirectory(localPath, remotePath)
-        } else {
-            console.log("upload", remotePath)
-            await sftp.put(localPath, remotePath)
-        }
-    }
-}
 
 const createRootHtaccess = (releaseDir: string) => `# openDAW
 #
@@ -49,16 +35,55 @@ RewriteRule ^(.*)$ ${releaseDir}/$1 [L]
 # --------------------------------------------------
 `
 
+const executeSSHCommand = (command: string): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const ssh = new SSHClient()
+            ssh.on("ready", () => {
+                ssh.exec(command, (err, stream) => {
+                    if (err) {
+                        ssh.end()
+                        return reject(err)
+                    }
+                    let output = ""
+                    stream.on("data", (data: Buffer) => {
+                        output += data.toString()
+                    })
+                    stream.on("close", () => {
+                        ssh.end()
+                        resolve(output)
+                    })
+                })
+            })
+            ssh.on("error", reject)
+            ssh.connect(config)
+        })
+    }
+
 ;(async () => {
     await sftp.connect(config)
 
     const {uuid} = readBuildInfo()
     const releaseDir = `/releases/${uuid}`
+
     console.log("creating", releaseDir)
     await sftp.mkdir(releaseDir, true).catch(() => {})
 
-    console.log("uploading dist...")
-    await uploadDirectory(distDir, releaseDir)
+    // Compress dist directory
+    console.log("compressing dist...")
+    const tarballPath = "./dist.tar.gz"
+    execSync(`tar -czf ${tarballPath} -C ${distDir} .`)
+
+    // Upload the single compressed file
+    console.log("uploading compressed dist...")
+    const remoteTarball = `${releaseDir}/dist.tar.gz`
+    await sftp.put(tarballPath, remoteTarball)
+
+    // Extract on server via SSH
+    console.log("extracting on server...")
+    await executeSSHCommand(`cd ${releaseDir} && tar -xzf dist.tar.gz && rm dist.tar.gz`)
+
+    // Clean up local tarball
+    fs.unlinkSync(tarballPath)
 
     // Create and upload root .htaccess (redirects to active release)
     console.log("creating root .htaccess...")
