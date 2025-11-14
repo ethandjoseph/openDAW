@@ -66,15 +66,12 @@ RewriteRule ^(.*)$ ${releaseDir}/$1 [L]
     fs.unlinkSync(tarballPath)
 
     // Create and upload root .htaccess (redirects to active release)
-    const goLive = false
-    if (goLive) {
-        console.log("creating root .htaccess...")
-        const rootHtaccess = createRootHtaccess(releaseDir)
-        const tmpFile = "./.htaccess"
-        fs.writeFileSync(tmpFile, rootHtaccess)
-        await sftp.put(tmpFile, "/.htaccess")
-        fs.unlinkSync(tmpFile)
-    }
+    console.log("creating root .htaccess...")
+    const rootHtaccess = createRootHtaccess(releaseDir)
+    const tmpFile = "./.htaccess"
+    fs.writeFileSync(tmpFile, rootHtaccess)
+    await sftp.put(tmpFile, "/.htaccess")
+    fs.unlinkSync(tmpFile)
 
     await sftp.end()
     console.log(`✅ Release uploaded and activated: ${releaseDir}`)
