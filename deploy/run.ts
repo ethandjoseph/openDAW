@@ -1,5 +1,4 @@
 import SftpClient from "ssh2-sftp-client"
-import {Client as SSHClient} from "ssh2"
 import * as fs from "fs"
 import {execSync} from "child_process"
 
@@ -34,34 +33,6 @@ RewriteBase /
 RewriteRule ^(.*)$ ${releaseDir}/$1 [L]
 # --------------------------------------------------
 `
-const executeSSHCommand = (command: string): Promise<string> => {
-        return new Promise((resolve, reject) => {
-            const ssh = new SSHClient()
-            ssh.on("ready", () => {
-                ssh.exec(command, (err, stream) => {
-                    if (err) {
-                        ssh.end()
-                        return reject(err)
-                    }
-                    let stdout = ""
-                    let stderr = ""
-                    stream.on("data", (data: Buffer) => stdout += data.toString())
-                    stream.stderr.on("data", (data: Buffer) => stderr += data.toString())
-                    stream.on("close", (code: number) => {
-                        ssh.end()
-                        if (code !== 0) {
-                            reject(new Error(`Command failed with code ${code}: ${stderr}`))
-                        } else {
-                            if (stderr) console.log("stderr:", stderr)
-                            resolve(stdout)
-                        }
-                    })
-                })
-            })
-            ssh.on("error", reject)
-            ssh.connect(config)
-        })
-    }
 
 ;(async () => {
     await sftp.connect(config)
@@ -82,9 +53,10 @@ const executeSSHCommand = (command: string): Promise<string> => {
     const remoteTarball = `${releaseDir}/dist.tar.gz`
     await sftp.put(tarballPath, remoteTarball)
 
-    // Extract on server via SSH
-    console.log("extracting on server...")
-    await executeSSHCommand(`cd ${releaseDir} && tar -xzf dist.tar.gz && rm dist.tar.gz || echo "Error: $?"`)
+    console.log("extracting on server via PHP...")
+    const extractUrl = `https://opendaw.studio/extract.php?file=${releaseDir}/dist.tar.gz`
+    const response = await fetch(extractUrl)
+    console.log(await response.text())
 
     // Clean up local tarball
     fs.unlinkSync(tarballPath)
