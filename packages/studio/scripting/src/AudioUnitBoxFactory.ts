@@ -47,9 +47,9 @@ export namespace AudioUnitBoxFactory {
             audioUnitBox.volume.setValue(volume)
             audioUnitBox.panning.setValue(panning)
             if (factory === InstrumentFactories.Nano) {
-                const sample = (instrument.props as Nano).sample
+                const sample = (instrument?.props as Nano)?.sample
                 factory.create(boxGraph, audioUnitBox.input, factory.defaultName, factory.defaultIcon,
-                    AudioFileBoxfactory.create(boxGraph, sample))
+                    isDefined(sample) ? AudioFileBoxfactory.create(boxGraph, sample) : undefined)
             } else {
                 factory.create(boxGraph, audioUnitBox.input, factory.defaultName, factory.defaultIcon)
             }

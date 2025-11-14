@@ -98,7 +98,7 @@ const sample = await openDAW.addSample({
 }, "Lush Chorus Pad")
 
 const project = openDAW.newProject("Time")
-project.bpm = 58
+project.bpm = 80
 
 const nanoUnit = project.addInstrumentUnit("Nano", {sample})
 nanoUnit.volume = -6

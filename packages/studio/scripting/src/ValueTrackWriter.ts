@@ -58,24 +58,26 @@ export namespace ValueTrackWriter {
 
     const orderValueEvents = (events: ReadonlyArray<ValueEventImpl>): Array<ValueEventImpl> => {
         if (events.length === 0) return []
-        events.toSorted((a, b) => a.position - b.position)
+        const sorted = events.toSorted((a, b) => a.position - b.position)
         const result: Array<ValueEventImpl> = []
         let index = 0
-        while (index < events.length) {
-            const position = events[index].position
+        while (index < sorted.length) {
+            const position = sorted[index].position
             const start = index
-            // Skip to the end of this position group
-            while (index < events.length && events[index].position === position) {
-                index++
-            }
+            while (index < sorted.length && sorted[index].position === position) {index++}
             const end = index - 1
             if (start === end) {
-                events[start].index = 0
-                result.push(events[start])
+                sorted[start].index = 0
+                result.push(sorted[start])
             } else {
-                events[start].index = 0
-                events[end].index = 1
-                result.push(events[start], events[end])
+                if (sorted[start].value === sorted[end].value) {
+                    sorted[end].index = 0
+                    result.push(sorted[end])
+                } else {
+                    sorted[start].index = 0
+                    sorted[end].index = 1
+                    result.push(sorted[start], sorted[end])
+                }
             }
         }
         return result
