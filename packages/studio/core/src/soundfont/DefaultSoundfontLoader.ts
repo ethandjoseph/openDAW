@@ -4,6 +4,7 @@ import {SoundfontLoader, SoundfontLoaderState, SoundfontMetaData} from "@opendaw
 import {DefaultSoundfontLoaderManager} from "./DefaultSoundfontLoaderManager"
 import {SoundfontStorage} from "./SoundfontStorage"
 import type {SoundFont2} from "soundfont2"
+import {ExternalLib} from "../ExternalLib"
 
 export class DefaultSoundfontLoader implements SoundfontLoader {
     readonly #manager: DefaultSoundfontLoaderManager
@@ -11,7 +12,7 @@ export class DefaultSoundfontLoader implements SoundfontLoader {
     readonly #uuid: UUID.Bytes
     readonly #notifier: Notifier<SoundfontLoaderState>
 
-    readonly #soundFont2 = Promises.memoizeAsync(() => import ("soundfont2"))
+    readonly #soundFont2 = Promises.memoizeAsync(() => ExternalLib.SoundFont2())
 
     #meta: Option<SoundfontMetaData> = Option.None
     #soundfont: Option<SoundFont2> = Option.None
@@ -89,7 +90,7 @@ export class DefaultSoundfontLoader implements SoundfontLoader {
     }
 
     async #createSoundFont2(buffer: ArrayBuffer): Promise<SoundFont2> {
-        const {SoundFont2} = await this.#soundFont2()
+        const SoundFont2 = await this.#soundFont2()
         return new SoundFont2(new Uint8Array(buffer))
     }
 }

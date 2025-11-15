@@ -22,6 +22,8 @@ export namespace AudioUnitBoxFactory {
         const busMap: Map<AudioUnit, AudioBusBox> = new Map([[project.output, primaryAudioBus]])
         const audioUnitMap: Map<AudioUnit, AudioUnitBox> = new Map([[project.output, primaryAudioOutputUnit]])
         const awaitedSends: Array<[SendImpl, AuxSendBox]> = []
+        const noteTrackWriter = new NoteTrackWriter()
+        const valueTrackWriter = new ValueTrackWriter()
         const createSend = (sends: ReadonlyArray<SendImpl>, audioUnitBox: AudioUnitBox) => {
             awaitedSends.push(...(sends.map((send: SendImpl, index: int): [SendImpl, AuxSendBox] =>
                 [send, AuxSendBox.create(boxGraph, UUID.generate(), box => {
@@ -56,9 +58,9 @@ export namespace AudioUnitBoxFactory {
             midiEffects.forEach((effect) => devices.set(effect, MIDIEffectFactory.write(boxGraph, audioUnitBox, effect)))
             audioEffects.forEach((effect) => devices.set(effect, AudioEffectFactory.write(boxGraph, audioUnitBox, effect)))
             const indexRef = {index: 0}
-            NoteTrackWriter.write(boxGraph, audioUnitBox, noteTracks, indexRef)
+            noteTrackWriter.write(boxGraph, audioUnitBox, noteTracks, indexRef)
+            valueTrackWriter.write(boxGraph, devices, audioUnitBox, valueTracks, indexRef)
             AudioTrackWriter.write(boxGraph, audioUnitBox, audioTracks, indexRef)
-            ValueTrackWriter.write(boxGraph, devices, audioUnitBox, valueTracks, indexRef)
             if (indexRef.index === 0) { // create a default track if none existed
                 TrackBox.create(boxGraph, UUID.generate(), box => {
                     box.type.setValue(factory.trackType)
@@ -90,7 +92,7 @@ export namespace AudioUnitBoxFactory {
             devices.set(audioUnit, audioUnitBox)
             audioUnit.audioEffects.forEach((effect) =>
                 devices.set(effect, AudioEffectFactory.write(boxGraph, audioUnitBox, effect)))
-            ValueTrackWriter.write(boxGraph, devices, audioUnitBox, audioUnit.valueTracks, {index: 0})
+            valueTrackWriter.write(boxGraph, devices, audioUnitBox, audioUnit.valueTracks, {index: 0})
         }
 
         // TODO Colors need to be in code and written to CSS

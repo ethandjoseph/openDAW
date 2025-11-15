@@ -78,10 +78,11 @@ export namespace Promises {
                 return await factory()
             } catch (reason) {
                 if (retryIf(reason, ++count)) {
+                    console.debug("retrying after failure:", reason)
                     await Wait.timeSpan(TimeSpan.seconds(1))
                     return attempt(count)
                 }
-                throw reason
+                throw new Error(`Failed after ${count} retries: ${reason}`)
             }
         }
         return attempt()

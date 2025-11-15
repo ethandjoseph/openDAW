@@ -16,6 +16,7 @@ import ScriptRetro from "./code-editor/examples/retro.ts?raw"
 import ScriptAudioRegion from "./code-editor/examples/create-sample.ts?raw"
 import ScriptNanoWavetable from "./code-editor/examples/nano-wavetable.ts?raw"
 import ScriptStressTest from "./code-editor/examples/stress-test.ts?raw"
+import {Promises} from "@opendaw/lib-runtime"
 
 const truncateImports = (script: string) => script.substring(script.indexOf("//"))
 const Examples = {
@@ -34,7 +35,8 @@ export const CodeEditorPage: PageFactory<StudioService> = ({lifecycle, service}:
         <div className={className}>
             <Await
                 factory={() => Promise.all([
-                    import("./code-editor/monaco-setup").then(({monaco}) => monaco)
+                    Promises.guardedRetry(() => import("./code-editor/monaco-setup"), (_error, count) => count < 10)
+                        .then(({monaco}) => monaco)
                 ])}
                 failure={({retry, reason}) => (<p onclick={retry}>{reason}</p>)}
                 loading={() => ThreeDots()}

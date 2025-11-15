@@ -6,13 +6,14 @@ import {Box, BoxGraph} from "@opendaw/lib-box"
 import {AnyDevice, ValueRegion} from "./Api"
 import {IndexRef} from "./IndexRef"
 
-export namespace ValueTrackWriter {
-    export const write = (boxGraph: BoxGraph,
-                          devices: Map<AnyDevice, Box>,
-                          audioUnitBox: AudioUnitBox,
-                          valueTracks: ReadonlyArray<ValueTrackImpl>,
-                          indexRef: IndexRef): void => {
-        const map: Map<ValueRegion, ValueEventCollectionBox> = new Map()
+export class ValueTrackWriter {
+    readonly #map: Map<ValueRegion, ValueEventCollectionBox> = new Map()
+
+    write(boxGraph: BoxGraph,
+          devices: Map<AnyDevice, Box>,
+          audioUnitBox: AudioUnitBox,
+          valueTracks: ReadonlyArray<ValueTrackImpl>,
+          indexRef: IndexRef): void {
         valueTracks.forEach(({enabled, regions, device, parameter}: ValueTrackImpl) => {
             const box = asDefined(devices.get(device), `Could not find ${device.constructor.name}`)
             const field = box[parameter]
@@ -28,10 +29,10 @@ export namespace ValueTrackWriter {
                     position, duration, loopDuration, loopOffset, events, hue, label, mute, mirror
                 } = region
                 const valueEventCollectionBox = isDefined(mirror)
-                    ? asDefined(map.get(mirror), "mirror region not found in map")
+                    ? asDefined(this.#map.get(mirror), "mirror region not found in map")
                     : ValueEventCollectionBox.create(boxGraph, UUID.generate())
-                map.set(region, valueEventCollectionBox)
-                orderValueEvents(events).forEach(event => {
+                this.#map.set(region, valueEventCollectionBox)
+                this.#orderValueEvents(events).forEach(event => {
                     const valueEvent = ValueEventBox.create(boxGraph, UUID.generate(), box => {
                         box.position.setValue(event.position)
                         box.value.setValue(event.value)
@@ -56,7 +57,7 @@ export namespace ValueTrackWriter {
         })
     }
 
-    const orderValueEvents = (events: ReadonlyArray<ValueEventImpl>): Array<ValueEventImpl> => {
+    #orderValueEvents(events: ReadonlyArray<ValueEventImpl>): Array<ValueEventImpl> {
         if (events.length === 0) return []
         const sorted = events.toSorted((a, b) => a.position - b.position)
         const result: Array<ValueEventImpl> = []

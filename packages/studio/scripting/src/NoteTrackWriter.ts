@@ -6,12 +6,13 @@ import {BoxGraph} from "@opendaw/lib-box"
 import {NoteRegion} from "./Api"
 import {IndexRef} from "./IndexRef"
 
-export namespace NoteTrackWriter {
-    export const write = (boxGraph: BoxGraph,
-                          audioUnitBox: AudioUnitBox,
-                          noteTracks: ReadonlyArray<NoteTrackImpl>,
-                          indexRef: IndexRef): void => {
-        const map: Map<NoteRegion, NoteEventCollectionBox> = new Map()
+export class NoteTrackWriter {
+    readonly #map: Map<NoteRegion, NoteEventCollectionBox> = new Map()
+
+    write(boxGraph: BoxGraph,
+          audioUnitBox: AudioUnitBox,
+          noteTracks: ReadonlyArray<NoteTrackImpl>,
+          indexRef: IndexRef): void {
         noteTracks.forEach(({enabled, regions}: NoteTrackImpl) => {
             const trackBox = TrackBox.create(boxGraph, UUID.generate(), box => {
                 box.type.setValue(TrackType.Notes)
@@ -25,9 +26,9 @@ export namespace NoteTrackWriter {
                     position, duration, loopDuration, loopOffset, events, hue, label, mute, mirror
                 } = region
                 const noteEventCollectionBox = isDefined(mirror)
-                    ? asDefined(map.get(mirror), "mirror region not found in map")
+                    ? asDefined(this.#map.get(mirror), "mirror region not found in map")
                     : NoteEventCollectionBox.create(boxGraph, UUID.generate())
-                map.set(region, noteEventCollectionBox)
+                this.#map.set(region, noteEventCollectionBox)
                 events.forEach(event => {
                     NoteEventBox.create(boxGraph, UUID.generate(), box => {
                         box.position.setValue(event.position)
