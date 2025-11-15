@@ -1,22 +1,18 @@
 import {AuxAudioUnit, GroupAudioUnit, Send} from "../Api"
-import {ProjectImpl} from "./ProjectImpl"
 import {AudioUnitImpl} from "./AudioUnitImpl"
 import {SendImpl} from "./SendImpl"
 import {Arrays} from "@opendaw/lib-std"
 
 export class GroupAudioUnitImpl extends AudioUnitImpl implements GroupAudioUnit {
     readonly kind = "group" as const
-
-    readonly #sends: Array<SendImpl>
+    readonly #sends: Array<SendImpl> = []
 
     label: string
 
-    constructor(project: ProjectImpl, props?: Partial<GroupAudioUnit>) {
-        super(project, props)
+    constructor(props?: Partial<GroupAudioUnit>) {
+        super(props)
 
         this.label = props?.label ?? "Subgroup"
-
-        this.#sends = []
     }
 
     addSend(target: AuxAudioUnit | GroupAudioUnit, props?: Partial<Send>): Send {

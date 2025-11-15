@@ -23,7 +23,7 @@ export class ProjectImpl implements Project {
         this.#api = api
         this.name = name
         this.bpm = 120
-        this.output = new OutputAudioUnitImpl(this)
+        this.output = new OutputAudioUnitImpl()
     }
 
     openInStudio(): void {
@@ -31,19 +31,19 @@ export class ProjectImpl implements Project {
     }
 
     addInstrumentUnit<KEY extends keyof Instruments>(name: KEY, props?: Partial<Instruments[KEY]>): InstrumentAudioUnit {
-        const unit = new InstrumentAudioUnitImpl(this, name, props)
+        const unit = new InstrumentAudioUnitImpl(name, props)
         this.#instruments.push(unit)
         return unit
     }
 
-    addAuxUnit(): AuxAudioUnit {
-        const unit = new AuxAudioUnitImpl(this)
+    addAuxUnit(props?: Partial<GroupAudioUnit>): AuxAudioUnit {
+        const unit = new AuxAudioUnitImpl(props)
         this.#auxUnits.push(unit)
         return unit
     }
 
     addGroupUnit(props?: Partial<GroupAudioUnit>): GroupAudioUnit {
-        const unit = new GroupAudioUnitImpl(this, props)
+        const unit = new GroupAudioUnitImpl(props)
         this.#groupUnits.push(unit)
         return unit
     }

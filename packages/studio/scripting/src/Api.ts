@@ -82,8 +82,8 @@ export interface MIDIEffects {
 }
 
 export interface AudioUnit {
-    /** Output routing destination */
-    output: Nullable<OutputAudioUnit | GroupAudioUnit>
+    /** Output routing destination, if unset it goes to primary output, if null, it remains unplugged */
+    output?: Nullable<OutputAudioUnit | GroupAudioUnit>
     /** Volume in decibels (dB) */
     volume: number
     /** Pan position (-1.0 = full left, 0.0 = center, 1.0 = full right) */
@@ -93,9 +93,9 @@ export interface AudioUnit {
     /** Solo the audio unit */
     solo: boolean
     /** Add an audio effect to the unit */
-    addAudioEffect<T extends keyof AudioEffects>(type: T, props?: Partial<Omit<AudioEffects[T], "key">>): AudioEffects[T]
+    addAudioEffect<T extends keyof AudioEffects>(type: T, props?: Partial<AudioEffects[T]>): AudioEffects[T]
     /** Add a MIDI effect to the unit */
-    addMIDIEffect<T extends keyof MIDIEffects>(type: T, props?: Partial<Omit<MIDIEffects[T], "key">>): MIDIEffects[T]
+    addMIDIEffect<T extends keyof MIDIEffects>(type: T, props?: Partial<MIDIEffects[T]>): MIDIEffects[T]
     /** Add a note track for MIDI events */
     addNoteTrack(props?: Partial<Pick<Track, "enabled">>): NoteTrack
     /** Add an audio track */

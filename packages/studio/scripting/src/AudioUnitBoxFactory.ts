@@ -1,4 +1,4 @@
-import {asDefined, int, isDefined, Option, UUID} from "@opendaw/lib-std"
+import {asDefined, int, isDefined, isNotNull, Option, UUID} from "@opendaw/lib-std"
 import {Box} from "@opendaw/lib-box"
 import {AudioUnitType, IconSymbol} from "@opendaw/studio-enums"
 import {AudioBusBox, AudioUnitBox, AuxSendBox, TrackBox} from "@opendaw/studio-boxes"
@@ -34,7 +34,7 @@ export namespace AudioUnitBoxFactory {
                     // TODO mode "pre" | "post"
                 })])))
         }
-        project.instrumentUnits.forEach((audioUnit: Required<InstrumentAudioUnitImpl>) => {
+        project.instrumentUnits.forEach((audioUnit: InstrumentAudioUnitImpl) => {
             const {
                 instrument, midiEffects, audioEffects, noteTracks, audioTracks, valueTracks,
                 volume, panning, mute, solo, sends
@@ -120,8 +120,12 @@ export namespace AudioUnitBoxFactory {
         ]
         audioUnits.forEach((audioUnit: AudioUnit) => {
             const {output} = audioUnit
-            const audioBusBox = isDefined(output) ? busMap.get(output) : null
-            if (isDefined(audioBusBox)) {
+            // undefined means we connect this to the primary output
+            // null means this is intended to be unplugged
+            const audioBusBox = output === undefined
+                ? primaryAudioBus : output === null
+                    ? null : asDefined(busMap.get(output), "Could not find AudioBus")
+            if (isNotNull(audioBusBox)) {
                 const audioUnitBox = asDefined(audioUnitMap.get(audioUnit), "audio unit not found in map")
                 audioUnitBox.output.refer(audioBusBox.input)
             }

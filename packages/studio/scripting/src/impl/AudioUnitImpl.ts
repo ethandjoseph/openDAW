@@ -18,29 +18,26 @@ import {bipolar, Nullable} from "@opendaw/lib-std"
 import {AudioTrackImpl} from "./AudioTrackImpl"
 
 export abstract class AudioUnitImpl implements AudioUnit {
-    protected project: ProjectImpl
-
     readonly #audioEffects: Array<AudioEffects[keyof AudioEffects]>
     readonly #midiEffects: Array<MIDIEffects[keyof MIDIEffects]>
     readonly #noteTracks: Array<NoteTrackImpl>
     readonly #valueTracks: Array<ValueTrackImpl>
     readonly #audioTracks: Array<AudioTrackImpl>
 
-    output: Nullable<OutputAudioUnit | GroupAudioUnit>
+    output?: Nullable<OutputAudioUnit | GroupAudioUnit>
     volume: number
     panning: bipolar
     mute: boolean
     solo: boolean
 
-    protected constructor(project: ProjectImpl, props?: Partial<AudioUnit>) {
-        this.project = project
+    protected constructor(props?: Partial<AudioUnit>) {
         this.#audioEffects = []
         this.#midiEffects = []
         this.#noteTracks = []
         this.#audioTracks = []
         this.#valueTracks = []
 
-        this.output = props?.output === undefined ? project.output : null
+        this.output = props?.output
         this.volume = props?.volume ?? 0.0
         this.panning = props?.panning ?? 0.0
         this.mute = props?.mute ?? false

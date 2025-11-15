@@ -1,5 +1,4 @@
 import {AuxAudioUnit, GroupAudioUnit, Instrument, InstrumentAudioUnit, Instruments, Send} from "../Api"
-import {ProjectImpl} from "./ProjectImpl"
 import {AudioUnitImpl} from "./AudioUnitImpl"
 import {SendImpl} from "./SendImpl"
 import {InstrumentImpl} from "./InstrumentImpl"
@@ -7,14 +6,13 @@ import {Arrays} from "@opendaw/lib-std"
 
 export class InstrumentAudioUnitImpl extends AudioUnitImpl implements InstrumentAudioUnit {
     readonly kind = "instrument" as const
-    readonly #sends: Array<SendImpl>
+    readonly #sends: Array<SendImpl> = []
 
     instrument: InstrumentImpl
 
-    constructor(project: ProjectImpl, instrumentName: keyof Instruments, props?: Partial<Instruments[keyof Instruments]>) {
-        super(project)
+    constructor(instrumentName: keyof Instruments, props?: Partial<Instruments[keyof Instruments]>) {
+        super()
         this.instrument = new InstrumentImpl(this, instrumentName, props)
-        this.#sends = []
     }
 
     setInstrument(instrumentName: keyof Instruments, props?: Partial<Instruments[keyof Instruments]>): Instrument {
