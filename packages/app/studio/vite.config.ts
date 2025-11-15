@@ -29,7 +29,7 @@ export default defineConfig(({command}) => {
                 output: {
                     format: "es",
                     entryFileNames: `[name].${uuid}.js`,
-                    chunkFileNames: `[name].${uuid}.js`,
+                    chunkFileNames: `[name].js`,
                     assetFileNames: `[name].${uuid}.[ext]`,
                     manualChunks(id: string) {
                         if (id.includes("monaco-editor")) {
