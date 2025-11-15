@@ -17,6 +17,7 @@ import ScriptAudioRegion from "./code-editor/examples/create-sample.ts?raw"
 import ScriptNanoWavetable from "./code-editor/examples/nano-wavetable.ts?raw"
 import ScriptStressTest from "./code-editor/examples/stress-test.ts?raw"
 import {Promises} from "@opendaw/lib-runtime"
+import {Colors} from "@opendaw/studio-adapters"
 
 const truncateImports = (script: string) => script.substring(script.indexOf("//"))
 const Examples = {
@@ -123,7 +124,8 @@ export const CodeEditorPage: PageFactory<StudioService> = ({lifecycle, service}:
                                     .setRuntimeChildrenProcedure(parent => parent
                                         .addMenuItem(...Object.entries(Examples)
                                             .map(([name, example]) => MenuItem.default({label: name})
-                                                .setTriggerProcedure(() => model.setValue(example)))))}>
+                                                .setTriggerProcedure(() => model.setValue(example)))))}
+                                            appearance={{tinyTriangle: true, color: Colors.dark}}>
                                     <span>Examples</span>
                                 </MenuButton>
                             </header>
