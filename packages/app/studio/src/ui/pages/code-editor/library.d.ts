@@ -149,7 +149,7 @@ interface ConcatArray<T> {
 }
 
 interface PromiseConstructor {
-    readonly prototype: Promise<any>;
+    readonly prototype: Promise<unknown>;
     new<T>(executor: (resolve: (value: T | PromiseLike<T>) => void, reject: (reason?: any) => void) => void): Promise<T>;
     all<T extends readonly unknown[] | []>(values: T): Promise<{ -readonly [P in keyof T]: Awaited<T[P]>; }>;
     race<T extends readonly unknown[] | []>(values: T): Promise<Awaited<T[number]>>;

@@ -12,6 +12,9 @@ const hostProtocol = Communicator.sender<ScriptHostProtocol>(messenger.channel("
         openProject(buffer: ArrayBufferLike, name?: string): void {
             dispatcher.dispatchAndForget(this.openProject, buffer, name)
         }
+        fetchProject(): Promise<{ buffer: ArrayBuffer; name: string }> {
+            return dispatcher.dispatchAndReturn(this.fetchProject)
+        }
         addSample(data: AudioData, name: string): Promise<Sample> {
             return dispatcher.dispatchAndReturn(this.addSample, data, name)
         }

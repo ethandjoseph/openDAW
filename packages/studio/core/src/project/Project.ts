@@ -1,6 +1,5 @@
 import {
     Arrays,
-    ByteArrayOutput,
     Func,
     panic,
     Procedure,
@@ -29,9 +28,10 @@ import {
     ClipSequencing,
     ParameterFieldAdapters,
     ProcessorOptions,
-    ProjectDecoder,
+    ProjectSkeletonDecoder,
     ProjectMandatoryBoxes,
     ProjectSkeleton,
+    ProjectSkeletonEncoder,
     RootBoxAdapter,
     SampleLoaderManager,
     SoundfontLoaderManager,
@@ -74,7 +74,7 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
     }
 
     static load(env: ProjectEnv, arrayBuffer: ArrayBuffer): Project {
-        return this.skeleton(env, ProjectDecoder.decode(arrayBuffer))
+        return this.skeleton(env, ProjectSkeletonDecoder.decode(arrayBuffer))
     }
 
     static skeleton(env: ProjectEnv, skeleton: ProjectSkeleton, followFirstUser: boolean = true): Project {
@@ -218,13 +218,7 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
     }
 
     toArrayBuffer(): ArrayBufferLike {
-        const output = ByteArrayOutput.create()
-        output.writeInt(ProjectDecoder.MAGIC_HEADER_OPEN)
-        output.writeInt(ProjectDecoder.FORMAT_VERSION)
-        const boxGraphChunk = this.boxGraph.toArrayBuffer()
-        output.writeInt(boxGraphChunk.byteLength)
-        output.writeBytes(new Int8Array(boxGraphChunk))
-        return output.toArrayBuffer()
+        return ProjectSkeletonEncoder.encode(this.boxGraph)
     }
 
     copy(env?: Partial<ProjectEnv>): Project {

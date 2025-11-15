@@ -35,7 +35,7 @@ import {
     EngineToClient,
     NoteSignal,
     ParameterFieldAdapters,
-    ProjectDecoder,
+    ProjectSkeletonDecoder,
     RootBoxAdapter,
     SampleLoaderManager,
     SoundfontLoaderManager,
@@ -109,7 +109,7 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
     } & AudioNodeOptions) {
         super()
 
-        const {boxGraph, mandatoryBoxes: {rootBox, timelineBox}} = ProjectDecoder.decode(project)
+        const {boxGraph, mandatoryBoxes: {rootBox, timelineBox}} = ProjectSkeletonDecoder.decode(project)
 
         this.#terminator = new Terminator()
         this.#messenger = Messenger.for(this.port)

@@ -1,10 +1,10 @@
 import {Api, Project} from "../Api"
 import {ProjectImpl} from "./ProjectImpl"
-import {panic} from "@opendaw/lib-std"
 import {ScriptHostProtocol} from "../ScriptHostProtocol"
 import {AudioData, Sample} from "@opendaw/studio-adapters"
+import {ProjectUnpacker} from "../ProjectUnpacker"
 
-export class ApiImpl implements Api, ScriptHostProtocol {
+export class ApiImpl implements Api {
     readonly #protocol: ScriptHostProtocol
 
     constructor(protocol: ScriptHostProtocol) {this.#protocol = protocol}
@@ -14,7 +14,8 @@ export class ApiImpl implements Api, ScriptHostProtocol {
     }
 
     async getProject(): Promise<Project> {
-        return panic("Not yet implemented")
+        const {buffer, name} = await this.#protocol.fetchProject()
+        return ProjectUnpacker.unpack(this, buffer, name)
     }
 
     openProject(buffer: ArrayBufferLike, name?: string): void {

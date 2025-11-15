@@ -1,6 +1,6 @@
 import {Class, Option, Progress, safeExecute, tryCatch, UUID} from "@opendaw/lib-std"
 import {AudioFileBox, SoundfontFileBox} from "@opendaw/studio-boxes"
-import {ProjectDecoder} from "@opendaw/studio-adapters"
+import {ProjectSkeletonDecoder} from "@opendaw/studio-adapters"
 import {Promises} from "@opendaw/lib-runtime"
 import {ProjectMeta} from "./ProjectMeta"
 import {Workers} from "../Workers"
@@ -55,7 +55,7 @@ export namespace ProjectStorage {
         for (const {name} of files.filter(file => file.kind === "directory")) {
             const result = await Workers.Opfs.read(ProjectPaths.projectFile(UUID.parse(name)))
             tryCatch(() => {
-                const {boxGraph} = ProjectDecoder.decode(result.buffer)
+                const {boxGraph} = ProjectSkeletonDecoder.decode(result.buffer)
                 uuids.push(...boxGraph.boxes()
                     .filter(box => box instanceof type)
                     .map((box) => UUID.toString(box.address.uuid)))

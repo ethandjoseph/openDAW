@@ -2,9 +2,9 @@ import {StudioService} from "@/service/StudioService"
 import {Communicator, Messenger, Promises} from "@opendaw/lib-runtime"
 import {ScriptExecutionContext, ScriptExecutionProtocol, ScriptHostProtocol} from "@opendaw/studio-scripting"
 import {Project, WavFile} from "@opendaw/studio-core"
-import {AudioData, ProjectDecoder, Sample} from "@opendaw/studio-adapters"
+import {AudioData, ProjectSkeletonDecoder, ProjectSkeletonEncoder, Sample} from "@opendaw/studio-adapters"
 import {BoxGraph} from "@opendaw/lib-box"
-import {Errors, Option, RuntimeNotifier} from "@opendaw/lib-std"
+import {Option, panic, RuntimeNotifier} from "@opendaw/lib-std"
 import {BoxIO} from "@opendaw/studio-boxes"
 import scriptWorkerUrl from "@opendaw/studio-scripting/ScriptWorker.js?worker&url"
 
@@ -17,10 +17,19 @@ export class ScriptExecutor implements ScriptExecutionProtocol {
             openProject: (buffer: ArrayBufferLike, name?: string): void => {
                 const boxGraph = new BoxGraph<BoxIO.TypeMap>(Option.wrap(BoxIO.create))
                 boxGraph.fromArrayBuffer(buffer)
-                const mandatoryBoxes = ProjectDecoder.findMandatoryBoxes(boxGraph)
+                const mandatoryBoxes = ProjectSkeletonDecoder.findMandatoryBoxes(boxGraph)
                 const project = Project.skeleton(service, {boxGraph, mandatoryBoxes})
                 service.projectProfileService.setProject(project, name ?? "Scripted Project")
                 service.switchScreen("default")
+            },
+            fetchProject: async (): Promise<{ buffer: ArrayBuffer; name: string }> => {
+                return service.projectProfileService.getValue().match({
+                    none: () => panic("No project available"),
+                    some: ({project, meta}) => ({
+                        buffer: ProjectSkeletonEncoder.encode(project.boxGraph) as ArrayBuffer,
+                        name: meta.name
+                    })
+                })
             },
             addSample: (data: AudioData, name: string): Promise<Sample> => service.sampleService.importFile({
                 name, arrayBuffer: WavFile.encodeFloats({
@@ -46,7 +55,7 @@ export class ScriptExecutor implements ScriptExecutionProtocol {
         progressUpdater.terminate()
         if (status === "rejected") {
             console.warn(error)
-            await RuntimeNotifier.info({headline: "The script caused an error", message: Errors.toString(error)})
+            await RuntimeNotifier.info({headline: "The script caused an error", message: String(error)})
         }
     }
 }

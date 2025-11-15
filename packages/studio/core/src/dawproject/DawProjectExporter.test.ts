@@ -2,7 +2,7 @@ import {describe, it} from "vitest"
 import {fileURLToPath} from "url"
 import * as path from "node:path"
 import * as fs from "node:fs"
-import {AudioData, ProjectDecoder, SampleLoader, SampleLoaderManager, SampleLoaderState} from "@opendaw/studio-adapters"
+import {AudioData, ProjectSkeletonDecoder, SampleLoader, SampleLoaderManager, SampleLoaderState} from "@opendaw/studio-adapters"
 import {Observer, Option, panic, Subscription, Terminable, UUID} from "@opendaw/lib-std"
 import {Xml} from "@opendaw/lib-xml"
 import {FileReferenceSchema} from "@opendaw/lib-dawproject"
@@ -35,7 +35,7 @@ describe("DawProjectExport", () => {
             remove(_uuid: UUID.Bytes): void {return panic("Method not implemented.")}
             invalidate(_uuid: UUID.Bytes): void {return panic("Method not implemented.")}
         }
-        const skeleton = ProjectDecoder.decode(arrayBuffer)
+        const skeleton = ProjectSkeletonDecoder.decode(arrayBuffer)
         const schema = DawProjectExporter.write(skeleton, sampleManager, {
             write: (path: string, buffer: ArrayBufferLike): FileReferenceSchema => {
                 console.debug(`store ${buffer.byteLength} bytes at ${path}`)

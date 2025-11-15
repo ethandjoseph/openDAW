@@ -11,15 +11,15 @@ import {
 import {asInstanceOf, assert, ByteArrayInput, isDefined, Maybe, Option, panic} from "@opendaw/lib-std"
 import {ProjectSkeleton} from "./ProjectSkeleton"
 import {ProjectMandatoryBoxes} from "./ProjectMandatoryBoxes"
+import {ProjectSkeletonHeader} from "./ProjectSkeletonHeader"
 
-export namespace ProjectDecoder {
-    export const MAGIC_HEADER_OPEN = 0x4F50454E
-    export const FORMAT_VERSION = 2
-
+export namespace ProjectSkeletonDecoder {
     export const decode = (arrayBuffer: ArrayBufferLike): ProjectSkeleton => {
         const input = new ByteArrayInput(arrayBuffer)
-        assert(input.readInt() === ProjectDecoder.MAGIC_HEADER_OPEN, "Corrupt header. Probably not an openDAW project file.")
-        assert(input.readInt() === ProjectDecoder.FORMAT_VERSION, "Deprecated Format")
+        assert(input.readInt() === ProjectSkeletonHeader.MAGIC_HEADER_OPEN,
+            "Corrupt header. Probably not an openDAW project file.")
+        assert(input.readInt() === ProjectSkeletonHeader.FORMAT_VERSION,
+            "Deprecated Format")
         const boxGraphChunkLength = input.readInt()
         const boxGraphChunk = new Int8Array(boxGraphChunkLength)
         input.readBytes(boxGraphChunk)
