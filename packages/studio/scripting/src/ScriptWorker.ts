@@ -1,7 +1,7 @@
 import {Communicator, Messenger} from "@opendaw/lib-runtime"
 
 import {ScriptExecutionContext, ScriptExecutionProtocol} from "./ScriptExecutionProtocol"
-import {ScriptExecutor} from "./ScriptExecutor"
+import {ScriptRunner} from "./ScriptRunner"
 import {ScriptHostProtocol} from "./ScriptHostProtocol"
 import {AudioData, Sample} from "@opendaw/studio-adapters"
 
@@ -21,10 +21,10 @@ const hostProtocol = Communicator.sender<ScriptHostProtocol>(messenger.channel("
     })
 
 Communicator.executor(messenger.channel("scripting-execution"), new class implements ScriptExecutionProtocol {
-    readonly #scriptExecutor = new ScriptExecutor(hostProtocol)
+    readonly #scriptExecutor = new ScriptRunner(hostProtocol)
 
     // TODO We might return information about the script execution, e.g. warnings
-    execute(script: string, context: ScriptExecutionContext): Promise<void> {
+    executeScript(script: string, context: ScriptExecutionContext): Promise<void> {
         return this.#scriptExecutor.run(script, context)
     }
 })

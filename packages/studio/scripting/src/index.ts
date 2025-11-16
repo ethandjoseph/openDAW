@@ -10,4 +10,6 @@ if ((globalThis as any)[key]) {
 export * from "./Api"
 export * from "./impl"
 export * from "./ScriptExecutionProtocol"
+export * from "./ScriptRunner"
+export * from "./ScriptHost"
 export * from "./ScriptHostProtocol"

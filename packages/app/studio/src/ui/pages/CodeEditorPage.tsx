@@ -6,18 +6,21 @@ import {ThreeDots} from "@/ui/spinner/ThreeDots"
 import {Button} from "@/ui/components/Button"
 import {Icon} from "@/ui/components/Icon"
 import {IconSymbol} from "@opendaw/studio-enums"
-import {RuntimeNotifier} from "@opendaw/lib-std"
-import {ScriptExecutor} from "@/ui/pages/code-editor/script-executor"
+import {Option, panic, RuntimeNotifier} from "@opendaw/lib-std"
+import {ScriptHost} from "@opendaw/studio-scripting"
 import {MenuButton} from "@/ui/components/MenuButton"
 import {MenuItem} from "@/ui/model/menu-item"
-
+import scriptWorkerUrl from "@opendaw/studio-scripting/ScriptWorker.js?worker&url"
 import ScriptSimple from "./code-editor/examples/simple.ts?raw"
 import ScriptRetro from "./code-editor/examples/retro.ts?raw"
 import ScriptAudioRegion from "./code-editor/examples/create-sample.ts?raw"
 import ScriptNanoWavetable from "./code-editor/examples/nano-wavetable.ts?raw"
 import ScriptStressTest from "./code-editor/examples/stress-test.ts?raw"
 import {Promises} from "@opendaw/lib-runtime"
-import {Colors} from "@opendaw/studio-adapters"
+import {AudioData, Colors, ProjectSkeletonDecoder, ProjectSkeletonEncoder, Sample} from "@opendaw/studio-adapters"
+import {BoxGraph} from "@opendaw/lib-box"
+import {BoxIO} from "@opendaw/studio-boxes"
+import {Project, WavFile} from "@opendaw/studio-core"
 
 const truncateImports = (script: string) => script.substring(script.indexOf("//"))
 const Examples = {
@@ -31,7 +34,33 @@ const Examples = {
 const className = Html.adoptStyleSheet(css, "CodeEditorPage")
 
 export const CodeEditorPage: PageFactory<StudioService> = ({lifecycle, service}: PageContext<StudioService>) => {
-    const executor = new ScriptExecutor(service)
+    const host = new ScriptHost({
+        openProject: (buffer: ArrayBufferLike, name?: string): void => {
+            const boxGraph = new BoxGraph<BoxIO.TypeMap>(Option.wrap(BoxIO.create))
+            boxGraph.fromArrayBuffer(buffer)
+            const mandatoryBoxes = ProjectSkeletonDecoder.findMandatoryBoxes(boxGraph)
+            const project = Project.skeleton(service, {boxGraph, mandatoryBoxes})
+            service.projectProfileService.setProject(project, name ?? "Scripted Project")
+            service.switchScreen("default")
+        },
+        fetchProject: async (): Promise<{ buffer: ArrayBuffer; name: string }> => {
+            return service.projectProfileService.getValue().match({
+                none: () => panic("No project available"),
+                some: ({project, meta}) => ({
+                    buffer: ProjectSkeletonEncoder.encode(project.boxGraph) as ArrayBuffer,
+                    name: meta.name
+                })
+            })
+        },
+        addSample: (data: AudioData, name: string): Promise<Sample> => service.sampleService.importFile({
+            name, arrayBuffer: WavFile.encodeFloats({
+                channels: data.frames,
+                numFrames: data.numberOfFrames,
+                sampleRate: data.sampleRate,
+                numberOfChannels: data.numberOfChannels
+            })
+        })
+    }, scriptWorkerUrl)
     return (
         <div className={className}>
             <Await
@@ -72,7 +101,7 @@ export const CodeEditorPage: PageFactory<StudioService> = ({lifecycle, service}:
                         Events.subscribe(container, "keypress", event => event.stopPropagation())
                     )
                     requestAnimationFrame(() => editor.focus())
-                    const clickHandler = async () => {
+                    const compileAndRun = async () => {
                         try {
                             const worker = await monaco.languages.typescript.getTypeScriptWorker()
                             const client = await worker(model.uri)
@@ -91,7 +120,7 @@ export const CodeEditorPage: PageFactory<StudioService> = ({lifecycle, service}:
                             if (emitOutput.outputFiles.length > 0) {
                                 const jsCode = emitOutput.outputFiles[0].text
                                     .replace(/^["']use strict["'];?/, "")
-                                await executor.execute(jsCode, {
+                                await host.executeScript(jsCode, {
                                     sampleRate: service.audioContext.sampleRate
                                 })
                             } else {
@@ -116,7 +145,7 @@ export const CodeEditorPage: PageFactory<StudioService> = ({lifecycle, service}:
                                     <span>Exit</span> <Icon symbol={IconSymbol.Exit}/>
                                 </Button>
                                 <Button lifecycle={lifecycle}
-                                        onClick={clickHandler}
+                                        onClick={compileAndRun}
                                         appearance={{tooltip: "Run script"}}>
                                     <span>Run</span> <Icon symbol={IconSymbol.Play}/>
                                 </Button>

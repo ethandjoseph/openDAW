@@ -3,7 +3,7 @@ import "monaco-editor/esm/vs/language/typescript/monaco.contribution"
 import EditorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker"
 import TsWorker from "monaco-editor/esm/vs/language/typescript/ts.worker?worker"
 import declarations from "@opendaw/studio-scripting/api.declaration?raw"
-import library from "./library.d.ts?raw"
+import library from "@opendaw/studio-scripting?raw"
 
 /*
 TODO:
