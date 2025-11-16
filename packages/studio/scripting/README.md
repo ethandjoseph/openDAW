@@ -1,5 +1,7 @@
 # Scripting
 
+### TODO
+
 * Dialogs
     * Info
     * Approve
@@ -13,3 +15,10 @@
 * Store project in ProjectStorage
 * Add a way to query available projects, samples, soundfonts and presets
 * Add Clip support
+
+### Next
+
+* Scripts should drive backups
+* Scripts should drive mixdown and Stems export
+* Run scripts in the background and listen to changes in the project
+* Live plugins (instruments, midi-fx, audio-fx)
