@@ -3,13 +3,24 @@ import {
     AudioBusBox,
     AudioUnitBox,
     BoxIO,
+    BoxVisitor,
     CompressorDeviceBox,
     GrooveShuffleBox,
     RootBox,
     TimelineBox,
     UserInterfaceBox
 } from "@opendaw/studio-boxes"
-import {Option, UUID} from "@opendaw/lib-std"
+import {
+    asInstanceOf,
+    assert,
+    ByteArrayInput,
+    ByteArrayOutput,
+    isDefined,
+    Maybe,
+    Option,
+    panic,
+    UUID
+} from "@opendaw/lib-std"
 import {AudioUnitType, IconSymbol} from "@opendaw/studio-enums"
 import {ProjectMandatoryBoxes} from "./ProjectMandatoryBoxes"
 
@@ -19,6 +30,9 @@ export type ProjectSkeleton = {
 }
 
 export namespace ProjectSkeleton {
+    const MAGIC_HEADER_OPEN = 0x4F50454E
+    const FORMAT_VERSION = 2
+
     export const empty = (options: {
         createOutputCompressor: boolean,
         createDefaultUser: boolean
@@ -75,5 +89,48 @@ export namespace ProjectSkeleton {
                 userInterfaceBoxes
             }
         }
+    }
+
+    export const encode = (boxGraph: BoxGraph) => {
+        const output = ByteArrayOutput.create()
+        output.writeInt(MAGIC_HEADER_OPEN)
+        output.writeInt(FORMAT_VERSION)
+        const boxGraphChunk = boxGraph.toArrayBuffer()
+        output.writeInt(boxGraphChunk.byteLength)
+        output.writeBytes(new Int8Array(boxGraphChunk))
+        return output.toArrayBuffer()
+    }
+
+    export const decode = (arrayBuffer: ArrayBufferLike): ProjectSkeleton => {
+        const input = new ByteArrayInput(arrayBuffer)
+        assert(input.readInt() === MAGIC_HEADER_OPEN,
+            "Corrupt header. Probably not an openDAW project file.")
+        assert(input.readInt() === FORMAT_VERSION,
+            "Deprecated Format")
+        const boxGraphChunkLength = input.readInt()
+        const boxGraphChunk = new Int8Array(boxGraphChunkLength)
+        input.readBytes(boxGraphChunk)
+        const boxGraph = new BoxGraph<BoxIO.TypeMap>(Option.wrap(BoxIO.create))
+        boxGraph.fromArrayBuffer(boxGraphChunk.buffer)
+        return {boxGraph, mandatoryBoxes: findMandatoryBoxes(boxGraph)}
+    }
+
+    export const findMandatoryBoxes = (boxGraph: BoxGraph): ProjectMandatoryBoxes => {
+        const rootBox: Maybe<RootBox> = boxGraph.boxes().find(box =>
+            box.accept<BoxVisitor<boolean>>({visitRootBox: () => true})) as Maybe<RootBox>
+        if (isDefined(rootBox)) {
+            const primaryAudioOutputUnit = asInstanceOf(rootBox.outputDevice.pointerHub.incoming().at(0)?.box, AudioUnitBox)
+            const primaryAudioBus = asInstanceOf(primaryAudioOutputUnit.input.pointerHub.incoming().at(0)?.box, AudioBusBox)
+            const timelineBox = asInstanceOf(rootBox.timeline.targetVertex.unwrap("TimelineBox not found").box, TimelineBox)
+            const userInterfaceBoxes = rootBox.users.pointerHub.incoming().map(({box}) => asInstanceOf(box, UserInterfaceBox))
+            return {
+                rootBox,
+                primaryAudioBus,
+                primaryAudioOutputUnit,
+                timelineBox,
+                userInterfaceBoxes
+            }
+        }
+        return panic("Could not find mandatory boxes")
     }
 }

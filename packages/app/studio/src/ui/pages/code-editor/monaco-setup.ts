@@ -5,22 +5,6 @@ import TsWorker from "monaco-editor/esm/vs/language/typescript/ts.worker?worker"
 import declarations from "@opendaw/studio-scripting/api.declaration?raw"
 import library from "@opendaw/studio-scripting?raw"
 
-/*
-TODO:
-    * Dialogs or a console
-    * Add openDAW.getCurrentProject() <- needs to be send to worker and changes should be revertable
-    * Get selections (introduce await to talk back to main-thread?)
-    * Start a script-editor with selected items and write boiler-plate code to start modifiying them (typed)
-    * Save file for exporting
-    * Store project in ProjectStorage
-    * Add a way to query and set values in boxes (typed)
-    * Add a way to query available samples and soundfonts
-    * Add Clips
-    -------------------------------------------------------------------
-    This code above will not be exposed. The two slashes start the example.
-    Everything you import here, must be exported in the Api and globals too.
-*/
-
 // noinspection JSUnusedGlobalSymbols
 self.MonacoEnvironment = {
     getWorker(_, label) {

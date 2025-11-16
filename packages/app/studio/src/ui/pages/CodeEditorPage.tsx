@@ -17,7 +17,7 @@ import ScriptAudioRegion from "./code-editor/examples/create-sample.ts?raw"
 import ScriptNanoWavetable from "./code-editor/examples/nano-wavetable.ts?raw"
 import ScriptStressTest from "./code-editor/examples/stress-test.ts?raw"
 import {Promises} from "@opendaw/lib-runtime"
-import {AudioData, Colors, ProjectSkeletonDecoder, ProjectSkeletonEncoder, Sample} from "@opendaw/studio-adapters"
+import {AudioData, Colors, ProjectSkeleton, Sample} from "@opendaw/studio-adapters"
 import {BoxGraph} from "@opendaw/lib-box"
 import {BoxIO} from "@opendaw/studio-boxes"
 import {Project, WavFile} from "@opendaw/studio-core"
@@ -38,7 +38,7 @@ export const CodeEditorPage: PageFactory<StudioService> = ({lifecycle, service}:
         openProject: (buffer: ArrayBufferLike, name?: string): void => {
             const boxGraph = new BoxGraph<BoxIO.TypeMap>(Option.wrap(BoxIO.create))
             boxGraph.fromArrayBuffer(buffer)
-            const mandatoryBoxes = ProjectSkeletonDecoder.findMandatoryBoxes(boxGraph)
+            const mandatoryBoxes = ProjectSkeleton.findMandatoryBoxes(boxGraph)
             const project = Project.skeleton(service, {boxGraph, mandatoryBoxes})
             service.projectProfileService.setProject(project, name ?? "Scripted Project")
             service.switchScreen("default")
@@ -47,7 +47,7 @@ export const CodeEditorPage: PageFactory<StudioService> = ({lifecycle, service}:
             return service.projectProfileService.getValue().match({
                 none: () => panic("No project available"),
                 some: ({project, meta}) => ({
-                    buffer: ProjectSkeletonEncoder.encode(project.boxGraph) as ArrayBuffer,
+                    buffer: ProjectSkeleton.encode(project.boxGraph) as ArrayBuffer,
                     name: meta.name
                 })
             })

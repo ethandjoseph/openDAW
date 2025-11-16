@@ -28,10 +28,8 @@ import {
     ClipSequencing,
     ParameterFieldAdapters,
     ProcessorOptions,
-    ProjectSkeletonDecoder,
     ProjectMandatoryBoxes,
     ProjectSkeleton,
-    ProjectSkeletonEncoder,
     RootBoxAdapter,
     SampleLoaderManager,
     SoundfontLoaderManager,
@@ -74,7 +72,7 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
     }
 
     static load(env: ProjectEnv, arrayBuffer: ArrayBuffer): Project {
-        return this.skeleton(env, ProjectSkeletonDecoder.decode(arrayBuffer))
+        return this.skeleton(env, ProjectSkeleton.decode(arrayBuffer))
     }
 
     static skeleton(env: ProjectEnv, skeleton: ProjectSkeleton, followFirstUser: boolean = true): Project {
@@ -218,7 +216,7 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
     }
 
     toArrayBuffer(): ArrayBufferLike {
-        return ProjectSkeletonEncoder.encode(this.boxGraph)
+        return ProjectSkeleton.encode(this.boxGraph)
     }
 
     copy(env?: Partial<ProjectEnv>): Project {

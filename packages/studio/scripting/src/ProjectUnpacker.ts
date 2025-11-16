@@ -1,10 +1,10 @@
 import {Project} from "./Api"
-import {ProjectSkeletonDecoder} from "@opendaw/studio-adapters"
+import {ProjectSkeleton} from "@opendaw/studio-adapters"
 import {ApiImpl, ProjectImpl} from "./impl"
 
 export namespace ProjectUnpacker {
     export const unpack = (api: ApiImpl, buffer: ArrayBufferLike, name: string): Project => {
-        const {boxGraph, mandatoryBoxes: {timelineBox}} = ProjectSkeletonDecoder.decode(buffer)
+        const {boxGraph, mandatoryBoxes: {timelineBox}} = ProjectSkeleton.decode(buffer)
         const project = new ProjectImpl(api, name)
 
         project.bpm = timelineBox.bpm.getValue()

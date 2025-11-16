@@ -2,7 +2,7 @@ import {Errors, Option, panic, RuntimeNotifier, TimeSpan, UUID} from "@opendaw/l
 import {BoxGraph} from "@opendaw/lib-box"
 import {Promises} from "@opendaw/lib-runtime"
 import {BoxIO, UserInterfaceBox} from "@opendaw/studio-boxes"
-import {ProjectSkeletonDecoder} from "@opendaw/studio-adapters"
+import {ProjectSkeleton} from "@opendaw/studio-adapters"
 import {YSync} from "./YSync"
 import * as Y from "yjs"
 import {WebsocketProvider} from "y-websocket"
@@ -64,7 +64,7 @@ export namespace YService {
             }
             const boxGraph = new BoxGraph<BoxIO.TypeMap>(Option.wrap(BoxIO.create))
             const sync = await YSync.joinRoom({boxGraph, boxes, conflict: () => project.invalid()})
-            const mandatoryBoxes = ProjectSkeletonDecoder.findMandatoryBoxes(boxGraph)
+            const mandatoryBoxes = ProjectSkeleton.findMandatoryBoxes(boxGraph)
             const project = Project.skeleton(env, {
                 boxGraph,
                 mandatoryBoxes
