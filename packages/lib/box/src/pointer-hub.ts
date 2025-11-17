@@ -64,7 +64,7 @@ export class PointerHub {
     isEmpty(): boolean {return this.size() === 0}
     nonEmpty(): boolean {return this.size() > 0}
     contains(pointer: PointerField): boolean {return this.incoming().some(incoming => pointer.address.equals(incoming.address))}
-    incoming(): ReadonlyArray<PointerField> {return this.#vertex.graph.edges().incomingEdgesOf(this.#vertex)}
+    incoming(): ReadonlyArray<PointerField> {return this.#vertex.graph.edges().incomingEdgesOf(this.#vertex).slice()}
 
     onAdded(pointerField: PointerField): void {
         const issue: Option<string> = PointerHub.validate(pointerField, this.#vertex)

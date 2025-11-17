@@ -1,11 +1,4 @@
-import {
-    DeviceHost,
-    Devices,
-    EffectDeviceBoxAdapter,
-    PresetDecoder,
-    PresetEncoder,
-    ProjectSkeleton
-} from "@opendaw/studio-adapters"
+import {DeviceHost, Devices, EffectDeviceBoxAdapter, PresetDecoder, PresetEncoder} from "@opendaw/studio-adapters"
 import {MenuItem} from "@/ui/model/menu-item.ts"
 import {BoxEditing, PrimitiveField, PrimitiveValues, StringField} from "@opendaw/lib-box"
 import {EmptyExec, isInstanceOf, panic, RuntimeNotifier} from "@opendaw/lib-std"
@@ -56,17 +49,17 @@ export namespace MenuItems {
                     const presetBytes = PresetEncoder.encode(audioUnit.box)
                     await Files.save(presetBytes as ArrayBuffer, {types: [FilePickerAcceptTypes.PresetFileType]})
                 }),
-            MenuItem.default({label: "Load Preset...", hidden: true})
+            MenuItem.default({label: "Load Preset..."})
                 .setTriggerProcedure(async () => {
                     const files = await Files.open({types: [FilePickerAcceptTypes.PresetFileType], multiple: false})
                     if (files.length === 0) {return}
                     const arrayBuffer = await files[0].arrayBuffer()
-                    const skeleton = ProjectSkeleton.empty({
-                        createDefaultUser: false,
-                        createOutputCompressor: false
+                    editing.modify(() => {
+                        const attempt = PresetDecoder.replaceAudioUnit(arrayBuffer, audioUnit.box)
+                        if (attempt.isFailure()) {
+                            RuntimeNotifier.info({headline: "Can't do...", message: attempt.failureReason()}).then()
+                        }
                     })
-                    PresetDecoder.decode(arrayBuffer, skeleton)
-                    // TODO
                 }),
             MenuItem.default({
                 label: "Load Deprecated Preset...",

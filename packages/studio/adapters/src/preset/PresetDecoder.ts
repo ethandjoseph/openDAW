@@ -1,7 +1,27 @@
-import {ByteArrayInput, isDefined, isInstanceOf, Option, RuntimeNotifier, UUID} from "@opendaw/lib-std"
-import {BoxGraph} from "@opendaw/lib-box"
+import {
+    asDefined,
+    asInstanceOf,
+    Attempt,
+    Attempts,
+    ByteArrayInput,
+    isDefined,
+    isInstanceOf,
+    Option,
+    RuntimeNotifier,
+    UUID
+} from "@opendaw/lib-std"
+import {Address, Box, BoxGraph, PointerField} from "@opendaw/lib-box"
 import {AudioUnitType} from "@opendaw/studio-enums"
-import {AudioUnitBox, BoxIO, CaptureAudioBox, CaptureMidiBox, TrackBox} from "@opendaw/studio-boxes"
+import {
+    AudioFileBox,
+    AudioUnitBox,
+    BoxIO,
+    BoxVisitor,
+    CaptureAudioBox,
+    CaptureMidiBox,
+    SoundfontFileBox,
+    TrackBox
+} from "@opendaw/studio-boxes"
 import {ProjectSkeleton} from "../project/ProjectSkeleton"
 import {ProjectUtils} from "../project/ProjectUtils"
 import {TrackType} from "../timeline/TrackType"
@@ -61,5 +81,106 @@ export namespace PresetDecoder {
                     })
                 }
             })
+    }
+
+    export const replaceAudioUnit = (arrayBuffer: ArrayBuffer, targetAudioUnitBox: AudioUnitBox, options?: {
+        keepMIDIEffects?: boolean
+        keepAudioEffects?: boolean
+    }): Attempt<void, string> => {
+        console.debug("ReplaceAudioUnit with preset...")
+        const skeleton = ProjectSkeleton.empty({
+            createDefaultUser: false,
+            createOutputCompressor: false
+        })
+        const sourceBoxGraph = skeleton.boxGraph
+        const targetBoxGraph = targetAudioUnitBox.graph
+        sourceBoxGraph.beginTransaction()
+        decode(arrayBuffer, skeleton)
+        sourceBoxGraph.endTransaction()
+
+        const sourceAudioUnitBox = asDefined(skeleton.mandatoryBoxes.rootBox.audioUnits.pointerHub.incoming()
+            .map(({box}) => asInstanceOf(box, AudioUnitBox))
+            .find((box) => box.type.getValue() !== AudioUnitType.Output), "Source has no audioUnitBox")
+
+        const sourceCaptureBox = sourceAudioUnitBox.capture.targetVertex.mapOr(({box}) => box.name, "")
+        const targetCaptureBox = targetAudioUnitBox.capture.targetVertex.mapOr(({box}) => box.name, "")
+        if (sourceCaptureBox !== targetCaptureBox) {
+            return Attempts.err("Cannot replace incompatible instruments")
+        }
+
+        const replaceMIDIEffects = options?.keepMIDIEffects !== true
+        const replaceAudioEffects = options?.keepAudioEffects !== true
+
+        console.debug("replaceMIDIEffects", replaceMIDIEffects)
+        console.debug("replaceAudioEffects", replaceAudioEffects)
+
+        asDefined(targetAudioUnitBox.input.pointerHub.incoming().at(0)?.box, "Target has no input").delete()
+
+        if (replaceMIDIEffects) {
+            targetAudioUnitBox.midiEffects.pointerHub.incoming().forEach(({box}) => box.delete())
+        } else {
+            sourceBoxGraph.beginTransaction()
+            sourceAudioUnitBox.midiEffects.pointerHub.incoming().forEach(({box}) => box.delete())
+            sourceBoxGraph.endTransaction()
+        }
+        if (replaceAudioEffects) {
+            targetAudioUnitBox.audioEffects.pointerHub.incoming().forEach(({box}) => box.delete())
+        } else {
+            sourceBoxGraph.beginTransaction()
+            sourceAudioUnitBox.audioEffects.pointerHub.incoming().forEach(({box}) => box.delete())
+            sourceBoxGraph.endTransaction()
+        }
+
+        // We do not take track or capture boxes into account
+        const excludeBox = (box: Box) => box.accept<BoxVisitor<boolean>>({
+            visitTrackBox: (_box: TrackBox): boolean => true,
+            visitCaptureMidiBox: (_box: CaptureMidiBox): boolean => true,
+            visitCaptureAudioBox: (_box: CaptureAudioBox): boolean => true
+        }) === true
+
+        type UUIDMapper = { source: UUID.Bytes, target: UUID.Bytes }
+        const uuidMap = UUID.newSet<UUIDMapper>(({source}) => source)
+
+        const dependencies = Array.from(sourceBoxGraph.dependenciesOf(sourceAudioUnitBox, {
+            excludeBox,
+            alwaysFollowMandatory: false
+        }).boxes)
+        uuidMap.addMany([
+            {
+                source: sourceAudioUnitBox.address.uuid,
+                target: targetAudioUnitBox.address.uuid
+            },
+            ...dependencies
+                .map(({address: {uuid}, name}) =>
+                    ({
+                        source: uuid,
+                        target: name === AudioFileBox.ClassName || name === SoundfontFileBox.ClassName
+                            ? uuid
+                            : UUID.generate()
+                    }))
+        ])
+        PointerField.decodeWith({
+            map: (_pointer: PointerField, newAddress: Option<Address>): Option<Address> =>
+                newAddress.map(address => uuidMap.opt(address.uuid).match({
+                    none: () => address,
+                    some: ({target}) => address.moveTo(target)
+                }))
+        }, () => {
+            dependencies
+                .forEach((source: Box) => {
+                    const input = new ByteArrayInput(source.toArrayBuffer())
+                    const key = source.name as keyof BoxIO.TypeMap
+                    const uuid = uuidMap.get(source.address.uuid).target
+                    if (source instanceof AudioFileBox || source instanceof SoundfontFileBox) {
+                        // Those boxes keep their UUID. So if they are already in the graph, we can just read them.
+                        if (targetBoxGraph.findBox(source.address.uuid).nonEmpty()) {
+                            source.read(input)
+                            return
+                        }
+                    }
+                    targetBoxGraph.createBox(key, uuid, box => box.read(input))
+                })
+        })
+        return Attempts.Ok
     }
 }

@@ -85,6 +85,7 @@ export const assertInstanceOf: <T>(obj: unknown, clazz: Class<T>) =>
     asserts obj is T = <T>(obj: unknown, clazz: Class<T>): asserts obj is T => {
     if (!(obj instanceof clazz)) {panic(`${obj} is not instance of ${clazz}`)}
 }
+export const isSameClass = (a: object, b: object): boolean => a.constructor === b.constructor
 export const tryProvide = <T>(provider: Provider<T>): T => {
     try {return provider()} catch (reason) {return panic(String(reason))}
 }
