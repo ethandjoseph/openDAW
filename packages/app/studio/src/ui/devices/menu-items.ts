@@ -51,11 +51,20 @@ export namespace MenuItems {
                 }),
             MenuItem.default({label: "Load Preset..."})
                 .setTriggerProcedure(async () => {
+                    const keepEffects = !(await RuntimeNotifier.approve({
+                        headline: "Load Preset",
+                        message: "Replace current effects?",
+                        approveText: "Yes",
+                        cancelText: "No"
+                    }))
                     const files = await Files.open({types: [FilePickerAcceptTypes.PresetFileType], multiple: false})
                     if (files.length === 0) {return}
                     const arrayBuffer = await files[0].arrayBuffer()
                     editing.modify(() => {
-                        const attempt = PresetDecoder.replaceAudioUnit(arrayBuffer, audioUnit.box)
+                        const attempt = PresetDecoder.replaceAudioUnit(arrayBuffer, audioUnit.box, {
+                            keepMIDIEffects: keepEffects,
+                            keepAudioEffects: keepEffects
+                        })
                         if (attempt.isFailure()) {
                             RuntimeNotifier.info({headline: "Can't do...", message: attempt.failureReason()}).then()
                         }
