@@ -1,4 +1,4 @@
-import {clamp, clampUnit, int} from "@opendaw/lib-std"
+import {clamp, clampUnit, exponential, int} from "@opendaw/lib-std"
 import {dbToGain} from "./utils"
 import {StereoMatrix} from "./stereo"
 import {BiquadCoeff} from "./biquad-coeff"
@@ -72,7 +72,7 @@ export class Crusher {
     }
 
     setCrush(value: number): void {
-        const target = value * 0.5 * this.#sampleRate // max: nyquist
+        const target = exponential(20.0, 0.5 * this.#sampleRate, value) // max: nyquist
         if (this.#processed && isFinite(this.#crushedSampleRate)) {
             this.#targetCrushedSampleRate = target
             this.#delta = (target - this.#crushedSampleRate) / this.#rampLength

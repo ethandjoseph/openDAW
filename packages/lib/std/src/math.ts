@@ -15,6 +15,7 @@ export const quantizeFloor = (value: number, interval: number): number => Math.f
 export const quantizeCeil = (value: number, interval: number): number => Math.ceil(value / interval) * interval
 export const quantizeRound = (value: number, interval: number): number => Math.round(value / interval) * interval
 export const linear = (y1: number, y2: number, mu: number): number => y1 + (y2 - y1) * mu
+export const exponential = (y1: number, y2: number, mu: number): number => y1 * Math.pow(y2 / y1, mu)
 export const cosine = (y1: number, y2: number, mu: number): number => {
     const mu2 = (1.0 - Math.cos(mu * Math.PI)) * 0.5
     return y1 * (1.0 - mu2) + y2 * mu2
