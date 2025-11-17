@@ -12,7 +12,4 @@ export namespace ExternalLib {
 
     export const SoundFont2 = async () => await Promises.guardedRetry(() =>
         import("soundfont2").then(({SoundFont2}) => SoundFont2), callback)
-
-    export const FFmpegWorker = async () => await Promises.guardedRetry(() =>
-        import("@opendaw/studio-core/FFmpegWorker").then(({FFmpegWorker}) => FFmpegWorker), callback)
 }

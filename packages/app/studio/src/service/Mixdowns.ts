@@ -10,7 +10,7 @@ export namespace Mixdowns {
     export const exportMixdown = async ({project, meta}: ProjectProfile): Promise<void> => {
         const result = await Promises.tryCatch(AudioOfflineRenderer.start(project, Option.None))
         if (result.status === "rejected") {
-            if(!Errors.isAbort(result.error)) {
+            if (!Errors.isAbort(result.error)) {
                 throw result.error
             }
             return
@@ -139,7 +139,8 @@ export namespace Mixdowns {
     }
 
     const loadFFmepg = async (): Promise<FFmpegWorker> => {
-        const FFmpegWorker = await ExternalLib.FFmpegWorker()
+        const {FFmpegWorker} = await Promises.guardedRetry(() =>
+            import("@opendaw/studio-core/FFmpegWorker"), (_, count) => count < 10)
         const progress = new DefaultObservableValue(0.0)
         const progressDialog = RuntimeNotifier.progress({headline: "Loading FFmpeg...", progress})
         const {status, value, error} = await Promises.tryCatch(FFmpegWorker.load(value => progress.setValue(value)))
