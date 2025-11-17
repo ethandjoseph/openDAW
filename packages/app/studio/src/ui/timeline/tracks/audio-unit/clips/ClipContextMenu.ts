@@ -92,6 +92,7 @@ export const installClipContextMenu = ({element, project, selection, capturing}:
                                 box.label.setValue(clip.label)
                                 box.mute.setValue(clip.mute)
                                 box.file.refer(clip.box.file.targetVertex.unwrap())
+                                box.events.refer(clip.box.events.targetVertex.unwrap())
                                 box.regions.refer(trackBoxAdapter.box.regions)
                             })
                         } else if (clip.type === "value-clip") {
@@ -115,7 +116,8 @@ export const installClipContextMenu = ({element, project, selection, capturing}:
                 }).setTriggerProcedure(() => {
                     if (clip.type === "note-clip") {
                         const label = clip.label
-                        exportNotesToMidiFile(clip.optCollection.unwrap(), `${label.length === 0 ? "clip" : label}.mid`)
+                        exportNotesToMidiFile(clip.optCollection.unwrap(),
+                            `${label.length === 0 ? "clip" : label}.mid`).then()
                     }
                 }),
                 DebugMenus.debugBox(clip.box))

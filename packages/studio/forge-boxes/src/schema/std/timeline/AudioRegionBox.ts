@@ -11,6 +11,7 @@ export const AudioRegionBox: BoxSchema<Pointers> = {
             2: {type: "pointer", name: "file", pointerType: Pointers.AudioFile, mandatory: true},
             3: {type: "string", name: "playback", value: AudioPlayback.Pitch},
             4: {type: "string", name: "time-base", value: TimeBase.Musical},
+            5: {type: "pointer", name: "events", pointerType: Pointers.ValueEventCollection, mandatory: true},
             10: {type: "int32", name: "position"},
             11: {type: "float32", name: "duration"},
             12: {type: "float32", name: "loop-offset"},

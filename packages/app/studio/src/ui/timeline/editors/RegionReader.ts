@@ -21,7 +21,8 @@ import {TimelineRange} from "@opendaw/studio-core"
 
 export class RegionReader<REGION extends LoopableRegionBoxAdapter<CONTENT>, CONTENT> implements EventOwnerReader<CONTENT> {
     static forAudioRegionBoxAdapter(region: AudioRegionBoxAdapter): AudioEventOwnerReader {
-        return new class extends RegionReader<AudioRegionBoxAdapter, never> implements AudioEventOwnerReader {
+        return new class extends RegionReader<AudioRegionBoxAdapter, ValueEventCollectionBoxAdapter>
+            implements AudioEventOwnerReader {
             constructor(region: AudioRegionBoxAdapter) {super(region)}
             get file(): AudioFileBoxAdapter {return region.file}
             get gain(): number {return region.gain}

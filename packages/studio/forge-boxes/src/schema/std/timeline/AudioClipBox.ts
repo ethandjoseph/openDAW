@@ -11,6 +11,7 @@ export const AudioClipBox: BoxSchema<Pointers> = {
             2: {type: "pointer", name: "file", pointerType: Pointers.AudioFile, mandatory: true},
             3: {type: "int32", name: "index"},
             4: {type: "object", name: "playback", class: ClipPlaybackFields},
+            5: {type: "pointer", name: "events", pointerType: Pointers.ValueEventCollection, mandatory: true},
             10: {type: "int32", name: "duration"},
             11: {type: "boolean", name: "mute"},
             12: {type: "string", name: "label"},

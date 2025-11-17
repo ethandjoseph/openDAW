@@ -1,6 +1,6 @@
 import {UUID} from "@opendaw/lib-std"
 import {PPQN} from "@opendaw/lib-dsp"
-import {AudioRegionBox} from "@opendaw/studio-boxes"
+import {AudioRegionBox, ValueEventCollectionBox} from "@opendaw/studio-boxes"
 import {ColorCodes} from "@opendaw/studio-adapters"
 import {RegionCaptureTarget} from "@/ui/timeline/tracks/audio-unit/regions/RegionCapturing.ts"
 import {ElementCapturing} from "@/ui/canvas/capturing.ts"
@@ -25,6 +25,7 @@ export class RegionSampleDragAndDrop extends TimelineDragAndDrop<RegionCaptureTa
         const pointerPulse = Math.max(this.#snapping.xToUnitFloor(pointerX), 0)
         const duration = Math.round(PPQN.secondsToPulses(durationInSeconds, bpm))
         const solver = RegionClipResolver.fromRange(trackBoxAdapter, pointerPulse, pointerPulse + duration)
+        const collectionBox = ValueEventCollectionBox.create(this.project.boxGraph, UUID.generate())
         AudioRegionBox.create(this.project.boxGraph, UUID.generate(), box => {
             box.position.setValue(pointerPulse)
             box.duration.setValue(duration)
@@ -33,6 +34,7 @@ export class RegionSampleDragAndDrop extends TimelineDragAndDrop<RegionCaptureTa
             box.hue.setValue(ColorCodes.forTrackType(trackBoxAdapter.type))
             box.label.setValue(name)
             box.file.refer(audioFileBox)
+            box.events.refer(collectionBox.owners)
         })
         solver()
     }

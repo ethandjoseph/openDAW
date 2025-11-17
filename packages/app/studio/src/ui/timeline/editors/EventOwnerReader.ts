@@ -9,7 +9,7 @@ import {
 } from "@opendaw/studio-adapters"
 import {TimelineRange} from "@opendaw/studio-core"
 
-export interface AudioEventOwnerReader extends EventOwnerReader<never> {
+export interface AudioEventOwnerReader extends EventOwnerReader<ValueEventCollectionBoxAdapter> {
     get file(): AudioFileBoxAdapter
     get gain(): number
 }

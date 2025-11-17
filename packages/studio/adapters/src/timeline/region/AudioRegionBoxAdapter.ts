@@ -20,6 +20,7 @@ import {TrackBoxAdapter} from "../TrackBoxAdapter"
 import {BoxAdaptersContext} from "../../BoxAdaptersContext"
 import {AudioFileBoxAdapter} from "../../audio/AudioFileBoxAdapter"
 import {MutableRegion} from "./MutableRegion"
+import {ValueEventCollectionBoxAdapter} from "../collection/ValueEventCollectionBoxAdapter"
 
 type CopyToParams = {
     track?: Field<Pointers.RegionCollection>
@@ -27,10 +28,10 @@ type CopyToParams = {
     duration?: ppqn
     loopOffset?: ppqn
     loopDuration?: ppqn
+    consolidate?: boolean
 }
 
-export class AudioRegionBoxAdapter
-    implements LoopableRegionBoxAdapter<never>, MutableRegion {
+export class AudioRegionBoxAdapter implements LoopableRegionBoxAdapter<ValueEventCollectionBoxAdapter>, MutableRegion {
     readonly type = "audio-region"
 
     readonly #terminator: Terminator
@@ -46,6 +47,7 @@ export class AudioRegionBoxAdapter
     #fileAdapter: Option<AudioFileBoxAdapter> = Option.None
     #fileSubscription: Terminable = Terminable.Empty
     #tempoSubscription: Terminable = Terminable.Empty
+    #eventCollectionSubscription: Subscription = Terminable.Empty
 
     #isSelected: boolean
     #constructing: boolean
@@ -94,6 +96,16 @@ export class AudioRegionBoxAdapter
                     }
                 }
             }),
+            this.#box.events.catchupAndSubscribe(({targetVertex}) => {
+                this.#eventCollectionSubscription.terminate()
+                this.#eventCollectionSubscription = targetVertex.match({
+                    none: () => Terminable.Empty,
+                    some: ({box}) => this.#context.boxAdapters
+                        .adapterFor(box, ValueEventCollectionBoxAdapter)
+                        .subscribeChange(() => this.#dispatchChange())
+                })
+                this.#dispatchChange()
+            }),
             {
                 terminate: (): void => {
                     this.#fileSubscription.terminate()
@@ -138,8 +150,6 @@ export class AudioRegionBoxAdapter
     get gain(): number {return this.#box.gain.getValue()}
     get file(): AudioFileBoxAdapter {return this.#fileAdapter.unwrap("Cannot access file.")}
     get timeBase(): TimeBase {return asEnumValue(this.#box.timeBase.getValue(), TimeBase)}
-    get hasCollection() {return this.#fileAdapter.nonEmpty()}
-    get optCollection(): Option<never> {return Option.None}
     get label(): string {
         if (this.#fileAdapter.isEmpty()) {return "No Audio File"}
         const state = this.#fileAdapter.unwrap().getOrCreateLoader().state
@@ -147,13 +157,17 @@ export class AudioRegionBoxAdapter
         if (state.type === "error") {return String(state.reason)}
         return this.#box.label.getValue()
     }
-    get isMirrowed(): boolean {return false}
-    get canMirror(): boolean {return false}
+    get isMirrowed(): boolean {return this.optCollection.mapOr(adapter => adapter.numOwners > 1, false)}
+    get canMirror(): boolean {return true}
     get trackBoxAdapter(): Option<TrackBoxAdapter> {
         return this.#box.regions.targetVertex
             .map(vertex => this.#context.boxAdapters.adapterFor(vertex.box, TrackBoxAdapter))
     }
-
+    get hasCollection() {return this.optCollection.nonEmpty()}
+    get optCollection(): Option<ValueEventCollectionBoxAdapter> {
+        return this.#box.events.targetVertex
+            .map(vertex => this.#context.boxAdapters.adapterFor(vertex.box, ValueEventCollectionBoxAdapter))
+    }
     set position(value: ppqn) {this.#box.position.setValue(value)}
     set duration(value: ppqn) {this.#durationConverter.fromPPQN(value)}
     set loopOffset(value: ppqn) {this.#loopOffsetConverter.fromPPQN(value)}
@@ -201,6 +215,10 @@ export class AudioRegionBoxAdapter
     }
 
     copyTo(params?: CopyToParams): AudioRegionBoxAdapter {
+        const eventCollection = this.optCollection.unwrap("Cannot make copy without event-collection")
+        const eventTarget = params?.consolidate === true
+            ? eventCollection.copy().box.owners
+            : eventCollection.box.owners
         return this.#context.boxAdapters.adapterFor(
             AudioRegionBox.create(this.#context.boxGraph, UUID.generate(), box => {
                 box.timeBase.setValue(this.#box.timeBase.getValue())
@@ -211,6 +229,7 @@ export class AudioRegionBoxAdapter
                 box.loopDuration.setValue(params?.loopDuration ?? this.#box.loopDuration.getValue())
                 box.regions.refer(params?.track ?? this.#box.regions.targetVertex.unwrap())
                 box.file.refer(this.#box.file.targetVertex.unwrap())
+                box.events.refer(eventTarget)
                 box.mute.setValue(this.mute)
                 box.hue.setValue(this.hue)
                 box.label.setValue(this.label)
@@ -227,7 +246,10 @@ export class AudioRegionBoxAdapter
         return Option.None
     }
 
-    terminate() {this.#terminator.terminate()}
+    terminate() {
+        this.#eventCollectionSubscription.terminate()
+        this.#terminator.terminate()
+    }
 
     toString(): string {return `{AudioRegionBoxAdapter ${UUID.toString(this.#box.address.uuid)}}`}
 

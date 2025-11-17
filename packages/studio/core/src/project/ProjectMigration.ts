@@ -10,6 +10,7 @@ import {
     MIDIOutputDeviceBox,
     RevampDeviceBox,
     ValueEventBox,
+    ValueEventCollectionBox,
     ValueEventCurveBox,
     VaporisateurDeviceBox,
     ZeitgeistDeviceBox
@@ -80,6 +81,12 @@ export class ProjectMigration {
                     box.duration.setValue(currentDurationSeconds * scale)
                     box.loopDuration.setValue(fileDuration)
                     box.loopOffset.setValue(currentLoopOffsetSeconds * scale)
+                    boxGraph.endTransaction()
+                }
+                if (box.events.isEmpty()) {
+                    console.debug("Migrate 'AudioRegionBox' to have a ValueEventCollectionBox")
+                    boxGraph.beginTransaction()
+                    box.events.refer(ValueEventCollectionBox.create(boxGraph, UUID.generate()).owners)
                     boxGraph.endTransaction()
                 }
             },

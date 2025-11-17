@@ -5,9 +5,7 @@ import {UploadFileBox} from "./UploadFileBox"
 import {TimelineBox} from "./timeline/TimelineBox"
 import {TrackBox} from "./timeline/TrackBox"
 import {NoteClipBox} from "./timeline/NoteClipBox"
-import {
-    ValueClipBox
-} from "./timeline/ValueClipBox"
+import {ValueClipBox} from "./timeline/ValueClipBox"
 import {MarkerBox} from "./timeline/MarkerBox"
 import {AudioFileBox} from "./AudioFileBox"
 import {SoundfontFileBox} from "./SoundfontFileBox"

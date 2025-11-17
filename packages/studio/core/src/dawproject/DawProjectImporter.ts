@@ -62,16 +62,17 @@ import {
     TrackBox,
     UnknownAudioEffectDeviceBox,
     UnknownMidiEffectDeviceBox,
-    UserInterfaceBox
+    UserInterfaceBox,
+    ValueEventCollectionBox
 } from "@opendaw/studio-boxes"
 import {
     AudioUnitOrdering,
     CaptureBox,
+    ColorCodes,
     DeviceBoxUtils,
     InstrumentBox,
     InstrumentFactories,
     ProjectSkeleton,
-    ColorCodes,
     TrackType
 } from "@opendaw/studio-adapters"
 import {DawProject} from "./DawProject"
@@ -410,6 +411,7 @@ export namespace DawProjectImport {
                         box.endInSeconds.setValue(asDefined(audio.duration, "Duration not defined"))
                     }))
                 audioIdSet.add(uuid, true)
+                const collectionBox = ValueEventCollectionBox.create(boxGraph, UUID.generate())
                 AudioRegionBox.create(boxGraph, UUID.generate(), box => {
                     const position = asDefined(clip.time, "Time not defined")
                     const duration = asDefined(clip.duration, "Duration not defined")
@@ -422,6 +424,7 @@ export namespace DawProjectImport {
                     box.mute.setValue(clip.enable === false)
                     box.regions.refer(trackBox.regions)
                     box.file.refer(audioFileBox)
+                    box.events.refer(collectionBox.owners)
                 })
             }
             return Promise.all(arrangement?.lanes?.lanes?.filter(timeline => isInstanceOf(timeline, LanesSchema))

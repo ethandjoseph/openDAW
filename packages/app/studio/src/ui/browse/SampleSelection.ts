@@ -1,6 +1,6 @@
 import {asDefined, RuntimeNotifier, UUID} from "@opendaw/lib-std"
 import {PPQN} from "@opendaw/lib-dsp"
-import {AudioFileBox, AudioRegionBox} from "@opendaw/studio-boxes"
+import {AudioFileBox, AudioRegionBox, ValueEventCollectionBox} from "@opendaw/studio-boxes"
 import {ColorCodes, InstrumentFactories, Sample} from "@opendaw/studio-adapters"
 import {OpenSampleAPI, ProjectStorage, SampleStorage} from "@opendaw/studio-core"
 import {HTMLSelection} from "@/ui/HTMLSelection"
@@ -32,6 +32,7 @@ export class SampleSelection {
                         box.endInSeconds.setValue(durationInSeconds)
                     }))
                 const duration = Math.round(PPQN.secondsToPulses(durationInSeconds, bpm))
+                const collectionBox = ValueEventCollectionBox.create(boxGraph, UUID.generate())
                 AudioRegionBox.create(boxGraph, UUID.generate(), box => {
                     box.position.setValue(0)
                     box.duration.setValue(duration)
@@ -40,6 +41,7 @@ export class SampleSelection {
                     box.hue.setValue(ColorCodes.forTrackType(trackBox.type.getValue()))
                     box.label.setValue(name)
                     box.file.refer(audioFileBox)
+                    box.events.refer(collectionBox.owners)
                 })
             })
         })

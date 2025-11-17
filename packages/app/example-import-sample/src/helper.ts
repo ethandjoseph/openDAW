@@ -3,7 +3,7 @@ import {Arrays, Progress, UUID} from "@opendaw/lib-std"
 import {Project, SampleStorage, Workers} from "@opendaw/studio-core"
 import {SamplePeaks} from "@opendaw/lib-fusion"
 import {estimateBpm, PPQN} from "@opendaw/lib-dsp"
-import {AudioFileBox, AudioRegionBox} from "@opendaw/studio-boxes"
+import {AudioFileBox, AudioRegionBox, ValueEventCollectionBox} from "@opendaw/studio-boxes"
 
 export const importSample = async ({api, boxGraph, timelineBox, rootBox}
                                    : Project, name: string, arrayBuffer: ArrayBuffer, context: AudioContext) => {
@@ -46,8 +46,10 @@ export const importSample = async ({api, boxGraph, timelineBox, rootBox}
     })
     // create an audio region (since we have no unstretched playback yet, we convert the duration into pulses)
     const duration = PPQN.secondsToPulses(audioBuffer.duration, timelineBox.bpm.getValue())
+    const collectionBox = ValueEventCollectionBox.create(boxGraph, UUID.generate())
     AudioRegionBox.create(boxGraph, UUID.generate(), box => {
         box.file.refer(audioFileBox)
+        box.events.refer(collectionBox.owners)
         box.position.setValue(0)
         box.duration.setValue(duration)
         box.loopDuration.setValue(duration)

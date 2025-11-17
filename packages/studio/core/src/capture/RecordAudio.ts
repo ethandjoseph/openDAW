@@ -1,6 +1,6 @@
 import {int, Option, quantizeCeil, quantizeFloor, Terminable, Terminator, UUID} from "@opendaw/lib-std"
 import {dbToGain, ppqn, PPQN} from "@opendaw/lib-dsp"
-import {AudioFileBox, AudioRegionBox, TrackBox} from "@opendaw/studio-boxes"
+import {AudioFileBox, AudioRegionBox, TrackBox, ValueEventCollectionBox} from "@opendaw/studio-boxes"
 import {ColorCodes, SampleLoaderManager, TrackType} from "@opendaw/studio-adapters"
 import {Project} from "../project"
 import {RecordingWorklet} from "../RecordingWorklet"
@@ -45,8 +45,10 @@ export namespace RecordAudio {
                 .replaceAll("Z", "")
             const fileName = `Recording-${fileDateString}`
             const fileBox = AudioFileBox.create(boxGraph, uuid, box => box.fileName.setValue(fileName))
+            const collectionBox = ValueEventCollectionBox.create(boxGraph, UUID.generate())
             const regionBox = AudioRegionBox.create(boxGraph, UUID.generate(), box => {
                 box.file.refer(fileBox)
+                box.events.refer(collectionBox.owners)
                 box.regions.refer(trackBox.regions)
                 box.position.setValue(position)
                 box.hue.setValue(ColorCodes.forTrackType(TrackType.Audio))
