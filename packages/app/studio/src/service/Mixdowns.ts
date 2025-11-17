@@ -8,7 +8,14 @@ import {Dialogs} from "@/ui/components/dialogs"
 
 export namespace Mixdowns {
     export const exportMixdown = async ({project, meta}: ProjectProfile): Promise<void> => {
-        const buffer = await AudioOfflineRenderer.start(project, Option.None)
+        const result = await Promises.tryCatch(AudioOfflineRenderer.start(project, Option.None))
+        if (result.status === "rejected") {
+            if (!Errors.isAbort(result.error)) {
+                throw result.error
+            }
+            return
+        }
+        const buffer = result.value
         const {resolve, reject, promise} = Promise.withResolvers<void>()
         const {status, error} = await Promises.tryCatch(Dialogs.show({
             headline: "Encode Mixdown",
@@ -42,8 +49,9 @@ export namespace Mixdowns {
 
     export const exportStems = async ({project, meta}: ProjectProfile,
                                       config: ExportStemsConfiguration): Promise<void> => {
-        const buffer = await AudioOfflineRenderer.start(project, Option.wrap(config))
-        await saveZipFile(buffer, meta, Object.values(config).map(({fileName}) => fileName))
+        const {status, value} = await Promises.tryCatch(AudioOfflineRenderer.start(project, Option.wrap(config)))
+        if (status === "rejected") {return}
+        await saveZipFile(value, meta, Object.values(config).map(({fileName}) => fileName))
     }
 
     const saveWavFile = async (buffer: AudioBuffer, meta: ProjectMeta) =>

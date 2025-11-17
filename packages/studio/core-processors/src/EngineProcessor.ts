@@ -89,6 +89,7 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
 
     readonly #renderer: BlockRenderer
     readonly #stateSender: SyncStream.Writer
+    readonly #controlFlags: Int32Array<SharedArrayBuffer>
     readonly #stemExports: ReadonlyArray<AudioUnit>
     readonly #ignoredRegions: SortedSet<UUID.Bytes, UUID.Bytes>
 
@@ -97,14 +98,14 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
 
     #context: Option<EngineContext> = Option.None
     #panic: boolean = false // will throw an error if set to true to test error handling
-    #running: boolean = true // to shut down the engine
+    #valid: boolean = true // to shut down the engine
     #metronomeEnabled: boolean = false
     #recordingStartTime: ppqn = 0.0
     #playbackTimestamp: ppqn = 0.0 // this is where we start playing again (after paused)
     #playbackTimestampEnabled: boolean = true
     #countInBarsTotal: int = 1
 
-    constructor({processorOptions: {sab, project, exportConfiguration, options}}: {
+    constructor({processorOptions: {syncStreamBuffer, controlFlagsBuffer, project, exportConfiguration, options}}: {
         processorOptions: EngineProcessorAttachment
     } & AudioNodeOptions) {
         super()
@@ -115,6 +116,7 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
         this.#messenger = Messenger.for(this.port)
         this.#boxGraph = boxGraph
         this.#timeInfo = new TimeInfo()
+        this.#controlFlags = new Int32Array<SharedArrayBuffer>(controlFlagsBuffer)
         this.#engineToClient = Communicator.sender<EngineToClient>(
             this.#messenger.channel("engine-to-client"),
             dispatcher => new class implements EngineToClient {
@@ -153,7 +155,7 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
         this.#midiTransportClock = new MIDITransportClock(this, this.#rootBoxAdapter)
         this.#renderer = new BlockRenderer(this, options)
         this.#ignoredRegions = UUID.newSet<UUID.Bytes>(uuid => uuid)
-        this.#stateSender = SyncStream.writer(EngineStateSchema(), sab, x => {
+        this.#stateSender = SyncStream.writer(EngineStateSchema(), syncStreamBuffer, x => {
             const {transporting, isCountingIn, isRecording, position} = this.#timeInfo
             const denominator = this.#timelineBoxAdapter.box.signature.denominator.getValue()
             x.position = position
@@ -170,68 +172,11 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
         this.#terminator.ownAll(
             createSyncTarget(this.#boxGraph, this.#messenger.channel("engine-sync")),
             Communicator.executor<EngineCommands>(this.#messenger.channel("engine-commands"), {
-                play: () => {
-                    if (this.#playbackTimestampEnabled) {
-                        this.#timeInfo.position = this.#playbackTimestamp
-                        this.#midiTransportClock.schedule(MidiData.positionInPPQN(this.#timeInfo.position))
-                    }
-                    this.#timeInfo.transporting = true
-                    this.#midiTransportClock.schedule(MidiData.Start)
-                },
-                stop: (reset: boolean) => {
-                    if (this.#timeInfo.isRecording || this.#timeInfo.isCountingIn) {
-                        this.#timeInfo.isRecording = false
-                        this.#timeInfo.isCountingIn = false
-                        this.#timeInfo.position = this.#playbackTimestampEnabled ? this.#playbackTimestamp : 0.0
-                        this.#midiTransportClock.schedule(MidiData.positionInPPQN(this.#timeInfo.position))
-                    }
-                    const wasTransporting = this.#timeInfo.transporting
-                    this.#timeInfo.transporting = false
-                    this.#timeInfo.metronomeEnabled = this.#metronomeEnabled
-                    this.#ignoredRegions.clear()
-                    if (reset || !wasTransporting) {
-                        this.#reset()
-                    }
-                    this.#midiTransportClock.schedule(MidiData.Stop)
-                },
-                setPosition: (position: number) => {
-                    if (!this.#timeInfo.isRecording) {
-                        this.#timeInfo.position = this.#playbackTimestamp = position
-                        this.#midiTransportClock.schedule(MidiData.positionInPPQN(this.#timeInfo.position))
-                    }
-                },
-                prepareRecordingState: (countIn: boolean) => {
-                    if (this.#timeInfo.isRecording || this.#timeInfo.isCountingIn) {return}
-                    if (!this.#timeInfo.transporting && countIn) {
-                        const position = this.#timeInfo.position
-                        const [nominator, denominator] = this.#timelineBoxAdapter.signature
-                        this.#recordingStartTime = quantizeFloor(position, PPQN.fromSignature(nominator, denominator))
-                        this.#timeInfo.isCountingIn = true
-                        this.#timeInfo.metronomeEnabled = true
-                        this.#timeInfo.transporting = true
-                        this.#timeInfo.position = this.#recordingStartTime - PPQN.fromSignature(this.#countInBarsTotal * nominator, denominator)
-                        const subscription = this.#renderer.setCallback(this.#recordingStartTime, () => {
-                            this.#timeInfo.isCountingIn = false
-                            this.#timeInfo.isRecording = true
-                            this.#timeInfo.metronomeEnabled = this.#metronomeEnabled
-                            subscription.terminate()
-                        })
-                        this.#midiTransportClock.schedule(MidiData.positionInPPQN(this.#timeInfo.position))
-                    } else {
-                        this.#timeInfo.transporting = true
-                        this.#timeInfo.isRecording = true
-                        this.#midiTransportClock.schedule(MidiData.Start)
-                    }
-                },
-                stopRecording: () => {
-                    if (!this.#timeInfo.isRecording && !this.#timeInfo.isCountingIn) {return}
-                    this.#timeInfo.isRecording = false
-                    this.#timeInfo.isCountingIn = false
-                    this.#timeInfo.metronomeEnabled = this.#metronomeEnabled
-                    this.#timeInfo.transporting = false
-                    this.#ignoredRegions.clear()
-                    this.#midiTransportClock.schedule(MidiData.Stop)
-                },
+                play: (): void => this.#play(),
+                stop: (reset: boolean): void => this.#stop(reset),
+                setPosition: (position: number): void => this.#setPosition(position),
+                prepareRecordingState: (countIn: boolean): void => this.#prepareRecordingState(countIn),
+                stopRecording: (): void => this.#stopRecording(),
                 setMetronomeEnabled: (value: boolean) => this.#timeInfo.metronomeEnabled = this.#metronomeEnabled = value,
                 setPlaybackTimestampEnabled: (value: boolean) => this.#playbackTimestampEnabled = value,
                 setCountInBarsTotal: (value: int) => this.#countInBarsTotal = value,
@@ -279,7 +224,7 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
                 terminate: () => {
                     this.#context.ifSome(context => context.terminate())
                     this.#context = Option.None
-                    this.#running = false
+                    this.#valid = false
                     this.#ignoredRegions.clear()
                     this.#terminator.terminate()
                 }
@@ -318,12 +263,13 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
     ignoresRegion(uuid: UUID.Bytes): boolean {return this.#ignoredRegions.hasKey(uuid)}
 
     process(inputs: Float32Array[][], outputs: Float32Array[][]): boolean {
-        if (!this.#running) {return false}
+        if (!this.#valid) {return false} // will not revive
+        if (Atomics.load(this.#controlFlags, 0) === 1) {return true} // sleeps. can be awake
         try {
             return this.render(inputs, outputs)
         } catch (reason: any) {
             console.debug(reason)
-            this.#running = false
+            this.#valid = false
             this.#engineToClient.error(reason)
             this.terminate()
             return false
@@ -331,7 +277,7 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
     }
 
     render(_inputs: Float32Array[][], [output]: Float32Array[][]): boolean {
-        if (!this.#running) {return false}
+        if (!this.#valid) {return false}
         if (this.#panic) {return panic("Manual Panic")}
         const metronomeEnabled = this.#timeInfo.metronomeEnabled
         this.#notifier.notify(ProcessPhase.Before)
@@ -419,6 +365,73 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
         this.#terminator.terminate()
         this.#audioUnits.forEach(unit => unit.terminate())
         this.#audioUnits.clear()
+    }
+
+    #play(): void {
+        if (this.#playbackTimestampEnabled) {
+            this.#timeInfo.position = this.#playbackTimestamp
+            this.#midiTransportClock.schedule(MidiData.positionInPPQN(this.#timeInfo.position))
+        }
+        this.#timeInfo.transporting = true
+        this.#midiTransportClock.schedule(MidiData.Start)
+    }
+
+    #stop(reset: boolean): void {
+        if (this.#timeInfo.isRecording || this.#timeInfo.isCountingIn) {
+            this.#timeInfo.isRecording = false
+            this.#timeInfo.isCountingIn = false
+            this.#timeInfo.position = this.#playbackTimestampEnabled ? this.#playbackTimestamp : 0.0
+            this.#midiTransportClock.schedule(MidiData.positionInPPQN(this.#timeInfo.position))
+        }
+        const wasTransporting = this.#timeInfo.transporting
+        this.#timeInfo.transporting = false
+        this.#timeInfo.metronomeEnabled = this.#metronomeEnabled
+        this.#ignoredRegions.clear()
+        if (reset || !wasTransporting) {
+            this.#reset()
+        }
+        this.#midiTransportClock.schedule(MidiData.Stop)
+    }
+
+    #setPosition(position: number): void {
+        if (!this.#timeInfo.isRecording) {
+            this.#timeInfo.position = this.#playbackTimestamp = position
+            this.#midiTransportClock.schedule(MidiData.positionInPPQN(this.#timeInfo.position))
+        }
+    }
+
+    #prepareRecordingState(countIn: boolean): void {
+        if (this.#timeInfo.isRecording || this.#timeInfo.isCountingIn) {return}
+        if (!this.#timeInfo.transporting && countIn) {
+            const position = this.#timeInfo.position
+            const [nominator, denominator] = this.#timelineBoxAdapter.signature
+            this.#recordingStartTime = quantizeFloor(position, PPQN.fromSignature(nominator, denominator))
+            this.#timeInfo.isCountingIn = true
+            this.#timeInfo.metronomeEnabled = true
+            this.#timeInfo.transporting = true
+            this.#timeInfo.position = this.#recordingStartTime - PPQN.fromSignature(this.#countInBarsTotal * nominator, denominator)
+            const subscription = this.#renderer.setCallback(this.#recordingStartTime, () => {
+                this.#timeInfo.isCountingIn = false
+                this.#timeInfo.isRecording = true
+                this.#timeInfo.metronomeEnabled = this.#metronomeEnabled
+                subscription.terminate()
+            })
+            this.#midiTransportClock.schedule(MidiData.positionInPPQN(this.#timeInfo.position))
+        } else {
+            this.#timeInfo.transporting = true
+            this.#timeInfo.isRecording = true
+            this.#midiTransportClock.schedule(MidiData.Start)
+        }
+    }
+
+    #stopRecording(): void {
+        if (!this.#timeInfo.isRecording && !this.#timeInfo.isCountingIn) {return}
+        this.#timeInfo.isRecording = false
+        this.#timeInfo.isCountingIn = false
+        this.#timeInfo.metronomeEnabled = this.#metronomeEnabled
+        this.#timeInfo.transporting = false
+        this.#ignoredRegions.clear()
+        this.#midiTransportClock.schedule(MidiData.Stop)
     }
 
     #reset(): void {

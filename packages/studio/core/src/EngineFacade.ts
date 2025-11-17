@@ -86,6 +86,8 @@ export class EngineFacade implements Engine {
         return this.#worklet.mapOr(worklet => worklet.queryLoadingComplete(), Promise.resolve(false))
     }
     panic(): void {this.#worklet.ifSome(worklet => worklet.panic())}
+    sleep(): void {this.#worklet.ifSome(worklet => worklet.sleep())}
+    wake(): void {this.#worklet.ifSome(worklet => worklet.wake())}
     sampleRate(): number {return this.#worklet.isEmpty() ? 44_100 : this.#worklet.unwrap().context.sampleRate}
     subscribeClipNotification(observer: Observer<ClipNotification>): Subscription {
         return this.#worklet.unwrap("No worklet to subscribeClipNotification").subscribeClipNotification(observer)

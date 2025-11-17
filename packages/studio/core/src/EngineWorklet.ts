@@ -52,7 +52,9 @@ export class EngineWorklet extends AudioWorkletNode implements Engine {
     readonly #countInBarsTotal: DefaultObservableValue<int> = new DefaultObservableValue(1)
     readonly #countInBeatsRemaining: DefaultObservableValue<int> = new DefaultObservableValue(0)
     readonly #metronomeEnabled: DefaultObservableValue<boolean> = new DefaultObservableValue(false)
-    readonly #markerState: DefaultObservableValue<Nullable<[UUID.Bytes, int]>> = new DefaultObservableValue<Nullable<[UUID.Bytes, int]>>(null)
+    readonly #markerState: DefaultObservableValue<Nullable<[UUID.Bytes, int]>> =
+        new DefaultObservableValue<Nullable<[UUID.Bytes, int]>>(null)
+    readonly #controlFlags: Int32Array<SharedArrayBuffer>
     readonly #notifyClipNotification: Notifier<ClipNotification>
     readonly #notifyNoteSignals: Notifier<NoteSignal>
     readonly #playingClips: Array<UUID.Bytes>
@@ -73,12 +75,15 @@ export class EngineWorklet extends AudioWorkletNode implements Engine {
             this.#position.setValue(state.position) // This must be the last to handle the state values before
         })
 
+        const controlFlagsSAB = new SharedArrayBuffer(4) // 4 bytes minimum
+
         super(context, "engine-processor", {
                 numberOfInputs: 0,
                 numberOfOutputs: 1,
                 outputChannelCount: [numberOfChannels],
                 processorOptions: {
-                    sab: reader.buffer,
+                    syncStreamBuffer: reader.buffer,
+                    controlFlagsBuffer: controlFlagsSAB,
                     project: project.toArrayBuffer(),
                     exportConfiguration,
                     options
@@ -93,6 +98,7 @@ export class EngineWorklet extends AudioWorkletNode implements Engine {
         this.#notifyClipNotification = this.#terminator.own(new Notifier<ClipNotification>())
         this.#notifyNoteSignals = this.#terminator.own(new Notifier<NoteSignal>())
         this.#playingClips = []
+        this.#controlFlags = new Int32Array(controlFlagsSAB)
         this.#commands = this.#terminator.own(
             Communicator.sender<EngineCommands>(messenger.channel("engine-commands"),
                 dispatcher => new class implements EngineCommands {
@@ -116,6 +122,8 @@ export class EngineWorklet extends AudioWorkletNode implements Engine {
                         return dispatcher.dispatchAndReturn(this.queryLoadingComplete)
                     }
                     panic(): void {dispatcher.dispatchAndForget(this.panic)}
+                    sleep(): void {dispatcher.dispatchAndForget(this.sleep)}
+                    wake(): void {dispatcher.dispatchAndForget(this.wake)}
                     noteSignal(signal: NoteSignal): void {dispatcher.dispatchAndForget(this.noteSignal, signal)}
                     ignoreNoteRegion(uuid: UUID.Bytes): void {
                         dispatcher.dispatchAndForget(this.ignoreNoteRegion, uuid)
@@ -200,6 +208,11 @@ export class EngineWorklet extends AudioWorkletNode implements Engine {
     prepareRecordingState(countIn: boolean): void {this.#commands.prepareRecordingState(countIn)}
     stopRecording(): void {this.#commands.stopRecording()}
     panic(): void {this.#commands.panic()}
+    sleep(): void {
+        Atomics.store(this.#controlFlags, 0, 1)
+        this.#commands.stop(true)
+    }
+    wake(): void {Atomics.store(this.#controlFlags, 0, 0)}
 
     get isPlaying(): ObservableValue<boolean> {return this.#isPlaying}
     get isRecording(): ObservableValue<boolean> {return this.#isRecording}
@@ -234,6 +247,7 @@ export class EngineWorklet extends AudioWorkletNode implements Engine {
     }
 
     terminate(): void {
+        console.debug("WORKLET.terminate")
         this.#terminator.terminate()
         this.disconnect()
     }

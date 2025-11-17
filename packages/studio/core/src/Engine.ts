@@ -22,6 +22,8 @@ export interface Engine extends Terminable {
     queryLoadingComplete(): Promise<boolean>
     stop(): void
     panic(): void
+    sleep(): void
+    wake(): void
     noteSignal(signal: NoteSignal): void
     subscribeNotes(observer: Observer<NoteSignal>): Subscription
     ignoreNoteRegion(uuid: UUID.Bytes): void

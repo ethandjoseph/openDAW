@@ -4,7 +4,8 @@ export type ProcessorOptions = { pauseOnLoopDisabled?: boolean }
 
 // This is the type for passing over information to the main audio-worklet
 export type EngineProcessorAttachment = {
-    sab: SharedArrayBuffer // SyncStream SharedArrayBuffer
+    syncStreamBuffer: SharedArrayBuffer // SyncStream SharedArrayBuffer
+    controlFlagsBuffer: SharedArrayBuffer // Control flags SharedArrayBuffer (e.g., for sleep)
     project: ArrayBufferLike
     exportConfiguration?: ExportStemsConfiguration
     options?: ProcessorOptions

@@ -1,4 +1,13 @@
-import {DefaultObservableValue, int, Option, panic, RuntimeNotifier, TimeSpan} from "@opendaw/lib-std"
+import {
+    DefaultObservableValue,
+    Errors,
+    int,
+    Option,
+    panic,
+    RuntimeNotifier,
+    Terminator,
+    TimeSpan
+} from "@opendaw/lib-std"
 import {AnimationFrame} from "@opendaw/lib-dom"
 import {Wait} from "@opendaw/lib-runtime"
 import {ExportStemsConfiguration} from "@opendaw/studio-adapters"
@@ -11,30 +20,49 @@ export namespace AudioOfflineRenderer {
                                 sampleRate: int = 48_000): Promise<AudioBuffer> => {
         const numStems = ExportStemsConfiguration.countStems(optExportConfiguration)
         if (numStems === 0) {return panic("Nothing to export")}
-        const project = source.copy()
-        const progress = new DefaultObservableValue(0.0)
-        const dialog = RuntimeNotifier.progress({headline: "Rendering...", progress})
-        project.boxGraph.beginTransaction()
-        project.timelineBox.loopArea.enabled.setValue(false)
-        project.boxGraph.endTransaction()
-        const durationInPulses = project.timelineBox.durationInPulses.getValue()
-        const numSamples = Math.ceil(project.tempoMap.intervalToSeconds(0, durationInPulses) * sampleRate)
+        const {promise, reject, resolve} = Promise.withResolvers<AudioBuffer>()
+        const projectCopy = source.copy()
+        const terminator = new Terminator()
+        const progress = terminator.own(new DefaultObservableValue(0.0))
+        projectCopy.boxGraph.beginTransaction()
+        projectCopy.timelineBox.loopArea.enabled.setValue(false)
+        projectCopy.boxGraph.endTransaction()
+        const durationInPulses = projectCopy.timelineBox.durationInPulses.getValue()
+        const numSamples = Math.ceil(projectCopy.tempoMap.intervalToSeconds(0, durationInPulses) * sampleRate)
         const context = new OfflineAudioContext(numStems * 2, numSamples, sampleRate)
         const durationInSeconds = numSamples / sampleRate
         const worklets = await AudioWorklets.createFor(context)
         const engineWorklet = worklets.createEngine({
-            project: project,
+            project: projectCopy,
             exportConfiguration: optExportConfiguration.unwrapOrUndefined()
         })
         engineWorklet.play()
         engineWorklet.connect(context.destination)
         await engineWorklet.isReady()
         while (!await engineWorklet.queryLoadingComplete()) {await Wait.timeSpan(TimeSpan.seconds(1))}
-        const terminable = AnimationFrame.add(() => progress.setValue(context.currentTime / durationInSeconds))
-        const buffer = await context.startRendering()
-        terminable.terminate()
-        dialog.terminate()
-        project.terminate()
-        return buffer
+
+        // Start rendering...
+        let cancelled = false
+        terminator.ownAll(
+            projectCopy,
+            RuntimeNotifier.progress({
+                headline: "Rendering...", progress, cancel: () => {
+                    engineWorklet.stop(true)
+                    engineWorklet.sleep()
+                    terminator.terminate()
+                    cancelled = true
+                    reject(Errors.AbortError)
+                }
+            }),
+            AnimationFrame.add(() => progress.setValue(context.currentTime / durationInSeconds))
+        )
+        context.startRendering().then(buffer => {
+            console.debug(`rendering complete. cancelled: ${cancelled}`)
+            if (!cancelled) {
+                terminator.terminate()
+                resolve(buffer)
+            }
+        }, reason => reject(reason))
+        return promise
     }
 }
