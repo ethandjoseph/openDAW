@@ -18,8 +18,7 @@ export default defineConfig(({command}) => {
             }
         },
         optimizeDeps: {
-            include: ["monaco-editor"],
-            exclude: ["@ffmpeg/ffmpeg", "@ffmpeg/util"]
+            exclude: ["@ffmpeg/ffmpeg", "@ffmpeg/util", "monaco-editor"]
         },
         build: {
             target: "esnext",
