@@ -14,11 +14,13 @@
             "default": "./dist/index.js"
         },
         "./api.declaration": "./src/api.declaration.d.ts",
+        "./library": "./src/library.d.ts",
         "./ScriptWorker.js": "./dist/ScriptWorker.js"
     },
     "files": [
         "dist/**/*",
         "src/script/api.declaration.d.ts",
+        "src/script/library.d.ts",
         "./dist/ScriptWorker.js"
     ],
     "scripts": {
@@ -40,5 +42,5 @@
         "@opendaw/eslint-config": "^0.0.20",
         "@opendaw/typescript-config": "^0.0.20"
     },
-    "gitHead": "cbdb8e49076f45a6d703e9dd348e1d0e1113e1dc"
+    "gitHead": "0c1cc9f642014877523c2dd619c7c847971f5d62"
 }
