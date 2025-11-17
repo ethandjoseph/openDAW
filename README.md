@@ -151,8 +151,8 @@ evolves.
 
 #### 2026/Q1
 
-- [ ] Preset API
-- [ ] Full implementation of connecting several cloud services to store samples, projects, and presets
+- [X] Preset API
+- [X] Full implementation of connecting several cloud services to store samples, projects, and presets
 - [ ] Fine-tune timeline clips (recording, switch times)
 - [ ] Fine-tune MIDI effects
 - [ ] Implement missing region actions like flatten
