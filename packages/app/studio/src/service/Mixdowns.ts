@@ -10,7 +10,7 @@ export namespace Mixdowns {
     export const exportMixdown = async ({project, meta}: ProjectProfile): Promise<void> => {
         const result = await Promises.tryCatch(AudioOfflineRenderer.start(project, Option.None))
         if (result.status === "rejected") {
-            if (!Errors.isAbort(result.error)) {
+            if(!Errors.isAbort(result.error)) {
                 throw result.error
             }
             return
