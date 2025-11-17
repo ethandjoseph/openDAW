@@ -34,6 +34,8 @@ type Construct = {
     reader: NoteEventOwnerReader
 }
 
+const scale = new ScaleConfig()
+
 export const NoteEditor =
     ({lifecycle, service, menu: {editMenu, viewMenu}, range, snapping, reader}: Construct) => {
         const {project} = service
@@ -43,7 +45,6 @@ export const NoteEditor =
             .map(capture => isInstanceOf(capture, CaptureMidi) ? capture : null).unwrap("No CaptureMidi available")
         const stepRecording = lifecycle.own(new DefaultObservableValue(false))
         const pitchPositioner = lifecycle.own(new PitchPositioner())
-        const scale = lifecycle.own(new ScaleConfig())
         const modifyContext = new ObservableModifyContext<NoteModifier>(editing)
         const propertyOwner = new DefaultObservableValue<PropertyAccessor>(NotePropertyVelocity)
         const selection: FilteredSelection<NoteEventBoxAdapter> = lifecycle.own(project.selection
