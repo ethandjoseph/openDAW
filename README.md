@@ -97,6 +97,7 @@ Huge thanks to our [ambassadors](https://opendaw.org/ambassadors), whose dedicat
 - skyboundzoo
 - JHINZ
 - Mark Dammer
+- fork-kun
 
 ### openDAW Custom Pledge
 
