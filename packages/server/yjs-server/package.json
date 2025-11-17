@@ -1,7 +1,7 @@
 {
     "type": "module",
     "name": "yjs-server",
-    "version": "1.0.20",
+    "version": "1.0.21",
     "main": "index.js",
     "scripts": {
         "test": "echo \"No tests to run\"",
