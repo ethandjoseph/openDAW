@@ -91,7 +91,6 @@ export class Crusher {
 
     reset(): void {
         this.#processed = false
-        this.#crushedSampleRate = NaN
         this.#targetCrushedSampleRate = NaN
         this.#delta = 0.0
         this.#remaining = 0
