@@ -127,12 +127,12 @@ export const TimeAxis = ({lifecycle, service, snapping, range, mapper}: Construc
                 resolvers.promise.then((value: string) => {
                     const number = parseFloat(value)
                     if (isNaN(number)) {return}
-                    editing.modify(() => durationInPulses.setValue(clamp(number * PPQN.Bar, MIN_TRACK_DURATION, MAX_TRACK_DURATION)))
+                    editing.modify(() => durationInPulses.setValue(clamp((number - 1) * PPQN.Bar, MIN_TRACK_DURATION, MAX_TRACK_DURATION)))
                 }, EmptyExec)
                 return resolvers
             }} provider={() => ({
                 unit: "bars",
-                value: PPQN.toParts(durationInPulses.getValue() - PPQN.Bar).bars.toString()
+                value: (PPQN.toParts(durationInPulses.getValue()).bars + 1).toString()
             })} location={() => {
                 const rect = endMarkerElement.getBoundingClientRect()
                 return {x: rect.left - 32, y: rect.top}
