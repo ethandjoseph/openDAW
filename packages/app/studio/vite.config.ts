@@ -24,24 +24,13 @@ export default defineConfig(({command}) => {
             target: "esnext",
             minify: true,
             sourcemap: true,
-            modulePreload: {
-                polyfill: false,
-                resolveDependencies: (filename, deps) => {
-                    // Filter out monaco-bundle from preloading
-                    return deps.filter(dep => !dep.includes('monaco-bundle'))
-                }
-            },
+            modulePreload: false, // Disable modulepreload polyfill injection
             rollupOptions: {
                 output: {
                     format: "es",
                     entryFileNames: `[name].${uuid}.js`,
-                    chunkFileNames: `[name].js`,
-                    assetFileNames: `[name].${uuid}.[ext]`,
-                    manualChunks(id: string) {
-                        if (id.includes("monaco-editor")) {
-                            return "monaco-bundle"
-                        }
-                    }
+                    chunkFileNames: `[name].${uuid}.js`,
+                    assetFileNames: `[name].${uuid}.[ext]`
                 }
             }
         },
@@ -64,6 +53,19 @@ export default defineConfig(({command}) => {
             fs: {
                 // Allow serving files from the entire workspace
                 allow: [resolve(__dirname, "../../../")]
+            }
+        },
+        preview: {
+            port: 8080,
+            host: "localhost",
+            https: {
+                key: readFileSync(resolve(__dirname, "../../../certs/localhost-key.pem")),
+                cert: readFileSync(resolve(__dirname, "../../../certs/localhost.pem"))
+            },
+            headers: {
+                "Cross-Origin-Opener-Policy": "same-origin",
+                "Cross-Origin-Embedder-Policy": "require-corp",
+                "Cross-Origin-Resource-Policy": "cross-origin"
             }
         },
         plugins: [

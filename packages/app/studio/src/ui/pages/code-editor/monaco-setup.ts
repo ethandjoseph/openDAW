@@ -1,5 +1,7 @@
-import * as monaco from "monaco-editor"
+// Import only the core editor and TypeScript support (not all languages)
+import * as monaco from "monaco-editor/esm/vs/editor/editor.api"
 import "monaco-editor/esm/vs/language/typescript/monaco.contribution"
+import "monaco-editor/esm/vs/basic-languages/typescript/typescript.contribution"
 import EditorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker"
 import TsWorker from "monaco-editor/esm/vs/language/typescript/ts.worker?worker"
 import declarations from "@opendaw/studio-scripting/api.declaration?raw"
