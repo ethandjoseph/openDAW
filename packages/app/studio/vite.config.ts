@@ -55,7 +55,7 @@ export default defineConfig(({command}) => {
                 allow: [resolve(__dirname, "../../../")]
             }
         },
-        preview: {
+        /*preview: {
             port: 8080,
             host: "localhost",
             https: {
@@ -67,7 +67,7 @@ export default defineConfig(({command}) => {
                 "Cross-Origin-Embedder-Policy": "require-corp",
                 "Cross-Origin-Resource-Policy": "cross-origin"
             }
-        },
+        },*/
         plugins: [
             crossOriginIsolation(),
             viteCompression({
