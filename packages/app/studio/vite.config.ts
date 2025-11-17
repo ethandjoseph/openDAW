@@ -24,6 +24,13 @@ export default defineConfig(({command}) => {
             target: "esnext",
             minify: true,
             sourcemap: true,
+            modulePreload: {
+                polyfill: false,
+                resolveDependencies: (filename, deps) => {
+                    // Filter out monaco-bundle from preloading
+                    return deps.filter(dep => !dep.includes('monaco-bundle'))
+                }
+            },
             rollupOptions: {
                 output: {
                     format: "es",

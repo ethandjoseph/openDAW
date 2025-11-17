@@ -2,8 +2,8 @@ import {float, Func, int, Objects} from "@opendaw/lib-std"
 import {FieldKey, PointerRules, PointerTypes} from "@opendaw/lib-box"
 
 export interface PrimitiveTypes {
-    int32: int,
-    float32: float
+    int32: int, // TODO add unit, min, max
+    float32: float // TODO add unit, min, max, interpolation
     boolean: boolean
     string: string
     bytes: Int8Array
