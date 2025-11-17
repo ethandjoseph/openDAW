@@ -72,7 +72,7 @@ export class Crusher {
     }
 
     setCrush(value: number): void {
-        const target = exponential(20.0, 0.5 * this.#sampleRate, value) // max: nyquist
+        const target = exponential(20.0, 20_000.0, value) // max: nyquist
         if (this.#processed && isFinite(this.#crushedSampleRate)) {
             this.#targetCrushedSampleRate = target
             this.#delta = (target - this.#crushedSampleRate) / this.#rampLength
