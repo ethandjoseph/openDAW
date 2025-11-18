@@ -49,7 +49,7 @@ export namespace MenuItems {
                     const presetBytes = PresetEncoder.encode(audioUnit.box)
                     await Files.save(presetBytes as ArrayBuffer, {
                         types: [FilePickerAcceptTypes.PresetFileType],
-                        suggestedName: `${audioUnit.label}.odb`
+                        suggestedName: `${audioUnit.label}.odp`
                     })
                 }),
             MenuItem.default({label: "Load Preset..."})
