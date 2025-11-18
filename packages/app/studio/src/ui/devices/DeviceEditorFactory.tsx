@@ -5,8 +5,8 @@ import {
     BoxVisitor,
     CompressorDeviceBox,
     CrusherDeviceBox,
+    DattorroReverbDeviceBox,
     DelayDeviceBox,
-    TidalDeviceBox,
     FoldDeviceBox,
     MIDIOutputDeviceBox,
     ModularDeviceBox,
@@ -19,6 +19,7 @@ import {
     SoundfontDeviceBox,
     StereoToolDeviceBox,
     TapeDeviceBox,
+    TidalDeviceBox,
     UnknownAudioEffectDeviceBox,
     UnknownMidiEffectDeviceBox,
     VaporisateurDeviceBox,
@@ -31,9 +32,9 @@ import {
     AudioBusBoxAdapter,
     CompressorDeviceBoxAdapter,
     CrusherDeviceBoxAdapter,
+    DattorroReverbDeviceBoxAdapter,
     DelayDeviceBoxAdapter,
     DeviceHost,
-    TidalDeviceBoxAdapter,
     FoldDeviceBoxAdapter,
     MIDIOutputDeviceBoxAdapter,
     ModularDeviceBoxAdapter,
@@ -46,6 +47,7 @@ import {
     SoundfontDeviceBoxAdapter,
     StereoToolDeviceBoxAdapter,
     TapeDeviceBoxAdapter,
+    TidalDeviceBoxAdapter,
     UnknownAudioEffectDeviceBoxAdapter,
     UnknownMidiEffectDeviceBoxAdapter,
     VaporisateurDeviceBoxAdapter,
@@ -76,6 +78,7 @@ import {FoldDeviceEditor} from "@/ui/devices/audio-effects/FoldDeviceEditor"
 import {MIDIOutputDeviceEditor} from "@/ui/devices/instruments/MIDIOutputDeviceEditor"
 import {VelocityDeviceEditor} from "@/ui/devices/midi-effects/VelocityDeviceEditor"
 import {TidalDeviceEditor} from "@/ui/devices/audio-effects/TidalDeviceEditor"
+import {DattorroReverbDeviceEditor} from "@/ui/devices/audio-effects/DattorroReverbDeviceEditor"
 
 export namespace DeviceEditorFactory {
     export const toMidiEffectDeviceEditor = (service: StudioService, lifecycle: Lifecycle, box: Box, deviceHost: DeviceHost) =>
@@ -188,11 +191,17 @@ export namespace DeviceEditorFactory {
                                    adapter={service.project.boxAdapters.adapterFor(box, DelayDeviceBoxAdapter)}
                                    deviceHost={deviceHost}/>
             ),
+            visitDattorroReverbDeviceBox: (box: DattorroReverbDeviceBox) => (
+                <DattorroReverbDeviceEditor lifecycle={lifecycle}
+                                            service={service}
+                                            adapter={service.project.boxAdapters.adapterFor(box, DattorroReverbDeviceBoxAdapter)}
+                                            deviceHost={deviceHost}/>
+            ),
             visitTidalDeviceBox: (box: TidalDeviceBox) => (
                 <TidalDeviceEditor lifecycle={lifecycle}
-                                    service={service}
-                                    adapter={service.project.boxAdapters.adapterFor(box, TidalDeviceBoxAdapter)}
-                                    deviceHost={deviceHost}/>
+                                   service={service}
+                                   adapter={service.project.boxAdapters.adapterFor(box, TidalDeviceBoxAdapter)}
+                                   deviceHost={deviceHost}/>
             ),
             visitCrusherDeviceBox: (box: CrusherDeviceBox) => (
                 <CrusherDeviceEditor lifecycle={lifecycle}

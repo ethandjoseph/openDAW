@@ -4,8 +4,8 @@ import {
     BoxVisitor,
     CompressorDeviceBox,
     CrusherDeviceBox,
+    DattorroReverbDeviceBox,
     DelayDeviceBox,
-    TidalDeviceBox,
     FoldDeviceBox,
     MIDIOutputDeviceBox,
     ModularDeviceBox,
@@ -17,6 +17,7 @@ import {
     SoundfontDeviceBox,
     StereoToolDeviceBox,
     TapeDeviceBox,
+    TidalDeviceBox,
     UnknownAudioEffectDeviceBox,
     UnknownMidiEffectDeviceBox,
     VaporisateurDeviceBox,
@@ -29,8 +30,8 @@ import {
     AudioBusBoxAdapter,
     CompressorDeviceBoxAdapter,
     CrusherDeviceBoxAdapter,
+    DattorroReverbDeviceBoxAdapter,
     DelayDeviceBoxAdapter,
-    TidalDeviceBoxAdapter,
     FoldDeviceBoxAdapter,
     MIDIOutputDeviceBoxAdapter,
     ModularDeviceBoxAdapter,
@@ -42,6 +43,7 @@ import {
     SoundfontDeviceBoxAdapter,
     StereoToolDeviceBoxAdapter,
     TapeDeviceBoxAdapter,
+    TidalDeviceBoxAdapter,
     UnknownAudioEffectDeviceBoxAdapter,
     UnknownMidiEffectDeviceBoxAdapter,
     VaporisateurDeviceBoxAdapter,
@@ -74,6 +76,7 @@ import {FoldDeviceProcessor} from "./devices/audio-effects/FoldDeviceProcessor"
 import {MIDIOutputDeviceProcessor} from "./devices/instruments/MIDIOutputDeviceProcessor"
 import {VelocityDeviceProcessor} from "./devices/midi-effects/VelocityDeviceProcessor"
 import {TidalDeviceProcessor} from "./devices/audio-effects/TidalDeviceProcessor"
+import {DattorroReverbDeviceProcessor} from "./devices/audio-effects/DattorroReverbDeviceProcessor"
 
 export namespace InstrumentDeviceProcessorFactory {
     export const create = (context: EngineContext,
@@ -125,6 +128,8 @@ export namespace AudioEffectDeviceProcessorFactory {
                 new CompressorDeviceProcessor(context, context.boxAdapters.adapterFor(box, CompressorDeviceBoxAdapter)),
             visitDelayDeviceBox: (box: DelayDeviceBox): AudioEffectDeviceProcessor =>
                 new DelayDeviceProcessor(context, context.boxAdapters.adapterFor(box, DelayDeviceBoxAdapter)),
+            visitDattorroReverbDeviceBox: (box: DattorroReverbDeviceBox): AudioEffectDeviceProcessor =>
+                new DattorroReverbDeviceProcessor(context, context.boxAdapters.adapterFor(box, DattorroReverbDeviceBoxAdapter)),
             visitTidalDeviceBox: (box: TidalDeviceBox): AudioEffectDeviceProcessor =>
                 new TidalDeviceProcessor(context, context.boxAdapters.adapterFor(box, TidalDeviceBoxAdapter)),
             visitCrusherDeviceBox: (box: CrusherDeviceBox): AudioEffectDeviceProcessor =>

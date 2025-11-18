@@ -3,6 +3,7 @@ import {
     ArpeggioDeviceBox,
     CompressorDeviceBox,
     CrusherDeviceBox,
+    DattorroReverbDeviceBox,
     DelayDeviceBox,
     FoldDeviceBox,
     GrooveShuffleBox,
@@ -109,6 +110,20 @@ export namespace EffectFactories {
         type: "audio",
         create: ({boxGraph}, hostField, index): DelayDeviceBox =>
             DelayDeviceBox.create(boxGraph, UUID.generate(), box => {
+                box.label.setValue("Delay")
+                box.index.setValue(index)
+                box.host.refer(hostField)
+            })
+    }
+
+    export const DattorroReverb: EffectFactory = {
+        defaultName: "Dattorro Reverb",
+        defaultIcon: IconSymbol.Time,
+        description: "Dattorro Reverb",
+        separatorBefore: false,
+        type: "audio",
+        create: ({boxGraph}, hostField, index): DattorroReverbDeviceBox =>
+            DattorroReverbDeviceBox.create(boxGraph, UUID.generate(), box => {
                 box.label.setValue("Delay")
                 box.index.setValue(index)
                 box.host.refer(hostField)
@@ -240,7 +255,9 @@ export namespace EffectFactories {
     }
 
     export const MidiNamed = {Arpeggio, Pitch, Velocity, Zeitgeist}
-    export const AudioNamed = {StereoTool, Compressor, Delay, Reverb, Revamp, Crusher, Fold, Tidal, Modular}
+    export const AudioNamed = {
+        StereoTool, Compressor, Delay, Reverb, Revamp, Crusher, Fold, Tidal, DattorroReverb, Modular
+    }
     export const MidiList: ReadonlyArray<Readonly<EffectFactory>> = Object.values(MidiNamed)
     export const AudioList: ReadonlyArray<Readonly<EffectFactory>> = Object.values(AudioNamed)
     export const MergedNamed = {...MidiNamed, ...AudioNamed}

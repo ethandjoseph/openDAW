@@ -21,6 +21,7 @@ import {VelocityDeviceBox} from "./midi-effects/VelocityDeviceBox"
 import {MIDIOutputBox} from "./instruments/MIDIOutputBox"
 import {MIDIOutputParameterBox} from "./instruments/MIDIOutputParameterBox"
 import {TidalDeviceBox} from "./audio-effects/TidalDeviceBox"
+import {DattorroReverbDeviceBox} from "./audio-effects/DattorroReverbDeviceBox"
 
 export const DeviceDefinitions = [
     UnknownAudioEffectDevice,
@@ -31,6 +32,7 @@ export const DeviceDefinitions = [
     CompressorDeviceBox,
     DelayDeviceBox,
     CrusherDeviceBox,
+    DattorroReverbDeviceBox,
     VelocityDeviceBox,
     FoldDeviceBox,
     TidalDeviceBox,

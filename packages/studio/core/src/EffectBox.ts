@@ -2,14 +2,15 @@ import {
     ArpeggioDeviceBox,
     CompressorDeviceBox,
     CrusherDeviceBox,
+    DattorroReverbDeviceBox,
     DelayDeviceBox,
-    TidalDeviceBox,
     FoldDeviceBox,
     ModularDeviceBox,
     PitchDeviceBox,
     RevampDeviceBox,
     ReverbDeviceBox,
     StereoToolDeviceBox,
+    TidalDeviceBox,
     UnknownAudioEffectDeviceBox,
     UnknownMidiEffectDeviceBox,
     VelocityDeviceBox,
@@ -20,3 +21,4 @@ export type EffectBox =
     | ArpeggioDeviceBox | PitchDeviceBox | VelocityDeviceBox | ZeitgeistDeviceBox | UnknownMidiEffectDeviceBox
     | DelayDeviceBox | ReverbDeviceBox | RevampDeviceBox | StereoToolDeviceBox | TidalDeviceBox
     | ModularDeviceBox | UnknownAudioEffectDeviceBox | CompressorDeviceBox | CrusherDeviceBox | FoldDeviceBox
+    | DattorroReverbDeviceBox
