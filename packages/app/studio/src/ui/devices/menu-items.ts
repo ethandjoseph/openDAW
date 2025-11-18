@@ -47,7 +47,10 @@ export namespace MenuItems {
             MenuItem.default({label: "Save Preset..."})
                 .setTriggerProcedure(async () => {
                     const presetBytes = PresetEncoder.encode(audioUnit.box)
-                    await Files.save(presetBytes as ArrayBuffer, {types: [FilePickerAcceptTypes.PresetFileType]})
+                    await Files.save(presetBytes as ArrayBuffer, {
+                        types: [FilePickerAcceptTypes.PresetFileType],
+                        suggestedName: `${audioUnit.label}.odb`
+                    })
                 }),
             MenuItem.default({label: "Load Preset..."})
                 .setTriggerProcedure(async () => {

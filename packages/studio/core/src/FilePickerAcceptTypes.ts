@@ -41,5 +41,4 @@ export namespace FilePickerAcceptTypes {
         description: "json",
         accept: {"application/json": [".json"]}
     }
-
 }
