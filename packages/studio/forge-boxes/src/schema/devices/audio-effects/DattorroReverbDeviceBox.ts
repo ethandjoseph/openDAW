@@ -51,6 +51,6 @@ export const DattorroReverbDeviceBox: BoxSchema<Pointers> =
         },
         21: {
             type: "float32", name: "dry", pointerRules: ParameterPointerRules,
-            value: -3.0, constraints: "decibel", unit: "dB"
+            value: 0.0, constraints: "decibel", unit: "dB"
         }
     })

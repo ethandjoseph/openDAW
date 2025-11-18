@@ -709,6 +709,15 @@ export const IconLibrary = () => (
             <symbol id={IconSymbol.toName(IconSymbol.Square)} viewBox="0 0 24 24" fill="currentColor" stroke="none">
                 <path d="M2 2V12H4V4H11V22H22V12H20V20H13V2H2Z"/>
             </symbol>
+            <symbol id={IconSymbol.toName(IconSymbol.Dattorro)} viewBox="2 2 20 20"
+                    stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                    stroke="currentColor"
+                    fill="none">
+                <path
+                    d="M12 3L19.7942 7.5V15.3453C19.7942 16.0598 19.413 16.7201 18.7942 17.0774L13 20.4226C12.3812 20.7799 11.6188 20.7799 11 20.4226L5.20578 17.0774C4.58698 16.7201 4.20578 16.0598 4.20578 15.3453V7.5L12 3Z"/>
+                <path d="M12 7V12L7.66986 14.5"/>
+                <path d="M12 12L16.3301 14.5"/>
+            </symbol>
         </defs>
     </svg>
 )

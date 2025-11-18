@@ -1,6 +1,9 @@
 import {float, int} from "@opendaw/lib-std"
 import {StereoMatrix} from "@opendaw/lib-dsp"
 
+// https://github.com/khoin/DattorroReverbNode
+// https://ccrma.stanford.edu/~dattorro/EffectDesignPart1.pdf
+
 export class DattorroReverbDsp {
     readonly #sampleRate: float
     readonly #delays: Array<[Float32Array, int, int, int]> = []
@@ -28,7 +31,7 @@ export class DattorroReverbDsp {
 
     constructor(sampleRate: float) {
         this.#sampleRate = sampleRate
-        this.#preDelayLength = sampleRate + (128 - sampleRate % 128)
+        this.#preDelayLength = sampleRate // one-second max
         this.#preDelayBuffer = new Float32Array(this.#preDelayLength)
         const delayTimes = [
             0.004771345, 0.003595309, 0.012734787, 0.009307483,
@@ -66,34 +69,34 @@ export class DattorroReverbDsp {
         const x1 = d[0][int++ & mask]
         const x2 = d[0][int++ & mask]
         const x3 = d[0][int & mask]
-        const a = (3 * (x1 - x2) - x0 + x3) / 2
-        const b = 2 * x2 + x0 - (5 * x1 + x3) / 2
-        const c = (x2 - x0) / 2
+        const a = (3.0 * (x1 - x2) - x0 + x3) / 2.0
+        const b = 2.0 * x2 + x0 - (5 * x1 + x3) / 2.0
+        const c = (x2 - x0) / 2.0
         return (((a * frac) + b) * frac + c) * frac + x1
     }
-    set preDelayMs(ms: float) {
-        this.#preDelay = Math.round((ms / 1000) * this.#sampleRate)
-    }
-    set bandwidth(value: float) { this.#bandwidth = value }
+    set preDelayMs(ms: float) {this.#preDelay = Math.floor((ms / 1000) * this.#sampleRate)}
+    set bandwidth(value: float) { this.#bandwidth = value * 0.9999 }
     set inputDiffusion1(value: float) { this.#inputDiffusion1 = value }
     set inputDiffusion2(value: float) { this.#inputDiffusion2 = value }
     set decay(value: float) { this.#decay = value }
-    set decayDiffusion1(value: float) { this.#decayDiffusion1 = value }
-    set decayDiffusion2(value: float) { this.#decayDiffusion2 = value }
+    set decayDiffusion1(value: float) { this.#decayDiffusion1 = value * 0.999999 }
+    set decayDiffusion2(value: float) { this.#decayDiffusion2 = value * 0.999999 }
     set damping(value: float) { this.#damping = value }
-    set excursionRate(value: float) { this.#excursionRate = value }
-    set excursionDepth(value: float) { this.#excursionDepth = value }
-    set wet(value: float) { this.#wet = value }
-    set dry(value: float) { this.#dry = value }
+    set excursionRate(value: float) { this.#excursionRate = value * 2.0 }
+    set excursionDepth(value: float) { this.#excursionDepth = value * 2.0 }
+    set wetGain(value: float) { this.#wet = value }
+    set dryGain(value: float) { this.#dry = value }
+
     reset(): void {
         this.#preDelayBuffer.fill(0)
         this.#delays.forEach(d => d[0].fill(0))
         this.#preDelayWrite = 0
-        this.#lp1 = 0
-        this.#lp2 = 0
-        this.#lp3 = 0
-        this.#excPhase = 0
+        this.#lp1 = 0.0
+        this.#lp2 = 0.0
+        this.#lp3 = 0.0
+        this.#excPhase = 0.0
     }
+
     process(input: StereoMatrix.Channels, output: StereoMatrix.Channels, fromIndex: int, toIndex: int): void {
         const pd = this.#preDelay
         const bw = this.#bandwidth
@@ -102,16 +105,21 @@ export class DattorroReverbDsp {
         const dc = this.#decay
         const ft = this.#decayDiffusion1
         const st = this.#decayDiffusion2
-        const dp = 1 - this.#damping
+        const dp = 1.0 - this.#damping
         const ex = this.#excursionRate / this.#sampleRate
-        const ed = this.#excursionDepth * this.#sampleRate / 1000
+        const ed = this.#excursionDepth * this.#sampleRate / 1000.0
         const we = this.#wet * 0.6
         const dr = this.#dry
+        const inpChL = input[0]
+        const inpChR = input[1]
+        const outChL = output[0]
+        const outChR = output[1]
         for (let i = fromIndex; i < toIndex; i++) {
-            const inputSample = (input[0][i] + input[1][i]) * 0.5
-            this.#preDelayBuffer[this.#preDelayWrite] = inputSample
-            output[0][i] = input[0][i] * dr
-            output[1][i] = input[1][i] * dr
+            const inpL = inpChL[i]
+            const inpR = inpChR[i]
+            this.#preDelayBuffer[this.#preDelayWrite] = (inpL + inpR) * 0.5
+            outChL[i] = inpL * dr
+            outChR[i] = inpR * dr
             const delayedInput = this.#preDelayBuffer[(this.#preDelayLength + this.#preDelayWrite - pd) % this.#preDelayLength]
             this.#lp1 += bw * (delayedInput - this.#lp1)
             let pre = this.#writeDelay(0, this.#lp1 - fi * this.#readDelay(0))
@@ -139,8 +147,8 @@ export class DattorroReverbDsp {
                 this.#readDelayAt(6, this.#taps[9]) + this.#readDelayAt(7, this.#taps[10]) -
                 this.#readDelayAt(9, this.#taps[11]) - this.#readDelayAt(10, this.#taps[12]) -
                 this.#readDelayAt(11, this.#taps[13])
-            output[0][i] += lo * we
-            output[1][i] += ro * we
+            outChL[i] += lo * we
+            outChR[i] += ro * we
             this.#excPhase += ex
             this.#preDelayWrite = (this.#preDelayWrite + 1) % this.#preDelayLength
             for (const d of this.#delays) {

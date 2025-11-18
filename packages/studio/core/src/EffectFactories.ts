@@ -118,13 +118,13 @@ export namespace EffectFactories {
 
     export const DattorroReverb: EffectFactory = {
         defaultName: "Dattorro Reverb",
-        defaultIcon: IconSymbol.Time,
-        description: "Dattorro Reverb",
+        defaultIcon: IconSymbol.Dattorro,
+        description: "Dense algorithmic reverb based on Dattorro's design, capable of infinite decay",
         separatorBefore: false,
         type: "audio",
         create: ({boxGraph}, hostField, index): DattorroReverbDeviceBox =>
             DattorroReverbDeviceBox.create(boxGraph, UUID.generate(), box => {
-                box.label.setValue("Delay")
+                box.label.setValue("Dattorro Reverb")
                 box.index.setValue(index)
                 box.host.refer(hostField)
             })
@@ -145,7 +145,7 @@ export namespace EffectFactories {
     }
 
     export const Reverb: EffectFactory = {
-        defaultName: "Reverb",
+        defaultName: "Cheap Reverb",
         defaultIcon: IconSymbol.Cube,
         description: "Simulates space and depth with reflections",
         separatorBefore: false,
@@ -256,7 +256,7 @@ export namespace EffectFactories {
 
     export const MidiNamed = {Arpeggio, Pitch, Velocity, Zeitgeist}
     export const AudioNamed = {
-        StereoTool, Compressor, Delay, Reverb, Revamp, Crusher, Fold, Tidal, DattorroReverb, Modular
+        StereoTool, Compressor, Delay, Reverb, DattorroReverb, Revamp, Crusher, Fold, Tidal, Modular
     }
     export const MidiList: ReadonlyArray<Readonly<EffectFactory>> = Object.values(MidiNamed)
     export const AudioList: ReadonlyArray<Readonly<EffectFactory>> = Object.values(AudioNamed)

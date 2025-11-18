@@ -22,6 +22,7 @@ export enum IconSymbol {
     Cube,
     Cursor,
     Curve,
+    Dattorro,
     Delete,
     Dial,
     DinSlot,
