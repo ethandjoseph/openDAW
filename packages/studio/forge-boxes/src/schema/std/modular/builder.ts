@@ -9,8 +9,8 @@ export const ModuleAttributes = {
             fields: {
                 1: {type: "pointer", name: "collection", pointerType: Pointers.ModuleCollection, mandatory: true},
                 2: {type: "string", name: "label"},
-                3: {type: "int32", name: "x"},
-                4: {type: "int32", name: "y"},
+                3: {type: "int32", name: "x", constraints: "any", unit: "x"},
+                4: {type: "int32", name: "y", constraints: "any", unit: "y"},
                 5: {type: "boolean", name: "collapsed", value: false},
                 6: {type: "boolean", name: "removable", value: true}
             }

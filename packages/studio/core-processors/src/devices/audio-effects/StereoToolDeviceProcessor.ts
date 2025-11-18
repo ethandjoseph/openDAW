@@ -1,5 +1,5 @@
 import {int, Option, Terminable, UUID} from "@opendaw/lib-std"
-import {AudioBuffer, dbToGain, Ramp, StereoMatrix} from "@opendaw/lib-dsp"
+import {AudioBuffer, dbToGain, Mixing, Ramp, StereoMatrix} from "@opendaw/lib-dsp"
 import {AudioEffectDeviceAdapter, StereoToolDeviceBoxAdapter} from "@opendaw/studio-adapters"
 import {EngineContext} from "../../EngineContext"
 import {Block, Processor} from "../../processing"
@@ -31,7 +31,7 @@ export class StereoToolDeviceProcessor extends AudioProcessor implements AudioEf
     readonly #swap: AutomatableParameter<boolean>
 
     #source: Option<AudioBuffer> = Option.None
-    #mixing: StereoMatrix.Mixing = StereoMatrix.Mixing.Linear
+    #mixing: Mixing = Mixing.Linear
     #needsUpdate: boolean = true
     #processed: boolean = false
 

@@ -1,5 +1,6 @@
 import {BoxSchema, FieldName, FieldSchema} from "@opendaw/lib-box-forge"
 import {Pointers} from "@opendaw/studio-enums"
+import {UnipolarConstraints} from "../Defaults"
 
 export const createVoltageConnector = (name: string): FieldSchema<Pointers.VoltageConnection> & FieldName => ({
     type: "field", name, pointerRules: {mandatory: false, accepts: [Pointers.VoltageConnection]}
@@ -12,9 +13,9 @@ export const ModularUserEditingBox: BoxSchema<Pointers> = {
         fields: {
             1: {type: "pointer", name: "system", pointerType: Pointers.Editing, mandatory: true},
             2: {type: "pointer", name: "editing", pointerType: Pointers.Editing, mandatory: true},
-            3: {type: "int32", name: "x"},
-            4: {type: "int32", name: "y"},
-            5: {type: "float32", name: "scale", value: 1.0}
+            3: {type: "int32", name: "x", constraints: "any", unit: "x"},
+            4: {type: "int32", name: "y", constraints: "any", unit: "y"},
+            5: {type: "float32", name: "scale", value: 1.0, ...UnipolarConstraints}
         }
     }
 }

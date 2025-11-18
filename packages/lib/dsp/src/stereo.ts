@@ -1,4 +1,5 @@
 import {clamp, int, PI_QUART} from "@opendaw/lib-std"
+import {Mixing} from "./mixing"
 
 export namespace StereoMatrix {
     export type Matrix = {
@@ -15,8 +16,6 @@ export namespace StereoMatrix {
         invertR: boolean
         swap: boolean
     }
-
-    export enum Mixing {Linear, EqualPower}
 
     export type Channels = [Float32Array, Float32Array]
 

@@ -1,5 +1,6 @@
 import {int} from "@opendaw/lib-std"
 import {StereoMatrix} from "./stereo"
+import {Mixing} from "./mixing"
 
 export interface Ramp<T> {
     set(target: T, smooth?: boolean): void
@@ -71,7 +72,7 @@ export namespace Ramp {
         constructor(length: int) {this.#length = length}
 
         update(params: StereoMatrix.Params,
-               mixing: StereoMatrix.Mixing, smooth?: boolean): void {
+               mixing: Mixing, smooth?: boolean): void {
             StereoMatrix.update(this.#target, params, mixing)
             if (smooth === true) {
                 this.#delta.ll = (this.#target.ll - this.#value.ll) / this.#length

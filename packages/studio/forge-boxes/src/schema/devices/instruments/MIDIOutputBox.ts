@@ -10,7 +10,10 @@ export const MIDIOutputBox: BoxSchema<Pointers> = {
             2: {type: "field", name: "device", pointerRules: {accepts: [Pointers.MIDIDevice], mandatory: true}},
             3: {type: "string", name: "id"},
             4: {type: "string", name: "label"},
-            5: {type: "int32", name: "delayInMs", value: 10},
+            5: {
+                type: "int32", name: "delayInMs",
+                value: 10, constraints: {min: 0, max: 500}, unit: "ms"
+            },
             6: {type: "boolean", name: "send-transport-messages", value: true}
         }
     }

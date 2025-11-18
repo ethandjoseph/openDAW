@@ -22,6 +22,7 @@ import {
 } from "@opendaw/lib-std"
 import {Propagation} from "./dispatchers"
 import {VertexVisitor} from "./vertex"
+import {Constraints} from "./constraints"
 
 export type PrimitiveValues = float | int | string | boolean | Readonly<Int8Array>
 
@@ -83,7 +84,7 @@ export abstract class PrimitiveField<
         super(field)
 
         this.#type = type
-        this.#initValue = this.clamp(value)
+        this.#initValue = value
         this.#value = this.#initValue
     }
 
@@ -163,19 +164,35 @@ export class BooleanField<E extends PointerTypes = UnreferenceableType> extends 
 export class Float32Field<E extends PointerTypes = UnreferenceableType> extends PrimitiveField<float, E> {
     static create<E extends PointerTypes = UnreferenceableType>(
         construct: FieldConstruct<E>,
+        constraints: Constraints.Float32,
+        unit: string,
         value: float = 0.0): Float32Field<E> {
-        return new Float32Field<E>(construct, value)
+        return new Float32Field<E>(construct, constraints, unit, value)
     }
-    private constructor(construct: FieldConstruct<E>, value: float) {super(construct, PrimitiveType.Float32, value)}
+
+    readonly #constraints: Constraints.Float32
+    readonly #unit: string
+
+    private constructor(construct: FieldConstruct<E>,
+                        constraints: Constraints.Float32,
+                        unit: string,
+                        value: float) {
+        super(construct, PrimitiveType.Float32, value)
+
+        this.#constraints = constraints
+        this.#unit = unit
+    }
     serialization(): ValueSerialization<float> {return ValueSerialization[PrimitiveType.Float32]}
     equals(value: float): boolean {return this.getValue() === value}
-    clamp(value: float): float {return Float.toFloat32(value)}
+    clamp(value: float): float {return Constraints.clampFloat32(this.#constraints, Float.toFloat32(value))}
     read(input: DataInput): void {this.setValue(input.readFloat())}
-
     write(output: DataOutput): void {
         assert(!this.deprecated, "FLoat32Field.write: deprecated field")
         output.writeFloat(this.getValue())
     }
+
+    get unit(): string {return this.#unit}
+    get constraints(): Constraints.Float32 {return this.#constraints}
 
     fromJSON(value: JSONValue): void {
         if (this.deprecated) {return}
@@ -190,18 +207,37 @@ export class Float32Field<E extends PointerTypes = UnreferenceableType> extends 
 export class Int32Field<E extends PointerTypes = UnreferenceableType> extends PrimitiveField<int, E> {
     static create<E extends PointerTypes = UnreferenceableType>(
         construct: FieldConstruct<E>,
+        constraints: Constraints.Int32,
+        unit: string,
         value: int = 0): Int32Field<E> {
-        return new Int32Field<E>(construct, value)
+        return new Int32Field<E>(construct, constraints, unit, value)
     }
-    private constructor(construct: FieldConstruct<E>, value: int) {super(construct, PrimitiveType.Int32, value)}
+
+    readonly #constraints: Constraints.Int32
+    readonly #unit: string
+
+    private constructor(construct: FieldConstruct<E>,
+                        constraints: Constraints.Int32,
+                        unit: string,
+                        value: int) {
+        super(construct, PrimitiveType.Int32, value)
+
+        this.#constraints = constraints
+        this.#unit = unit
+    }
+
     serialization(): ValueSerialization<int> {return ValueSerialization[PrimitiveType.Int32]}
     equals(value: int): boolean {return this.getValue() === value}
-    clamp(value: int): int {return Integer.toInt(value)}
+    clamp(value: int): int {return Constraints.clampInt32(this.#constraints, Integer.toInt(value))}
     read(input: DataInput): void {this.setValue(input.readInt())}
     write(output: DataOutput): void {
         assert(!this.deprecated, "Int32Field.write: deprecated field")
         output.writeInt(this.getValue())
     }
+
+    get unit(): string {return this.#unit}
+    get constraints(): Constraints.Int32 {return this.#constraints}
+
     fromJSON(value: JSONValue): void {
         if (this.deprecated) {return}
         if (typeof value === "number" && value === Math.floor(value)

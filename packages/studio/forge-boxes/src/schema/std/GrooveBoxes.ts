@@ -1,5 +1,5 @@
 import {Pointers} from "@opendaw/studio-enums"
-import {DefaultParameterPointerRules} from "./Defaults"
+import {ParameterPointerRules, UnipolarConstraints} from "./Defaults"
 import {BoxSchema, FieldRecord, mergeFields, reserveMany} from "@opendaw/lib-box-forge"
 import {PPQN} from "@opendaw/lib-dsp"
 import {Objects} from "@opendaw/lib-std"
@@ -18,15 +18,13 @@ const createGrooveBox = <FIELDS extends FieldRecord<Pointers>>(
 
 export const GrooveShuffleBox: BoxSchema<Pointers> = createGrooveBox("GrooveShuffleBox", {
     10: {
-        type: "float32",
-        name: "amount",
-        pointerRules: DefaultParameterPointerRules, value: 0.6
+        type: "float32", name: "amount", pointerRules: ParameterPointerRules,
+        value: 0.6, ...UnipolarConstraints
     },
     11: {
-        type: "int32",
-        name: "duration",
-        pointerRules: DefaultParameterPointerRules,
-        value: PPQN.fromSignature(1, 8)
+        type: "int32", name: "duration", pointerRules: ParameterPointerRules,
+        value: PPQN.fromSignature(1, 8),
+        constraints: "non-negative", unit: "ppqn"
     }
 })
 
@@ -34,12 +32,12 @@ export const GrooveOffsetBox: BoxSchema<Pointers> = createGrooveBox("GrooveOffse
     10: {
         type: "float32",
         name: "amount",
-        pointerRules: DefaultParameterPointerRules, value: 0.0
+        pointerRules: ParameterPointerRules, value: 0.0, ...UnipolarConstraints
     },
     11: {
         type: "boolean",
         name: "sync",
-        pointerRules: DefaultParameterPointerRules,
+        pointerRules: ParameterPointerRules,
         value: true
     }
 })

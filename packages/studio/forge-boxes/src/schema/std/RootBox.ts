@@ -41,11 +41,23 @@ export const RootBox: BoxSchema<Pointers> = {
                 class: {
                     name: "PianoMode",
                     fields: {
-                        1: {type: "int32", name: "keyboard", value: 0},
-                        2: {type: "float32", name: "time-range-in-quarters", value: 8},
-                        3: {type: "float32", name: "note-scale", value: 1.5},
+                        1: {
+                            type: "int32", name: "keyboard",
+                            value: 0, constraints: {length: 4}, unit: ""
+                        },
+                        2: {
+                            type: "float32", name: "time-range-in-quarters",
+                            value: 8, constraints: {min: 1, max: 64, scaling: "linear"}, unit: ""
+                        },
+                        3: {
+                            type: "float32", name: "note-scale",
+                            value: 1.5, constraints: {min: 0.5, max: 2, scaling: "linear"}, unit: ""
+                        },
                         4: {type: "boolean", name: "note-labels", value: false},
-                        5: {type: "int32", name: "transpose", value: 0}
+                        5: {
+                            type: "int32", name: "transpose",
+                            value: 0, constraints: {min: -48, max: 48}, unit: "st"
+                        }
                     }
                 }
             },

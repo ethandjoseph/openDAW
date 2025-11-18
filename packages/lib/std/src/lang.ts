@@ -162,7 +162,7 @@ export const asEnumValue = <
     const keys = Object.keys(enm)
     if (keys.length === 0) return panic("Empty enum object (are you using `const enum`?)")
     const values = Object.keys(enm)
-        .filter(k => isNaN(Number(k)))      // drop numeric reverse keys
+        .filter(k => isNaN(Number(k)))
         .map(k => enm[k as keyof typeof enm])
     return values.includes(value as any) ? value as E[keyof E] : panic(`Invalid enum value: ${String(value)}`)
 }

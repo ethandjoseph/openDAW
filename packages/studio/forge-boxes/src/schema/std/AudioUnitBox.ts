@@ -1,5 +1,5 @@
 import {AudioSendRouting, AudioUnitType, Pointers} from "@opendaw/studio-enums"
-import {DefaultParameterPointerRules} from "./Defaults"
+import {BipolarConstraints, ParameterPointerRules} from "./Defaults"
 import {BoxSchema} from "@opendaw/lib-box-forge"
 
 export const AudioUnitBox: BoxSchema<Pointers> = {
@@ -10,11 +10,17 @@ export const AudioUnitBox: BoxSchema<Pointers> = {
             1: {type: "string", name: "type", value: AudioUnitType.Instrument},
             2: {type: "pointer", name: "collection", pointerType: Pointers.AudioUnits, mandatory: true},
             3: {type: "field", name: "editing", pointerRules: {accepts: [Pointers.Editing], mandatory: false}},
-            11: {type: "int32", name: "index"},
-            12: {type: "float32", name: "volume", pointerRules: DefaultParameterPointerRules},
-            13: {type: "float32", name: "panning", pointerRules: DefaultParameterPointerRules},
-            14: {type: "boolean", name: "mute", pointerRules: DefaultParameterPointerRules},
-            15: {type: "boolean", name: "solo", pointerRules: DefaultParameterPointerRules},
+            11: {type: "int32", name: "index", constraints: "index", unit: ""},
+            12: {
+                type: "float32", name: "volume", pointerRules: ParameterPointerRules,
+                constraints: {min: -96.0, mid: -9.0, max: 6.0, scaling: "decibel"}, unit: "dB"
+            },
+            13: {
+                type: "float32", name: "panning", pointerRules: ParameterPointerRules,
+                ...BipolarConstraints
+            },
+            14: {type: "boolean", name: "mute", pointerRules: ParameterPointerRules},
+            15: {type: "boolean", name: "solo", pointerRules: ParameterPointerRules},
             20: {
                 type: "field",
                 name: "tracks",
@@ -82,10 +88,21 @@ export const AuxSendBox: BoxSchema<Pointers> = {
         fields: {
             1: {type: "pointer", name: "audio-unit", pointerType: Pointers.AuxSend, mandatory: true},
             2: {type: "pointer", name: "target-bus", pointerType: Pointers.AudioOutput, mandatory: true},
-            3: {type: "int32", name: "index"},
-            4: {type: "int32", name: "routing", value: AudioSendRouting.Post},
-            6: {type: "float32", name: "send-pan", pointerRules: DefaultParameterPointerRules},
-            5: {type: "float32", name: "send-gain", pointerRules: DefaultParameterPointerRules}
+            3: {type: "int32", name: "index", constraints: "index", unit: ""},
+            4: {
+                type: "int32", name: "routing",
+                value: AudioSendRouting.Post,
+                constraints: {values: [AudioSendRouting.Pre, AudioSendRouting.Post]},
+                unit: ""
+            },
+            6: {
+                type: "float32", name: "send-pan", pointerRules: ParameterPointerRules,
+                constraints: "bipolar", unit: ""
+            },
+            5: {
+                type: "float32", name: "send-gain", pointerRules: ParameterPointerRules,
+                constraints: "decibel", unit: "dB"
+            }
         }
     }
 }

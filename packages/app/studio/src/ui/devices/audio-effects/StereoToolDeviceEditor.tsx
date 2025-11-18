@@ -16,7 +16,7 @@ import {Icon} from "@/ui/components/Icon"
 import {ControlIndicator} from "@/ui/components/ControlIndicator"
 import {AutoGainButton} from "./StereoToolDeviceEditor/AutoGainButton"
 import {MenuItem} from "@/ui/model/menu-item"
-import {StereoMatrix} from "@opendaw/lib-dsp"
+import {Mixing} from "@opendaw/lib-dsp"
 import {MenuItems} from "../menu-items"
 import {StudioService} from "@/service/StudioService"
 import {EffectFactories} from "@opendaw/studio-core"
@@ -43,8 +43,8 @@ export const StereoToolDeviceEditor = ({lifecycle, service, adapter, deviceHost}
                           parent.addMenuItem(
                               MenuItem.default({label: "Panning"})
                                   .setRuntimeChildrenProcedure(parent => parent.addMenuItem(
-                                      MenuItems.createForValue(editing, "Linear", panningMixing, StereoMatrix.Mixing.Linear),
-                                      MenuItems.createForValue(editing, "Equal Power", panningMixing, StereoMatrix.Mixing.EqualPower)
+                                      MenuItems.createForValue(editing, "Linear", panningMixing, Mixing.Linear),
+                                      MenuItems.createForValue(editing, "Equal Power", panningMixing, Mixing.EqualPower)
                                   )))
                           MenuItems.forEffectDevice(parent, service, deviceHost, adapter)
                       }}

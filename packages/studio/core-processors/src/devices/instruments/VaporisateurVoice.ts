@@ -1,3 +1,4 @@
+import {bipolar, clampUnit, Id, InaccessibleProperty, int, mint, unitValue} from "@opendaw/lib-std"
 import {
     Adsr,
     AudioBuffer,
@@ -5,6 +6,7 @@ import {
     Glide,
     LFO,
     MidiKeys,
+    Mixing,
     ModulatedBiquad,
     NoteEvent,
     ppqn,
@@ -14,11 +16,10 @@ import {
     StereoMatrix,
     velocityToGain
 } from "@opendaw/lib-dsp"
-import {bipolar, clampUnit, Id, InaccessibleProperty, int, mint, unitValue} from "@opendaw/lib-std"
-import {Voice} from "../../voicing/Voice"
-import {Block} from "../../processing"
 import {VaporisateurSettings} from "@opendaw/studio-adapters"
 import {VaporisateurDeviceProcessor} from "./VaporisateurDeviceProcessor"
+import {Voice} from "../../voicing/Voice"
+import {Block} from "../../processing"
 
 // We can do this because there is no multi-threading within the processor
 const [
@@ -105,7 +106,7 @@ export class VaporisateurVoice implements Voice {
         const gain = velocityToGain(this.#event.velocity) * this.#gain
         const detune = 2.0 ** (this.#spread * (parameterUnisonDetune.getValue() / 1200.0))
         const panning = this.#spread * parameterUnisonStereo.getValue()
-        const [gainL, gainR] = StereoMatrix.panningToGains(panning, StereoMatrix.Mixing.Linear)
+        const [gainL, gainR] = StereoMatrix.panningToGains(panning, Mixing.Linear)
         const [outL, outR] = output.channels()
 
         freqBuffer.fill(detune, fromIndex, toIndex)

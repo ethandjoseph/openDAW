@@ -1,13 +1,5 @@
 import {float, Func, int, Objects} from "@opendaw/lib-std"
-import {FieldKey, PointerRules, PointerTypes} from "@opendaw/lib-box"
-
-export interface PrimitiveTypes {
-    int32: int, // TODO add unit, min, max (required)
-    float32: float // TODO add unit, min, max, "linear" | "exponential" (required)
-    boolean: boolean
-    string: string
-    bytes: Int8Array
-}
+import {Constraints, FieldKey, PointerRules, PointerTypes} from "@opendaw/lib-box"
 
 export const reserved = Object.freeze({type: "reserved", name: ""} as const)
 
@@ -33,7 +25,9 @@ export type Schema<E extends PointerTypes> = {
     }
     boxes: ReadonlyArray<BoxSchema<E>>
 }
-export type FieldRecord<E extends PointerTypes> = Record<FieldKey, AnyField<E> & FieldName>
+export type FieldRecord<E extends PointerTypes> = {
+    [K in FieldKey]: AnyField<E> & FieldName
+}
 export type ClassSchema<E extends PointerTypes> = {
     name: string
     fields: FieldRecord<E>
@@ -58,9 +52,46 @@ export type PointerFieldSchema<E extends PointerTypes> = {
     mandatory: boolean
 }
 
-export type PrimitiveFieldSchema<E extends PointerTypes> = Referencable<E> & {
-    [K in keyof PrimitiveTypes]: { type: K, value?: PrimitiveTypes[K] }
-}[keyof PrimitiveTypes]
+export type Int32FieldSchema<E extends PointerTypes> = Referencable<E> & {
+    type: "int32"
+    value?: int
+    unit: string
+    constraints: Constraints.Int32
+}
+
+/**
+ * constraints:
+ *  decibel referes to default decible mapping decibel(-72.0, -12.0, 0.0)
+ *  @see @opendaw/lib-std/src/value-mapping.ts
+ */
+export type Float32FieldSchema<E extends PointerTypes> = Referencable<E> & {
+    type: "float32"
+    value?: float
+    unit: string
+    constraints: Constraints.Float32
+}
+
+export type BooleanFieldSchema<E extends PointerTypes> = Referencable<E> & {
+    type: "boolean"
+    value?: boolean
+}
+
+export type StringFieldSchema<E extends PointerTypes> = Referencable<E> & {
+    type: "string"
+    value?: string
+}
+
+export type BytesFieldSchema<E extends PointerTypes> = Referencable<E> & {
+    type: "bytes"
+    value?: Int8Array
+}
+
+export type PrimitiveFieldSchema<E extends PointerTypes> =
+    | Int32FieldSchema<E>
+    | Float32FieldSchema<E>
+    | BooleanFieldSchema<E>
+    | StringFieldSchema<E>
+    | BytesFieldSchema<E>
 
 export type FieldSchema<E extends PointerTypes> = Required<Referencable<E>> & {
     type: "field"
@@ -76,7 +107,6 @@ export type AnyField<E extends PointerTypes> = (
 
 // utility methods to build schema
 //
-export const mergeFields = <
-    E extends PointerTypes,
-    U extends FieldRecord<E>,
-    V extends FieldRecord<E>>(u: U, v: Objects.Disjoint<U, V>): U & V => Objects.mergeNoOverlap(u, v)
+export const mergeFields =
+    <E extends PointerTypes, U extends FieldRecord<E>, V extends FieldRecord<E>>(
+        u: U, v: Objects.Disjoint<U, V>): U & V => Objects.mergeNoOverlap(u, v)

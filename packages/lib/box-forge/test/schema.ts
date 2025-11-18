@@ -4,8 +4,8 @@ import {PointerType} from "./Pointers"
 
 const Module = {
     1: {type: "pointer", name: "network", pointerType: PointerType.NetworkModule, mandatory: true},
-    2: {type: "int32", name: "x"},
-    3: {type: "int32", name: "y"},
+    2: {type: "int32", name: "x", constraints: "any", unit: ""},
+    3: {type: "int32", name: "y", constraints: "any", unit: ""},
     4: {type: "string", name: "label"}
 } satisfies FieldRecord<PointerType>
 
@@ -48,11 +48,31 @@ const AudioConnectionBox: ClassSchema<PointerType> = {
 const DrumBox: ClassSchema<PointerType> = {
     name: "DrumBox",
     fields: mergeFields({
-        10: {type: "float32", name: "gain", value: 0.0, pointerRules: DefaultParameterPointerRules},
-        11: {type: "float32", name: "cutoff", value: 18000.0, pointerRules: DefaultParameterPointerRules},
-        12: {type: "float32", name: "resonance", pointerRules: DefaultParameterPointerRules},
+        10: {
+            type: "float32",
+            name: "gain",
+            value: 0.0,
+            constraints: "any",
+            unit: "",
+            pointerRules: DefaultParameterPointerRules
+        },
+        11: {
+            type: "float32",
+            name: "cutoff",
+            value: 18000.0,
+            constraints: "any",
+            unit: "",
+            pointerRules: DefaultParameterPointerRules
+        },
+        12: {
+            type: "float32",
+            name: "resonance",
+            constraints: "any",
+            unit: "",
+            pointerRules: DefaultParameterPointerRules
+        },
         13: {type: "boolean", name: "compressor", pointerRules: DefaultParameterPointerRules},
-        20: {type: "int32", name: "patternIndex"},
+        20: {type: "int32", name: "patternIndex", constraints: "any", unit: ""},
         21: {
             type: "array", name: "patterns", length: 28, element: {
                 type: "object",
@@ -60,16 +80,16 @@ const DrumBox: ClassSchema<PointerType> = {
                     name: "DrumPattern",
                     fields: {
                         10: {type: "pointer", name: "groove", pointerType: PointerType.Groove, mandatory: false},
-                        11: {type: "int32", name: "length", value: 16},
-                        12: {type: "int32", name: "scale", value: 960},
+                        11: {type: "int32", name: "length", value: 16, constraints: "any", unit: ""},
+                        12: {type: "int32", name: "scale", value: 960, constraints: "any", unit: ""},
                         13: {
                             type: "array", name: "steps", length: 64, element: {
                                 type: "object",
                                 class: {
                                     name: "DrumStep",
                                     fields: {
-                                        10: {type: "int32", name: "key"},
-                                        11: {type: "int32", name: "transpose"},
+                                        10: {type: "int32", name: "key", constraints: "any", unit: ""},
+                                        11: {type: "int32", name: "transpose", constraints: "any", unit: ""},
                                         12: {type: "boolean", name: "mode", value: true},
                                         13: {type: "boolean", name: "slide"},
                                         14: {type: "boolean", name: "accent"}
@@ -88,10 +108,22 @@ const DrumBox: ClassSchema<PointerType> = {
 const DelayBox: ClassSchema<PointerType> = {
     name: "DelayBox",
     fields: mergeFields(Module, {
-        10: {type: "float32", name: "delayTime", pointerRules: DefaultParameterPointerRules},
-        11: {type: "float32", name: "feedback", pointerRules: DefaultParameterPointerRules},
-        12: {type: "float32", name: "wet", pointerRules: DefaultParameterPointerRules},
-        13: {type: "float32", name: "dry", pointerRules: DefaultParameterPointerRules},
+        10: {
+            type: "float32",
+            name: "delayTime",
+            constraints: "any",
+            unit: "",
+            pointerRules: DefaultParameterPointerRules
+        },
+        11: {
+            type: "float32",
+            name: "feedback",
+            constraints: "any",
+            unit: "",
+            pointerRules: DefaultParameterPointerRules
+        },
+        12: {type: "float32", name: "wet", constraints: "any", unit: "", pointerRules: DefaultParameterPointerRules},
+        13: {type: "float32", name: "dry", constraints: "any", unit: "", pointerRules: DefaultParameterPointerRules},
         30: DefaultAudioInput,
         31: DefaultAudioOutput
     } as const)

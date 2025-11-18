@@ -19,7 +19,9 @@ export class ScriptRunner {
         const blob = new Blob([jsCode], {type: "text/javascript"})
         const url = URL.createObjectURL(blob)
         try {
-            await import(url)
+            const AsyncFunction = (async () => {}).constructor as new (arg: string, body: string) =>
+                (...args: any[]) => Promise<any>
+            await new AsyncFunction("url", "return import(url)")(url)
         } finally {
             URL.revokeObjectURL(url)
         }

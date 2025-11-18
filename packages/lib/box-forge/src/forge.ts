@@ -12,7 +12,7 @@ import {
     Strings,
     Unhandled
 } from "@opendaw/lib-std"
-import {FieldKey, NoPointers, PointerRules, PointerTypes} from "@opendaw/lib-box"
+import {Constraints, FieldKey, NoPointers, PointerRules, PointerTypes} from "@opendaw/lib-box"
 import {ModuleDeclarationKind, Project, Scope, SourceFile, VariableDeclarationKind} from "ts-morph"
 import {AnyField, BoxSchema, ClassSchema, FieldName, Referencable, Schema} from "./schema"
 import {header} from "./header"
@@ -181,7 +181,7 @@ type FieldPrinter = Readonly<{
     className: string
     new: string
     type: string
-    ctorParams: ReadonlyArray<string | number | boolean | Int8Array | undefined>
+    ctorParams: ReadonlyArray<unknown>
 }>
 
 type PointerRulesPrinter = Readonly<{
@@ -375,7 +375,29 @@ class ClassWriter<E extends PointerTypes> {
                     type: `Field<${pointerRules.union}>`
                 }
             case "int32":
+                return {
+                    fieldKey,
+                    fieldName,
+                    fieldValue: field.value,
+                    importPath: BOX_LIBRARY,
+                    className: "Int32Field",
+                    new: "Int32Field.create",
+                    type: pointerRules.isEmpty ? "Int32Field" : `Int32Field<${pointerRules.union}>`,
+                    ctorParams: [this.#writeFieldConstruct(fieldKey, fieldName, pointerRules, deprecated),
+                        this.#serializeConstraint(field.constraints), JSON.stringify(field.unit), field.value]
+                }
             case "float32":
+                return {
+                    fieldKey,
+                    fieldName,
+                    fieldValue: field.value,
+                    importPath: BOX_LIBRARY,
+                    className: "Float32Field",
+                    new: "Float32Field.create",
+                    type: pointerRules.isEmpty ? "Float32Field" : `Float32Field<${pointerRules.union}>`,
+                    ctorParams: [this.#writeFieldConstruct(fieldKey, fieldName, pointerRules, deprecated),
+                        this.#serializeConstraint(field.constraints), JSON.stringify(field.unit), field.value]
+                }
             case "boolean":
             case "string":
             case "bytes":
@@ -502,5 +524,28 @@ class ClassWriter<E extends PointerTypes> {
             this.#file.addImportDeclaration({
                 moduleSpecifier, namedImports: Array.from(namedImports)
             }))
+    }
+
+    #serializeConstraint(constraint: Constraints.Float32 | Constraints.Int32): string {
+        if (typeof constraint === "string") {
+            return JSON.stringify(constraint)
+        }
+        if ("values" in constraint) {
+            return `{values: [${constraint.values.join(", ")}]}`
+        }
+        const entries = Object.entries(constraint).map(([key, value]) => {
+            let serializedValue: string
+            if (typeof value === "string") {
+                serializedValue = JSON.stringify(value)
+            } else if (value === Number.NEGATIVE_INFINITY) {
+                serializedValue = "Number.NEGATIVE_INFINITY"
+            } else if (value === Number.POSITIVE_INFINITY) {
+                serializedValue = "Number.POSITIVE_INFINITY"
+            } else {
+                serializedValue = String(value)
+            }
+            return `${key}: ${serializedValue}`
+        })
+        return `{${entries.join(", ")}}`
     }
 }

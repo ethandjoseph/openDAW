@@ -2,7 +2,15 @@ import {PointerRules, UnreferenceableType} from "@opendaw/lib-box"
 import {FieldName, FieldSchema, PointerFieldSchema, PrimitiveFieldSchema} from "@opendaw/lib-box-forge"
 import {Pointers} from "@opendaw/studio-enums"
 
-export const DefaultParameterPointerRules = {
+export const UnipolarConstraints = {constraints: "unipolar", unit: "%"} as const
+export const BipolarConstraints = {constraints: "bipolar", unit: "%"} as const
+export const HueConstraints = {constraints: {min: 0, max: 360}, unit: "°"} as const
+export const PPQNPositionConstraints = {constraints: "any", unit: "ppqn"} as const
+export const PPQNDurationConstraints = {constraints: "positive", unit: "ppqn"} as const
+export const IndexConstraints = {constraints: "index", unit: ""} as const
+export const MidiNoteConstraints = {constraints: {min: 0, max: 127}, unit: ""} as const
+
+export const ParameterPointerRules = {
     accepts: [Pointers.Modulation, Pointers.Automation, Pointers.MidiControl],
     mandatory: false
 } satisfies PointerRules<Pointers>

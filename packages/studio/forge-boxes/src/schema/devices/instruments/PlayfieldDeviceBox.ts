@@ -1,7 +1,7 @@
 import {BoxSchema} from "@opendaw/lib-box-forge"
 import {Pointers} from "@opendaw/studio-enums"
 import {DeviceFactory} from "../../std/DeviceFactory"
-import {DefaultParameterPointerRules} from "../../std/Defaults"
+import {ParameterPointerRules, UnipolarConstraints} from "../../std/Defaults"
 
 export const PlayfieldDeviceBox: BoxSchema<Pointers> = DeviceFactory.createInstrument("PlayfieldDeviceBox", {
     10: {type: "field", name: "samples", pointerRules: {accepts: [Pointers.Sample], mandatory: false}}
@@ -24,7 +24,10 @@ export const PlayfieldSampleBox: BoxSchema<Pointers> = {
                 name: "audio-effects",
                 pointerRules: {accepts: [Pointers.AudioEffectHost], mandatory: false}
             },
-            15: {type: "int32", name: "index", value: 60}, // midi-note
+            15: {
+                type: "int32", name: "index",
+                value: 60, constraints: {min: 0, max: 127}, unit: ""
+            },
             20: {type: "string", name: "label"},
             21: {type: "string", name: "icon"},
             22: {type: "boolean", name: "enabled", value: true},
@@ -33,12 +36,27 @@ export const PlayfieldSampleBox: BoxSchema<Pointers> = {
             41: {type: "boolean", name: "solo"},
             42: {type: "boolean", name: "exclude"},
             43: {type: "boolean", name: "polyphone"},
-            44: {type: "int32", name: "gate", value: 0}, // Off, On, Loop
-            45: {type: "float32", name: "pitch", pointerRules: DefaultParameterPointerRules},
-            46: {type: "float32", name: "sample-start", pointerRules: DefaultParameterPointerRules, value: 0.0},
-            47: {type: "float32", name: "sample-end", pointerRules: DefaultParameterPointerRules, value: 1.0},
-            48: {type: "float32", name: "attack", pointerRules: DefaultParameterPointerRules, value: 0.001},
-            49: {type: "float32", name: "release", pointerRules: DefaultParameterPointerRules, value: 0.020}
+            44: {type: "int32", name: "gate", value: 0, constraints: {length: 3}, unit: ""}, // Off, On, Loop
+            45: {
+                type: "float32", name: "pitch", pointerRules: ParameterPointerRules,
+                constraints: {min: -1200, max: 1200, scaling: "linear"}, unit: "ct"
+            },
+            46: {
+                type: "float32", name: "sample-start", pointerRules: ParameterPointerRules,
+                value: 0.0, ...UnipolarConstraints
+            },
+            47: {
+                type: "float32", name: "sample-end", pointerRules: ParameterPointerRules,
+                value: 1.0, ...UnipolarConstraints
+            },
+            48: {
+                type: "float32", name: "attack", pointerRules: ParameterPointerRules,
+                value: 0.001, constraints: {min: 0.001, max: 5.0, scaling: "exponential"}, unit: "s"
+            },
+            49: {
+                type: "float32", name: "release", pointerRules: ParameterPointerRules,
+                value: 0.020, constraints: {min: 0.001, max: 5.0, scaling: "exponential"}, unit: "s"
+            }
         }
     }, pointerRules: {accepts: [Pointers.Editing], mandatory: false}
 }
