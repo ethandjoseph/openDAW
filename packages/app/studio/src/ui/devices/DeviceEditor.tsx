@@ -64,7 +64,7 @@ export const DeviceEditor =
                      )
                  }} data-drag>
                 <header onInit={element => {
-                    lifecycle.own(Events.subscribe(element, "dblclick", () =>
+                    lifecycle.own(Events.subscribeDblDwn(element, () =>
                         editing.modify(() => minimizedField.toggle())))
                     if (type === "midi-effect" || type === "audio-effect") {
                         const effect = adapter as EffectDeviceBoxAdapter

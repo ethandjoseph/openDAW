@@ -84,7 +84,7 @@ export const ClipsArea = ({lifecycle, service, manager, scrollModel, scrollConta
             onSelected: (selectable: AnyClipBoxAdapter) => selectable.onSelected(),
             onDeselected: (selectable: AnyClipBoxAdapter) => selectable.onDeselected()
         }),
-        Events.subscribe(element, "dblclick", event => {
+        Events.subscribeDblDwn(element, event => {
             const target = capturing.captureEvent(event)
             if (target === null) {return}
             if (target.type === "clip") {

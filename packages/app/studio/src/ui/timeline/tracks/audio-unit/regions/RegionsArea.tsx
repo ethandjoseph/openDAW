@@ -104,7 +104,7 @@ export const RegionsArea = ({lifecycle, service, manager, scrollModel, scrollCon
             selection: regionSelection,
             range
         }),
-        Events.subscribe(element, "dblclick", event => {
+        Events.subscribeDblDwn(element, event => {
             const target = capturing.captureEvent(event)
             if (target === null) {return}
             if (target?.type === "region") {

@@ -71,7 +71,7 @@ export const Clip = ({lifecycle, project, adapter, gridColumn}: Construct) => {
             }
         }),
         Html.watchResize(canvas, painter.requestUpdate),
-        Events.subscribe(element, "dblclick", () => timelineEditing.edit(adapter.box)),
+        Events.subscribeDblDwn(element, () => timelineEditing.edit(adapter.box)),
         timelineEditing.catchupAndSubscribe(() => element.classList.toggle("edit-mode", timelineEditing.isEditing(adapter.box))),
         adapter.subscribeChange(() => {
             label.textContent = adapter.label.length === 0 ? "◻" : adapter.label

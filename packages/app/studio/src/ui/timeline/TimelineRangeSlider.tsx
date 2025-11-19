@@ -93,6 +93,6 @@ export const TimelineRangeSlider = ({lifecycle, range, style, className: extraCl
 
     lifecycle.own(Html.watchResize(slider, onResize))
     lifecycle.own(range.subscribe(onUpdate))
-    lifecycle.own(Events.subscribe(slider, "dblclick", () => range.showAll()))
+    lifecycle.own(Events.subscribeDblDwn(slider, () => range.showAll()))
     return <div className={Html.buildClassList(className, extraClassName)} style={style}>{slider}</div>
 }

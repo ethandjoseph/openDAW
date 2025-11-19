@@ -42,7 +42,7 @@ export const RelativeUnitValueDragging = ({
                                           }: Construct, children: JsxValue) => {
     const element: HTMLElement = (<Group>{children}</Group>)
     lifecycle.ownAll(
-        Events.subscribe(element, "dblclick", () => {
+        Events.subscribeDblDwn(element, () => {
             const solid: Element = lookForSolidElement(element)
             const rect = solid.getBoundingClientRect()
             const printValue = parameter.getPrintValue()
