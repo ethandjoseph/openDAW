@@ -50,7 +50,12 @@ export const installTrackHeaderMenu = (service: StudioService,
                 if (!approved) {return}
             }
             const newProject = Project.new(service)
-            editing.modify(() => ProjectUtils.extractAudioUnits([trackBoxAdapter.audioUnit], newProject.skeleton))
+            editing.modify(() => {
+                const {boxGraph, skeleton} = newProject
+                boxGraph.beginTransaction()
+                ProjectUtils.extractAudioUnits([trackBoxAdapter.audioUnit], skeleton)
+                boxGraph.endTransaction()
+            })
             service.projectProfileService.setProject(newProject, "NEW")
         }),
         MenuItem.default({label: "Move", separatorBefore: true})
