@@ -19,7 +19,7 @@ export class BiquadCoeff {
 
     setLowpassParams(cutoff: unitValue, resonance: number = Math.SQRT1_2): this {
         cutoff = clamp(cutoff, 0.0, 1.0)
-        if (cutoff === 1.0) {
+        if (cutoff >= 0.5) {
             this.setNormalizedCoefficients(1.0, 0.0, 0.0, 1.0, 0.0, 0.0)
         } else if (cutoff > 0.0) {
             const theta = TAU * cutoff

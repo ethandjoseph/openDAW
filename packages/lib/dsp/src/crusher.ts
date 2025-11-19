@@ -6,6 +6,7 @@ import {BiquadMono, BiquadProcessor} from "./biquad-processor"
 import {RenderQuantum} from "./constants"
 
 const DEFAULT_RAMP_DURATION_SECONDS = 0.020
+const MIN_CUTOFF_FREQ = 1000.0
 
 export class Crusher {
     readonly #sampleRate: number
@@ -57,7 +58,7 @@ export class Crusher {
                     this.#delta = 0.0
                     this.#crushedSampleRate = this.#targetCrushedSampleRate
                 }
-                this.#filterCoeff.setLowpassParams(this.#crushedSampleRate / this.#sampleRate)
+                this.#filterCoeff.setLowpassParams(Math.max(this.#crushedSampleRate, MIN_CUTOFF_FREQ) / this.#sampleRate)
             }
             this.#phase += 1.0
             if (this.#phase >= crushRatio) {
@@ -72,14 +73,14 @@ export class Crusher {
     }
 
     setCrush(value: number): void {
-        const target = exponential(20.0, 20_000.0, value) // max: nyquist
+        const target = exponential(20.0, this.#sampleRate * 0.5, value) // max: nyquist
         if (this.#processed && isFinite(this.#crushedSampleRate)) {
             this.#targetCrushedSampleRate = target
             this.#delta = (target - this.#crushedSampleRate) / this.#rampLength
             this.#remaining = this.#rampLength
         } else {
             this.#crushedSampleRate = target
-            this.#filterCoeff.setLowpassParams(this.#crushedSampleRate / this.#sampleRate)
+            this.#filterCoeff.setLowpassParams(Math.max(this.#crushedSampleRate, MIN_CUTOFF_FREQ) / this.#sampleRate)
         }
     }
 
