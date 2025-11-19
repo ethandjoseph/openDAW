@@ -23,6 +23,7 @@ export interface EngineCommands extends Terminable {
     // timeline clip playback management
     scheduleClipPlay(clipIds: ReadonlyArray<UUID.Bytes>): void
     scheduleClipStop(trackIds: ReadonlyArray<UUID.Bytes>): void
+    setupMIDI(port: MessagePort, buffer: SharedArrayBuffer): void
 }
 
 export interface EngineToClient {
@@ -32,6 +33,5 @@ export interface EngineToClient {
     fetchSoundfont(uuid: UUID.Bytes): Promise<SoundFont2>
     notifyClipSequenceChanges(changes: ClipSequencingUpdates): void
     switchMarkerState(state: Nullable<[UUID.Bytes, int]>): void
-    sendMIDIData(midiDeviceId: string, data: Uint8Array, relativeTimeInMs: number): void
     ready(): void
 }

@@ -21,6 +21,22 @@ export namespace Communicator {
         dispatchAndReturn: <F extends (..._: Parameters<F>) => Promise<R>, R>(func: F, ...args: Parameters<F>) => Promise<R>
     }
 
+    const extractTransferables = (args: any[]): Transferable[] => {
+        const transferables: Transferable[] = []
+        for (const arg of args) {
+            if (arg instanceof MessagePort) {
+                transferables.push(arg)
+            }
+            if (typeof ImageBitmap !== "undefined" && arg instanceof ImageBitmap) {
+                transferables.push(arg)
+            }
+            if (typeof OffscreenCanvas !== "undefined" && arg instanceof OffscreenCanvas) {
+                transferables.push(arg)
+            }
+        }
+        return transferables
+    }
+
     class Sender<PROTOCOL> implements Dispatcher, Terminable {
         readonly #messenger: Messenger
         readonly #expected = new Map<int, Return>()
@@ -36,12 +52,15 @@ export namespace Communicator {
         terminate(): void {this.#subscription.terminate()}
 
         readonly dispatchAndForget = <F extends (..._: Parameters<F>) => void>
-        (func: F, ...args: Parameters<F>): void => this.#messenger.send({
-            type: "send",
-            returnId: false,
-            func: func.name as keyof PROTOCOL,
-            args: Array.from(Iterables.map(args, arg => ({value: arg})))
-        } satisfies Send<any>)
+        (func: F, ...args: Parameters<F>): void => {
+            const transferables = extractTransferables(args)
+            this.#messenger.send({
+                type: "send",
+                returnId: false,
+                func: func.name as keyof PROTOCOL,
+                args: Array.from(Iterables.map(args, arg => ({value: arg})))
+            } satisfies Send<any>, transferables)
+        }
 
         readonly dispatchAndReturn = <F extends (..._: Parameters<F>) => Promise<R>, R>
         (func: F, ...args: Parameters<F>): Promise<R> => new Promise<R>((resolve, reject) => {
@@ -53,13 +72,14 @@ export namespace Communicator {
                 executorTuple: {resolve, reject},
                 callbacks: new Map<int, Function>(entries)
             })
+            const transferables = extractTransferables(args)
             this.#messenger.send({
                 type: "send",
                 returnId: this.#returnId,
                 func: func.name as keyof PROTOCOL,
                 args: Array.from(Iterables.map(args, (arg, index) =>
                     typeof arg === "function" ? ({callback: index}) : ({value: arg})))
-            } satisfies Send<any>)
+            } satisfies Send<any>, transferables)
             this.#returnId++
         })
 

@@ -10,7 +10,7 @@ import {
 } from "@opendaw/lib-std"
 
 export type Port = {
-    postMessage(message: any): void
+    postMessage(message: any, transfer?: Array<Transferable>): void
     onmessage: Nullable<Procedure<MessageEvent>>
     onmessageerror: Nullable<Procedure<MessageEvent>>
 }
@@ -18,9 +18,11 @@ export type Port = {
 export const Messenger = {for: (port: Port): Messenger => new NativeMessenger(port)}
 
 export type Messenger = Observable<any> & Terminable & {
-    send(message: any): void
+    send(message: any, transfer?: Array<Transferable>): void
     channel(name: string): Messenger
 }
+
+const EmptyTransferables: Array<Transferable> = []
 
 class NativeMessenger implements Messenger {
     readonly #port: Port
@@ -37,7 +39,10 @@ class NativeMessenger implements Messenger {
         port.onmessageerror = (event: MessageEvent) => {throw new Error(event.type)}
     }
 
-    send(message: any): void {this.#port.postMessage(message)}
+    send(message: any, transfer?: Array<Transferable>): void {
+        this.#port.postMessage(message, transfer ?? EmptyTransferables)
+    }
+
     channel(name: string): Messenger {return new Channel(this, name)}
     subscribe(observer: Observer<MessageEvent>): Subscription {return this.#notifier.subscribe(observer)}
     terminate(): void {
@@ -64,7 +69,10 @@ class Channel implements Messenger {
         })
     }
 
-    send(message: any): void {this.#messages.send({__id__: "42", channel: this.#name, message})}
+    send(message: any, transferrables?: Array<Transferable>): void {
+        this.#messages.send({__id__: "42", channel: this.#name, message}, transferrables)
+    }
+
     channel(name: string): Messenger {return new Channel(this, name)}
     subscribe(observer: Observer<MessageEvent>): Subscription {return this.#notifier.subscribe(observer)}
     terminate(): void {
