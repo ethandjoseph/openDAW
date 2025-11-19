@@ -17,9 +17,9 @@ export namespace MenuItems {
         const canProcessMidi = deviceHost.inputAdapter.mapOr(input => input.accepts === "midi", false)
         parent.addMenuItem(
             MenuItem.default({
-                label: `Delete '${deviceHost.label}'`,
+                label: `Delete '${audioUnit.label}'`,
                 hidden: audioUnit.isOutput
-            }).setTriggerProcedure(() => editing.modify(() => deviceHost.box.delete())),
+            }).setTriggerProcedure(() => editing.modify(() => project.api.deleteAudioUnit(audioUnit.box))),
             MenuItem.default({
                 label: "Minimized",
                 checked: deviceHost.minimizedField.getValue()
