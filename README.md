@@ -51,7 +51,7 @@ you [@ccswdavidson](https://github.com/ccswdavidson), [@Chaosmeister](https://gi
 and [@xnstad](https://github.com/xnstad) for testing the repositories and identifying issues during the installation of
 openDAW!
 
-Special shout-out to the biggest bug hunters: [kanaris](https://kanaris.net/)
+Special shout-out to the biggest bug hunters: [kanaris](https://kanaris.net/), [@Chaosmeister](https://github.com/Chaosmeister)
 and [BeatMax Prediction](https://linktr.ee/beatmax_prediction). Your relentless attention to detail made a huge
 difference!
 
