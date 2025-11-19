@@ -5,6 +5,7 @@ import {createElement} from "@opendaw/lib-jsx"
 import {CanvasPainter} from "@/ui/canvas/painter"
 import {AutomatableParameterFieldAdapter, VaporisateurSettings} from "@opendaw/studio-adapters"
 import {BiquadCoeff, gainToDb} from "@opendaw/lib-dsp"
+import {DisplayPaint} from "@/ui/devices/DisplayPaint"
 
 const className = Html.adoptStyleSheet(css, "Display")
 
@@ -45,9 +46,7 @@ export const FilterDisplay = ({lifecycle, cutoff, resonance, order}: Construct) 
                     const freq = VaporisateurSettings.CUTOFF_VALUE_MAPPING.y(x / oversampledWidth)
                     frequency[x] = freq / sf
                 }
-
                 coeff.getFrequencyResponse(frequency, magResponse, phaseResponse)
-
                 context.lineWidth = devicePixelRatio
                 const path = new Path2D()
                 path.moveTo(0, gainToY(magResponse[0]))
@@ -56,13 +55,13 @@ export const FilterDisplay = ({lifecycle, cutoff, resonance, order}: Construct) 
                     if (y >= bottom) {break}
                     path.lineTo(x * invOversampling, y)
                 }
-                context.strokeStyle = "hsla(200, 83%, 60%, 0.75)"
+                context.strokeStyle = DisplayPaint.strokeStyle(0.75)
                 context.stroke(path)
                 path.lineTo(actualWidth, bottom)
                 path.lineTo(0, bottom)
                 const gradient = context.createLinearGradient(0, top, 0, bottom)
-                gradient.addColorStop(0.5, "hsla(200, 83%, 60%, 0.2)")
-                gradient.addColorStop(1.0, "hsla(200, 83%, 60%, 0.0)")
+                gradient.addColorStop(0.5, DisplayPaint.strokeStyle(0.2))
+                gradient.addColorStop(1.0, DisplayPaint.strokeStyle(0.0))
                 context.fillStyle = gradient
                 context.fill(path)
                 context.beginPath()
@@ -70,7 +69,7 @@ export const FilterDisplay = ({lifecycle, cutoff, resonance, order}: Construct) 
                 const zeroDbY = gainToY(1.0)
                 context.moveTo(0, zeroDbY)
                 context.lineTo(actualWidth, zeroDbY)
-                context.strokeStyle = "hsla(200, 83%, 60%, 0.25)"
+                context.strokeStyle = DisplayPaint.strokeStyle(0.25)
                 context.stroke()
             }))
             lifecycle.ownAll(

@@ -56,12 +56,12 @@ export class DattorroReverbDeviceBoxAdapter implements AudioEffectDeviceAdapter 
             inputDiffusion1: this.#parametric.createParameter(
                 box.inputDiffusion1,
                 ValueMapping.unipolar(),
-                StringMapping.percent(), "Inp. Diff. 1"
+                StringMapping.percent(), "Tank 1"
             ),
             inputDiffusion2: this.#parametric.createParameter(
                 box.inputDiffusion2,
                 ValueMapping.unipolar(),
-                StringMapping.percent(), "Inp. Diff. 2"
+                StringMapping.percent(), "Tank 2"
             ),
             decay: this.#parametric.createParameter(
                 box.decay,
@@ -71,12 +71,12 @@ export class DattorroReverbDeviceBoxAdapter implements AudioEffectDeviceAdapter 
             decayDiffusion1: this.#parametric.createParameter(
                 box.decayDiffusion1,
                 ValueMapping.unipolar(),
-                StringMapping.percent(), "Decay Diff. 1"
+                StringMapping.percent(), "Tank 1"
             ),
             decayDiffusion2: this.#parametric.createParameter(
                 box.decayDiffusion2,
                 ValueMapping.unipolar(),
-                StringMapping.percent(), "Decay Diff. 2"
+                StringMapping.percent(), "Tank 2"
             ),
             damping: this.#parametric.createParameter(
                 box.damping,
@@ -85,13 +85,13 @@ export class DattorroReverbDeviceBoxAdapter implements AudioEffectDeviceAdapter 
             ),
             excursionRate: this.#parametric.createParameter(
                 box.excursionRate,
-                ValueMapping.linear(0.0, 2.0),
-                StringMapping.numeric({unit: box.excursionRate.unit}), "Exc. Rate"
+                ValueMapping.unipolar(),
+                StringMapping.numeric({unit: box.excursionRate.unit}), "Rate"
             ),
             excursionDepth: this.#parametric.createParameter(
                 box.excursionDepth,
-                ValueMapping.linear(0.0, 2.0),
-                StringMapping.numeric({unit: box.excursionDepth.unit}), "Exc. Depth"
+                ValueMapping.unipolar(),
+                StringMapping.numeric({unit: box.excursionDepth.unit}), "Depth"
             ),
             wet: this.#parametric.createParameter(
                 box.wet,

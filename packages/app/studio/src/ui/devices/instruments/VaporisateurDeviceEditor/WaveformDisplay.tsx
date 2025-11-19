@@ -3,6 +3,7 @@ import {Html} from "@opendaw/lib-dom"
 import {Func, Lifecycle, ObservableValue} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {CanvasPainter} from "@/ui/canvas/painter"
+import {DisplayPaint} from "@/ui/devices/DisplayPaint"
 
 const className = Html.adoptStyleSheet(css, "Display")
 
@@ -28,14 +29,14 @@ export const WaveformDisplay = ({lifecycle, adapter}: Construct) => {
                 for (let x = 1; x <= actualWidth; x++) {
                     path.lineTo(x, valueToY(fx(x / actualWidth)))
                 }
-                context.strokeStyle = "hsla(200, 83%, 60%, 0.75)"
+                context.strokeStyle = DisplayPaint.strokeStyle(0.75)
                 context.stroke(path)
                 path.lineTo(actualWidth, centerY)
                 path.lineTo(0, centerY)
                 const gradient = context.createLinearGradient(0, top, 0, bottom)
-                gradient.addColorStop(0.0, "hsla(200, 83%, 60%, 0.2)")
-                gradient.addColorStop(0.5, "hsla(200, 83%, 60%, 0.0)")
-                gradient.addColorStop(1.0, "hsla(200, 83%, 60%, 0.2)")
+                gradient.addColorStop(0.0, DisplayPaint.strokeStyle(0.2))
+                gradient.addColorStop(0.5, DisplayPaint.strokeStyle(0.0))
+                gradient.addColorStop(1.0, DisplayPaint.strokeStyle(0.2))
                 context.fillStyle = gradient
                 context.fill(path)
                 context.beginPath()

@@ -6,6 +6,7 @@ import {CanvasPainter} from "@/ui/canvas/painter"
 import {AutomatableParameterFieldAdapter} from "@opendaw/studio-adapters"
 import {LiveStreamReceiver} from "@opendaw/lib-fusion"
 import {Address} from "@opendaw/lib-box"
+import {DisplayPaint} from "@/ui/devices/DisplayPaint"
 
 const className = Html.adoptStyleSheet(css, "Display")
 
@@ -39,13 +40,13 @@ export const EnvelopeDisplay = ({lifecycle, sustain, receiver, address}: Constru
                 for (let x = 1; x <= actualWidth; x++) {
                     path.lineTo(x, valueToY(adsr(x / actualWidth, s)))
                 }
-                context.strokeStyle = "hsla(200, 83%, 60%, 0.75)"
+                context.strokeStyle = DisplayPaint.strokeStyle(0.75)
                 context.stroke(path)
                 path.lineTo(actualWidth, valueToY(0.0))
                 path.lineTo(0, valueToY(0.0))
                 const gradient = context.createLinearGradient(0, top, 0, bottom)
-                gradient.addColorStop(0.0, "hsla(200, 83%, 60%, 0.2)")
-                gradient.addColorStop(1.0, "hsla(200, 83%, 60%, 0.0)")
+                gradient.addColorStop(0.0, DisplayPaint.strokeStyle(0.2))
+                gradient.addColorStop(1.0, DisplayPaint.strokeStyle(0.0))
                 context.fillStyle = gradient
                 context.fill(path)
                 context.beginPath()
@@ -56,7 +57,7 @@ export const EnvelopeDisplay = ({lifecycle, sustain, receiver, address}: Constru
                 context.moveTo(actualWidth / 4 * 3, top)
                 context.lineTo(actualWidth / 4 * 3, bottom)
                 context.setLineDash([2, 2])
-                context.strokeStyle = "hsla(200, 83%, 60%, 0.20)"
+                context.strokeStyle = DisplayPaint.strokeStyle(0.2)
                 context.stroke()
 
                 for (let i = 0; i < envValues.length; i++) {

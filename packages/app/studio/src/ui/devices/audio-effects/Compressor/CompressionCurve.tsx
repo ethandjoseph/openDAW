@@ -4,8 +4,9 @@ import {Lifecycle, TAU} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {CompressorDeviceBoxAdapter} from "@opendaw/studio-adapters"
 import {CanvasPainter} from "@/ui/canvas/painter"
-import {Vertical} from "@/ui/devices/audio-effects/CompressorDeviceEditor/Vertical"
+import {Vertical} from "@/ui/devices/audio-effects/Compressor/Vertical"
 import {GainComputer} from "@opendaw/lib-dsp/ctagdrc"
+import {DisplayPaint} from "@/ui/devices/DisplayPaint"
 
 const className = Html.adoptStyleSheet(css, "CompressionCurve")
 
@@ -64,8 +65,8 @@ export const CompressionCurve = ({lifecycle, adapter, values}: Construct) => {
                             }
                             if (stroke) {
                                 context.lineWidth = 1.5
-                                context.fillStyle = "hsla(200, 83%, 60%, 0.08)"
-                                context.strokeStyle = "hsla(200, 83%, 60%, 0.80)"
+                                context.fillStyle = DisplayPaint.strokeStyle(0.08)
+                                context.strokeStyle = DisplayPaint.strokeStyle(0.80)
                                 context.stroke(path2D)
                             }
                             path2D.lineTo(x1, size)

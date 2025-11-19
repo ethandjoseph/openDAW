@@ -7,7 +7,7 @@ import {
     PassParameters,
     ShelfParameters
 } from "@opendaw/studio-adapters"
-import {biquad} from "@/ui/devices/audio-effects/RevampDeviceEditor/constants.ts"
+import {biquad} from "@/ui/devices/audio-effects/Revamp/constants.ts"
 import {gainToDb} from "@opendaw/lib-dsp"
 
 export type ColorSet = {

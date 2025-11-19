@@ -5,8 +5,8 @@ import {createElement} from "@opendaw/lib-jsx"
 import {DeviceEditor} from "@/ui/devices/DeviceEditor.tsx"
 import {Column} from "@/ui/devices/Column.tsx"
 import {ParameterLabel} from "@/ui/components/ParameterLabel.tsx"
-import {createCurveRenderer, plotSpectrum} from "@/ui/devices/audio-effects/RevampDeviceEditor/Renderer.ts"
-import {createDisplay} from "@/ui/devices/audio-effects/RevampDeviceEditor/Display.tsx"
+import {createCurveRenderer, plotSpectrum} from "@/ui/devices/audio-effects/Revamp/Renderer.ts"
+import {createDisplay} from "@/ui/devices/audio-effects/Revamp/Display.tsx"
 import {Checkbox} from "@/ui/components/Checkbox.tsx"
 import {Icon} from "@/ui/components/Icon.tsx"
 import {
@@ -17,7 +17,7 @@ import {
     symbols,
     xAxis,
     yAxis
-} from "@/ui/devices/audio-effects/RevampDeviceEditor/constants.ts"
+} from "@/ui/devices/audio-effects/Revamp/constants.ts"
 import {RelativeUnitValueDragging} from "@/ui/wrapper/RelativeUnitValueDragging.tsx"
 import {MenuItems} from "@/ui/devices/menu-items.ts"
 import {EditWrapper} from "@/ui/wrapper/EditWrapper.ts"

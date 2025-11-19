@@ -31,7 +31,7 @@ export class DattorroReverbDsp {
 
     constructor(sampleRate: float) {
         this.#sampleRate = sampleRate
-        this.#preDelayLength = sampleRate // one-second max
+        this.#preDelayLength = sampleRate + 1 // one-second max
         this.#preDelayBuffer = new Float32Array(this.#preDelayLength)
         const delayTimes = [
             0.004771345, 0.003595309, 0.012734787, 0.009307483,
@@ -69,9 +69,9 @@ export class DattorroReverbDsp {
         const x1 = d[0][int++ & mask]
         const x2 = d[0][int++ & mask]
         const x3 = d[0][int & mask]
-        const a = (3.0 * (x1 - x2) - x0 + x3) / 2.0
-        const b = 2.0 * x2 + x0 - (5 * x1 + x3) / 2.0
-        const c = (x2 - x0) / 2.0
+        const a = (3.0 * (x1 - x2) - x0 + x3) * 0.5
+        const b = 2.0 * x2 + x0 - (5 * x1 + x3) * 0.5
+        const c = (x2 - x0) * 0.5
         return (((a * frac) + b) * frac + c) * frac + x1
     }
     set preDelayMs(ms: float) {this.#preDelay = Math.floor((ms / 1000) * this.#sampleRate)}

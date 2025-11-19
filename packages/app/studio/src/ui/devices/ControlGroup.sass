@@ -1,0 +1,30 @@
+component
+  width: 90%
+  margin: 0 auto
+  display: flex
+  flex-direction: column
+  font-size: 11px
+  padding: 1px
+  --background-color: red
+
+  > h1
+    padding: 1px 3px
+    font-size: 10px
+    color: black
+    border-radius: 2px
+    background-color: var(--background-color)
+
+  > div.controls
+    padding: 4px 3px
+    display: grid
+    column-gap: 1px
+    align-items: center
+    align-content: start
+    grid-template-columns: 1fr auto
+
+    span.parameter-name
+      white-space: nowrap
+      overflow: hidden
+      text-overflow: ellipsis
+      font-size: 9px
+      color: var(--color-shadow)

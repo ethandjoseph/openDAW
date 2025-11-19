@@ -9,7 +9,7 @@ import {
     HighShelf,
     LowPass,
     LowShelf
-} from "@/ui/devices/audio-effects/RevampDeviceEditor/Curves.ts"
+} from "@/ui/devices/audio-effects/Revamp/Curves.ts"
 import {ColorSets, curveSampleRate} from "./constants.ts"
 import {gainToDb} from "@opendaw/lib-dsp"
 

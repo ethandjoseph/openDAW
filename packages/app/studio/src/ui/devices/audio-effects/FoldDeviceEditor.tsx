@@ -13,6 +13,7 @@ import {dbToGain, wavefold} from "@opendaw/lib-dsp"
 import {ControlBuilder} from "@/ui/devices/ControlBuilder"
 import {RadioGroup} from "@/ui/components/RadioGroup"
 import {EditWrapper} from "@/ui/wrapper/EditWrapper"
+import {DisplayPaint} from "@/ui/devices/DisplayPaint"
 
 const className = Html.adoptStyleSheet(css, "FoldDeviceEditor")
 
@@ -66,7 +67,7 @@ export const FoldDeviceEditor = ({lifecycle, service, adapter, deviceHost}: Cons
                                       for (let x = 1; x <= w; x++) {
                                           context.lineTo(x, toY(wavefold(Math.sin(x / w * TAU) * amountGain)))
                                       }
-                                      context.strokeStyle = Colors.blue
+                                      context.strokeStyle = DisplayPaint.strokeStyle(0.75)
                                       context.stroke()
                                       context.restore()
                                   }))

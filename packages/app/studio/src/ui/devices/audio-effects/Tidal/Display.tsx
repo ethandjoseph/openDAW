@@ -6,6 +6,7 @@ import {TidalDeviceBoxAdapter} from "@opendaw/studio-adapters"
 import {CanvasPainter} from "@/ui/canvas/painter"
 import {TidalComputer} from "@opendaw/lib-dsp"
 import {LiveStreamReceiver} from "@opendaw/lib-fusion"
+import {DisplayPaint} from "@/ui/devices/DisplayPaint"
 
 const className = Html.adoptStyleSheet(css, "Display")
 
@@ -47,7 +48,7 @@ export const Display = ({lifecycle, adapter, liveStreamReceiver}: Construct) => 
                     context.moveTo(x1, y0)
                     context.lineTo(x1, y1)
                     context.setLineDash([3, 3])
-                    context.strokeStyle = "hsla(200, 83%, 60%, 0.75)"
+                    context.strokeStyle = DisplayPaint.strokeStyle(0.75)
                     context.stroke()
 
                     const curve = (u0: number, u1: number, opacity: number, phaseOffset: number) => {
@@ -59,11 +60,15 @@ export const Display = ({lifecycle, adapter, liveStreamReceiver}: Construct) => 
                         for (let x = x0; x <= x1; x++) {
                             path.lineTo(x, valueToY(computer.compute(xToValue(x) + ud)))
                         }
-                        context.strokeStyle = `hsla(200, 83%, 60%, ${opacity})`
+                        context.strokeStyle = DisplayPaint.strokeStyle(opacity * 0.75)
                         context.stroke(path)
                         path.lineTo(x1, actualHeight)
                         path.lineTo(x0, actualHeight)
-                        context.fillStyle = `hsla(200, 83%, 60%, ${opacity * 0.1})`
+
+                        const gradient = context.createLinearGradient(0, top, 0, bottom)
+                        gradient.addColorStop(0.0, DisplayPaint.strokeStyle(0.08))
+                        gradient.addColorStop(1.0, DisplayPaint.strokeStyle(0.02))
+                        context.fillStyle = gradient
                         context.fill(path)
                     }
 
@@ -86,7 +91,7 @@ export const Display = ({lifecycle, adapter, liveStreamReceiver}: Construct) => 
                         const y = valueToY(computer.compute(u + offset))
                         context.beginPath()
                         context.arc(x, y, 4.0, 0.0, TAU)
-                        context.fillStyle = `hsla(200, 83%, 60%, ${opacity})`
+                        context.fillStyle = DisplayPaint.strokeStyle(opacity)
                         context.fill()
                     }
 
