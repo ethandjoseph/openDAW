@@ -34,6 +34,8 @@ import {BoxIO} from "@opendaw/studio-boxes"
 import {Engine} from "./Engine"
 import {Project} from "./project"
 import type {SoundFont2} from "soundfont2"
+import {MIDIReceiver} from "./midi/MIDIReceiver"
+import {MidiData} from "@opendaw/lib-midi"
 
 export class EngineWorklet extends AudioWorkletNode implements Engine {
     static ID: int = 0 | 0
@@ -134,8 +136,23 @@ export class EngineWorklet extends AudioWorkletNode implements Engine {
                     scheduleClipStop(trackIds: ReadonlyArray<UUID.Bytes>): void {
                         dispatcher.dispatchAndForget(this.scheduleClipStop, trackIds)
                     }
+                    setupMIDI(port: MessagePort, buffer: SharedArrayBuffer) {
+                        dispatcher.dispatchAndForget(this.setupMIDI, port, buffer)
+                    }
                     terminate(): void {dispatcher.dispatchAndForget(this.terminate)}
                 }))
+        // TODO Cleanup
+        const MIDI_RING_SIZE = 2048
+        const sab = new SharedArrayBuffer(MIDI_RING_SIZE * 4 + 8)
+        const channel = new MessageChannel()
+        this.#terminator.own(new MIDIReceiver(sab, channel.port1, (deviceId: string, data: Uint8Array, relativeTimeInMs: int) => {
+            let delay = 20.0 // default 20ms
+            if (this.context instanceof AudioContext) {
+                delay = this.context.outputLatency / 1000.0
+            }
+            this.#project.receivedMIDIFromEngine(deviceId, data, relativeTimeInMs + delay)
+        }))
+        this.#commands.setupMIDI(channel.port2, sab)
         Communicator.executor<EngineToClient>(messenger.channel("engine-to-client"), {
                 log: (message: string): void => console.log("WORKLET", message),
                 error: (reason: unknown) => this.dispatchEvent(new ErrorEvent("error", {error: reason})),
@@ -180,14 +197,7 @@ export class EngineWorklet extends AudioWorkletNode implements Engine {
                     changes.started.forEach(uuid => this.#playingClips.push(uuid))
                     this.#notifyClipNotification.notify({type: "sequencing", changes})
                 },
-                switchMarkerState: (state: Nullable<[UUID.Bytes, int]>): void => this.#markerState.setValue(state),
-                sendMIDIData: (midiDeviceId: string, data: Uint8Array, relativeTimeInMs: number) => {
-                    let delay = 20.0 // default 20ms
-                    if (this.context instanceof AudioContext) {
-                        delay = this.context.outputLatency / 1000.0
-                    }
-                    this.#project.receivedMIDIFromEngine(midiDeviceId, data, relativeTimeInMs + delay)
-                }
+                switchMarkerState: (state: Nullable<[UUID.Bytes, int]>): void => this.#markerState.setValue(state)
             } satisfies EngineToClient
         )
         this.#terminator.ownAll(

@@ -59,6 +59,7 @@ import type {SoundFont2} from "soundfont2"
 import {SoundfontManagerWorklet} from "./SoundfontManagerWorklet"
 import {MidiData} from "@opendaw/lib-midi"
 import {MIDITransportClock} from "./MIDITransportClock"
+import {MIDISender} from "./MIDISender"
 
 const DEBUG = false
 
@@ -97,6 +98,7 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
     #primaryOutput: Option<AudioUnit> = Option.None
 
     #context: Option<EngineContext> = Option.None
+    #midiSender: Option<MIDISender> = Option.None
     #panic: boolean = false // will throw an error if set to true to test error handling
     #valid: boolean = true // to shut down the engine
     #metronomeEnabled: boolean = false
@@ -133,9 +135,6 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
                 }
                 switchMarkerState(state: Nullable<[UUID.Bytes, int]>): void {
                     dispatcher.dispatchAndForget(this.switchMarkerState, state)
-                }
-                sendMIDIData(midiDeviceId: string, data: Uint8Array, relativeTimeInMs: number) {
-                    dispatcher.dispatchAndForget(this.sendMIDIData, midiDeviceId, data, relativeTimeInMs)
                 }
                 ready() {dispatcher.dispatchAndForget(this.ready)}
             })
@@ -220,6 +219,9 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
                             this.#clipSequencing.scheduleStop(this.#boxAdapters.adapterFor(optClipBox.unwrap(), TrackBoxAdapter))
                         }
                     })
+                },
+                setupMIDI: (port: MessagePort, buffer: SharedArrayBuffer) => {
+                    this.#midiSender = Option.wrap(new MIDISender(port, buffer))
                 },
                 terminate: () => {
                     this.#context.ifSome(context => context.terminate())
@@ -359,6 +361,10 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
     get engineToClient(): EngineToClient {return this.#engineToClient}
     get isMainThread(): boolean {return false}
     get isAudioContext(): boolean {return true}
+
+    sendMIDIData(midiDeviceId: string, data: Uint8Array, relativeTimeInMs: number): void {
+        this.#midiSender.ifSome(sender => sender.send(midiDeviceId, data, relativeTimeInMs))
+    }
 
     terminate(): void {
         console.trace(`terminate: ${this}`)

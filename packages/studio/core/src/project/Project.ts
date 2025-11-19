@@ -205,8 +205,10 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
     }
 
     receivedMIDIFromEngine(midiDeviceId: string, data: Uint8Array, relativeTimeInMs: number): void {
-        MidiDevices.get().ifSome(midiAccess => midiAccess.outputs
-            .get(midiDeviceId)?.send(data, performance.now() + relativeTimeInMs))
+        MidiDevices.get().ifSome(midiAccess => {
+            const output = midiAccess.outputs.get(midiDeviceId)
+            output?.send(data, performance.now() + relativeTimeInMs)
+        })
     }
 
     collectSampleUUIDs(): ReadonlyArray<UUID.Bytes> {
