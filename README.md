@@ -118,7 +118,7 @@ Huge thanks to our [ambassadors](https://opendaw.org/ambassadors), whose dedicat
 * Stereo Tool (volume, panning and/or invert the stereo signal)
 * Delay (stereo delay with cross and filter options)
 * Crusher (degenerates audio signal)
-* Reverb (FreeVerb variation)
+* Cheap Reverb (FreeVerb variation)
 * Revamp (Graphical Equalizer)
 * Arpeggio (midi effect)
 * Pitch (offsets midi note pitches)
@@ -126,6 +126,7 @@ Huge thanks to our [ambassadors](https://opendaw.org/ambassadors), whose dedicat
 * Velocity (Manipulates velocities of incoming notes)
 * Fold (waveform folding algorithm with oversampling)
 * Tidal (Shapes rhythm and space through volume and pan)
+* Dattorro Reverb (Dense algorithmic reverb based on Dattorro's design)
 
 #### Ported Plugins (Excluded in commercial license)
 
