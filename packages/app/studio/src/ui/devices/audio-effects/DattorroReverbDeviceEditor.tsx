@@ -29,11 +29,12 @@ type Construct = {
 export const DattorroReverbDeviceEditor = ({lifecycle, service, adapter, deviceHost}: Construct) => {
     const {project} = service
     const {editing, midiLearning, liveStreamReceiver} = project
-    const createKnob = (parameter: AutomatableParameterFieldAdapter<number>, u: int, v: int) => ControlBuilder.createKnob({
-        lifecycle, editing, midiLearning, adapter, parameter, style: {gridArea: `${v + 1}/${u + 1}`}
-    })
+    const createKnob = (parameter: AutomatableParameterFieldAdapter<number>, u: int, v: int, color?: string) =>
+        ControlBuilder.createKnob({
+            lifecycle, editing, midiLearning, adapter, parameter, style: {gridArea: `${v + 1}/${u + 1}`}, color
+        })
     const {
-        decay, preDelay, bandwidth,
+        decay, preDelay, bandwidth, damping,
         inputDiffusion1, inputDiffusion2, decayDiffusion1, decayDiffusion2, excursionRate, excursionDepth,
         dry, wet
     } = adapter.namedParameter
@@ -46,16 +47,17 @@ export const DattorroReverbDeviceEditor = ({lifecycle, service, adapter, deviceH
                           <div className={className}>
                               {createKnob(preDelay, 0, 0)}
                               {createKnob(bandwidth, 0, 1)}
-                              {createKnob(decay, 0, 2)}
+                              {createKnob(damping, 0, 2)}
                               {createKnob(dry, 3, 2)}
                               {createKnob(wet, 4, 2)}
+                              {createKnob(decay, 1, 0, Colors.green)}
                               <Display lifecycle={lifecycle}
                                        liveStreamReceiver={liveStreamReceiver}
                                        adapter={adapter}
-                                       gridUV={{u: 1, v: 0}}/>
+                                       gridUV={{u: 2, v: 0}}/>
                               <ControlGroup lifecycle={lifecycle}
                                             gridUV={{u: 1, v: 1}}
-                                            color={Colors.blue}
+                                            color={Colors.green}
                                             name="Decay Diffusion"
                                             editing={editing}
                                             midiLearning={midiLearning}
@@ -63,7 +65,7 @@ export const DattorroReverbDeviceEditor = ({lifecycle, service, adapter, deviceH
                                             deviceAdapter={adapter}/>
                               <ControlGroup lifecycle={lifecycle}
                                             gridUV={{u: 1, v: 2}}
-                                            color={Colors.green}
+                                            color={Colors.blue}
                                             name="Input Diffusion"
                                             editing={editing}
                                             midiLearning={midiLearning}

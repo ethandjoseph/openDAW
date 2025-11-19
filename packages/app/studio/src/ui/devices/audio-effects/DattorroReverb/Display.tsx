@@ -27,7 +27,7 @@ export const Display = ({lifecycle, liveStreamReceiver, adapter, gridUV: {u, v}}
     const {bandwidth, decay} = adapter.namedParameter
     let maxPeak = 0.0
     return (
-        <div className={className} style={{gridArea: `${v + 1}/${u + 1}/auto/span 4`}}>
+        <div className={className} style={{gridArea: `${v + 1}/${u + 1}/auto/span 3`}}>
             <canvas onInit={canvas => {
                 const padding = 8
                 const project = (x: number, z: number, focalLength: number): number =>
