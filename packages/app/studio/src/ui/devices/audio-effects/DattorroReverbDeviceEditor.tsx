@@ -28,7 +28,7 @@ type Construct = {
 
 export const DattorroReverbDeviceEditor = ({lifecycle, service, adapter, deviceHost}: Construct) => {
     const {project} = service
-    const {editing, midiLearning} = project
+    const {editing, midiLearning, liveStreamReceiver} = project
     const createKnob = (parameter: AutomatableParameterFieldAdapter<number>, u: int, v: int) => ControlBuilder.createKnob({
         lifecycle, editing, midiLearning, adapter, parameter, style: {gridArea: `${v + 1}/${u + 1}`}
     })
@@ -50,6 +50,7 @@ export const DattorroReverbDeviceEditor = ({lifecycle, service, adapter, deviceH
                               {createKnob(dry, 3, 2)}
                               {createKnob(wet, 4, 2)}
                               <Display lifecycle={lifecycle}
+                                       liveStreamReceiver={liveStreamReceiver}
                                        adapter={adapter}
                                        gridUV={{u: 1, v: 0}}/>
                               <ControlGroup lifecycle={lifecycle}
