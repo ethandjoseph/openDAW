@@ -35,6 +35,7 @@ export namespace RegionTransformer {
                     box.gain.setValue(source.gain)
                     box.duration.setValue(source.loopDuration)
                     box.file.refer(source.box.file.targetVertex.unwrap())
+                    box.events.refer(source.box.events.targetVertex.unwrap())
                     box.clips.refer(target)
                 }),
             visitValueRegionBoxAdapter: (source: ValueRegionBoxAdapter) => {
