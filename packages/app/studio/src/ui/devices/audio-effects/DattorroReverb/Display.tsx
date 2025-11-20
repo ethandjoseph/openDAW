@@ -24,7 +24,7 @@ type Particle = {
 }
 
 export const Display = ({lifecycle, liveStreamReceiver, adapter, gridUV: {u, v}}: Construct) => {
-    const {bandwidth, decay} = adapter.namedParameter
+    const {bandwidth, decay, damping} = adapter.namedParameter
     let maxPeak = 0.0
     return (
         <div className={className} style={{gridArea: `${v + 1}/${u + 1}/auto/span 3`}}>
@@ -43,6 +43,7 @@ export const Display = ({lifecycle, liveStreamReceiver, adapter, gridUV: {u, v}}
                     const x1 = actualWidth - padding
                     const y1 = actualHeight - padding
                     const decayValue = decay.getControlledValue()
+                    const alphaExp = 1.0 + damping.getControlledValue() * 4.0
                     context.strokeStyle = DisplayPaint.strokeStyle()
                     const cx = x1 * 0.5
                     const cy = y1 * 0.5
@@ -58,7 +59,7 @@ export const Display = ({lifecycle, liveStreamReceiver, adapter, gridUV: {u, v}}
                         const scale = focalLength / (focalLength + z)
                         const width = (cx - x0) * 2.0 * scale
                         const height = (cy - y0) * 2.0 * scale
-                        context.globalAlpha = (1.0 - i / numberOfBoxes) ** 5.0
+                        context.globalAlpha = (1.0 - i / numberOfBoxes) ** alphaExp
                         Context2d.strokeRoundedRect(context, x, y, width, height, 8)
                     }
                     context.fillStyle = DisplayPaint.strokeStyle()
