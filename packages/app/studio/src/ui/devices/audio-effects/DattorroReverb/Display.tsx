@@ -39,11 +39,12 @@ export const Display = ({lifecycle, liveStreamReceiver, adapter, gridUV: {u, v}}
                     energy: 0.0
                 }))
                 const canvasPainter = lifecycle.own(new CanvasPainter(canvas, painter => {
-                    const {context, actualWidth, actualHeight} = painter
+                    const {context, actualWidth, actualHeight, devicePixelRatio} = painter
                     const x1 = actualWidth - padding
                     const y1 = actualHeight - padding
                     const decayValue = decay.getControlledValue()
                     const alphaExp = 1.0 + damping.getControlledValue() * 4.0
+                    context.lineWidth = 1.0 / devicePixelRatio
                     context.strokeStyle = DisplayPaint.strokeStyle()
                     const cx = x1 * 0.5
                     const cy = y1 * 0.5
