@@ -151,7 +151,8 @@ export class DattorroReverbDsp {
             outChR[i] += ro * we
             this.#excPhase += ex
             this.#preDelayWrite = (this.#preDelayWrite + 1) % this.#preDelayLength
-            for (const d of this.#delays) {
+            for (let i1 = 0; i1 < this.#delays.length; i1++) {
+                const d = this.#delays[i1]
                 d[1] = (d[1] + 1) & d[3]
                 d[2] = (d[2] + 1) & d[3]
             }
