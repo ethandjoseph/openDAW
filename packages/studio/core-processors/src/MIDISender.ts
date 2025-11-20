@@ -13,7 +13,7 @@ export class MIDISender {
         this.#port = port
         this.#indices = new Uint32Array(sab, 0, 2)
         this.#ring = new Uint32Array(sab, 8)
-        this.#ringMask = (this.#ring.length >> 1) - 1  // Match receiver!
+        this.#ringMask = (this.#ring.length >> 1) - 1
     }
 
     send(deviceId: string, data: Uint8Array, timeMs: number): boolean {
@@ -22,17 +22,16 @@ export class MIDISender {
             deviceNum = this.#numToDeviceId.length
             this.#deviceIdToNum.set(deviceId, deviceNum)
             this.#numToDeviceId.push(deviceId)
-            this.#port.postMessage({
-                registerDevice: deviceId,
-                id: deviceNum,
-                firstMessage: {data: Array.from(data), timeMs}
-            })
-            return true
+            this.#port.postMessage({registerDevice: deviceId, id: deviceNum})
         }
         const writeIdx = Atomics.load(this.#indices, 0)
         const nextIdx = (writeIdx + 1) & this.#ringMask
-        if (nextIdx === Atomics.load(this.#indices, 1)) {return false}
-        const packed1 = (deviceNum << 24) | (data[0] << 16) | (data[1] << 8) | data[2]
+        if (nextIdx === Atomics.load(this.#indices, 1)) return false
+        const length = data.length
+        const status = data[0] ?? 0
+        const data1 = data[1] ?? 0
+        const data2 = data[2] ?? 0
+        const packed1 = (length << 30) | (deviceNum << 24) | (status << 16) | (data1 << 8) | data2
         const packed2 = timeMs | 0
         const offset = writeIdx << 1
         this.#ring[offset] = packed1

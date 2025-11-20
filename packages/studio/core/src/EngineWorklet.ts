@@ -33,9 +33,8 @@ import {
 import {BoxIO} from "@opendaw/studio-boxes"
 import {Engine} from "./Engine"
 import {Project} from "./project"
-import type {SoundFont2} from "soundfont2"
 import {MIDIReceiver} from "./midi/MIDIReceiver"
-import {MidiData} from "@opendaw/lib-midi"
+import type {SoundFont2} from "soundfont2"
 
 export class EngineWorklet extends AudioWorkletNode implements Engine {
     static ID: int = 0 | 0
@@ -141,18 +140,11 @@ export class EngineWorklet extends AudioWorkletNode implements Engine {
                     }
                     terminate(): void {dispatcher.dispatchAndForget(this.terminate)}
                 }))
-        // TODO Cleanup
-        const MIDI_RING_SIZE = 2048
-        const sab = new SharedArrayBuffer(MIDI_RING_SIZE * 4 + 8)
-        const channel = new MessageChannel()
-        this.#terminator.own(new MIDIReceiver(sab, channel.port1, (deviceId: string, data: Uint8Array, relativeTimeInMs: int) => {
-            let delay = 20.0 // default 20ms
-            if (this.context instanceof AudioContext) {
-                delay = this.context.outputLatency / 1000.0
-            }
-            this.#project.receivedMIDIFromEngine(deviceId, data, relativeTimeInMs + delay)
-        }))
-        this.#commands.setupMIDI(channel.port2, sab)
+
+        const {port, sab} =
+            this.#terminator.own(MIDIReceiver.create(context, (deviceId, data, relativeTimeInMs) =>
+                this.#project.receivedMIDIFromEngine(deviceId, data, relativeTimeInMs)))
+        this.#commands.setupMIDI(port, sab)
         Communicator.executor<EngineToClient>(messenger.channel("engine-to-client"), {
                 log: (message: string): void => console.log("WORKLET", message),
                 error: (reason: unknown) => this.dispatchEvent(new ErrorEvent("error", {error: reason})),

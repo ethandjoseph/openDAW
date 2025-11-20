@@ -3,6 +3,21 @@ import {int, Terminable} from "@opendaw/lib-std"
 type MIDIMessageCallback = (deviceId: string, data: Uint8Array, timeMs: int) => void
 
 export class MIDIReceiver implements Terminable {
+    static create(context: BaseAudioContext, callback: MIDIMessageCallback): MIDIReceiver {
+        const MIDI_RING_SIZE = 2048
+        const sab = new SharedArrayBuffer(MIDI_RING_SIZE * 4 + 8)
+        const channel = new MessageChannel()
+        const hasOutputLatency = context instanceof AudioContext
+        return new MIDIReceiver(sab, channel.port1, (deviceId: string, data: Uint8Array, relativeTimeInMs: int) => {
+            let delay = 20.0 // default 20ms
+            if (hasOutputLatency) {
+                delay = context.outputLatency / 1000.0
+            }
+            callback(deviceId, data, relativeTimeInMs + delay)
+        })
+    }
+
+    readonly #sab: SharedArrayBuffer
     readonly #port: MessagePort
     readonly #indices: Uint32Array
     readonly #ring: Uint32Array
@@ -10,27 +25,24 @@ export class MIDIReceiver implements Terminable {
     readonly #onMessage: MIDIMessageCallback
     readonly #deviceIds = new Map<int, string>()
 
-    constructor(sab: SharedArrayBuffer, port: MessagePort, onMessage: MIDIMessageCallback) {
+    private constructor(sab: SharedArrayBuffer, port: MessagePort, onMessage: MIDIMessageCallback) {
+        this.#sab = sab
+        this.#port = port
+
         this.#indices = new Uint32Array(sab, 0, 2)
         this.#ring = new Uint32Array(sab, 8)
         this.#messageMask = (this.#ring.length >> 1) - 1
-        this.#port = port
         this.#onMessage = onMessage
         this.#port.onmessage = (event) => {
             if (event.data?.registerDevice) {
                 this.#deviceIds.set(event.data.id, event.data.registerDevice)
-                if (event.data.firstMessage) {
-                    this.#onMessage(
-                        event.data.registerDevice,
-                        new Uint8Array(event.data.firstMessage.data),
-                        event.data.firstMessage.timeMs
-                    )
-                }
-            } else {
-                this.#read()
             }
+            this.#read()
         }
     }
+
+    get sab(): SharedArrayBuffer {return this.#sab}
+    get port(): MessagePort {return this.#port}
 
     terminate(): void {this.#port.close()}
 
@@ -41,25 +53,17 @@ export class MIDIReceiver implements Terminable {
             const offset = readIdx << 1
             const packed1 = this.#ring[offset]
             const packed2 = this.#ring[offset + 1]
-            const deviceIdNum = packed1 >>> 24
+            const length = packed1 >>> 30
+            const deviceIdNum = (packed1 >>> 24) & 0x3F
             const status = (packed1 >>> 16) & 0xFF
             const data1 = (packed1 >>> 8) & 0xFF
             const data2 = packed1 & 0xFF
-            const timeMs = packed2
-            const deviceId = this.#deviceIds.get(deviceIdNum) ?? "unknown"
-            // Determine message length from status byte
-            let data: Uint8Array
-            if (status >= 0xF8) {
-                // System Real-Time: 1 byte
-                data = new Uint8Array([status])
-            } else if (status >= 0xF0 || (status & 0xF0) === 0xC0 || (status & 0xF0) === 0xD0) {
-                // System Common, Program Change, Channel Pressure: 2 bytes
-                data = new Uint8Array([status, data1])
-            } else {
-                // Note on/off, CC aso.: 3 bytes
-                data = new Uint8Array([status, data1, data2])
-            }
-            this.#onMessage(deviceId, data, timeMs)
+            const deviceId = this.#deviceIds.get(deviceIdNum) ?? ""
+            const data = new Uint8Array(length)
+            data[0] = status
+            if (length > 1) {data[1] = data1}
+            if (length > 2) {data[2] = data2}
+            this.#onMessage(deviceId, data, packed2)
             readIdx = (readIdx + 1) & this.#messageMask
         }
         Atomics.store(this.#indices, 1, readIdx)

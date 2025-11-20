@@ -50,6 +50,7 @@ import {MidiDevices, MIDILearning} from "../midi"
 import {ProjectValidation} from "./ProjectValidation"
 import {Preferences} from "../Preferences"
 import {ConstantTempoMap, PPQN, ppqn, TempoMap, TimeBase} from "@opendaw/lib-dsp"
+import {MidiData} from "@opendaw/lib-midi"
 
 export type RestartWorklet = { unload: Func<unknown, Promise<unknown>>, load: Procedure<EngineWorklet> }
 
@@ -205,9 +206,18 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
     }
 
     receivedMIDIFromEngine(midiDeviceId: string, data: Uint8Array, relativeTimeInMs: number): void {
+        const debug = false
+        if (debug) {
+            console.debug("receivedMIDIFromEngine", MidiData.debug(data), relativeTimeInMs)
+        }
+        const timestamp = performance.now() + relativeTimeInMs
         MidiDevices.get().ifSome(midiAccess => {
             const output = midiAccess.outputs.get(midiDeviceId)
-            output?.send(data, performance.now() + relativeTimeInMs)
+            try {
+                output?.send(data, timestamp)
+            } catch (reason) {
+                console.warn("Failed to send MIDI message", reason)
+            }
         })
     }
 
