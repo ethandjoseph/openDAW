@@ -26,6 +26,8 @@ export class Events {
         return this.subscribe(eventTarget, "pointerdown", event => {
             const now = performance.now()
             if (now - lastDownTime < this.DOUBLE_DOWN_THRESHOLD) {
+                event.preventDefault()
+                event.stopImmediatePropagation()
                 listener(event)
             }
             lastDownTime = now
