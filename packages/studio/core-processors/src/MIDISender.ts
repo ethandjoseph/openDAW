@@ -1,4 +1,4 @@
-import {int} from "@opendaw/lib-std"
+import {int, isUndefined} from "@opendaw/lib-std"
 
 export class MIDISender {
     readonly #port: MessagePort
@@ -18,7 +18,7 @@ export class MIDISender {
 
     send(deviceId: string, data: Uint8Array, timeMs: number): boolean {
         let deviceNum = this.#deviceIdToNum.get(deviceId)
-        if (deviceNum === undefined) {
+        if (isUndefined(deviceNum)) {
             deviceNum = this.#numToDeviceId.length
             this.#deviceIdToNum.set(deviceId, deviceNum)
             this.#numToDeviceId.push(deviceId)
@@ -26,7 +26,9 @@ export class MIDISender {
         }
         const writeIdx = Atomics.load(this.#indices, 0)
         const nextIdx = (writeIdx + 1) & this.#ringMask
-        if (nextIdx === Atomics.load(this.#indices, 1)) return false
+        if (nextIdx === Atomics.load(this.#indices, 1)) {
+            return false
+        }
         const length = data.length
         const status = data[0] ?? 0
         const data1 = data[1] ?? 0

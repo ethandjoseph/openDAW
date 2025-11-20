@@ -5,10 +5,10 @@ type MIDIMessageCallback = (deviceId: string, data: Uint8Array, timeMs: int) => 
 export class MIDIReceiver implements Terminable {
     static create(context: BaseAudioContext, callback: MIDIMessageCallback): MIDIReceiver {
         const MIDI_RING_SIZE = 2048
-        const sab = new SharedArrayBuffer(MIDI_RING_SIZE * 4 + 8)
+        const sab = new SharedArrayBuffer(MIDI_RING_SIZE * 2 * 4 + 8)
         const channel = new MessageChannel()
         const hasOutputLatency = context instanceof AudioContext
-        return new MIDIReceiver(sab, channel.port1, (deviceId: string, data: Uint8Array, relativeTimeInMs: int) => {
+        return new MIDIReceiver(sab, channel, (deviceId: string, data: Uint8Array, relativeTimeInMs: int) => {
             let delay = 20.0 // default 20ms
             if (hasOutputLatency) {
                 delay = context.outputLatency / 1000.0
@@ -18,22 +18,22 @@ export class MIDIReceiver implements Terminable {
     }
 
     readonly #sab: SharedArrayBuffer
-    readonly #port: MessagePort
+    readonly #channel: MessageChannel
     readonly #indices: Uint32Array
     readonly #ring: Uint32Array
     readonly #messageMask: int
     readonly #onMessage: MIDIMessageCallback
     readonly #deviceIds = new Map<int, string>()
 
-    private constructor(sab: SharedArrayBuffer, port: MessagePort, onMessage: MIDIMessageCallback) {
+    private constructor(sab: SharedArrayBuffer, channel: MessageChannel, onMessage: MIDIMessageCallback) {
         this.#sab = sab
-        this.#port = port
+        this.#channel = channel
 
         this.#indices = new Uint32Array(sab, 0, 2)
         this.#ring = new Uint32Array(sab, 8)
         this.#messageMask = (this.#ring.length >> 1) - 1
         this.#onMessage = onMessage
-        this.#port.onmessage = (event) => {
+        this.#channel.port1.onmessage = (event) => {
             if (event.data?.registerDevice) {
                 this.#deviceIds.set(event.data.id, event.data.registerDevice)
             }
@@ -42,9 +42,9 @@ export class MIDIReceiver implements Terminable {
     }
 
     get sab(): SharedArrayBuffer {return this.#sab}
-    get port(): MessagePort {return this.#port}
+    get port(): MessagePort {return this.#channel.port2}
 
-    terminate(): void {this.#port.close()}
+    terminate(): void {this.#channel.port1.close()}
 
     #read(): void {
         let readIdx = Atomics.load(this.#indices, 1)
