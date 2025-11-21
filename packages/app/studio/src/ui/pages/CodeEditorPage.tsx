@@ -78,11 +78,19 @@ export const CodeEditorPage: PageFactory<StudioService> = ({lifecycle, service}:
                         model = monaco.editor.createModel(Examples.Simple, "typescript", modelUri)
                     }
                     const editor = monaco.editor.create(container, {
+                        language: "typescript",
+                        quickSuggestions: {
+                            other: true,
+                            comments: false,
+                            strings: false
+                        },
+                        suggestOnTriggerCharacters: true,
+                        acceptSuggestionOnCommitCharacter: true,
+                        acceptSuggestionOnEnter: "on",
+                        wordBasedSuggestions: "off", // Important! Use only TS suggestions
                         model: model,
                         theme: "vs-dark",
-                        automaticLayout: true,
-                        suggestOnTriggerCharacters: true,
-                        quickSuggestions: true
+                        automaticLayout: true
                     })
                     const allowed = ["c", "v", "x", "a", "z", "y"]
                     lifecycle.ownAll(
