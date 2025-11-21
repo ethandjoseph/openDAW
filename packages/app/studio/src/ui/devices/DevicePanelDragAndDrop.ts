@@ -12,7 +12,7 @@ import {
 import {InsertMarker} from "@/ui/components/InsertMarker"
 import {EffectFactories, Project} from "@opendaw/studio-core"
 import {IndexedBox} from "@opendaw/lib-box"
-import {AudioBusBox, BoxVisitor, CaptureAudioBox, CaptureMidiBox} from "@opendaw/studio-boxes"
+import {AudioBusBox, BoxVisitor, CaptureAudioBox, CaptureMidiBox, TapeDeviceBox} from "@opendaw/studio-boxes"
 
 export namespace DevicePanelDragAndDrop {
     export const install = (project: Project,
@@ -69,8 +69,12 @@ export namespace DevicePanelDragAndDrop {
                     const inputField = deviceHost.inputField
                     const inputBox = inputField.pointerHub.incoming().at(0)?.box
                     console.debug(`Replace '${inputBox?.name ?? "no input"} with '${dragData.device}'`)
-                    if (inputBox instanceof AudioBusBox) {
-                        console.debug("Input is a bus. Will not replace.")
+                    if (inputBox instanceof AudioBusBox || inputBox instanceof TapeDeviceBox) {
+                        console.debug("Input is a bus or tape. Will not replace.")
+                        return
+                    }
+                    if (dragData.device === "Tape") {
+                        console.debug("New device is tape. Will not replace.")
                         return
                     }
                     editing.modify(() => {
