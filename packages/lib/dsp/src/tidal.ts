@@ -23,11 +23,26 @@ export class TidalComputer {
 
     compute(input: unitValue): unitValue {
         const p = input - Math.floor(input)
-        const x = this.#slope < 0.0 ? 1.0 - p : p
-        if (x <= this.#symmetry) {
-            return 1.0 - ((1.0 - x * this.#invS0) ** this.#pEx) * this.#depth
+
+        let x: number
+        let sym: number
+        let invS0: number
+        let invS1: number
+        if (this.#slope < 0.0) {
+            x = 1.0 - p
+            sym = 1.0 - this.#symmetry
+            invS0 = this.#invS1
+            invS1 = this.#invS0
         } else {
-            return (((1.0 - x) * this.#invS1) ** this.#pEx) * this.#depth - this.#depth + 1.0
+            x = p
+            sym = this.#symmetry
+            invS0 = this.#invS0
+            invS1 = this.#invS1
+        }
+        if (x <= sym) {
+            return 1.0 - ((1.0 - x * invS0) ** this.#pEx) * this.#depth
+        } else {
+            return (((1.0 - x) * invS1) ** this.#pEx) * this.#depth - this.#depth + 1.0
         }
     }
 }

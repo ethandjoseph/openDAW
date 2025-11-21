@@ -63,7 +63,7 @@ export class TidalDeviceBoxAdapter implements AudioEffectDeviceAdapter {
             symmetry: this.#parametric.createParameter(
                 box.symmetry,
                 ValueMapping.unipolar(),
-                StringMapping.percent({fractionDigits: 1}), "Symmetry", 0.5),
+                StringMapping.percent({fractionDigits: 1, bipolar: true}), "Symmetry", 0.5),
             rate: this.#parametric.createParameter(
                 box.rate,
                 ValueMapping.values(RateFractions.map((_, index) => index)),
