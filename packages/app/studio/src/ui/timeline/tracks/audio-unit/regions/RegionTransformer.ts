@@ -26,8 +26,9 @@ export namespace RegionTransformer {
                     box.clips.refer(target)
                 })
             },
-            visitAudioRegionBoxAdapter: (source: AudioRegionBoxAdapter) =>
-                AudioClipBox.create(trackBoxAdapter.box.graph, UUID.generate(), box => {
+            visitAudioRegionBoxAdapter: (source: AudioRegionBoxAdapter) => {
+                const events = copyEvents ? source.optCollection.unwrap().copy().box.owners : source.box.events.targetVertex.unwrap()
+                return AudioClipBox.create(trackBoxAdapter.box.graph, UUID.generate(), box => {
                     box.index.setValue(index)
                     box.label.setValue(source.label)
                     box.hue.setValue(source.hue)
@@ -35,9 +36,10 @@ export namespace RegionTransformer {
                     box.gain.setValue(source.gain)
                     box.duration.setValue(source.loopDuration)
                     box.file.refer(source.box.file.targetVertex.unwrap())
-                    box.events.refer(source.box.events.targetVertex.unwrap())
+                    box.events.refer(events)
                     box.clips.refer(target)
-                }),
+                })
+            },
             visitValueRegionBoxAdapter: (source: ValueRegionBoxAdapter) => {
                 const events = copyEvents ? source.optCollection.unwrap().copy().box.owners : source.box.events.targetVertex.unwrap()
                 return ValueClipBox.create(trackBoxAdapter.box.graph, UUID.generate(), box => {

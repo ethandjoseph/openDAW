@@ -1,4 +1,5 @@
 import {
+    AudioClipBox,
     AudioFileBox,
     AudioRegionBox,
     AudioUnitBox,
@@ -85,6 +86,14 @@ export class ProjectMigration {
                 }
                 if (box.events.isEmpty()) {
                     console.debug("Migrate 'AudioRegionBox' to have a ValueEventCollectionBox")
+                    boxGraph.beginTransaction()
+                    box.events.refer(ValueEventCollectionBox.create(boxGraph, UUID.generate()).owners)
+                    boxGraph.endTransaction()
+                }
+            },
+            visitAudioClipBox: (box: AudioClipBox): void => {
+                if (box.events.isEmpty()) {
+                    console.debug("Migrate 'AudioClipBox' to have a ValueEventCollectionBox")
                     boxGraph.beginTransaction()
                     box.events.refer(ValueEventCollectionBox.create(boxGraph, UUID.generate()).owners)
                     boxGraph.endTransaction()

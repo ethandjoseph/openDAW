@@ -85,6 +85,7 @@ export class AudioClipBoxAdapter implements ClipBoxAdapter<never> {
             box.mute.setValue(this.mute)
             box.clips.refer(this.#box.clips.targetVertex.unwrap())
             box.file.refer(this.#box.file.targetVertex.unwrap())
+            box.events.refer(this.#box.events.targetVertex.unwrap())
         })
     }
 
