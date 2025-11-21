@@ -15,24 +15,24 @@ export class LookAhead {
         this.#writePosition = 0
     }
 
-    process(src: Float32Array, numSamples: int): void {
-        this.#pushSamples(src, numSamples)
+    process(src: Float32Array, fromIndex: int, toIndex: int): void {
+        this.#pushSamples(src, fromIndex, toIndex)
         this.#processSamples()
-        this.#readSamples(src, numSamples)
+        this.#readSamples(src, fromIndex, toIndex)
     }
 
-    #pushSamples(src: Float32Array, numSamples: int): void {
-        for (let i = 0; i < numSamples; i++) {
+    #pushSamples(src: Float32Array, fromIndex: int, toIndex: int): void {
+        for (let i = fromIndex; i < toIndex; i++) {
             this.#buffer[this.#writePosition] = src[i]
             this.#writePosition = (this.#writePosition + 1) % this.#bufferSize
         }
-        this.#numLastPushed = numSamples
+        this.#numLastPushed = toIndex - fromIndex
     }
 
-    #readSamples(dst: Float32Array, numSamples: int): void {
+    #readSamples(dst: Float32Array, fromIndex: int, toIndex: int): void {
         let readPosition = this.#writePosition - this.#numLastPushed - this.#delayInSamples
         if (readPosition < 0) readPosition += this.#bufferSize
-        for (let i = 0; i < numSamples; i++) {
+        for (let i = fromIndex; i < toIndex; i++) {
             dst[i] = this.#buffer[readPosition]
             readPosition = (readPosition + 1) % this.#bufferSize
         }

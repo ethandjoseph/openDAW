@@ -40,8 +40,8 @@ export class GainComputer {
         return this.#slope * overshoot
     }
 
-    applyCompressionToBuffer(src: Float32Array, numSamples: int): void {
-        for (let i = 0; i < numSamples; ++i) {
+    applyCompressionToBuffer(src: Float32Array, fromIndex: int, toIndex: int): void {
+        for (let i = fromIndex; i < toIndex; ++i) {
             const level = Math.max(Math.abs(src[i]), 1e-6)
             const levelInDecibels = gainToDecibels(level)
             src[i] = this.applyCompression(levelInDecibels)

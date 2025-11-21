@@ -62,17 +62,17 @@ export class LevelDetector {
         return this.#state01
     }
 
-    applyBallistics(src: Float32Array, numSamples: int): void {
+    applyBallistics(src: Float32Array, fromIndex: int, toIndex: int): void {
         // Apply ballistics to src buffer
-        for (let i = 0; i < numSamples; ++i) {
+        for (let i = fromIndex; i < toIndex; ++i) {
             src[i] = this.#processPeakBranched(src[i])
         }
     }
 
-    processCrestFactor(src: Float32Array, numSamples: int): void {
+    processCrestFactor(src: Float32Array, fromIndex: int, toIndex: int): void {
         if (this.#autoAttack || this.#autoRelease) {
             // Crest factor calculation
-            this.#crestFactor.process(src, numSamples)
+            this.#crestFactor.process(src, fromIndex, toIndex)
             this.#attackSmoothingFilter.process(this.#crestFactor.getAvgAttack())
             this.#releaseSmoothingFilter.process(this.#crestFactor.getAvgRelease())
             if (this.#autoAttack) this.setAttack(this.#attackSmoothingFilter.getState())

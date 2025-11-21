@@ -20,14 +20,14 @@ export class DelayLine {
         this.#writePosition = 0
     }
 
-    process(buffer: AudioBuffer, numSamples: int): void {
+    process(buffer: AudioBuffer, fromIndex: int, toIndex: int): void {
         if (this.#delayInSamples === 0) {return}
         let readPosition = (this.#writePosition - this.#delayInSamples + this.#delayBufferSize) % this.#delayBufferSize
         for (let ch = 0; ch < this.#numChannels; ch++) {
             const channelData = buffer.getChannel(ch)
             let writePos = this.#writePosition
             let readPos = readPosition
-            for (let i = 0; i < numSamples; i++) {
+            for (let i = fromIndex; i < toIndex; i++) {
                 const delayedSample = this.#delayBuffer[ch][readPos]
                 this.#delayBuffer[ch][writePos] = channelData[i]
                 channelData[i] = delayedSample
@@ -35,6 +35,6 @@ export class DelayLine {
                 readPos = (readPos + 1) % this.#delayBufferSize
             }
         }
-        this.#writePosition = (this.#writePosition + numSamples) % this.#delayBufferSize
+        this.#writePosition = (this.#writePosition + (toIndex - fromIndex)) % this.#delayBufferSize
     }
 }

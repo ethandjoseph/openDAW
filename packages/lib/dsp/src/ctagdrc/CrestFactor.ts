@@ -20,7 +20,7 @@ export class CrestFactor {
         this.#b1 = 1 - this.#a1
     }
 
-    process(src: Float32Array, numSamples: int): void {
+    process(src: Float32Array, fromIndex: int, toIndex: int): void {
         // Init accumulators
         if (this.#peakState === 0.0) {this.#peakState = src[0]}
         if (this.#rmsState === 0.0) {this.#rmsState = src[0]}
@@ -30,7 +30,7 @@ export class CrestFactor {
         this.#avgReleaseTime = 0.0
 
         // Calculate averages of auto-attack/release times for a single buffer
-        for (let i = 0; i < numSamples; ++i) {
+        for (let i = fromIndex; i < toIndex; ++i) {
             // Square of input signal
             const s = src[i] * src[i]
 
@@ -56,8 +56,9 @@ export class CrestFactor {
         }
 
         // Calculate average ballistics
-        this.#avgAttackTime /= numSamples
-        this.#avgReleaseTime /= numSamples
+        const n = toIndex - fromIndex
+        this.#avgAttackTime /= n
+        this.#avgReleaseTime /= n
     }
 
     getAvgAttack(): number {
