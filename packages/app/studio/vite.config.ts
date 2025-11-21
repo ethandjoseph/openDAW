@@ -4,6 +4,7 @@ import {defineConfig} from "vite"
 import crossOriginIsolation from "vite-plugin-cross-origin-isolation"
 import viteCompression from "vite-plugin-compression"
 import {BuildInfo} from "./src/BuildInfo"
+import {existsSync} from "node:fs"
 
 export default defineConfig(({command}) => {
     const uuid = generateUUID()
@@ -11,6 +12,8 @@ export default defineConfig(({command}) => {
 
     const env = process.env.NODE_ENV as BuildInfo["env"]
     const date = Date.now()
+    const certsExist = existsSync(resolve(__dirname, "../../../certs/localhost-key.pem"))
+
     return {
         resolve: {
             alias: {
@@ -55,19 +58,19 @@ export default defineConfig(({command}) => {
                 allow: [resolve(__dirname, "../../../")]
             }
         },
-        /*preview: {
+        preview: {
             port: 8080,
             host: "localhost",
-            https: {
+            https: certsExist ? {
                 key: readFileSync(resolve(__dirname, "../../../certs/localhost-key.pem")),
                 cert: readFileSync(resolve(__dirname, "../../../certs/localhost.pem"))
-            },
+            } : undefined,
             headers: {
                 "Cross-Origin-Opener-Policy": "same-origin",
                 "Cross-Origin-Embedder-Policy": "require-corp",
                 "Cross-Origin-Resource-Policy": "cross-origin"
             }
-        },*/
+        },
         plugins: [
             crossOriginIsolation(),
             viteCompression({
