@@ -17,7 +17,7 @@ export const ValueEventBox: BoxSchema<Pointers> = {
             },
             13: {type: "float32", name: "value", ...UnipolarConstraints},
             // TODO Remove slope. It is not used anymore but older project files
-            14: {type: "float32", name: "slope", deprecated, constraints: "any", unit: ""}
+            14: {type: "float32", name: "slope", deprecated, constraints: "any", unit: "", value: NaN}
         }
     }, pointerRules: {accepts: [Pointers.Selection], mandatory: false}
 }
