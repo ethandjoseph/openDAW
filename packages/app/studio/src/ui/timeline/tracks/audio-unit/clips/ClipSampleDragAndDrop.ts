@@ -1,4 +1,4 @@
-import {AudioClipBox} from "@opendaw/studio-boxes"
+import {AudioClipBox, ValueEventCollectionBox} from "@opendaw/studio-boxes"
 import {ElementCapturing} from "@/ui/canvas/capturing.ts"
 import {PPQN} from "@opendaw/lib-dsp"
 import {UUID} from "@opendaw/lib-std"
@@ -19,6 +19,7 @@ export class ClipSampleDragAndDrop extends TimelineDragAndDrop<ClipCaptureTarget
         const x = event.clientX - this.capturing.element.getBoundingClientRect().left
         const index = Math.floor(x / ClipWidth)
         const duration = Math.round(PPQN.secondsToPulses(durationInSeconds, bpm))
+        const collectionBox = ValueEventCollectionBox.create(this.project.boxGraph, UUID.generate())
         AudioClipBox.create(this.project.boxGraph, UUID.generate(), box => {
             box.index.setValue(index)
             box.duration.setValue(duration)
@@ -26,6 +27,7 @@ export class ClipSampleDragAndDrop extends TimelineDragAndDrop<ClipCaptureTarget
             box.hue.setValue(ColorCodes.forTrackType(trackBoxAdapter.type))
             box.label.setValue(name)
             box.file.refer(audioFileBox)
+            box.events.refer(collectionBox.owners)
         })
     }
 }
