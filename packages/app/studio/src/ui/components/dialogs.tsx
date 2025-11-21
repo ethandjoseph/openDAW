@@ -19,7 +19,6 @@ import {BoxDebugView} from "./BoxDebugView"
 import {BoxesDebugView} from "@/ui/components/BoxesDebugView.tsx"
 import {ProgressBar} from "@/ui/components/ProgressBar.tsx"
 import {Colors} from "@opendaw/studio-adapters"
-import EmailBody from "@/ErrorMail.txt?raw"
 import {Browser} from "@opendaw/lib-dom"
 
 export namespace Dialogs {
@@ -267,8 +266,8 @@ export namespace Dialogs {
     }): void => {
         console.debug(`Recovery enabled: ${backupCommand}`)
         const dialog: HTMLDialogElement = (
-            <Dialog headline="An error occurred :("
-                    icon={IconSymbol.Robot}
+            <Dialog headline="You Found A Bug ❤️"
+                    icon={IconSymbol.Bug}
                     buttons={backupCommand.nonEmpty() ? [{
                         text: "Recover",
                         onClick: () => {
@@ -285,11 +284,9 @@ export namespace Dialogs {
                             }
                         }
                     }, {
-                        text: "EMail",
+                        text: "Report",
                         primary: true,
-                        onClick: () => window.location.href =
-                            `mailto:support@opendaw.org?subject=${
-                                encodeURI("Bug Report - openDAW")}&body=${encodeURI(EmailBody)}`
+                        onClick: () => window.open("https://github.com/andremichelle/openDAW/issues/new", "github")
                     }] : Arrays.empty()}
                     cancelable={false}
                     error>
@@ -302,6 +299,10 @@ export namespace Dialogs {
                             extensions for this site.
                         </p>
                     )}
+                    <p style={{
+                        color: Colors.shadow,
+                        fontWeight: "bolder"
+                    }}>Please report (opens in new tab) and then recover. Thanks!</p>
                 </div>
             </Dialog>
         )
