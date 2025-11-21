@@ -25,8 +25,8 @@ export class PianoRollLayout {
     }
 
     static DefaultKeySizes: KeySizes = {
-        whiteKeys: {width: 20, height: 100},
-        blackKeys: {width: 12, height: 60}
+        whiteKeys: {width: 20, height: 90},
+        blackKeys: {width: 13, height: 50}
     }
 
     static readonly BlackKeyOffsets: Record<int, number> = {1: 0.55, 3: 0.45, 6: 0.55, 8: 0.50, 10: 0.45} as const

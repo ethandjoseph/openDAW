@@ -32,8 +32,8 @@ export const PianoRoll = ({lifecycle, service, updateNotifier}: Construct) => {
                           width={whiteKeys.width - 1} height={whiteKeys.height}/>
                 ))}
                 {pianoLayout.blackKeys.map(({key, x}) => (
-                    <rect classList="black" data-key={key} x={x} y={0}
-                          width={blackKeys.width} height={blackKeys.height}/>
+                    <rect classList="black" data-key={key} x={x} y={2}
+                          width={blackKeys.width} height={blackKeys.height} rx={4} ry={4}/>
                 ))}
             </svg>
         )

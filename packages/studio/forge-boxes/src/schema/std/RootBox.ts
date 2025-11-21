@@ -51,7 +51,7 @@ export const RootBox: BoxSchema<Pointers> = {
                         },
                         3: {
                             type: "float32", name: "note-scale",
-                            value: 1.5, constraints: {min: 0.5, max: 2, scaling: "linear"}, unit: ""
+                            value: 1.0, constraints: {min: 0.5, max: 2, scaling: "linear"}, unit: ""
                         },
                         4: {type: "boolean", name: "note-labels", value: false},
                         5: {
