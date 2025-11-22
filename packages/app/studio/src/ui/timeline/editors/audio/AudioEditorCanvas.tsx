@@ -23,8 +23,8 @@ type Construct = {
 }
 
 export const AudioEditorCanvas = ({lifecycle, range, snapping, reader}: Construct) => {
-    const canvas: HTMLCanvasElement = <canvas tabIndex={-1}/>
-    const painter = lifecycle.own(new CanvasPainter(canvas, painter => {
+    const waveformCanvas: HTMLCanvasElement = <canvas tabIndex={-1}/>
+    const painter = lifecycle.own(new CanvasPainter(waveformCanvas, painter => {
         const {context, actualHeight, devicePixelRatio} = painter
 
         renderTimeGrid(context, range, snapping, 0, actualHeight)
@@ -49,14 +49,16 @@ export const AudioEditorCanvas = ({lifecycle, range, snapping, reader}: Construc
             `hsl(${reader.hue}, ${60}%, 45%)`, pass.unwrap())
     }))
     lifecycle.ownAll(
-        installEditorMainBody({element: canvas, range, reader}),
+        installEditorMainBody({element: waveformCanvas, range, reader}),
         reader.subscribeChange(painter.requestUpdate),
         range.subscribe(painter.requestUpdate),
-        Html.watchResize(canvas, painter.requestUpdate)
+        Html.watchResize(waveformCanvas, painter.requestUpdate)
     )
     return (
         <div className={className}>
-            {canvas}
+            <div>TRANSIENTS</div>
+            <div>WRAP MARKER</div>
+            {waveformCanvas}
         </div>
     )
 }
