@@ -1,6 +1,6 @@
 import css from "./ProjectInfo.sass?inline"
 import {DefaultObservableValue, isDefined, Lifecycle, MutableObservableOption, RuntimeNotifier} from "@opendaw/lib-std"
-import {createElement} from "@opendaw/lib-jsx"
+import {createElement, Inject} from "@opendaw/lib-jsx"
 import {StudioService} from "@/service/StudioService.ts"
 import {Cover} from "./Cover"
 import {Events, Html} from "@opendaw/lib-dom"
@@ -36,6 +36,7 @@ export const ProjectProfileInfo = ({lifecycle, service}: Construct) => {
                   value={meta.description}/>
     )
     const coverModel = new MutableObservableOption<ArrayBuffer>(cover.unwrapOrUndefined())
+    const buttonValue = Inject.value(isDefined(meta.radioToken) ? "Republish" : "Publish")
     const form: HTMLElement = (
         <div className="form">
             <div className="label">Name</div>
@@ -49,18 +50,26 @@ export const ProjectProfileInfo = ({lifecycle, service}: Construct) => {
             <div className="label"/>
             <Button lifecycle={lifecycle}
                     onClick={async () => {
+                        const approved = await RuntimeNotifier.approve({
+                            headline: "Publish Your Music",
+                            message: "Ensure all samples, soundfonts, and cover images are free from copyright infringement. You are responsible for the content you upload."
+                        })
+                        if (!approved) {return}
                         const progressValue = new DefaultObservableValue(0.0)
-                        const dialog = RuntimeNotifier.progress({headline: "Uploading Music", progress: progressValue})
-                        const {status, value, error} = await Promises.tryCatch(PublishMusic
-                            .publishMusic(profile, progress => progressValue.setValue(progress)))
+                        const dialog = RuntimeNotifier.progress({headline: "Publishing Music", progress: progressValue})
+                        const {status, error} = await Promises.tryCatch(PublishMusic
+                            .publishMusic(profile,
+                                progress => progressValue.setValue(progress),
+                                message => dialog.message = message))
                         dialog.terminate()
                         if (status === "rejected") {
                             return await RuntimeNotifier.info({headline: "Could not upload", message: String(error)})
                         }
-                        console.debug("ID", value)
+                        buttonValue.value = isDefined(meta.radioToken) ? "Republish" : "Publish"
+                        return await RuntimeNotifier.info({headline: "Upload complete", message: ""})
                     }}
                     appearance={{framed: true, color: Colors.purple}}>
-                {isDefined(meta.radioToken) ? "Republish" : "Publish"}
+                {buttonValue}
             </Button>
         </div>
     )

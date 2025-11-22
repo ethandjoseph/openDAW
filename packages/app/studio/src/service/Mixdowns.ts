@@ -8,7 +8,16 @@ import {Dialogs} from "@/ui/components/dialogs"
 
 export namespace Mixdowns {
     export const exportMixdown = async ({project, meta}: ProjectProfile): Promise<void> => {
-        const result = await Promises.tryCatch(AudioOfflineRenderer.start(project, Option.None))
+        const abortController = new AbortController()
+        const progress = new DefaultObservableValue(0.0)
+        const dialog = RuntimeNotifier.progress({
+            headline: "Rendering mixdown...",
+            progress,
+            cancel: () => abortController.abort()
+        })
+        const result = await Promises.tryCatch(AudioOfflineRenderer
+            .start(project, Option.None, x => progress.setValue(x), abortController.signal))
+        dialog.terminate()
         if (result.status === "rejected") {
             if (!Errors.isAbort(result.error)) {
                 throw result.error
@@ -49,7 +58,16 @@ export namespace Mixdowns {
 
     export const exportStems = async ({project, meta}: ProjectProfile,
                                       config: ExportStemsConfiguration): Promise<void> => {
-        const {status, value} = await Promises.tryCatch(AudioOfflineRenderer.start(project, Option.wrap(config)))
+        const abortController = new AbortController()
+        const progress = new DefaultObservableValue(0.0)
+        const dialog = RuntimeNotifier.progress({
+            headline: "Rendering mixdown...",
+            progress,
+            cancel: () => abortController.abort()
+        })
+        const {status, value} = await Promises.tryCatch(AudioOfflineRenderer
+            .start(project, Option.wrap(config), x => progress.setValue(x), abortController.signal))
+        dialog.terminate()
         if (status === "rejected") {return}
         await saveZipFile(value, meta, Object.values(config).map(({fileName}) => fileName))
     }
