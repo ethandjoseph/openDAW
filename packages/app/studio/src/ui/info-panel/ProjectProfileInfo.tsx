@@ -1,9 +1,13 @@
 import css from "./ProjectInfo.sass?inline"
-import {Lifecycle, MutableObservableOption} from "@opendaw/lib-std"
+import {DefaultObservableValue, isDefined, Lifecycle, MutableObservableOption, RuntimeNotifier} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {StudioService} from "@/service/StudioService.ts"
 import {Cover} from "./Cover"
 import {Events, Html} from "@opendaw/lib-dom"
+import {Button} from "@/ui/components/Button"
+import {Colors} from "@opendaw/studio-adapters"
+import {PublishMusic} from "@/ui/info-panel/PublishMusic"
+import {Promises} from "@opendaw/lib-runtime"
 
 const className = Html.adoptStyleSheet(css, "ProjectInfo")
 
@@ -42,6 +46,22 @@ export const ProjectProfileInfo = ({lifecycle, service}: Construct) => {
             <label info="Maximum 512 characters">{inputDescription}</label>
             <div className="label">Cover</div>
             <Cover lifecycle={lifecycle} model={coverModel}/>
+            <div className="label"/>
+            <Button lifecycle={lifecycle}
+                    onClick={async () => {
+                        const progressValue = new DefaultObservableValue(0.0)
+                        const dialog = RuntimeNotifier.progress({headline: "Uploading Music", progress: progressValue})
+                        const {status, value, error} = await Promises.tryCatch(PublishMusic
+                            .publishMusic(profile, progress => progressValue.setValue(progress)))
+                        dialog.terminate()
+                        if (status === "rejected") {
+                            return await RuntimeNotifier.info({headline: "Could not upload", message: String(error)})
+                        }
+                        console.debug("ID", value)
+                    }}
+                    appearance={{framed: true, color: Colors.purple}}>
+                {isDefined(meta.radioToken) ? "Republish" : "Publish"}
+            </Button>
         </div>
     )
     lifecycle.ownAll(

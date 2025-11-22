@@ -7,6 +7,7 @@ export type ProjectMeta = {
     created: Readonly<string>
     modified: string
     notepad?: string
+    radioToken?: string
 } & JSONValue
 
 export namespace ProjectMeta {
