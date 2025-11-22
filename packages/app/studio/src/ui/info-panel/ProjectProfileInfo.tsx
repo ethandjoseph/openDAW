@@ -63,7 +63,7 @@ export const ProjectProfileInfo = ({lifecycle, service}: Construct) => {
                     unpublishButton.classList.toggle("hidden", true)
                     buttonPublishText.value = "Republish"
                     delete meta.radioToken
-                    await profile.save()
+                    await Promises.tryCatch(profile.save())
                     return await RuntimeNotifier.info({
                         headline: "Project unpublished",
                         message: ""
