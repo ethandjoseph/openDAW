@@ -8,11 +8,11 @@ component
   --background-color: red
 
   > h1
-    padding: 1px 3px
-    font-size: 10px
-    color: black
-    border-radius: 2px
-    background-color: var(--background-color)
+    padding: 2px 4px
+    font-size: 9px
+    border-radius: 2px 2px 0 0
+    color: color-mix(in srgb, var(--background-color) 80%, transparent)
+    border-bottom: 1px solid color-mix(in srgb, var(--background-color) 20%, black)
 
   > div.controls
     padding: 4px 3px
@@ -21,6 +21,7 @@ component
     align-items: center
     align-content: start
     grid-template-columns: 1fr auto
+    background: linear-gradient(to bottom, var(--background-color) -750%, transparent 10px)
 
     span.parameter-name
       white-space: nowrap
