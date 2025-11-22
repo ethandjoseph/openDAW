@@ -40,12 +40,13 @@ export namespace PublishMusic {
             }
         })
         xhr.addEventListener("load", () => {
-            if (xhr.status === 201) {
+            if (xhr.status === 200 || xhr.status === 201) {
                 const response = JSON.parse(xhr.responseText)
                 profile.meta.radioToken = response.id
                 profile.save()
                 resolve(response.id)
             } else {
+                console.warn(xhr.status, xhr.responseText)
                 const error = JSON.parse(xhr.responseText)
                 reject(new Error(error.error || "Upload failed"))
             }
@@ -55,5 +56,18 @@ export namespace PublishMusic {
         xhr.open("POST", "https://api.opendaw.studio/music/upload.php")
         xhr.send(formData)
         return promise
+    }
+
+    export const deleteMusic = async (token: string): Promise<void> => {
+        const formData = new FormData()
+        formData.append("token", token)
+        const response = await fetch("https://api.opendaw.studio/music/delete.php", {
+            method: "POST",
+            body: formData
+        })
+        if (!response.ok) {
+            const error = await response.json()
+            throw new Error(error.error || "Delete failed")
+        }
     }
 }
