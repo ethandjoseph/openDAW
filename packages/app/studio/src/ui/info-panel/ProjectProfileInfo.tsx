@@ -101,7 +101,10 @@ export const ProjectProfileInfo = ({lifecycle, service}: Construct) => {
                                     You are responsible for all content you share.`
                                 })
                                 if (!approved) {return}
-                                await profile.save()
+                                const saveResult = await Promises.tryCatch(profile.save())
+                                if(saveResult.status === "rejected") {
+                                    return RuntimeNotifier.info({headline: "Problem", message: String(saveResult.error)})
+                                }
                                 const progressValue = new DefaultObservableValue(0.0)
                                 const dialog = RuntimeNotifier.progress({
                                     headline: "Publishing Music",
