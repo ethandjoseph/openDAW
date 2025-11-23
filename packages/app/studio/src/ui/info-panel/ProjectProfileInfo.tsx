@@ -7,7 +7,7 @@ import {
     MutableObservableOption,
     RuntimeNotifier
 } from "@opendaw/lib-std"
-import {createElement, Frag, Inject} from "@opendaw/lib-jsx"
+import {createElement, Inject} from "@opendaw/lib-jsx"
 import {StudioService} from "@/service/StudioService.ts"
 import {Cover} from "./Cover"
 import {Events, Html} from "@opendaw/lib-dom"
@@ -82,62 +82,60 @@ export const ProjectProfileInfo = ({lifecycle, service}: Construct) => {
             <label info="Maximum 512 characters">{inputDescription}</label>
             <div className="label">Cover</div>
             <Cover lifecycle={lifecycle} model={coverModel}/>
-            {location.hash.includes("publish") && (
-                <Frag>
-                    <div className="label"/>
-                    <div style={{display: "flex", flexDirection: "column", rowGap: "1em"}}>
-                        <div>
-                            Publish your music to <a href="https://music.opendaw.studio"
-                                                     style={{color: Colors.purple}}
-                                                     target="music.opendaw.studio">our music
-                            page</a>
-                        </div>
-                        <div style={{display: "flex", columnGap: "1em"}}>
-                            <Button lifecycle={lifecycle}
-                                    onClick={async () => {
-                                        const approved = await RuntimeNotifier.approve({
-                                            headline: "Publish Your Music",
-                                            message: `Ensure all samples, soundfonts, and images are cleared of copyright.
+            <div className="beta-section" style={{display: "contents"}}>
+                <div className="label"/>
+                <div style={{display: "flex", flexDirection: "column", rowGap: "1em"}}>
+                    <div>
+                        Publish your music to <a href="https://music.opendaw.studio"
+                                                 style={{color: Colors.purple}}
+                                                 target="music.opendaw.studio">our music
+                        page</a>
+                    </div>
+                    <div style={{display: "flex", columnGap: "1em"}}>
+                        <Button lifecycle={lifecycle}
+                                onClick={async () => {
+                                    const approved = await RuntimeNotifier.approve({
+                                        headline: "Publish Your Music",
+                                        message: `Ensure all samples, soundfonts, and images are cleared of copyright.
                                     Publishing makes your entire track visible to everyone.
                                     Prepare proper metadata and upload a cover before starting.
                                     You are responsible for all content you share.`
+                                    })
+                                    if (!approved) {return}
+                                    const saveResult = await Promises.tryCatch(profile.save())
+                                    if (saveResult.status === "rejected") {
+                                        return RuntimeNotifier.info({
+                                            headline: "Problem",
+                                            message: String(saveResult.error)
                                         })
-                                        if (!approved) {return}
-                                        const saveResult = await Promises.tryCatch(profile.save())
-                                        if (saveResult.status === "rejected") {
-                                            return RuntimeNotifier.info({
-                                                headline: "Problem",
-                                                message: String(saveResult.error)
-                                            })
-                                        }
-                                        const progressValue = new DefaultObservableValue(0.0)
-                                        const dialog = RuntimeNotifier.progress({
-                                            headline: "Publishing Music",
-                                            progress: progressValue
+                                    }
+                                    const progressValue = new DefaultObservableValue(0.0)
+                                    const dialog = RuntimeNotifier.progress({
+                                        headline: "Publishing Music",
+                                        progress: progressValue
+                                    })
+                                    const {status, error} = await Promises.tryCatch(PublishMusic
+                                        .publishMusic(profile,
+                                            progress => progressValue.setValue(progress),
+                                            message => dialog.message = message))
+                                    dialog.terminate()
+                                    if (status === "rejected") {
+                                        return await RuntimeNotifier.info({
+                                            headline: "Could not publish",
+                                            message: String(error)
                                         })
-                                        const {status, error} = await Promises.tryCatch(PublishMusic
-                                            .publishMusic(profile,
-                                                progress => progressValue.setValue(progress),
-                                                message => dialog.message = message))
-                                        dialog.terminate()
-                                        if (status === "rejected") {
-                                            return await RuntimeNotifier.info({
-                                                headline: "Could not publish",
-                                                message: String(error)
-                                            })
-                                        }
-                                        unpublishButton.classList.toggle("hidden", isUndefined(meta.radioToken))
-                                        buttonPublishText.value = isDefined(meta.radioToken) ? "Republish" : "Publish"
-                                        return await RuntimeNotifier.info({headline: "Publish complete", message: ""})
-                                    }}
-                                    appearance={{framed: true, color: Colors.purple}}>
-                                {buttonPublishText}
-                            </Button>
-                            {unpublishButton}
-                        </div>
+                                    }
+                                    unpublishButton.classList.toggle("hidden", isUndefined(meta.radioToken))
+                                    buttonPublishText.value = isDefined(meta.radioToken) ? "Republish" : "Publish"
+                                    return await RuntimeNotifier.info({headline: "Publish complete", message: ""})
+                                }}
+                                appearance={{framed: true, color: Colors.purple}}>
+                            {buttonPublishText}
+                        </Button>
+                        {unpublishButton}
                     </div>
-                </Frag>
-            )}
+                </div>
+            </div>
         </div>
     )
     lifecycle.ownAll(
