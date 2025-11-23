@@ -325,6 +325,7 @@ export class StudioService implements ProjectEnv {
             const isRoot = path === "/"
             if (isRoot) {this.layout.screen.setValue(null)}
             lifeTime.terminate()
+            document.body.classList.toggle("no-project", optProfile.isEmpty())
             if (optProfile.nonEmpty()) {
                 const profile = optProfile.unwrap()
                 const {project, meta} = profile

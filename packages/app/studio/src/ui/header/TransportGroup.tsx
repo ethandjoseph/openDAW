@@ -70,10 +70,7 @@ export const TransportGroup = ({lifecycle, service}: Construct) => {
             ))
     )
     return (
-        <div className={className}
-             onInit={element => service.projectProfileService
-                 .catchupAndSubscribe(owner => element.classList
-                     .toggle("disabled", owner.getValue().isEmpty()))}>
+        <div className={className}>
             {recordButton}
             {playButton}
             <Button lifecycle={lifecycle}
