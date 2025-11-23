@@ -127,7 +127,7 @@ export const Footer = ({lifecycle, service}: Construct) => {
                      } satisfies FooterLabel
                  })}/>
             <div style={{flex: "1"}}/>
-            <div style={{color: Colors.cream}}>
+            <div style={{color: Colors.cream.toString()}}>
                 <LocalLink href="/privacy">Privacy</LocalLink> · <LocalLink href="/imprint">Imprint</LocalLink>
             </div>
         </footer>

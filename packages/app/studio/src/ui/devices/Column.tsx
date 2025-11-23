@@ -1,13 +1,14 @@
 import css from "./Column.sass?inline"
 import {Html} from "@opendaw/lib-dom"
 import {createElement, JsxValue} from "@opendaw/lib-jsx"
+import {Color} from "@opendaw/lib-std"
 
 const className = Html.adoptStyleSheet(css, "Column")
 
 type Construct = {
     ems: ReadonlyArray<number>
     space?: number,
-    color?: string
+    color?: Color
     style?: Partial<CSSStyleDeclaration>
 }
 
@@ -21,7 +22,7 @@ export const Column = ({ems, space, color, style}: Construct, children: JsxValue
              margin: "0 1px",
              alignContent: "center",
              justifyItems: "center",
-             color: color ?? "inherit",
+             color: color?.toString() ?? "inherit",
              ...style
          }}>
         {children}

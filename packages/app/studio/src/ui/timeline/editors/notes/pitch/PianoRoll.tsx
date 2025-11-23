@@ -43,7 +43,7 @@ export const PianoRoll = ({lifecycle, positioner, scale, noteReceiver, capture}:
                 context.fillRect(width - devicePixelRatio * 3, noteToY, devicePixelRatio * 3, noteTrackHeight)
             }
             if (noteReceiver.isNoteOn(note)) {
-                context.fillStyle = Colors.blue
+                context.fillStyle = Colors.blue.toString()
                 context.fillRect(0, noteToY, width, noteTrackHeight)
             }
         }

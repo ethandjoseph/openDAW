@@ -73,7 +73,7 @@ export const DeviceEditor =
                             start_index: effect.indexField.getValue()
                         } satisfies DragDevice), element))
                     }
-                }} style={{color}}>
+                }} style={{color: color.toString()}}>
                     <div className="icon">
                         <Icon symbol={icon}/>
                     </div>

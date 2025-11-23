@@ -18,7 +18,7 @@ export const GraphPage: PageFactory<StudioService> = ({lifecycle, service}: Page
                     <Frag>
                         <h1>Graph</h1>
                         <p onclick={() => service.closeProject()}
-                           style={{color: Colors.dark, cursor: "pointer"}}>Open a project first...</p>
+                           style={{color: Colors.dark.toString(), cursor: "pointer"}}>Open a project first...</p>
                     </Frag>
                 ),
                 some: ({project, meta}) => (
@@ -49,7 +49,10 @@ export const GraphPage: PageFactory<StudioService> = ({lifecycle, service}: Page
                                return (
                                    <Frag>
                                        <h1>Graph '{meta.name}'</h1>
-                                       <p style={{fontSize: "0.75em", color: Colors.dark}}>{GRAPH_INTERACTION_HINT}</p>
+                                       <p style={{
+                                           fontSize: "0.75em",
+                                           color: Colors.dark.toString()
+                                       }}>{GRAPH_INTERACTION_HINT}</p>
                                        {container}
                                    </Frag>
                                )

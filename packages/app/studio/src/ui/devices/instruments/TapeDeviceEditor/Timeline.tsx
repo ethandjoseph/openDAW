@@ -36,7 +36,7 @@ export const Timeline = ({lifecycle, position, tracks}: Construct) => {
                 }
             }
         }
-        context.fillStyle = Colors.cream
+        context.fillStyle = Colors.cream.toString()
         const interval = PPQN.Bar
         for (let pulse = quantizeFloor(unitMin + ppqn, interval); pulse < unitMax + ppqn; pulse += interval) {
             const n = mapping(pulse - ppqn)

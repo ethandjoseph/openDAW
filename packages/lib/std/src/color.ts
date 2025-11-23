@@ -81,4 +81,41 @@ export class Color {
         const [h, s, l] = hsl.match(/\d+(\.\d+)?/g)!.map(Number)
         return Color.hslToHex(h, s / 100.0, l / 100.0)
     }
+
+    readonly #h: number // 0...360
+    readonly #s: number // 0...100
+    readonly #l: number // 0...100
+    readonly #a: number // 0...1
+
+    constructor(h: number, s: number, l: number, a: number = 1.0) {
+        this.#h = h
+        this.#s = s
+        this.#l = l
+        this.#a = a
+    }
+
+    opacity(alpha: number): Color {
+        return new Color(this.#h, this.#s, this.#l, alpha)
+    }
+
+    brightness(adjust: number): Color {
+        const newL = Math.max(0.0, Math.min(100.0, this.#l + adjust))
+        return new Color(this.#h, this.#s, newL, this.#a)
+    }
+
+    saturate(multiplier: unitValue): Color {
+        return new Color(this.#h, this.#s * multiplier, this.#l, this.#a)
+    }
+
+    fade(shift: number): Color {
+        const newS = this.#s * (1.0 - Math.sqrt(shift))
+        const newL = this.#l + (100.0 - this.#l) * (shift ** 3.0)
+        return new Color(this.#h, newS, newL, this.#a)
+    }
+
+    toString(): string {
+        return this.#a === 1.0
+            ? `hsl(${this.#h}, ${this.#s}%, ${this.#l}%)`
+            : `hsla(${this.#h}, ${this.#s}%, ${this.#l}%, ${this.#a})`
+    }
 }

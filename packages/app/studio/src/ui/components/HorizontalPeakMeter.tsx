@@ -32,10 +32,10 @@ export const HorizontalPeakMeter = ({lifecycle, peaksInDb, width}: Construct) =>
         const now = Date.now()
         context.clearRect(0, 0, actualWidth, actualHeight)
         const gradient = context.createLinearGradient(0, 0, actualWidth, 0)
-        gradient.addColorStop(s0, Colors.green)
-        gradient.addColorStop(s0, Colors.yellow)
-        gradient.addColorStop(s1, Colors.yellow)
-        gradient.addColorStop(s1, Colors.red)
+        gradient.addColorStop(s0, Colors.green.toString())
+        gradient.addColorStop(s0, Colors.yellow.toString())
+        gradient.addColorStop(s1, Colors.yellow.toString())
+        gradient.addColorStop(s1, Colors.red.toString())
         context.fillStyle = gradient
         context.globalAlpha = 0.08
         peaksInDb.forEach((_peak, index) => {

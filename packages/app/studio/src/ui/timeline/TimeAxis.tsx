@@ -37,7 +37,7 @@ export const TimeAxis = ({lifecycle, service, snapping, range, mapper}: Construc
     const painter = lifecycle.own(new CanvasPainter(canvas, ({context}) => {
         const {height} = canvas
         const {fontFamily, fontSize} = getComputedStyle(canvas)
-        context.fillStyle = Colors.shadow
+        context.fillStyle = Colors.shadow.toString()
         context.textBaseline = "alphabetic"
         context.font = `${parseFloat(fontSize) * devicePixelRatio}px ${fontFamily}`
         const textY = height - 4 * devicePixelRatio

@@ -23,8 +23,8 @@ type Construct = {
 }
 
 export const TrackHeader = ({lifecycle, service, trackBoxAdapter, audioUnitBoxAdapter}: Construct) => {
-    const nameLabel: HTMLElement = <h5 style={{color: Colors.dark}}/>
-    const controlLabel: HTMLElement = <h5 style={{color: Colors.shadow}}/>
+    const nameLabel: HTMLElement = <h5 style={{color: Colors.dark.toString()}}/>
+    const controlLabel: HTMLElement = <h5 style={{color: Colors.shadow.toString()}}/>
     const {project} = service
     lifecycle.own(
         trackBoxAdapter.catchupAndSubscribePath(option => option.match({
@@ -41,7 +41,7 @@ export const TrackHeader = ({lifecycle, service, trackBoxAdapter, audioUnitBoxAd
     const color = ColorCodes.forAudioType(audioUnitBoxAdapter.type)
     const element: HTMLElement = (
         <div className={Html.buildClassList(className, "is-primary")} tabindex={-1}>
-            <Icon symbol={TrackType.toIconSymbol(trackBoxAdapter.type)} style={{color}}/>
+            <Icon symbol={TrackType.toIconSymbol(trackBoxAdapter.type)} style={{color: color.toString()}}/>
             <div className="labels">
                 {nameLabel}
                 {controlLabel}

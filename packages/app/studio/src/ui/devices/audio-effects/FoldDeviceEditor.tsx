@@ -61,7 +61,7 @@ export const FoldDeviceEditor = ({lifecycle, service, adapter, deviceHost}: Cons
                                       context.beginPath()
                                       context.moveTo(0, toY(0.0))
                                       context.lineTo(w, toY(0.0))
-                                      context.strokeStyle = Colors.shadow
+                                      context.strokeStyle = Colors.shadow.toString()
                                       context.stroke()
                                       context.beginPath()
                                       context.moveTo(0, toY(0.0))

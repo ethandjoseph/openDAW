@@ -1,5 +1,5 @@
 import css from "./ButtonCheckboxRadio.sass?inline"
-import {isDefined, Lifecycle, Procedure} from "@opendaw/lib-std"
+import {Color, isDefined, Lifecycle, Procedure} from "@opendaw/lib-std"
 import {createElement, JsxValue} from "@opendaw/lib-jsx"
 import {TextTooltip} from "@/ui/surface/TextTooltip.tsx"
 import {CssUtils, Html} from "@opendaw/lib-dom"
@@ -7,8 +7,8 @@ import {CssUtils, Html} from "@opendaw/lib-dom"
 const className = Html.adoptStyleSheet(css, "ButtonCheckboxRadio")
 
 export type Appearance = {
-    color?: string
-    activeColor?: string
+    color?: Color
+    activeColor?: Color
     framed?: boolean
     landscape?: boolean
     tooltip?: string
@@ -57,10 +57,10 @@ export const ButtonCheckboxRadio = (
     }
 
     if (isDefined(appearance?.color)) {
-        wrapper.style.setProperty("--color", appearance.color)
+        wrapper.style.setProperty("--color", appearance.color.toString())
     }
     if (isDefined(appearance?.activeColor)) {
-        wrapper.style.setProperty("--color-active", appearance.activeColor)
+        wrapper.style.setProperty("--color-active", appearance.activeColor.toString())
     }
     if (isDefined(style)) {
         Object.assign(wrapper.style, style)

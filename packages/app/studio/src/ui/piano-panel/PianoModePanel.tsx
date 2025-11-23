@@ -31,7 +31,7 @@ export const PianoModePanel = ({lifecycle, service}: Construct) => {
     const notify = deferNextFrame(() => updateNotifier.notify())
     const tracksHeader: HTMLElement = (
         <Group>
-            <span style={{color: Colors.blue}}>Tracks:</span>
+            <span style={{color: Colors.blue.toString()}}>Tracks:</span>
             <div style={{height: "1.5em"}}/>
         </Group>
     )

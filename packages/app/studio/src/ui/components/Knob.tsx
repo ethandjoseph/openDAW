@@ -1,4 +1,4 @@
-import {isDefined, Lifecycle, Parameter, PI_HALF, TAU, unitValue} from "@opendaw/lib-std"
+import {Color, isDefined, Lifecycle, Parameter, PI_HALF, TAU, unitValue} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import css from "./Knob.sass?inline"
 import {Html, Svg} from "@opendaw/lib-dom"
@@ -33,7 +33,7 @@ type Construct = {
     lifecycle: Lifecycle
     value: Parameter
     anchor: unitValue
-    color?: string
+    color?: Color
     design?: Design
 }
 
@@ -84,7 +84,7 @@ export const Knob = ({lifecycle, value, anchor, color, design}: Construct) => {
         </svg>
     )
     if (isDefined(color)) {
-        svg.style.color = color
+        svg.style.color = color.toString()
     }
     lifecycle.own(value.subscribe(model => update(model.getControlledUnitValue())))
     update(value.getControlledUnitValue())

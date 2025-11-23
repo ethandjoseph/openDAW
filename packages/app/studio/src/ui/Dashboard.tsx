@@ -31,7 +31,7 @@ export const Dashboard = ({lifecycle, service}: Construct) => {
                 </p>
                 <div className="columns">
                     <div>
-                        <h3 style={{color: Colors.orange}}>Templates</h3>
+                        <h3 style={{color: Colors.orange.toString()}}>Templates</h3>
                         <div className="starters">
                             {[
                                 {name: "New", click: () => service.newProject()},

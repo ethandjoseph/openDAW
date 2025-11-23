@@ -31,7 +31,7 @@ export const ClipPlaybackButton = ({lifecycle, engine, adapter, state}: Construc
              }}>
             <IconCartridge lifecycle={lifecycle}
                            symbol={iconModel}
-                           style={{color: Colors.gray}}/>
+                           style={{color: Colors.gray.toString()}}/>
         </div>
     )
     lifecycle.own(state.catchupAndSubscribe(owner => {

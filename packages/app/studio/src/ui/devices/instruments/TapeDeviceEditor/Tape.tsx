@@ -46,7 +46,7 @@ export const Tape = ({lifecycle, position, tracks}: Construct) => {
             const region = track.regions.collection.lowerEqual(ppqn)
             return isDefined(region) && region.hasCollection && region.complete > ppqn
         })
-        head.setAttribute("fill", playingRegion ? Colors.bright : Colors.dark)
+        head.setAttribute("fill", playingRegion ? Colors.bright.toString() : Colors.dark.toString())
     })
 
     const total = PPQN.fromSignature(128, 1)

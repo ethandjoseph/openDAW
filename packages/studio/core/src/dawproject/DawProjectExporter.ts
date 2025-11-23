@@ -108,9 +108,7 @@ export namespace DawProjectExporter {
             })
 
         const colorForAudioType = (unitType: AudioUnitType): string => {
-            const cssColor = ColorCodes.forAudioType(unitType)
-            if (cssColor === "") {return "red"}
-            const [r, g, b] = Html.readCssVarColor(ColorCodes.forAudioType(unitType))[0]
+            const [r, g, b] = Html.readCssVarColor(ColorCodes.forAudioType(unitType).toString())[0]
             const RR = Math.round(r * 255).toString(16).padStart(2, "0")
             const GG = Math.round(g * 255).toString(16).padStart(2, "0")
             const BB = Math.round(b * 255).toString(16).padStart(2, "0")

@@ -162,7 +162,7 @@ export const SoftwareMIDIPanel = ({lifecycle, service}: Construct) => {
             })
         }),
         softwareMIDIInput.countListeners.catchupAndSubscribe(owner =>
-            midiIndicator.style.color = owner.getValue() > 1 ? Colors.green : Colors.red),
+            midiIndicator.style.color = owner.getValue() > 1 ? Colors.green.toString() : Colors.red.toString()),
         Surface.subscribeKeyboard("keydown", event => {
             if (event.repeat || event.shiftKey || event.ctrlKey || event.altKey || event.metaKey
                 || Events.isTextInput(event.target)) {return}

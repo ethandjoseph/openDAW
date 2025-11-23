@@ -30,7 +30,7 @@ export const ErrorsPage: PageFactory<StudioService> = ({lifecycle}: PageContext<
                 element.textContent = "loading status..."
                 element.textContent = await fetch("https://logs.opendaw.studio/status.php").then(x => x.json())
                     .then(x => Object.entries(x).map(([key, value]) => `${key}: ${value}`).join(", "))
-            }} style={{fontSize: "10px", marginBottom: "1em", color: Colors.blue}}/>
+            }} style={{fontSize: "10px", marginBottom: "1em", color: Colors.blue.toString()}}/>
             <Await
                 factory={() => loadMore()}
                 failure={(error) => `Unknown request (${error.reason})`}

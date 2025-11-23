@@ -4,7 +4,7 @@ import {Exec, Lifecycle, Objects, UUID} from "@opendaw/lib-std"
 import {SamplePlayback} from "@/service/SamplePlayback"
 import {Icon} from "../components/Icon"
 import {Sample} from "@opendaw/studio-adapters"
-import {IconSymbol} from "@opendaw/studio-enums"
+import {Colors, IconSymbol} from "@opendaw/studio-enums"
 import {AssetLocation} from "@/ui/browse/AssetLocation"
 import {Button} from "../components/Button"
 import {SampleDialogs} from "@/ui/browse/SampleDialogs"
@@ -62,7 +62,7 @@ export const SampleView = ({lifecycle, service, sampleSelection, sample, playbac
             </div>
             {location === AssetLocation.Local && (
                 <div className="edit">
-                    <Button lifecycle={lifecycle} appearance={{activeColor: "white"}}
+                    <Button lifecycle={lifecycle} appearance={{activeColor: Colors.white}}
                             onClick={async (event) => {
                                 event.stopPropagation()
                                 const {status, value: meta} =
@@ -75,7 +75,7 @@ export const SampleView = ({lifecycle, service, sampleSelection, sample, playbac
                             }}>
                         <Icon symbol={IconSymbol.Pencil}/>
                     </Button>
-                    <Button lifecycle={lifecycle} appearance={{activeColor: "white"}}
+                    <Button lifecycle={lifecycle} appearance={{activeColor: Colors.white}}
                             onClick={async (event) => {
                                 event.stopPropagation()
                                 await sampleSelection.deleteSamples(sample)

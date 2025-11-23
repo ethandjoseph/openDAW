@@ -3,7 +3,7 @@ import {Column} from "@/ui/devices/Column.tsx"
 import {createElement} from "@opendaw/lib-jsx"
 import {LKR} from "@/ui/devices/constants.ts"
 import {ParameterLabelKnob} from "@/ui/devices/ParameterLabelKnob.tsx"
-import {TerminableOwner, ValueGuide} from "@opendaw/lib-std"
+import {Color, TerminableOwner, ValueGuide} from "@opendaw/lib-std"
 import {BoxEditing, PrimitiveValues} from "@opendaw/lib-box"
 import {MIDILearning} from "@opendaw/studio-core"
 import {Colors} from "@opendaw/studio-enums"
@@ -16,7 +16,7 @@ type Creation<T extends PrimitiveValues> = {
     parameter: AutomatableParameterFieldAdapter<T>
     options?: ValueGuide.Options
     anchor?: number
-    color?: string
+    color?: Color
     style?: Partial<CSSStyleDeclaration>
 }
 

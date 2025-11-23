@@ -9,7 +9,7 @@ const className = Html.adoptStyleSheet(css, "PrivacyPage")
 export const PrivacyPage: PageFactory<StudioService> = ({}: PageContext<StudioService>) => (
     <div className={className}>
         <h1>Privacy Policy</h1>
-        <p style={{color: Colors.blue}}>openDAW respects your privacy. This application does not collect personal data,
+        <p style={{color: Colors.blue.toString()}}>openDAW respects your privacy. This application does not collect personal data,
             create user accounts, or
             track visitors.</p>
 

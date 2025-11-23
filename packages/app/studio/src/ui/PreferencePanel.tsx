@@ -3,9 +3,8 @@ import {Html} from "@opendaw/lib-dom"
 import {DefaultObservableValue, Lifecycle} from "@opendaw/lib-std"
 import {createElement, Frag} from "@opendaw/lib-jsx"
 import {Preferences} from "@opendaw/studio-core"
-import {Colors} from "@opendaw/studio-enums"
+import {Colors, IconSymbol} from "@opendaw/studio-enums"
 import {Checkbox} from "@/ui/components/Checkbox"
-import {IconSymbol} from "@opendaw/studio-enums"
 import {Icon} from "@/ui/components/Icon"
 
 const className = Html.adoptStyleSheet(css, "PreferencePanel")
@@ -42,7 +41,7 @@ export const PreferencePanel = ({lifecycle}: Construct) => {
                                               activeColor: Colors.bright,
                                               cursor: "pointer"
                                           }}>
-                                    <span style={{color: Colors.dark}}>{Labels[pKey]}</span>
+                                    <span style={{color: Colors.dark.toString()}}>{Labels[pKey]}</span>
                                     <hr/>
                                     <Icon symbol={IconSymbol.Checkbox}/>
                                 </Checkbox>

@@ -110,7 +110,7 @@ export const ChannelStrip = ({lifecycle, service, adapter, compact}: Construct) 
                            justifySelf: "center",
                            marginTop: "0.5em",
                            marginBottom: "0.5em",
-                           color: ColorCodes.forAudioType(adapter.type)
+                           color: ColorCodes.forAudioType(adapter.type).toString()
                        }}/>
     </div>
     const classList = Html.buildClassList(className,

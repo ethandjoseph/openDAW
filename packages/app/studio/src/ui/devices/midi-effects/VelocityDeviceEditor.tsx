@@ -71,7 +71,7 @@ export const VelocityDeviceEditor = ({lifecycle, service, adapter, deviceHost}: 
                                                   context.beginPath()
                                                   const mu = 1.0 - velocities[i].lifeTime / particleLifeTime
                                                   context.arc(linear(x0, x1, mu), linear(pad, bottom, mu), 1, 0.0, TAU)
-                                                  context.fillStyle = Colors.blue
+                                                  context.fillStyle = Colors.blue.toString()
                                                   context.fill()
                                               }
 
@@ -85,14 +85,14 @@ export const VelocityDeviceEditor = ({lifecycle, service, adapter, deviceHost}: 
                                               context.lineWidth = 1.0 / devicePixelRatio
                                               context.moveTo(pad + minMag * (width - pad * 2), bottom)
                                               context.lineTo(pad + maxMag * (width - pad * 2), bottom)
-                                              context.strokeStyle = Colors.green
+                                              context.strokeStyle = Colors.green.toString()
                                               context.stroke()
 
                                               // Magnet anchor
                                               context.strokeStyle = "none"
                                               context.beginPath()
                                               context.arc(pad + magPos * (width - pad * 2) - 1.0 / devicePixelRatio, bottom, 2, 0.0, TAU)
-                                              context.fillStyle = Colors.green
+                                              context.fillStyle = Colors.green.toString()
                                               context.fill()
 
                                               context.restore()
@@ -113,9 +113,9 @@ export const VelocityDeviceEditor = ({lifecycle, service, adapter, deviceHost}: 
                                           }))
                                       }}/>
                                   </div>
-                                  <Icon symbol={IconSymbol.Magnet} style={{color: Colors.green}}/>
-                                  <Icon symbol={IconSymbol.Random} style={{color: Colors.orange}}/>
-                                  <Icon symbol={IconSymbol.Add} style={{color: Colors.yellow}}/>
+                                  <Icon symbol={IconSymbol.Magnet} style={{color: Colors.green.toString()}}/>
+                                  <Icon symbol={IconSymbol.Random} style={{color: Colors.orange.toString()}}/>
+                                  <Icon symbol={IconSymbol.Add} style={{color: Colors.yellow.toString()}}/>
                               </div>
                               {Object.values(adapter.namedParameter).map(parameter => ControlBuilder.createKnob({
                                   lifecycle,

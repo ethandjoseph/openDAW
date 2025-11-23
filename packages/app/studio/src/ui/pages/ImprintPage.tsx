@@ -12,13 +12,13 @@ export const ImprintPage: PageFactory<StudioService> = ({}: PageContext<StudioSe
         <h3>In accordance with § 5 TMG (German Telemedia Act)</h3>
         <h4>Responsible for content:</h4>
         <p>
-            <span style={{color: Colors.cream}}>André Michelle</span><br/>
-            <span style={{color: Colors.dark}}>Cologne, Germany</span><br/>
+            <span style={{color: Colors.cream.toString()}}>André Michelle</span><br/>
+            <span style={{color: Colors.dark.toString()}}>Cologne, Germany</span><br/>
             Email: <a style={{color: Colors.blue}} href="mailto:hello@opendaw.org">hello@opendaw.org</a>
         </p>
         <p>
             This website is a personal, non-commercial project.<br/>
-            <span style={{color: Colors.red}}>No tracking, no data collection, no user accounts.</span>
+            <span style={{color: Colors.red.toString()}}>No tracking, no data collection, no user accounts.</span>
         </p>
         <p>
             This imprint is provided to comply with German law.<br/>

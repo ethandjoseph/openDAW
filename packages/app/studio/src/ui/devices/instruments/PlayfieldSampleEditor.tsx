@@ -9,8 +9,7 @@ import {Events} from "@opendaw/lib-dom"
 import {Icon} from "@/ui/components/Icon"
 import {TextTooltip} from "@/ui/surface/TextTooltip"
 import {StudioService} from "@/service/StudioService"
-import {Colors} from "@opendaw/studio-enums"
-import {IconSymbol} from "@opendaw/studio-enums"
+import {Colors, IconSymbol} from "@opendaw/studio-enums"
 
 type Construct = {
     lifecycle: Lifecycle
@@ -46,7 +45,7 @@ export const PlayfieldSampleEditor = ({lifecycle, service, adapter, deviceHost}:
                               <span onclick={goDevice}
                                     style={{
                                         cursor: "pointer",
-                                        backgroundColor: Colors.green,
+                                        backgroundColor: Colors.green.toString(),
                                         height: "1.25em",
                                         lineHeight: "1.25em",
                                         borderRadius: "2px",

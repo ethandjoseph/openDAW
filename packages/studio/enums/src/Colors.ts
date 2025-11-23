@@ -1,26 +1,29 @@
+import {Color} from "@opendaw/lib-std"
+
 export const Colors = {
-    blue: "hsl(189, 100%, 65%)",
-    green: "hsl(150, 77%, 69%)",
-    yellow: "hsl(60, 100%, 84%)",
-    cream: "hsl(65, 20%, 83%)",
-    orange: "hsl(31, 100%, 73%)",
-    red: "hsl(354, 100%, 65%)",
-    purple: "hsl(314, 100%, 78%)",
-    bright: "hsl(197, 0%, 100%)",
-    gray: "hsl(197, 31%, 85%)",
-    dark: "hsl(197, 15%, 62%)",
-    shadow: "hsl(197, 10%, 42%)",
-    black: "hsl(197, 10%, 14%)",
-    background: "hsl(197, 6%, 3%)",
-    panelBackground: "hsl(197, 14%, 7%)",
-    panelBackgroundBright: "hsl(197, 14%, 10%)",
-    panelBackgroundDark: "hsl(197, 14%, 4%)"
+    white: new Color(0, 0, 100),
+    blue: new Color(189, 100, 65),
+    green: new Color(150, 77, 69),
+    yellow: new Color(60, 100, 84),
+    cream: new Color(65, 20, 83),
+    orange: new Color(31, 100, 73),
+    red: new Color(354, 100, 65),
+    purple: new Color(314, 100, 78),
+    bright: new Color(197, 0, 100),
+    gray: new Color(197, 31, 85),
+    dark: new Color(197, 15, 62),
+    shadow: new Color(197, 10, 42),
+    black: new Color(197, 10, 14),
+    background: new Color(197, 6, 3),
+    panelBackground: new Color(197, 14, 7),
+    panelBackgroundBright: new Color(197, 14, 10),
+    panelBackgroundDark: new Color(197, 14, 4)
 }
 
 export const initializeColors = (root: { style: { setProperty: (name: string, value: string) => void } }) => {
     Object.entries(Colors).forEach(([name, value]) => {
         const cssName = name.replace(/([A-Z])/g, "-$1").toLowerCase()
         console.debug(`--color-${cssName}`, value)
-        root.style.setProperty(`--color-${cssName}`, value)
+        root.style.setProperty(`--color-${cssName}`, value.toString())
     })
 }

@@ -22,13 +22,15 @@ export const ChannelOutputSelector = ({lifecycle, project, adapter}: Construct) 
     const label: HTMLElement = (<div className="label"/>)
     const symbol = lifecycle.own(new DefaultObservableValue(IconSymbol.NoAudio))
     const iconCartridge: DomElement = (
-        <IconCartridge lifecycle={lifecycle} symbol={symbol} style={{fontSize: "1.25em", color: Colors.red}}/>
+        <IconCartridge lifecycle={lifecycle}
+                       symbol={symbol}
+                       style={{fontSize: "1.25em", color: Colors.red.toString()}}/>
     )
     lifecycle.own(adapter.output.catchupAndSubscribe(adapter => {
         adapter.match({
             none: () => {
                 label.textContent = "No Output"
-                iconCartridge.style.color = Colors.red
+                iconCartridge.style.color = Colors.red.toString()
                 symbol.setValue(IconSymbol.NoAudio)
             },
             some: (adapter) => {
