@@ -25,7 +25,7 @@ export const TransportGroup = ({lifecycle, service}: Construct) => {
     const recordButton: HTMLElement = (
         <Button lifecycle={lifecycle}
                 appearance={{
-                    activeColor: "hsl(0, 50%, 60%)",
+                    color: "hsl(354, 30%, 60%)", activeColor: Colors.red,
                     tooltip: "Start Recording (Shift-Click to suppress count-in)"
                 }}
                 onClick={event => {
@@ -37,7 +37,7 @@ export const TransportGroup = ({lifecycle, service}: Construct) => {
                 }}><Icon symbol={IconSymbol.Record}/></Button>)
     const playButton: HTMLElement = (
         <Button lifecycle={lifecycle}
-                appearance={{activeColor: "hsl(120, 50%, 60%)", tooltip: "Play"}}
+                appearance={{color: "hsl(150, 20%, 64%)", activeColor: Colors.green, tooltip: "Play"}}
                 onClick={() => {
                     if (engine.isPlaying.getValue()) {
                         engine.stop()
