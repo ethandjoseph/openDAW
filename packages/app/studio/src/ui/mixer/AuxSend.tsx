@@ -11,7 +11,7 @@ import {IconCartridge} from "@/ui/components/Icon.tsx"
 import {SnapCenter} from "@/ui/configs.ts"
 import {BoxEditing} from "@opendaw/lib-box"
 import {Html} from "@opendaw/lib-dom"
-import {Colors} from "@opendaw/studio-adapters"
+import {Colors} from "@opendaw/studio-enums"
 
 const className = Html.adoptStyleSheet(css, "AuxSend")
 

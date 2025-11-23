@@ -8,7 +8,7 @@ import {installCursor} from "@/ui/hooks/cursor.ts"
 import {TimelineRange} from "@opendaw/studio-core"
 import {Snapping} from "@/ui/timeline/Snapping.ts"
 import {LoopArea} from "@opendaw/studio-boxes"
-import {Colors} from "@opendaw/studio-adapters"
+import {Colors} from "@opendaw/studio-enums"
 
 const className = Html.adoptStyleSheet(css, "loop-area-editor")
 

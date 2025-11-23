@@ -5,7 +5,7 @@ import type {StudioService} from "@/service/StudioService.ts"
 import {GraphData} from "./graph-runtime"
 import {ThreeDots} from "@/ui/spinner/ThreeDots"
 import {UUID} from "@opendaw/lib-std"
-import {Colors} from "@opendaw/studio-adapters"
+import {Colors} from "@opendaw/studio-enums"
 import {RootBox} from "@opendaw/studio-boxes"
 
 const className = Html.adoptStyleSheet(css, "GraphPage")

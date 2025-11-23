@@ -5,7 +5,7 @@ import {ValueDragging} from "@/ui/hooks/dragging.ts"
 import {ValueTooltip} from "@/ui/surface/ValueTooltip.tsx"
 import {BoxEditing} from "@opendaw/lib-box"
 import {CssUtils, Html} from "@opendaw/lib-dom"
-import {Colors} from "@opendaw/studio-adapters"
+import {Colors} from "@opendaw/studio-enums"
 
 const className = Html.adoptStyleSheet(css, "vertical-slider")
 

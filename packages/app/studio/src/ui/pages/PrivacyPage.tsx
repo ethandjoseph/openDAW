@@ -2,7 +2,7 @@ import css from "./PrivacyPage.sass?inline"
 import {createElement, PageContext, PageFactory} from "@opendaw/lib-jsx"
 import {StudioService} from "@/service/StudioService.ts"
 import {Html} from "@opendaw/lib-dom"
-import {Colors} from "@opendaw/studio-adapters"
+import {Colors} from "@opendaw/studio-enums"
 
 const className = Html.adoptStyleSheet(css, "PrivacyPage")
 

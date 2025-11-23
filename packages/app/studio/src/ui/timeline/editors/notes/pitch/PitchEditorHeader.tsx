@@ -15,7 +15,7 @@ import {BoxEditing} from "@opendaw/lib-box"
 import {ObservableModifyContext} from "@/ui/timeline/ObservableModifyContext.ts"
 import {NoteModifier} from "@/ui/timeline/editors/notes/NoteModifier.ts"
 import {Html} from "@opendaw/lib-dom"
-import {Colors} from "@opendaw/studio-adapters"
+import {Colors} from "@opendaw/studio-enums"
 
 const className = Html.adoptStyleSheet(css, "PitchEditorHeader")
 

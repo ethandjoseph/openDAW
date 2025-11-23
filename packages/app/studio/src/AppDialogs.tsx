@@ -3,7 +3,7 @@ import {IconSymbol} from "@opendaw/studio-enums"
 import {Surface} from "@/ui/surface/Surface"
 import {Promises} from "@opendaw/lib-runtime"
 import {createElement} from "@opendaw/lib-jsx"
-import {Colors} from "@opendaw/studio-adapters"
+import {Colors} from "@opendaw/studio-enums"
 
 export const showStoragePersistDialog = (): Promise<void> => {
     const {resolve, promise} = Promise.withResolvers<void>()

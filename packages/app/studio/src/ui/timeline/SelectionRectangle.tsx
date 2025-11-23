@@ -5,7 +5,7 @@ import {BoxEditing} from "@opendaw/lib-box"
 import {TimelineSelectableLocator} from "@/ui/timeline/TimelineSelectableLocator.ts"
 import {Dragging, Html, PointerCaptureTarget} from "@opendaw/lib-dom"
 import {BoxAdapter} from "@opendaw/studio-adapters"
-import {Colors} from "@opendaw/studio-adapters"
+import {Colors} from "@opendaw/studio-enums"
 
 const className = Html.adoptStyleSheet(css, "SelectionRectangle")
 

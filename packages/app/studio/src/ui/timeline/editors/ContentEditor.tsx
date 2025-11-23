@@ -15,7 +15,6 @@ import {NoteEditor} from "@/ui/timeline/editors/notes/NoteEditor.tsx"
 import {
     AudioClipBoxAdapter,
     AudioRegionBoxAdapter,
-    Colors,
     NoteClipBoxAdapter,
     NoteRegionBoxAdapter,
     ValueClipBoxAdapter,
@@ -44,7 +43,7 @@ import {
     ValueEventOwnerReader
 } from "@/ui/timeline/editors/EventOwnerReader.ts"
 import {RegionReader} from "@/ui/timeline/editors/RegionReader.ts"
-import {Pointers} from "@opendaw/studio-enums"
+import {Colors, Pointers} from "@opendaw/studio-enums"
 import {ValueEditingContext} from "@/ui/timeline/editors/value/ValueEditingContext.ts"
 import {AnimationFrame, Events, Html, Keyboard} from "@opendaw/lib-dom"
 

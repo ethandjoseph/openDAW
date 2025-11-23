@@ -12,7 +12,7 @@ import {StudioService} from "@/service/StudioService.ts"
 import {Cover} from "./Cover"
 import {Events, Html} from "@opendaw/lib-dom"
 import {Button} from "@/ui/components/Button"
-import {Colors} from "@opendaw/studio-adapters"
+import {Colors} from "@opendaw/studio-enums"
 import {PublishMusic} from "@/ui/info-panel/PublishMusic"
 import {Promises} from "@opendaw/lib-runtime"
 

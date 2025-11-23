@@ -1,5 +1,4 @@
-import {AudioUnitType} from "@opendaw/studio-enums"
-import {Colors} from "./Colors"
+import {AudioUnitType, Colors} from "@opendaw/studio-enums"
 import {TrackType} from "../timeline/TrackType"
 
 export namespace ColorCodes {

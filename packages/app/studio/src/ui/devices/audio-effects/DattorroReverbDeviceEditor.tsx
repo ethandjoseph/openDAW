@@ -1,10 +1,5 @@
 import css from "./DattorroReverbDeviceEditor.sass?inline"
-import {
-    AutomatableParameterFieldAdapter,
-    Colors,
-    DattorroReverbDeviceBoxAdapter,
-    DeviceHost
-} from "@opendaw/studio-adapters"
+import {AutomatableParameterFieldAdapter, DattorroReverbDeviceBoxAdapter, DeviceHost} from "@opendaw/studio-adapters"
 import {int, Lifecycle} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {DeviceEditor} from "@/ui/devices/DeviceEditor.tsx"
@@ -16,6 +11,7 @@ import {StudioService} from "@/service/StudioService"
 import {EffectFactories} from "@opendaw/studio-core"
 import {ControlGroup} from "@/ui/devices/ControlGroup"
 import {Display} from "@/ui/devices/audio-effects/DattorroReverb/Display"
+import {Colors} from "@opendaw/studio-enums"
 
 const className = Html.adoptStyleSheet(css, "DattorroReverbDeviceEditor")
 

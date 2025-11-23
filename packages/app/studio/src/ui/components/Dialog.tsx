@@ -5,7 +5,7 @@ import {Button} from "@/ui/components/Button.tsx"
 import {Icon} from "@/ui/components/Icon.tsx"
 import {IconSymbol} from "@opendaw/studio-enums"
 import {Events, Html} from "@opendaw/lib-dom"
-import {Colors} from "@opendaw/studio-adapters"
+import {Colors} from "@opendaw/studio-enums"
 
 const className = Html.adoptStyleSheet(css, "Dialog")
 

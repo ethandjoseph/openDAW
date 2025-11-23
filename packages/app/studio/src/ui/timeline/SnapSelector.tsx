@@ -6,7 +6,7 @@ import {Icon} from "@/ui/components/Icon.tsx"
 import {createElement, Inject} from "@opendaw/lib-jsx"
 import {IconSymbol} from "@opendaw/studio-enums"
 import {Html} from "@opendaw/lib-dom"
-import {Colors} from "@opendaw/studio-adapters"
+import {Colors} from "@opendaw/studio-enums"
 
 const className = Html.adoptStyleSheet(css, "SnapSelector")
 

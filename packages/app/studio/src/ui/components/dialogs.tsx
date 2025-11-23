@@ -18,7 +18,7 @@ import {Box, BoxGraph} from "@opendaw/lib-box"
 import {BoxDebugView} from "./BoxDebugView"
 import {BoxesDebugView} from "@/ui/components/BoxesDebugView.tsx"
 import {ProgressBar} from "@/ui/components/ProgressBar.tsx"
-import {Colors} from "@opendaw/studio-adapters"
+import {Colors} from "@opendaw/studio-enums"
 import {Browser} from "@opendaw/lib-dom"
 
 export namespace Dialogs {
