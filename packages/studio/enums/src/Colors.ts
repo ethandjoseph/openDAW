@@ -23,7 +23,6 @@ export const Colors = {
 export const initializeColors = (root: { style: { setProperty: (name: string, value: string) => void } }) => {
     Object.entries(Colors).forEach(([name, value]) => {
         const cssName = name.replace(/([A-Z])/g, "-$1").toLowerCase()
-        console.debug(`--color-${cssName}`, value)
         root.style.setProperty(`--color-${cssName}`, value.toString())
     })
 }
