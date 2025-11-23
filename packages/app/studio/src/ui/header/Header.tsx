@@ -13,7 +13,7 @@ import {IconSymbol} from "@opendaw/studio-enums"
 import {Html} from "@opendaw/lib-dom"
 import {MenuItem} from "@/ui/model/menu-item"
 import {MidiDevices} from "@opendaw/studio-core"
-import {Colors} from "@opendaw/studio-adapters"
+import {Colors} from "@opendaw/studio-enums"
 import {Manual, Manuals} from "@/ui/pages/Manuals"
 import {HorizontalPeakMeter} from "@/ui/components/HorizontalPeakMeter"
 import {Address} from "@opendaw/lib-box"
@@ -138,30 +138,32 @@ export const Header = ({lifecycle, service}: Construct) => {
                 <HorizontalPeakMeter lifecycle={lifecycle} peaksInDb={peaksInDb} width="4em"/>
             </div>
             <hr/>
-            <RadioGroup lifecycle={lifecycle}
-                        model={new class implements ObservableValue<Nullable<Workspace.ScreenKeys>> {
-                            setValue(value: Nullable<Workspace.ScreenKeys>): void {
-                                if (service.hasProfile) {service.switchScreen(value)}
-                            }
-                            getValue(): Nullable<Workspace.ScreenKeys> {
-                                return service.layout.screen.getValue()
-                            }
-                            subscribe(observer: Observer<ObservableValue<Nullable<Workspace.ScreenKeys>>>): Subscription {
-                                return service.layout.screen.subscribe(observer)
-                            }
-                            catchupAndSubscribe(observer: Observer<ObservableValue<Nullable<Workspace.ScreenKeys>>>): Subscription {
-                                observer(this)
-                                return this.subscribe(observer)
-                            }
-                        }}
-                        elements={Object.entries(Workspace.Default)
-                            .filter(([_, {hidden}]: [string, Workspace.Screen]) => hidden !== true)
-                            .map(([key, {icon: iconSymbol, name}]) => ({
-                                value: key,
-                                element: <Icon symbol={iconSymbol}/>,
-                                tooltip: name
-                            }))}
-                        appearance={{framed: true, landscape: true}}/>
+            <div className="panel-selector">
+                <RadioGroup lifecycle={lifecycle}
+                            model={new class implements ObservableValue<Nullable<Workspace.ScreenKeys>> {
+                                setValue(value: Nullable<Workspace.ScreenKeys>): void {
+                                    if (service.hasProfile) {service.switchScreen(value)}
+                                }
+                                getValue(): Nullable<Workspace.ScreenKeys> {
+                                    return service.layout.screen.getValue()
+                                }
+                                subscribe(observer: Observer<ObservableValue<Nullable<Workspace.ScreenKeys>>>): Subscription {
+                                    return service.layout.screen.subscribe(observer)
+                                }
+                                catchupAndSubscribe(observer: Observer<ObservableValue<Nullable<Workspace.ScreenKeys>>>): Subscription {
+                                    observer(this)
+                                    return this.subscribe(observer)
+                                }
+                            }}
+                            elements={Object.entries(Workspace.Default)
+                                .filter(([_, {hidden}]: [string, Workspace.Screen]) => hidden !== true)
+                                .map(([key, {icon: iconSymbol, name}]) => ({
+                                    value: key,
+                                    element: <Icon symbol={iconSymbol}/>,
+                                    tooltip: name
+                                }))}
+                            appearance={{framed: true, landscape: true}}/>
+            </div>
         </header>
     )
 }

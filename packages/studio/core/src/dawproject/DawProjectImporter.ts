@@ -266,7 +266,7 @@ export namespace DawProjectImport {
                 box.collection.refer(rootBox.audioBusses)
                 box.label.setValue(track.name ?? "")
                 box.icon.setValue(IconSymbol.toName(icon))
-                box.color.setValue(ColorCodes.forAudioType(type))
+                box.color.setValue(ColorCodes.forAudioType(type).toString())
                 box.enabled.setValue(true)
                 box.output.refer(audioUnitBox.input)
             })

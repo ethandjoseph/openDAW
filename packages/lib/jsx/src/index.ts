@@ -10,6 +10,7 @@ if ((globalThis as any)[key]) {
 export * from "./types"
 export * from "./create-element"
 export * from "./inject"
+export * from "./linkify"
 export * from "./routes"
 export * from "./std/Await"
 export * from "./std/Frag"

@@ -1,4 +1,4 @@
-import {asDefined, Exec, isDefined, MutableObservableValue, Option, panic, unitValue, UUID} from "@opendaw/lib-std"
+import {asDefined, Exec, isDefined, Option, panic, Progress, UUID} from "@opendaw/lib-std"
 import {AudioFileBox, SoundfontFileBox} from "@opendaw/studio-boxes"
 import {SampleLoader, SoundfontLoader} from "@opendaw/studio-adapters"
 import {Project} from "./Project"
@@ -13,7 +13,7 @@ import {ExternalLib} from "../ExternalLib"
 
 export namespace ProjectBundle {
     export const encode = async ({uuid, project, meta, cover}: ProjectProfile,
-                                 progress: MutableObservableValue<unitValue>): Promise<ArrayBuffer> => {
+                                 progress: Progress.Handler): Promise<ArrayBuffer> => {
         const JSZip = await ExternalLib.JSZip()
         const zip = new JSZip()
         zip.file("version", "1")
@@ -32,7 +32,7 @@ export namespace ProjectBundle {
                     const folder = asDefined(samples.folder(UUID.toString(uuid)),
                         "Could not create folder for sample")
                     return pipeSampleLoaderInto(loader, folder)
-                        .then(() => progress.setValue(index / audioFileBoxes.length * 0.75))
+                        .then(() => progress(index / audioFileBoxes.length * 0.75))
                 }),
             ...soundfontFileBoxes
                 .map(async ({address: {uuid}}, index) => {
@@ -40,14 +40,14 @@ export namespace ProjectBundle {
                     const folder = asDefined(soundfonts.folder(UUID.toString(uuid)),
                         "Could not create folder for soundfont")
                     return pipeSoundfontLoaderInto(loader, folder)
-                        .then(() => progress.setValue(index / soundfontFileBoxes.length * 0.75))
+                        .then(() => progress(index / soundfontFileBoxes.length * 0.75))
                 })
         ]).then(() => zip.generateAsync({
             type: "blob",
             compression: "DEFLATE",
             compressionOptions: {level: 6}
         }))
-        progress.setValue(1.0)
+        progress(1.0)
         return blob.arrayBuffer()
     }
 

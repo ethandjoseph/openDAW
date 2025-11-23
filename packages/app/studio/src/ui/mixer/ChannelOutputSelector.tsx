@@ -1,7 +1,7 @@
 import css from "./OutputSelector.sass?inline"
 import {assert, DefaultObservableValue, Lifecycle, StringComparator, UUID} from "@opendaw/lib-std"
-import {AudioBusFactory, AudioUnitBoxAdapter, Colors} from "@opendaw/studio-adapters"
-import {AudioUnitType, IconSymbol} from "@opendaw/studio-enums"
+import {AudioBusFactory, AudioUnitBoxAdapter} from "@opendaw/studio-adapters"
+import {AudioUnitType, Colors, IconSymbol} from "@opendaw/studio-enums"
 import {createElement, DomElement, Frag} from "@opendaw/lib-jsx"
 import {IconCartridge} from "@/ui/components/Icon.tsx"
 import {Html} from "@opendaw/lib-dom"
@@ -22,13 +22,15 @@ export const ChannelOutputSelector = ({lifecycle, project, adapter}: Construct) 
     const label: HTMLElement = (<div className="label"/>)
     const symbol = lifecycle.own(new DefaultObservableValue(IconSymbol.NoAudio))
     const iconCartridge: DomElement = (
-        <IconCartridge lifecycle={lifecycle} symbol={symbol} style={{fontSize: "1.25em", color: Colors.red}}/>
+        <IconCartridge lifecycle={lifecycle}
+                       symbol={symbol}
+                       style={{fontSize: "1.25em", color: Colors.red.toString()}}/>
     )
     lifecycle.own(adapter.output.catchupAndSubscribe(adapter => {
         adapter.match({
             none: () => {
                 label.textContent = "No Output"
-                iconCartridge.style.color = Colors.red
+                iconCartridge.style.color = Colors.red.toString()
                 symbol.setValue(IconSymbol.NoAudio)
             },
             some: (adapter) => {

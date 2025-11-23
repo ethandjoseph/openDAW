@@ -2,7 +2,7 @@ import css from "./PeakMeter.sass?inline"
 import {Arrays, int, Lifecycle, Terminator, ValueMapping} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {AnimationFrame, Html} from "@opendaw/lib-dom"
-import {Colors} from "@opendaw/studio-adapters"
+import {Colors} from "@opendaw/studio-enums"
 
 const className = Html.adoptStyleSheet(css, "peak-meter")
 

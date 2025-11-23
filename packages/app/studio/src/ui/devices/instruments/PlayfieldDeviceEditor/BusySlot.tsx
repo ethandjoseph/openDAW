@@ -27,7 +27,7 @@ import {SlotDragAndDrop} from "@/ui/devices/instruments/PlayfieldDeviceEditor/Sl
 import {NoteLabel} from "@/ui/devices/instruments/PlayfieldDeviceEditor/NoteLabel"
 import {DebugMenus} from "@/ui/menu/debug"
 import {TextTooltip} from "@/ui/surface/TextTooltip"
-import {Colors} from "@opendaw/studio-adapters"
+import {Colors} from "@opendaw/studio-enums"
 
 const className = Html.adoptStyleSheet(css, "BusySlot")
 

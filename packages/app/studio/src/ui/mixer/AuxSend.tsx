@@ -2,7 +2,7 @@ import css from "./AuxSend.sass?inline"
 import {DefaultObservableValue, Lifecycle} from "@opendaw/lib-std"
 import {createElement, DomElement, Inject} from "@opendaw/lib-jsx"
 import {AuxSendBoxAdapter} from "@opendaw/studio-adapters"
-import {IconSymbol} from "@opendaw/studio-enums"
+import {Colors, IconSymbol} from "@opendaw/studio-enums"
 import {Knob, TinyDesign} from "@/ui/components/Knob.tsx"
 import {RelativeUnitValueDragging} from "@/ui/wrapper/RelativeUnitValueDragging.tsx"
 import {MenuItem} from "@/ui/model/menu-item.ts"
@@ -11,7 +11,6 @@ import {IconCartridge} from "@/ui/components/Icon.tsx"
 import {SnapCenter} from "@/ui/configs.ts"
 import {BoxEditing} from "@opendaw/lib-box"
 import {Html} from "@opendaw/lib-dom"
-import {Colors} from "@opendaw/studio-adapters"
 
 const className = Html.adoptStyleSheet(css, "AuxSend")
 
@@ -32,7 +31,7 @@ export const AuxSend = ({lifecycle, editing, adapter}: Construct) => {
         adapter.match({
             none: () => {
                 tooltip.value = "No Target"
-                iconCartridge.style.color = Colors.red
+                iconCartridge.style.color = Colors.red.toString()
                 symbol.setValue(IconSymbol.NoAudio)
             },
             some: (adapter) => {

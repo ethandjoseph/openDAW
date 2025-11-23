@@ -5,7 +5,7 @@ import {StudioService} from "@/service/StudioService.ts"
 import {Html} from "@opendaw/lib-dom"
 import {ProjectBrowser} from "@/project/ProjectBrowser"
 import {Dialogs} from "@/ui/components/dialogs"
-import {Colors} from "@opendaw/studio-adapters"
+import {Colors} from "@opendaw/studio-enums"
 import {RadioGroup} from "@/ui/components/RadioGroup"
 import {SampleBrowser} from "@/ui/browse/SampleBrowser"
 import {SoundfontBrowser} from "@/ui/browse/SoundfontBrowser"
@@ -31,7 +31,7 @@ export const Dashboard = ({lifecycle, service}: Construct) => {
                 </p>
                 <div className="columns">
                     <div>
-                        <h3 style={{color: Colors.orange}}>Templates</h3>
+                        <h3 style={{color: Colors.orange.toString()}}>Templates</h3>
                         <div className="starters">
                             {[
                                 {name: "New", click: () => service.newProject()},

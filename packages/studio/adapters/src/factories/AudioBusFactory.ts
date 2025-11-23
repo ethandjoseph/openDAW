@@ -1,6 +1,6 @@
 import {AudioUnitType, IconSymbol} from "@opendaw/studio-enums"
 import {AudioBusBox, TrackBox} from "@opendaw/studio-boxes"
-import {assert, Option, UUID} from "@opendaw/lib-std"
+import {assert, Color, Option, UUID} from "@opendaw/lib-std"
 import {AudioUnitFactory} from "./AudioUnitFactory"
 import {TrackType} from "../timeline/TrackType"
 import {ProjectSkeleton} from "../project/ProjectSkeleton"
@@ -10,7 +10,7 @@ export namespace AudioBusFactory {
                            name: string,
                            icon: IconSymbol,
                            type: AudioUnitType,
-                           color: string): AudioBusBox => {
+                           color: Color): AudioBusBox => {
         console.debug(`createAudioBus '${name}', type: ${type}, color: ${color}`)
         const {boxGraph, mandatoryBoxes: {rootBox}} = skeleton
         assert(rootBox.isAttached(), "rootBox not attached")
@@ -19,7 +19,7 @@ export namespace AudioBusFactory {
             box.collection.refer(rootBox.audioBusses)
             box.label.setValue(name)
             box.icon.setValue(IconSymbol.toName(icon))
-            box.color.setValue(color)
+            box.color.setValue(color.toString())
         })
         const audioUnitBox = AudioUnitFactory.create(skeleton, type, Option.None)
         TrackBox.create(boxGraph, UUID.generate(), box => {

@@ -15,7 +15,7 @@ import {ConnectorViewAdapter, ModularEnvironment, WiringPreview} from "@/ui/modu
 import {ModuleAdapter, ModuleConnectionAdapter, ModuleConnectorAdapter} from "@opendaw/studio-adapters"
 import {Camera} from "@/ui/modular/Camera.ts"
 import {AnimationFrame, deferNextFrame, Html} from "@opendaw/lib-dom"
-import {Colors} from "@opendaw/studio-adapters"
+import {Colors} from "@opendaw/studio-enums"
 
 const className = Html.adoptStyleSheet(css, "ModularWires")
 

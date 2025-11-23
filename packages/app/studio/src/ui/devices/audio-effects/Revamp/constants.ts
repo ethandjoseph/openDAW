@@ -1,6 +1,6 @@
 import {LinearScale, LogScale} from "@/ui/canvas/scale.ts"
 import {BiquadCoeff} from "@opendaw/lib-dsp"
-import {Arrays, ValueGuide, ValueMapping} from "@opendaw/lib-std"
+import {Arrays, Color, ValueGuide, ValueMapping} from "@opendaw/lib-std"
 import {ColorSet} from "./Curves.ts"
 import {IconSymbol} from "@opendaw/studio-enums"
 
@@ -17,14 +17,12 @@ export const symbols = [
 export const curveSampleRate = 96_000
 const hue = ValueMapping.linear(10.0, 330.0)
 export const ColorSets: ReadonlyArray<ColorSet> = Arrays.create(index => {
-    const h = hue.y(index / 7)
-    const s = "90%"
-    const l = "66%"
+    const color = new Color(hue.y(index / 7), 90, 66)
     return {
-        full: `hsl(${h}, ${s}, ${l})`,
-        line: `hsla(${h}, ${s}, ${l}, 0.08)`,
-        min: `hsla(${h}, ${s}, ${l}, 0.01)`,
-        max: `hsla(${h}, ${s}, ${l}, 0.30)`
+        full: color,
+        line: color.opacity(0.08),
+        min: color.opacity(0.01),
+        max: color.opacity(0.30)
     }
 }, 7)
 export const biquad = new BiquadCoeff()

@@ -3,7 +3,7 @@ import {createElement} from "@opendaw/lib-jsx"
 import {Exec, isDefined, Lifecycle} from "@opendaw/lib-std"
 import {Icon} from "../components/Icon"
 import {Soundfont} from "@opendaw/studio-adapters"
-import {IconSymbol} from "@opendaw/studio-enums"
+import {Colors, IconSymbol} from "@opendaw/studio-enums"
 import {AssetLocation} from "@/ui/browse/AssetLocation"
 import {Button} from "../components/Button"
 import {ContextMenu} from "@/ui/ContextMenu"
@@ -38,7 +38,7 @@ export const SoundfontView = ({
                               }: Construct) => {
     const {name, size} = soundfont
     const deleteButton: Element = (
-        <Button lifecycle={lifecycle} appearance={{activeColor: "white"}}
+        <Button lifecycle={lifecycle} appearance={{activeColor: Colors.white}}
                 onClick={async (event) => {
                     event.stopPropagation()
                     await soundfontSelection.deleteSoundfonts(soundfont)

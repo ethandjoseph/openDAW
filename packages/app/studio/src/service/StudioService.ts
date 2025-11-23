@@ -325,6 +325,7 @@ export class StudioService implements ProjectEnv {
             const isRoot = path === "/"
             if (isRoot) {this.layout.screen.setValue(null)}
             lifeTime.terminate()
+            document.body.classList.toggle("no-project", optProfile.isEmpty())
             if (optProfile.nonEmpty()) {
                 const profile = optProfile.unwrap()
                 const {project, meta} = profile
@@ -450,5 +451,7 @@ export class StudioService implements ProjectEnv {
     #listenPreferences(): void {
         Preferences.catchupAndSubscribe(value =>
             Dragging.usePointerLock = value && Browser.isChrome(), "dragging-use-pointer-lock")
+        Preferences.catchupAndSubscribe(value =>
+            document.body.classList.toggle("beta-visible", value), "enable-beta-features")
     }
 }

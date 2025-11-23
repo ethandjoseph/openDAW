@@ -7,6 +7,7 @@ const PreferencesSchema = z.object({
     "footer-show-fps-meter": z.boolean().default(false),
     "footer-show-build-infos": z.boolean().default(false),
     "dragging-use-pointer-lock": z.boolean().default(false),
+    "enable-beta-features": z.boolean().default(false),
 })
 
 export type Preferences = z.infer<typeof PreferencesSchema>

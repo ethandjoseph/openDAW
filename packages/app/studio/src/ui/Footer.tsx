@@ -7,7 +7,7 @@ import {AnimationFrame, Events, Html} from "@opendaw/lib-dom"
 import {Runtime} from "@opendaw/lib-runtime"
 import {FooterLabel} from "@/service/FooterLabel"
 import {Preferences, ProjectMeta} from "@opendaw/studio-core"
-import {Colors} from "@opendaw/studio-adapters"
+import {Colors} from "@opendaw/studio-enums"
 import {UserCounter} from "@/UserCounter"
 
 const className = Html.adoptStyleSheet(css, "footer")
@@ -127,7 +127,7 @@ export const Footer = ({lifecycle, service}: Construct) => {
                      } satisfies FooterLabel
                  })}/>
             <div style={{flex: "1"}}/>
-            <div style={{color: Colors.cream}}>
+            <div style={{color: Colors.cream.toString()}}>
                 <LocalLink href="/privacy">Privacy</LocalLink> · <LocalLink href="/imprint">Imprint</LocalLink>
             </div>
         </footer>

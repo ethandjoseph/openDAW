@@ -4,7 +4,7 @@ import {createElement, Group, JsxValue} from "@opendaw/lib-jsx"
 import {Icon} from "@/ui/components/Icon.tsx"
 import {MenuButton} from "@/ui/components/MenuButton.tsx"
 import {MenuItem} from "@/ui/model/menu-item"
-import {Colors, DeviceBoxAdapter, DeviceType, EffectDeviceBoxAdapter} from "@opendaw/studio-adapters"
+import {DeviceBoxAdapter, DeviceType, EffectDeviceBoxAdapter} from "@opendaw/studio-adapters"
 import {DebugMenus} from "@/ui/menu/debug.ts"
 import {DragDevice} from "@/ui/AnyDragData"
 import {DragAndDrop} from "@/ui/DragAndDrop"
@@ -12,7 +12,7 @@ import {Events, Html} from "@opendaw/lib-dom"
 import {TextScroller} from "@/ui/TextScroller"
 import {StringField} from "@opendaw/lib-box"
 import {Project} from "@opendaw/studio-core"
-import {IconSymbol} from "@opendaw/studio-enums"
+import {Colors, IconSymbol} from "@opendaw/studio-enums"
 
 const className = Html.adoptStyleSheet(css, "DeviceEditor")
 
@@ -73,7 +73,7 @@ export const DeviceEditor =
                             start_index: effect.indexField.getValue()
                         } satisfies DragDevice), element))
                     }
-                }} style={{color}}>
+                }} style={{color: color.toString()}}>
                     <div className="icon">
                         <Icon symbol={icon}/>
                     </div>

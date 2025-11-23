@@ -1,4 +1,4 @@
-import {Arrays, Option, Procedure, Terminable} from "@opendaw/lib-std"
+import {Arrays, Color, Option, Procedure, Terminable} from "@opendaw/lib-std"
 
 import {IconSymbol} from "@opendaw/studio-enums"
 
@@ -22,7 +22,7 @@ export type HeaderMenuData = {
     type: "header"
     label: string
     icon: IconSymbol
-    color?: string
+    color?: Color
 }
 
 export type MenuRootData = typeof Root

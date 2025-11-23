@@ -84,6 +84,12 @@ export class ProjectProfile {
 
     updateModifyDate(): void {this.meta.modified = new Date().toISOString()}
 
+    copyForUpload(): ProjectProfile {
+        const meta = ProjectMeta.copy(this.meta)
+        delete meta.radioToken // we do not expose this
+        return new ProjectProfile(this.uuid, this.project, meta, this.cover)
+    }
+
     toString(): string {
         return `{uuid: ${UUID.toString(this.uuid)}, meta: ${JSON.stringify(this.meta)}}`
     }

@@ -14,6 +14,7 @@ import {ErrorsPage} from "@/ui/pages/ErrorsPage.tsx"
 import {ImprintPage} from "@/ui/pages/ImprintPage.tsx"
 import {GraphPage} from "@/ui/pages/GraphPage"
 import {CodeEditorPage} from "@/ui/pages/CodeEditorPage"
+import {OpenBundlePage} from "@/ui/pages/OpenBundlePage"
 
 export const App = (service: StudioService) => {
     const terminator = new Terminator()
@@ -40,7 +41,8 @@ export const App = (service: StudioService) => {
                     {path: "/errors", factory: ErrorsPage},
                     {path: "/upload", factory: SampleUploadPage},
                     {path: "/colors", factory: ColorsPage},
-                    {path: "/graph", factory: GraphPage}
+                    {path: "/graph", factory: GraphPage},
+                    {path: "/open-bundle/*", factory: OpenBundlePage}
                 ]}
             />
             <Footer lifecycle={terminator} service={service}/>

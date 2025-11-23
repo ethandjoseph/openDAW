@@ -1,7 +1,7 @@
 import css from "./ChannelStrip.sass?inline"
 import {EmptyExec, Lifecycle, Terminable, UUID} from "@opendaw/lib-std"
-import {AudioUnitBoxAdapter, ColorCodes, Colors} from "@opendaw/studio-adapters"
-import {AudioUnitType, IconSymbol} from "@opendaw/studio-enums"
+import {AudioUnitBoxAdapter, ColorCodes} from "@opendaw/studio-adapters"
+import {AudioUnitType, Colors, IconSymbol} from "@opendaw/studio-enums"
 import {createElement, DomElement, Frag, Inject} from "@opendaw/lib-jsx"
 import {VolumeSlider} from "@/ui/components/VolumeSlider.tsx"
 import {PeakMeter} from "@/ui/components/PeakMeter.tsx"
@@ -110,7 +110,7 @@ export const ChannelStrip = ({lifecycle, service, adapter, compact}: Construct) 
                            justifySelf: "center",
                            marginTop: "0.5em",
                            marginBottom: "0.5em",
-                           color: ColorCodes.forAudioType(adapter.type)
+                           color: ColorCodes.forAudioType(adapter.type).toString()
                        }}/>
     </div>
     const classList = Html.buildClassList(className,

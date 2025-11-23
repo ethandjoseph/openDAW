@@ -1,5 +1,5 @@
 import css from "./FoldDeviceEditor.sass?inline"
-import {Colors, DeviceHost, FoldDeviceBoxAdapter} from "@opendaw/studio-adapters"
+import {DeviceHost, FoldDeviceBoxAdapter} from "@opendaw/studio-adapters"
 import {Lifecycle, TAU} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {DeviceEditor} from "@/ui/devices/DeviceEditor.tsx"
@@ -14,6 +14,7 @@ import {ControlBuilder} from "@/ui/devices/ControlBuilder"
 import {RadioGroup} from "@/ui/components/RadioGroup"
 import {EditWrapper} from "@/ui/wrapper/EditWrapper"
 import {DisplayPaint} from "@/ui/devices/DisplayPaint"
+import {Colors} from "@opendaw/studio-enums"
 
 const className = Html.adoptStyleSheet(css, "FoldDeviceEditor")
 
@@ -60,7 +61,7 @@ export const FoldDeviceEditor = ({lifecycle, service, adapter, deviceHost}: Cons
                                       context.beginPath()
                                       context.moveTo(0, toY(0.0))
                                       context.lineTo(w, toY(0.0))
-                                      context.strokeStyle = Colors.shadow
+                                      context.strokeStyle = Colors.shadow.toString()
                                       context.stroke()
                                       context.beginPath()
                                       context.moveTo(0, toY(0.0))

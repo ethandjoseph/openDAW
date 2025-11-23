@@ -3,8 +3,8 @@ import {Html} from "@opendaw/lib-dom"
 import {createElement, Frag} from "@opendaw/lib-jsx"
 import {Checkbox} from "@/ui/components/Checkbox"
 import {DefaultObservableValue, Lifecycle} from "@opendaw/lib-std"
-import {ColorCodes, Colors, ExportStemsConfiguration} from "@opendaw/studio-adapters"
-import {AudioUnitType, IconSymbol} from "@opendaw/studio-enums"
+import {ColorCodes, ExportStemsConfiguration} from "@opendaw/studio-adapters"
+import {AudioUnitType, Colors, IconSymbol} from "@opendaw/studio-enums"
 import {Icon} from "@/ui/components/Icon"
 import {TextInput} from "@/ui/components/TextInput"
 
@@ -32,19 +32,19 @@ export const ExportStemsConfigurator = ({lifecycle, configuration}: Construct) =
                 <Checkbox lifecycle={lifecycle}
                           model={includeAll}
                           appearance={{activeColor: Colors.cream, cursor: "pointer"}}>
-                    <span style={{color: Colors.gray}}>Export</span>
+                    <span style={{color: Colors.gray.toString()}}>Export</span>
                     <Icon symbol={IconSymbol.Checkbox}/>
                 </Checkbox>
                 <Checkbox lifecycle={lifecycle}
                           model={includeAudioEffectsAll}
                           appearance={{activeColor: Colors.blue, cursor: "pointer"}}>
-                    <span style={{color: Colors.gray}}>Audio FX</span>
+                    <span style={{color: Colors.gray.toString()}}>Audio FX</span>
                     <Icon symbol={IconSymbol.Checkbox}/>
                 </Checkbox>
                 <Checkbox lifecycle={lifecycle}
                           model={includeSendsAll}
                           appearance={{activeColor: ColorCodes.forAudioType(AudioUnitType.Aux), cursor: "pointer"}}>
-                    <span style={{color: Colors.gray}}>Send FX</span>
+                    <span style={{color: Colors.gray.toString()}}>Send FX</span>
                     <Icon symbol={IconSymbol.Checkbox}/>
                 </Checkbox>
                 <div>File Name</div>
@@ -66,7 +66,8 @@ export const ExportStemsConfigurator = ({lifecycle, configuration}: Construct) =
                     )
                     return (
                         <Frag>
-                            <div className="name" style={{color: ColorCodes.forAudioType(stem.type)}}>{stem.label}</div>
+                            <div className="name"
+                                 style={{color: ColorCodes.forAudioType(stem.type).toString()}}>{stem.label}</div>
                             <Checkbox lifecycle={lifecycle}
                                       model={include}
                                       appearance={{activeColor: Colors.cream}}>

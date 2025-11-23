@@ -13,12 +13,11 @@ import {
     Terminator
 } from "@opendaw/lib-std"
 import {Surface} from "@/ui/surface/Surface.tsx"
-import {IconSymbol} from "@opendaw/studio-enums"
+import {Colors, IconSymbol} from "@opendaw/studio-enums"
 import {Box, BoxGraph} from "@opendaw/lib-box"
 import {BoxDebugView} from "./BoxDebugView"
 import {BoxesDebugView} from "@/ui/components/BoxesDebugView.tsx"
 import {ProgressBar} from "@/ui/components/ProgressBar.tsx"
-import {Colors} from "@opendaw/studio-adapters"
 import {Browser} from "@opendaw/lib-dom"
 
 export namespace Dialogs {
@@ -69,7 +68,7 @@ export namespace Dialogs {
                     cancelable={cancelable !== false}
                     buttons={actualButtons}
                     growWidth={growWidth}>
-                <div style={{padding: "1em 0", color: Colors.dark}}>{content}</div>
+                <div style={{padding: "1em 0", color: Colors.dark.toString()}}>{content}</div>
             </Dialog>
         )
         Surface.get(origin).body.appendChild(dialog)
@@ -294,13 +293,13 @@ export namespace Dialogs {
                     <h3>{name}</h3>
                     <p>{message}</p>
                     {probablyHasExtension && (
-                        <p style={{color: Colors.red}}>
+                        <p style={{color: Colors.red.toString()}}>
                             Something extra is running! A browser extension might be causing issues. Disable
                             extensions for this site.
                         </p>
                     )}
                     <p style={{
-                        color: Colors.shadow,
+                        color: Colors.shadow.toString(),
                         fontWeight: "bolder"
                     }}>Please report (opens in new tab) and then recover. Thanks!</p>
                 </div>
@@ -323,7 +322,8 @@ export namespace Dialogs {
                 <div style={{padding: "1em 0", maxWidth: "50vw"}}>
                     <p>Please reload. If this message reappears clear your browsers cache.</p>
                     {document.scripts.length > 1 &&
-                        <p style={{color: Colors.red, fontWeight: "bolder"}}>Browser extensions detected! Please disable
+                        <p style={{color: Colors.red.toString(), fontWeight: "bolder"}}>Browser extensions detected!
+                            Please disable
                             before reload!</p>}
                 </div>
             </Dialog>

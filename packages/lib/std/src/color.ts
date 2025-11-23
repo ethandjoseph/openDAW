@@ -1,9 +1,9 @@
 import {isDefined, unitValue} from "./lang"
 
-export namespace Color {
-    export type RGBA = [unitValue, unitValue, unitValue, unitValue]
+export type RGBA = [unitValue, unitValue, unitValue, unitValue]
 
-    export const parseCssRgbOrRgba = (color: string): RGBA => {
+export class Color {
+    static parseCssRgbOrRgba(color: string): RGBA {
         const colorValues = color.match(/\(([^)]+)\)/)?.at(1)?.split(",")?.map(Number)
         if (isDefined(colorValues) && colorValues.every(value => !isNaN(value))) {
             if (colorValues.length === 3) {
@@ -33,7 +33,7 @@ export namespace Color {
      * @param l - Lightness as a unit value (0–1).
      * @returns The color in `#rrggbb` format.
      */
-    export const hslToHex = (h: number, s: unitValue, l: unitValue): string => {
+    static hslToHex(h: number, s: unitValue, l: unitValue): string {
         const k = (n: number) => (n + h / 30.0) % 12.0
         const a = s * Math.min(l, 1.0 - l)
         const f = (n: number) => l - a * Math.max(-1.0, Math.min(k(n) - 3.0, Math.min(9.0 - k(n), 1.0)))
@@ -49,7 +49,7 @@ export namespace Color {
      * - `s` — Saturation as a unit value (0–1)
      * - `l` — Lightness as a unit value (0–1)
      */
-    export const hexToHsl = (hex: string): { h: number; s: number; l: number } => {
+    static hexToHsl(hex: string): { h: number; s: number; l: number } {
         const clean = hex.startsWith("#") ? hex.slice(1) : hex
         const r = parseInt(clean.slice(0, 2), 16) / 255
         const g = parseInt(clean.slice(2, 4), 16) / 255
@@ -77,8 +77,45 @@ export namespace Color {
         return {h, s, l}
     }
 
-    export const hslStringToHex = (hsl: string): string => {
+    static hslStringToHex(hsl: string): string {
         const [h, s, l] = hsl.match(/\d+(\.\d+)?/g)!.map(Number)
-        return hslToHex(h, s / 100.0, l / 100.0)
+        return Color.hslToHex(h, s / 100.0, l / 100.0)
+    }
+
+    readonly #h: number // 0...360
+    readonly #s: number // 0...100
+    readonly #l: number // 0...100
+    readonly #a: number // 0...1
+
+    constructor(h: number, s: number, l: number, a: number = 1.0) {
+        this.#h = h
+        this.#s = s
+        this.#l = l
+        this.#a = a
+    }
+
+    opacity(alpha: number): Color {
+        return new Color(this.#h, this.#s, this.#l, alpha)
+    }
+
+    brightness(adjust: number): Color {
+        const newL = Math.max(0.0, Math.min(100.0, this.#l + adjust))
+        return new Color(this.#h, this.#s, newL, this.#a)
+    }
+
+    saturate(multiplier: unitValue): Color {
+        return new Color(this.#h, this.#s * multiplier, this.#l, this.#a)
+    }
+
+    fade(shift: number): Color {
+        const newS = this.#s * (1.0 - Math.sqrt(shift))
+        const newL = this.#l + (100.0 - this.#l) * (shift ** 3.0)
+        return new Color(this.#h, newS, newL, this.#a)
+    }
+
+    toString(): string {
+        return this.#a === 1.0
+            ? `hsl(${this.#h}, ${this.#s}%, ${this.#l}%)`
+            : `hsla(${this.#h}, ${this.#s}%, ${this.#l}%, ${this.#a})`
     }
 }

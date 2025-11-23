@@ -4,8 +4,7 @@ import {createElement} from "@opendaw/lib-jsx"
 import {StudioService} from "@/service/StudioService"
 import {Button} from "@/ui/components/Button.tsx"
 import {Lifecycle, Terminator} from "@opendaw/lib-std"
-import {IconSymbol} from "@opendaw/studio-enums"
-import {Colors} from "@opendaw/studio-adapters"
+import {Colors, IconSymbol} from "@opendaw/studio-enums"
 import {Checkbox} from "@/ui/components/Checkbox"
 import {Surface} from "@/ui/surface/Surface"
 import {CountIn} from "@/ui/header/CountIn"
@@ -25,7 +24,7 @@ export const TransportGroup = ({lifecycle, service}: Construct) => {
     const recordButton: HTMLElement = (
         <Button lifecycle={lifecycle}
                 appearance={{
-                    activeColor: "hsl(0, 50%, 60%)",
+                    color: Colors.red.fade(0.2), activeColor: Colors.red,
                     tooltip: "Start Recording (Shift-Click to suppress count-in)"
                 }}
                 onClick={event => {
@@ -37,7 +36,7 @@ export const TransportGroup = ({lifecycle, service}: Construct) => {
                 }}><Icon symbol={IconSymbol.Record}/></Button>)
     const playButton: HTMLElement = (
         <Button lifecycle={lifecycle}
-                appearance={{activeColor: "hsl(120, 50%, 60%)", tooltip: "Play"}}
+                appearance={{color: Colors.green.saturate(0.0), activeColor: Colors.green, tooltip: "Play"}}
                 onClick={() => {
                     if (engine.isPlaying.getValue()) {
                         engine.stop()
@@ -70,10 +69,7 @@ export const TransportGroup = ({lifecycle, service}: Construct) => {
             ))
     )
     return (
-        <div className={className}
-             onInit={element => service.projectProfileService
-                 .catchupAndSubscribe(owner => element.classList
-                     .toggle("disabled", owner.getValue().isEmpty()))}>
+        <div className={className}>
             {recordButton}
             {playButton}
             <Button lifecycle={lifecycle}

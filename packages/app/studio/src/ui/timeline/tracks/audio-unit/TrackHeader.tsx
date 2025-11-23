@@ -4,14 +4,14 @@ import {createElement, Group, replaceChildren} from "@opendaw/lib-jsx"
 import {Icon} from "@/ui/components/Icon.tsx"
 import {MenuButton} from "@/ui/components/MenuButton.tsx"
 import {MenuItem} from "@/ui/model/menu-item.ts"
-import {AudioUnitBoxAdapter, ColorCodes, Colors, TrackBoxAdapter, TrackType} from "@opendaw/studio-adapters"
+import {AudioUnitBoxAdapter, ColorCodes, TrackBoxAdapter, TrackType} from "@opendaw/studio-adapters"
 import {AudioUnitChannelControls} from "@/ui/timeline/tracks/audio-unit/AudioUnitChannelControls.tsx"
 import {installTrackHeaderMenu} from "@/ui/timeline/tracks/audio-unit/TrackHeaderMenu.ts"
 import {Events, Html, Keyboard} from "@opendaw/lib-dom"
 import {StudioService} from "@/service/StudioService"
 import {Surface} from "@/ui/surface/Surface"
 import {Promises} from "@opendaw/lib-runtime"
-import {IconSymbol} from "@opendaw/studio-enums"
+import {Colors, IconSymbol} from "@opendaw/studio-enums"
 
 const className = Html.adoptStyleSheet(css, "TrackHeader")
 
@@ -23,8 +23,8 @@ type Construct = {
 }
 
 export const TrackHeader = ({lifecycle, service, trackBoxAdapter, audioUnitBoxAdapter}: Construct) => {
-    const nameLabel: HTMLElement = <h5 style={{color: Colors.dark}}/>
-    const controlLabel: HTMLElement = <h5 style={{color: Colors.shadow}}/>
+    const nameLabel: HTMLElement = <h5 style={{color: Colors.dark.toString()}}/>
+    const controlLabel: HTMLElement = <h5 style={{color: Colors.shadow.toString()}}/>
     const {project} = service
     lifecycle.own(
         trackBoxAdapter.catchupAndSubscribePath(option => option.match({
@@ -41,7 +41,7 @@ export const TrackHeader = ({lifecycle, service, trackBoxAdapter, audioUnitBoxAd
     const color = ColorCodes.forAudioType(audioUnitBoxAdapter.type)
     const element: HTMLElement = (
         <div className={Html.buildClassList(className, "is-primary")} tabindex={-1}>
-            <Icon symbol={TrackType.toIconSymbol(trackBoxAdapter.type)} style={{color}}/>
+            <Icon symbol={TrackType.toIconSymbol(trackBoxAdapter.type)} style={{color: color.toString()}}/>
             <div className="labels">
                 {nameLabel}
                 {controlLabel}

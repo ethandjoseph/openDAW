@@ -3,7 +3,7 @@ import {deferNextFrame, Html} from "@opendaw/lib-dom"
 import {ppqn, PPQN} from "@opendaw/lib-dsp"
 import {createElement} from "@opendaw/lib-jsx"
 import {AudioUnitTracks} from "@opendaw/studio-adapters"
-import {Colors} from "@opendaw/studio-adapters"
+import {Colors} from "@opendaw/studio-enums"
 
 type Construct = {
     lifecycle: Lifecycle
@@ -36,7 +36,7 @@ export const Timeline = ({lifecycle, position, tracks}: Construct) => {
                 }
             }
         }
-        context.fillStyle = Colors.cream
+        context.fillStyle = Colors.cream.toString()
         const interval = PPQN.Bar
         for (let pulse = quantizeFloor(unitMin + ppqn, interval); pulse < unitMax + ppqn; pulse += interval) {
             const n = mapping(pulse - ppqn)

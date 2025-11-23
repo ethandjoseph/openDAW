@@ -1,9 +1,9 @@
-import {AudioUnitType} from "@opendaw/studio-enums"
-import {Colors} from "./Colors"
+import {AudioUnitType, Colors} from "@opendaw/studio-enums"
 import {TrackType} from "../timeline/TrackType"
+import {Color} from "@opendaw/lib-std"
 
 export namespace ColorCodes {
-    export const forAudioType = (type?: AudioUnitType): string => {
+    export const forAudioType = (type?: AudioUnitType): Color => {
         switch (type) {
             case AudioUnitType.Output:
                 return Colors.blue

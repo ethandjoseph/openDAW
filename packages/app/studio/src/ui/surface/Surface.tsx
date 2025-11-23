@@ -24,6 +24,7 @@ import {ValueTooltip} from "@/ui/surface/ValueTooltip.tsx"
 import {TextTooltip} from "./TextTooltip"
 import {FloatingTextInput} from "@/ui/components/FloatingTextInput.tsx"
 import {AnimationFrame, CssUtils, Events, Html, Keyboard} from "@opendaw/lib-dom"
+import {initializeColors} from "@opendaw/studio-enums"
 
 const className = Html.adoptStyleSheet(css, "Surface")
 
@@ -244,6 +245,7 @@ export class Surface implements TerminableOwner {
             styleElement.textContent = Array.from(sheet.cssRules).map(rule => rule.cssText).join("\n")
             target.head.appendChild(styleElement)
         }
+        initializeColors(target.documentElement)
     }
 
     #listen(): void {

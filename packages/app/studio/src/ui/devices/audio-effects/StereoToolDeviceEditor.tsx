@@ -1,6 +1,6 @@
 import css from "./StereoToolDeviceEditor.sass?inline"
-import {Colors, DeviceHost, StereoToolDeviceBoxAdapter} from "@opendaw/studio-adapters"
-import {IconSymbol} from "@opendaw/studio-enums"
+import {DeviceHost, StereoToolDeviceBoxAdapter} from "@opendaw/studio-adapters"
+import {Colors, IconSymbol} from "@opendaw/studio-enums"
 import {Lifecycle} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {DeviceEditor} from "@/ui/devices/DeviceEditor.tsx"

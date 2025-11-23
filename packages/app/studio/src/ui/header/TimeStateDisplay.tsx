@@ -173,7 +173,6 @@ export const TimeStateDisplay = ({lifecycle, service}: Construct) => {
         </div>
     )
     lifecycle.ownAll(
-        profileService.catchupAndSubscribe(owner => element.classList.toggle("disabled", owner.getValue().isEmpty())),
         ContextMenu.subscribe(element, collector => collector.addItems(MenuItem.default({label: "Units"})
             .setRuntimeChildrenProcedure(parent => parent.addMenuItem(
                 ...timeUnits.map((_, index) => MenuItem.default({

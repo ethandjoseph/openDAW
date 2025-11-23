@@ -11,7 +11,7 @@ import {Icon} from "@/ui/components/Icon.tsx"
 import {AudioUnitBoxAdapter, RootBoxAdapter, TrackBoxAdapter, TrackType} from "@opendaw/studio-adapters"
 import {RadioGroup} from "@/ui/components/RadioGroup.tsx"
 import {EditWrapper} from "@/ui/wrapper/EditWrapper.ts"
-import {Colors} from "@opendaw/studio-adapters"
+import {Colors} from "@opendaw/studio-enums"
 import {IconSymbol} from "@opendaw/studio-enums"
 
 const className = Html.adoptStyleSheet(css, "PianoModePanel")
@@ -31,7 +31,7 @@ export const PianoModePanel = ({lifecycle, service}: Construct) => {
     const notify = deferNextFrame(() => updateNotifier.notify())
     const tracksHeader: HTMLElement = (
         <Group>
-            <span style={{color: Colors.blue}}>Tracks:</span>
+            <span style={{color: Colors.blue.toString()}}>Tracks:</span>
             <div style={{height: "1.5em"}}/>
         </Group>
     )

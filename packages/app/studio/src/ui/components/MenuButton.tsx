@@ -2,15 +2,15 @@ import css from "./MenuButton.sass?inline"
 import {createElement, JsxValue} from "@opendaw/lib-jsx"
 import {MenuItem} from "@/ui/model/menu-item.ts"
 import {Menu} from "@/ui/components/Menu.tsx"
-import {isDefined, Option} from "@opendaw/lib-std"
+import {Color, isDefined, Option} from "@opendaw/lib-std"
 import {Surface} from "@/ui/surface/Surface.tsx"
 import {Html} from "@opendaw/lib-dom"
 
 const className = Html.adoptStyleSheet(css, "MenuButton")
 
 type Appearance = {
-    color?: string
-    activeColor?: string
+    color?: Color
+    activeColor?: Color
     framed?: boolean
     tinyTriangle?: boolean
     tooltip?: string
@@ -49,10 +49,10 @@ export const MenuButton =
                 title={appearance?.tooltip ?? ""}>{children}</button>
         )
         if (isDefined(appearance?.color)) {
-            button.style.setProperty("--color", appearance.color)
+            button.style.setProperty("--color", appearance.color.toString())
         }
         if (isDefined(appearance?.activeColor)) {
-            button.style.setProperty("--color-active", appearance.activeColor)
+            button.style.setProperty("--color-active", appearance.activeColor.toString())
         }
         if (isDefined(style)) {
             Object.assign(button.style, style)

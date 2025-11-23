@@ -1,11 +1,6 @@
 import css from "./DattorroReverbDeviceEditor.sass?inline"
-import {
-    AutomatableParameterFieldAdapter,
-    Colors,
-    DattorroReverbDeviceBoxAdapter,
-    DeviceHost
-} from "@opendaw/studio-adapters"
-import {int, Lifecycle} from "@opendaw/lib-std"
+import {AutomatableParameterFieldAdapter, DattorroReverbDeviceBoxAdapter, DeviceHost} from "@opendaw/studio-adapters"
+import {Color, int, Lifecycle} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {DeviceEditor} from "@/ui/devices/DeviceEditor.tsx"
 import {MenuItems} from "@/ui/devices/menu-items.ts"
@@ -16,6 +11,7 @@ import {StudioService} from "@/service/StudioService"
 import {EffectFactories} from "@opendaw/studio-core"
 import {ControlGroup} from "@/ui/devices/ControlGroup"
 import {Display} from "@/ui/devices/audio-effects/DattorroReverb/Display"
+import {Colors} from "@opendaw/studio-enums"
 
 const className = Html.adoptStyleSheet(css, "DattorroReverbDeviceEditor")
 
@@ -29,7 +25,7 @@ type Construct = {
 export const DattorroReverbDeviceEditor = ({lifecycle, service, adapter, deviceHost}: Construct) => {
     const {project} = service
     const {editing, midiLearning, liveStreamReceiver} = project
-    const createKnob = (parameter: AutomatableParameterFieldAdapter<number>, u: int, v: int, color?: string) =>
+    const createKnob = (parameter: AutomatableParameterFieldAdapter<number>, u: int, v: int, color?: Color) =>
         ControlBuilder.createKnob({
             lifecycle, editing, midiLearning, adapter, parameter, style: {gridArea: `${v + 1}/${u + 1}`}, color
         })

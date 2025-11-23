@@ -17,12 +17,12 @@ import {createElement, DomElement} from "@opendaw/lib-jsx"
 import {PianoRollLayout} from "@/ui/PianoRollLayout"
 import {PianoKeyCodes} from "@/ui/software-midi/Mapping"
 import {MidiDevices} from "@opendaw/studio-core"
-import {AudioUnitBoxAdapter, Colors} from "@opendaw/studio-adapters"
+import {AudioUnitBoxAdapter} from "@opendaw/studio-adapters"
 import {NumberInput} from "@/ui/components/NumberInput"
 import {MenuButton} from "@/ui/components/MenuButton"
 import {MenuItem} from "@/ui/model/menu-item"
 import {Icon} from "@/ui/components/Icon"
-import {IconSymbol} from "@opendaw/studio-enums"
+import {Colors, IconSymbol} from "@opendaw/studio-enums"
 import {MidiData} from "@opendaw/lib-midi"
 import {FlexSpacer} from "@/ui/components/FlexSpacer"
 import {PianoRoll} from "@/ui/software-midi/PianoRoll"
@@ -162,7 +162,7 @@ export const SoftwareMIDIPanel = ({lifecycle, service}: Construct) => {
             })
         }),
         softwareMIDIInput.countListeners.catchupAndSubscribe(owner =>
-            midiIndicator.style.color = owner.getValue() > 1 ? Colors.green : Colors.red),
+            midiIndicator.style.color = owner.getValue() > 1 ? Colors.green.toString() : Colors.red.toString()),
         Surface.subscribeKeyboard("keydown", event => {
             if (event.repeat || event.shiftKey || event.ctrlKey || event.altKey || event.metaKey
                 || Events.isTextInput(event.target)) {return}

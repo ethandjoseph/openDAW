@@ -5,10 +5,11 @@ import {CanvasPainter} from "@/ui/canvas/painter.ts"
 import {PitchPositioner} from "@/ui/timeline/editors/notes/pitch/PitchPositioner.ts"
 import {MidiKeys} from "@opendaw/lib-dsp"
 import {ScaleConfig} from "@/ui/timeline/editors/notes/pitch/ScaleConfig.ts"
-import {Colors, NoteSignal, NoteStreamReceiver} from "@opendaw/studio-adapters"
+import {NoteSignal, NoteStreamReceiver} from "@opendaw/studio-adapters"
 import {Dragging, Events, getFontSizeForHeight, Html} from "@opendaw/lib-dom"
 import {Fonts} from "@/ui/Fonts"
 import {CaptureMidi} from "@opendaw/studio-core"
+import {Colors} from "@opendaw/studio-enums"
 
 const className = Html.adoptStyleSheet(css, "PianoRoll")
 
@@ -42,7 +43,7 @@ export const PianoRoll = ({lifecycle, positioner, scale, noteReceiver, capture}:
                 context.fillRect(width - devicePixelRatio * 3, noteToY, devicePixelRatio * 3, noteTrackHeight)
             }
             if (noteReceiver.isNoteOn(note)) {
-                context.fillStyle = Colors.blue
+                context.fillStyle = Colors.blue.toString()
                 context.fillRect(0, noteToY, width, noteTrackHeight)
             }
         }

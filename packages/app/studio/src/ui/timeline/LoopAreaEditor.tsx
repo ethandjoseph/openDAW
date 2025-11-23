@@ -8,7 +8,7 @@ import {installCursor} from "@/ui/hooks/cursor.ts"
 import {TimelineRange} from "@opendaw/studio-core"
 import {Snapping} from "@/ui/timeline/Snapping.ts"
 import {LoopArea} from "@opendaw/studio-boxes"
-import {Colors} from "@opendaw/studio-adapters"
+import {Colors} from "@opendaw/studio-enums"
 
 const className = Html.adoptStyleSheet(css, "loop-area-editor")
 
@@ -57,7 +57,7 @@ export const LoopAreaEditor = ({lifecycle, editing, range, snapping, loopArea}: 
         const handleY = 0
         context.fillStyle = "rgba(255, 255, 255, 0.1)"
         context.fillRect(x0, handleY, x1 - x0, handleSize)
-        context.fillStyle = Colors.yellow
+        context.fillStyle = Colors.yellow.toString()
         context.beginPath()
         context.roundRect(x0 - handleSize, handleY, handleSize, handleSize, radiiLeft)
         context.roundRect(x1, handleY, handleSize, handleSize, radiiRight)

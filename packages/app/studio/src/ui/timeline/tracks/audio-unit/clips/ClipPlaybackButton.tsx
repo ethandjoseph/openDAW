@@ -2,8 +2,8 @@ import css from "./ClipPlaybackButton.sass?inline"
 import {DefaultObservableValue, Lifecycle} from "@opendaw/lib-std"
 import {Html} from "@opendaw/lib-dom"
 import {createElement} from "@opendaw/lib-jsx"
-import {AnyClipBoxAdapter, Colors} from "@opendaw/studio-adapters"
-import {IconSymbol} from "@opendaw/studio-enums"
+import {AnyClipBoxAdapter} from "@opendaw/studio-adapters"
+import {Colors, IconSymbol} from "@opendaw/studio-enums"
 import {Engine} from "@opendaw/studio-core"
 import {IconCartridge} from "@/ui/components/Icon"
 import {ClipState} from "./Clip"
@@ -31,7 +31,7 @@ export const ClipPlaybackButton = ({lifecycle, engine, adapter, state}: Construc
              }}>
             <IconCartridge lifecycle={lifecycle}
                            symbol={iconModel}
-                           style={{color: Colors.gray}}/>
+                           style={{color: Colors.gray.toString()}}/>
         </div>
     )
     lifecycle.own(state.catchupAndSubscribe(owner => {

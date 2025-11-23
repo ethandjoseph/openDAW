@@ -1,13 +1,4 @@
-import {
-    DefaultObservableValue,
-    Errors,
-    int,
-    Option,
-    panic,
-    RuntimeNotifier,
-    Terminator,
-    TimeSpan
-} from "@opendaw/lib-std"
+import {Errors, int, isDefined, Option, panic, Progress, Terminator, TimeSpan} from "@opendaw/lib-std"
 import {AnimationFrame} from "@opendaw/lib-dom"
 import {Wait} from "@opendaw/lib-runtime"
 import {ExportStemsConfiguration} from "@opendaw/studio-adapters"
@@ -17,13 +8,14 @@ import {AudioWorklets} from "./AudioWorklets"
 export namespace AudioOfflineRenderer {
     export const start = async (source: Project,
                                 optExportConfiguration: Option<ExportStemsConfiguration>,
+                                progress: Progress.Handler,
+                                abortSignal?: AbortSignal,
                                 sampleRate: int = 48_000): Promise<AudioBuffer> => {
         const numStems = ExportStemsConfiguration.countStems(optExportConfiguration)
         if (numStems === 0) {return panic("Nothing to export")}
         const {promise, reject, resolve} = Promise.withResolvers<AudioBuffer>()
         const projectCopy = source.copy()
         const terminator = new Terminator()
-        const progress = terminator.own(new DefaultObservableValue(0.0))
         projectCopy.boxGraph.beginTransaction()
         projectCopy.timelineBox.loopArea.enabled.setValue(false)
         projectCopy.boxGraph.endTransaction()
@@ -41,20 +33,21 @@ export namespace AudioOfflineRenderer {
         await engineWorklet.isReady()
         while (!await engineWorklet.queryLoadingComplete()) {await Wait.timeSpan(TimeSpan.seconds(1))}
 
+        if (isDefined(abortSignal)) {
+            abortSignal.onabort = () => {
+                engineWorklet.stop(true)
+                engineWorklet.sleep()
+                terminator.terminate()
+                cancelled = true
+                reject(Errors.AbortError)
+            }
+        }
+
         // Start rendering...
         let cancelled = false
         terminator.ownAll(
             projectCopy,
-            RuntimeNotifier.progress({
-                headline: "Rendering...", progress, cancel: () => {
-                    engineWorklet.stop(true)
-                    engineWorklet.sleep()
-                    terminator.terminate()
-                    cancelled = true
-                    reject(Errors.AbortError)
-                }
-            }),
-            AnimationFrame.add(() => progress.setValue(context.currentTime / durationInSeconds))
+            AnimationFrame.add(() => progress(context.currentTime / durationInSeconds))
         )
         context.startRendering().then(buffer => {
             console.debug(`rendering complete. cancelled: ${cancelled}`)

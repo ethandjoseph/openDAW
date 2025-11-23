@@ -16,7 +16,7 @@ html, body
   row-gap: 1px
   fill: white
   color: var(--color-bright)
-  background-color: var(--background)
+  background-color: var(--color-background)
   touch-action: none
 
 p
@@ -37,6 +37,9 @@ h1, h2, h3, h4, h5
 .help-section
   .help-hidden &
     display: none !important
+
+body:not(.beta-visible) .beta-section
+  display: none !important
 
 a
   font: inherit

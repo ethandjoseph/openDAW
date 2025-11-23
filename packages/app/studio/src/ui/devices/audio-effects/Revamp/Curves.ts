@@ -1,4 +1,4 @@
-import {Notifier, Nullable, Observer, Subscription, Terminable} from "@opendaw/lib-std"
+import {Color, Notifier, Nullable, Observer, Subscription, Terminable} from "@opendaw/lib-std"
 import {CanvasUnitPainter} from "@/ui/canvas/painter.ts"
 import {
     AutomatableParameterFieldAdapter,
@@ -11,10 +11,10 @@ import {biquad} from "@/ui/devices/audio-effects/Revamp/constants.ts"
 import {gainToDb} from "@opendaw/lib-dsp"
 
 export type ColorSet = {
-    full: string
-    line: string
-    min: string
-    max: string
+    full: Color
+    line: Color
+    min: Color
+    max: Color
 }
 
 export abstract class CurveRenderer<PARAMETERS extends Parameters = Parameters> implements Terminable {
@@ -60,13 +60,13 @@ export abstract class CurveRenderer<PARAMETERS extends Parameters = Parameters> 
             // select brushes
             const {line, max, min} = this.colorSet
             const context = painter.context
-            context.strokeStyle = line
+            context.strokeStyle = line.toString()
 
             if (this.#gradient === null) {
                 const gradient: CanvasGradient = context.createLinearGradient(0, 0, 0, painter.actualHeight)
-                gradient.addColorStop(0.0, max)
-                gradient.addColorStop(0.5, min)
-                gradient.addColorStop(1.0, max)
+                gradient.addColorStop(0.0, max.toString())
+                gradient.addColorStop(0.5, min.toString())
+                gradient.addColorStop(1.0, max.toString())
                 this.#gradient = gradient
             }
 

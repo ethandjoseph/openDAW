@@ -3,7 +3,7 @@ import {createElement, Frag} from "@opendaw/lib-jsx"
 import {ppqn, PPQN} from "@opendaw/lib-dsp"
 import {AudioUnitTracks} from "@opendaw/studio-adapters"
 import {deferNextFrame} from "@opendaw/lib-dom"
-import {Colors} from "@opendaw/studio-adapters"
+import {Colors} from "@opendaw/studio-enums"
 
 const tapeVelocity = 13.0 / PPQN.Bar // TapeDeviceEditor speed 4.76 cm/s converted into svg coordinates
 const rEmpty = 15
@@ -46,7 +46,7 @@ export const Tape = ({lifecycle, position, tracks}: Construct) => {
             const region = track.regions.collection.lowerEqual(ppqn)
             return isDefined(region) && region.hasCollection && region.complete > ppqn
         })
-        head.setAttribute("fill", playingRegion ? Colors.bright : Colors.dark)
+        head.setAttribute("fill", playingRegion ? Colors.bright.toString() : Colors.dark.toString())
     })
 
     const total = PPQN.fromSignature(128, 1)

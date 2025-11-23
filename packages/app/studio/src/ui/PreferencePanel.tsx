@@ -3,9 +3,8 @@ import {Html} from "@opendaw/lib-dom"
 import {DefaultObservableValue, Lifecycle} from "@opendaw/lib-std"
 import {createElement, Frag} from "@opendaw/lib-jsx"
 import {Preferences} from "@opendaw/studio-core"
-import {Colors} from "@opendaw/studio-adapters"
+import {Colors, IconSymbol} from "@opendaw/studio-enums"
 import {Checkbox} from "@/ui/components/Checkbox"
-import {IconSymbol} from "@opendaw/studio-enums"
 import {Icon} from "@/ui/components/Icon"
 
 const className = Html.adoptStyleSheet(css, "PreferencePanel")
@@ -19,7 +18,8 @@ const Labels: { [K in keyof Preferences]: string } = {
     "auto-create-output-compressor": "Automatically add compressor to main output",
     "dragging-use-pointer-lock": "Use Pointer Lock when dragging close to window edges [Chrome only]",
     "footer-show-fps-meter": "🪲 Show FPS meter",
-    "footer-show-build-infos": "🪲 Show Build Informations"
+    "footer-show-build-infos": "🪲 Show Build Informations",
+    "enable-beta-features": "☢️ Enable Beta Features"
 }
 
 export const PreferencePanel = ({lifecycle}: Construct) => {
@@ -42,7 +42,7 @@ export const PreferencePanel = ({lifecycle}: Construct) => {
                                               activeColor: Colors.bright,
                                               cursor: "pointer"
                                           }}>
-                                    <span style={{color: Colors.dark}}>{Labels[pKey]}</span>
+                                    <span style={{color: Colors.dark.toString()}}>{Labels[pKey]}</span>
                                     <hr/>
                                     <Icon symbol={IconSymbol.Checkbox}/>
                                 </Checkbox>
