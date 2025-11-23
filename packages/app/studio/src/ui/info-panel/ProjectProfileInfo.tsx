@@ -95,8 +95,10 @@ export const ProjectProfileInfo = ({lifecycle, service}: Construct) => {
                             onClick={async () => {
                                 const approved = await RuntimeNotifier.approve({
                                     headline: "Publish Your Music",
-                                    message: "Ensure all samples, soundfonts, and cover images are free from copyright infringement. " +
-                                        "You are responsible for the content you upload."
+                                    message: `Ensure all samples, soundfonts, and images are cleared of copyright.
+                                    Publishing makes your entire track visible to everyone.
+                                    Prepare proper metadata and upload a cover before starting.
+                                    You are responsible for all content you share.`
                                 })
                                 if (!approved) {return}
                                 await profile.save()
