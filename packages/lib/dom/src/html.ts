@@ -1,4 +1,4 @@
-import {asDefined, assert, Color, int, isDefined, panic, Rect, Subscription} from "@opendaw/lib-std"
+import {asDefined, assert, Color, int, isDefined, panic, Rect, RGBA, Subscription} from "@opendaw/lib-std"
 
 export namespace Html {
     export const parse = (source: string): HTMLOrSVGElement & Element => {
@@ -53,10 +53,10 @@ export namespace Html {
     export const buildClassList = (...input: Array<string | false | undefined>) =>
         input.filter(x => x !== false && x !== undefined).join(" ")
 
-    export const readCssVarColor = (...cssValues: Array<string>): Array<Color.RGBA> => {
+    export const readCssVarColor = (...cssValues: Array<string>): Array<RGBA> => {
         const element = document.createElement("div")
         document.body.appendChild(element)
-        const colors: Array<Color.RGBA> = cssValues.map(value => {
+        const colors: Array<RGBA> = cssValues.map(value => {
             element.style.color = value
             return Color.parseCssRgbOrRgba(getComputedStyle(element).color)
         })
