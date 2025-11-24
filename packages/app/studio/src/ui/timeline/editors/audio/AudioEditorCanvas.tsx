@@ -1,5 +1,5 @@
 import css from "./AudioEditorCanvas.sass?inline"
-import {Lifecycle} from "@opendaw/lib-std"
+import {Lifecycle, Terminator} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {TimelineRange} from "@opendaw/studio-core"
 import {CanvasPainter} from "@/ui/canvas/painter.ts"
@@ -46,9 +46,14 @@ export const AudioEditorCanvas = ({lifecycle, range, snapping, reader}: Construc
         renderAudio(context, range, reader.file, reader.warping, reader.gain, {top: 0, bottom: actualHeight},
             `hsl(${reader.hue}, ${60}%, 45%)`, pass.unwrap())
     }))
+    const warpingTerminator = lifecycle.own(new Terminator())
     lifecycle.ownAll(
         installEditorMainBody({element: waveformCanvas, range, reader}),
         reader.subscribeChange(painter.requestUpdate),
+        reader.warping.catchupAndSubscribe((optWarping) => {
+            warpingTerminator.terminate()
+            optWarping.ifSome(warping => warpingTerminator.own(warping.subscribe(painter.requestUpdate)))
+        }),
         range.subscribe(painter.requestUpdate),
         Html.watchResize(waveformCanvas, painter.requestUpdate)
     )

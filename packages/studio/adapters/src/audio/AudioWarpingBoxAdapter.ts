@@ -24,6 +24,7 @@ export class AudioWarpingBoxAdapter implements BoxAdapter {
         this.#notifer = new Notifier()
         this.#terminator.ownAll(
             box.warpMarkers.catchupAndSubscribe(() => {
+                console.debug("warpMarkers changed")
                 this.#warpMarkers = AudioWarpingIO.readWarpMarkers(box.warpMarkers)
                 this.#notifer.notify()
             }),

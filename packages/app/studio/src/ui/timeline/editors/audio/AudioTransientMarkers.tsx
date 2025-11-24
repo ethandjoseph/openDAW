@@ -1,6 +1,6 @@
 import css from "./AudioTransientMarkers.sass?inline"
 import {Html} from "@opendaw/lib-dom"
-import {Lifecycle, TAU} from "@opendaw/lib-std"
+import {Lifecycle, TAU, Terminator} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {AudioEventOwnerReader} from "@/ui/timeline/editors/EventOwnerReader"
 import {Project, TimelineRange} from "@opendaw/studio-core"
@@ -34,7 +34,6 @@ const secondsToUnit = (seconds: number, warpMarkers: ReadonlyArray<WarpMarker>):
 
 export const AudioTransientMarkers = ({lifecycle, range, reader}: Construct) => {
     const optWarping = reader.warping
-    // const {tempoMap} = project
     return (
         <div className={className}>
             <canvas onInit={canvas => {
@@ -51,10 +50,14 @@ export const AudioTransientMarkers = ({lifecycle, range, reader}: Construct) => 
                         context.fill()
                     })
                 }))
+                const warpingTerminator = lifecycle.own(new Terminator())
                 lifecycle.ownAll(
                     range.subscribe(requestUpdate),
                     reader.subscribeChange(requestUpdate),
-                    optWarping.catchupAndSubscribe(requestUpdate)
+                    optWarping.catchupAndSubscribe((optWarping) => {
+                        warpingTerminator.terminate()
+                        optWarping.ifSome(warping => warpingTerminator.own(warping.subscribe(requestUpdate)))
+                    })
                 )
             }}/>
         </div>

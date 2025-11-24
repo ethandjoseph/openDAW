@@ -44,8 +44,8 @@ export const renderAudio = (context: CanvasRenderingContext2D,
             const w1 = warpMarkers[i + 1]
             const segmentStart = offset + w0.time
             const segmentEnd = offset + w1.time
-            if (segmentEnd <= resultStart || segmentStart >= resultEnd) continue
-            if (segmentStart > range.unitMax) break
+            if (segmentEnd <= resultStart || segmentStart >= resultEnd) {continue}
+            if (segmentStart > range.unitMax) {break}
             const clippedStart = Math.max(segmentStart, resultStart)
             const clippedEnd = Math.min(segmentEnd, resultEnd)
             const t0 = (clippedStart - segmentStart) / (segmentEnd - segmentStart)
