@@ -2,6 +2,7 @@ import {JSONValue} from "@opendaw/lib-std"
 
 export type ProjectMeta = {
     name: string
+    artist: string
     description: string
     tags: Array<string>
     created: Readonly<string>
@@ -13,6 +14,7 @@ export type ProjectMeta = {
 export namespace ProjectMeta {
     const created = new Date().toISOString()
     export const init = (name: string = "Untitled"): ProjectMeta => ({
+        artist: "",
         name,
         description: "",
         tags: [],

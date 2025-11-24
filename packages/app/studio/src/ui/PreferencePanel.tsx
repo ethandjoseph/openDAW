@@ -19,7 +19,7 @@ const Labels: { [K in keyof Preferences]: string } = {
     "dragging-use-pointer-lock": "Use Pointer Lock when dragging close to window edges [Chrome only]",
     "footer-show-fps-meter": "🪲 Show FPS meter",
     "footer-show-build-infos": "🪲 Show Build Informations",
-    "enable-beta-features": "☢️ Enable Beta Features"
+    "enable-beta-features": "☢️ Enable Experimental Features"
 }
 
 export const PreferencePanel = ({lifecycle}: Construct) => {
