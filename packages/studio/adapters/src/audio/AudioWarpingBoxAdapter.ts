@@ -3,8 +3,9 @@ import {Notifier, Observer, Subscription, Terminator, UUID} from "@opendaw/lib-s
 import {Address} from "@opendaw/lib-box"
 import {BoxAdaptersContext} from "../BoxAdaptersContext"
 import {BoxAdapter} from "../BoxAdapter"
-import {AudioWarping} from "./AudioWarping"
+import {AudioWarpingIO} from "./AudioWarpingIO"
 import {WarpMarker} from "./WarpMarker"
+import {TransientMarker} from "./TransientMarker"
 
 export class AudioWarpingBoxAdapter implements BoxAdapter {
     readonly #terminator = new Terminator()
@@ -13,8 +14,8 @@ export class AudioWarpingBoxAdapter implements BoxAdapter {
     readonly #box: AudioWarpingBox
     readonly #transientNotifer: Notifier<void>
 
-    #transients: Float32Array = new Float32Array(0)
     #warps: ReadonlyArray<WarpMarker> = []
+    #transients: ReadonlyArray<TransientMarker> = []
 
     constructor(context: BoxAdaptersContext, box: AudioWarpingBox) {
         this.#context = context
@@ -23,17 +24,18 @@ export class AudioWarpingBoxAdapter implements BoxAdapter {
         this.#transientNotifer = new Notifier()
 
         this.#terminator.ownAll(
-            box.wraps.catchupAndSubscribe(() => this.#warps = AudioWarping.readWarpMarkers(box.wraps)),
-            box.transients.catchupAndSubscribe(() => this.#transients = AudioWarping.readTransients(box.transients))
+            box.wraps.catchupAndSubscribe(() => this.#warps = AudioWarpingIO.readWarpMarkers(box.wraps)),
+            box.transients.catchupAndSubscribe(() => this.#transients = AudioWarpingIO.readTransientMarkers(box.transients))
         )
     }
 
     get box(): AudioWarpingBox {return this.#box}
     get uuid(): UUID.Bytes {return this.#box.address.uuid}
     get address(): Address {return this.#box.address}
-    get transients(): Float32Array {return this.#transients}
+    get transients(): ReadonlyArray<TransientMarker> {return this.#transients}
+    set transients(markers: ReadonlyArray<TransientMarker>) {AudioWarpingIO.writeTransientMarkers(this.#box.transients, markers)}
     get warps(): ReadonlyArray<WarpMarker> {return this.#warps}
-    set transients(positions: Float32Array) {AudioWarping.writeTransients(this.#box.transients, positions)}
+    set warps(markers: ReadonlyArray<WarpMarker>) {AudioWarpingIO.writeWarpMarkers(this.#box.wraps, markers)}
 
     subscribe(observer: Observer<void>): Subscription {return this.#transientNotifer.subscribe(observer)}
 

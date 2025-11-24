@@ -1,5 +1,11 @@
 import {StudioService} from "@/service/StudioService"
-import {AudioUnitFactory, AudioWarping, InstrumentFactories, ProjectSkeleton, TrackType} from "@opendaw/studio-adapters"
+import {
+    AudioUnitFactory,
+    AudioWarpingIO,
+    InstrumentFactories,
+    ProjectSkeleton,
+    TrackType
+} from "@opendaw/studio-adapters"
 import {AudioPlayback, AudioUnitType, IconSymbol} from "@opendaw/studio-enums"
 import {
     AudioFileBox,
@@ -33,8 +39,11 @@ export const testAudioProject = (service: StudioService) => {
     const valueEventCollectionBox = ValueEventCollectionBox.create(boxGraph, UUID.generate())
     const audioWarpingBox = AudioWarpingBox.create(boxGraph, UUID.generate(), box => {
         const n = 8
-        AudioWarping.writeTransients(box.transients, new Float32Array(Arrays.create(index => index / (n - 1) * durationInSeconds, n)))
-        AudioWarping.writeWarpMarkers(box.wraps, [
+        AudioWarpingIO.writeTransientMarkers(box.transients, Arrays.create(index => ({
+            seconds: index / (n - 1) * durationInSeconds,
+            energy: 0.0
+        }), n))
+        AudioWarpingIO.writeWarpMarkers(box.wraps, [
             {
                 time: 0, seconds: 0.0
             }, {
