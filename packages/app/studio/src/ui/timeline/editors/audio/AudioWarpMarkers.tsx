@@ -26,7 +26,7 @@ type Construct = {
 export const AudioWrapMarkers = ({lifecycle, project, range, snapping, reader}: Construct) => {
     const optWarping = reader.warping
     const markerRadius = 7
-    const {boxGraph, editing} = project
+    const {editing} = project
     return (
         <div className={className}>
             <canvas onInit={canvas => {
@@ -44,14 +44,13 @@ export const AudioWrapMarkers = ({lifecycle, project, range, snapping, reader}: 
                         })
                     })
                 }))
-                const warpingTerminator = lifecycle.own(new Terminator())
+                const warpingLifeCycle = lifecycle.own(new Terminator())
                 lifecycle.ownAll(
                     range.subscribe(requestUpdate),
                     reader.subscribeChange(requestUpdate),
                     optWarping.catchupAndSubscribe((optWarping) => {
-                        warpingTerminator.terminate()
+                        warpingLifeCycle.terminate()
                         optWarping.ifSome(warping => {
-                            warpingTerminator.own(warping.subscribe(requestUpdate))
                             const capturing = new ElementCapturing<WarpMarkerBoxAdapter>(canvas, {
                                 capture: (x: number, _y: number): Nullable<WarpMarkerBoxAdapter> => {
                                     const u0 = range.xToUnit(x - markerRadius) - reader.offset
@@ -73,13 +72,14 @@ export const AudioWrapMarkers = ({lifecycle, project, range, snapping, reader}: 
                                     return closest.marker
                                 }
                             })
-                            const selection: FilteredSelection<WarpMarkerBoxAdapter> = warpingTerminator.own(
+                            const selection: FilteredSelection<WarpMarkerBoxAdapter> = warpingLifeCycle.own(
                                 project.selection
                                     .createFilteredSelection(box => box instanceof WarpMarkerBox, {
                                         fx: adapter => adapter.box,
                                         fy: vertex => project.boxAdapters.adapterFor(vertex.box, WarpMarkerBoxAdapter)
                                     }))
-                            warpingTerminator.ownAll(
+                            warpingLifeCycle.ownAll(
+                                warping.subscribe(requestUpdate),
                                 selection.catchupAndSubscribe({
                                     onSelected: (adapter: WarpMarkerBoxAdapter) => adapter.onSelected(),
                                     onDeselected: (adapter: WarpMarkerBoxAdapter) => adapter.onDeselected()
