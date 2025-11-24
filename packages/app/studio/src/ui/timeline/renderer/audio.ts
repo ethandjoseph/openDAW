@@ -1,12 +1,14 @@
 import {RegionBound} from "@/ui/timeline/renderer/env.ts"
 import {dbToGain, LoopableRegion} from "@opendaw/lib-dsp"
 import {Peaks, PeaksPainter} from "@opendaw/lib-fusion"
-import {AudioFileBoxAdapter} from "@opendaw/studio-adapters"
+import {AudioFileBoxAdapter, AudioWarpingBoxAdapter} from "@opendaw/studio-adapters"
 import {TimelineRange} from "@opendaw/studio-core"
+import {Option} from "@opendaw/lib-std"
 
 export const renderAudio = (context: CanvasRenderingContext2D,
                             range: TimelineRange,
                             file: AudioFileBoxAdapter,
+                            warping: Option<AudioWarpingBoxAdapter>,
                             gain: number,
                             {top, bottom}: RegionBound,
                             contentColor: string,
@@ -17,6 +19,11 @@ export const renderAudio = (context: CanvasRenderingContext2D,
                                 resultEndValue
                             }: LoopableRegion.LoopCycle) => {
     if (file.peaks.nonEmpty()) {
+
+        if (warping.nonEmpty()) {
+            const {warps} = warping.unwrap()
+        }
+
         const x0 = range.unitToX(resultStart) * devicePixelRatio
         const x1 = range.unitToX(resultEnd) * devicePixelRatio
         const ht = bottom - top

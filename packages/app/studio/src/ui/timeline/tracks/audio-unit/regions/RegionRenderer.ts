@@ -109,7 +109,7 @@ export const renderRegions = (context: CanvasRenderingContext2D,
                             context.fillStyle = loopStrokeColor
                             context.fillRect(x, labelHeight, 1, height - labelHeight)
                         }
-                        renderAudio(context, range, region.file, region.gain, bound, contentColor, pass)
+                        renderAudio(context, range, region.file, region.warping, region.gain, bound, contentColor, pass)
                     }
                     // TODO Record indicator?
                     const isRecording = region.file.getOrCreateLoader().state.type === "record"
