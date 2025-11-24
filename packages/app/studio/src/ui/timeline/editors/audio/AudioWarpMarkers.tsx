@@ -25,9 +25,9 @@ export const AudioWrapMarkers = ({lifecycle, range, reader}: Construct) => {
             <canvas onInit={canvas => {
                 const {requestUpdate} = lifecycle.own(new CanvasPainter(canvas, painter => {
                     const {context, actualHeight, devicePixelRatio} = painter
-                    optWarping.ifSome(({warps}) => {
+                    optWarping.ifSome(({warpMarkers}) => {
                         context.beginPath()
-                        warps.forEach(warp => {
+                        warpMarkers.forEach(warp => {
                             const unit = reader.offset + warp.time
                             const x = range.unitToX(unit) * devicePixelRatio
                             context.arc(x, actualHeight * 0.5, 7, 0.0, TAU)
@@ -38,6 +38,7 @@ export const AudioWrapMarkers = ({lifecycle, range, reader}: Construct) => {
                 }))
                 lifecycle.ownAll(
                     range.subscribe(requestUpdate),
+                    reader.subscribeChange(requestUpdate),
                     optWarping.catchupAndSubscribe(requestUpdate)
                 )
             }}/>

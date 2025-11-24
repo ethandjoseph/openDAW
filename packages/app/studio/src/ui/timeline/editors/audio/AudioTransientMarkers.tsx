@@ -40,14 +40,10 @@ export const AudioTransientMarkers = ({lifecycle, range, reader}: Construct) => 
             <canvas onInit={canvas => {
                 const {requestUpdate} = lifecycle.own(new CanvasPainter(canvas, painter => {
                     const {context, actualHeight, devicePixelRatio} = painter
-                    optWarping.ifSome(({transients, warps}) => {
+                    optWarping.ifSome(({transientMarkers, warpMarkers}) => {
                         context.beginPath()
-                        transients.forEach(transient => {
-                            /*const absolutePosition = startSeconds + transient.seconds
-                            const unit = tempoMap.secondsToPPQN(absolutePosition)
-                            const x = range.unitToX(unit) * devicePixelRatio
-                            context.arc(x, actualHeight / 2, 7, 0.0, TAU)*/
-                            const unit = reader.offset + secondsToUnit(transient.seconds, warps)
+                        transientMarkers.forEach(transient => {
+                            const unit = reader.offset + secondsToUnit(transient.seconds, warpMarkers)
                             const x = range.unitToX(unit) * devicePixelRatio
                             context.arc(x, actualHeight * 0.5, 7, 0.0, TAU)
                         })
@@ -57,6 +53,7 @@ export const AudioTransientMarkers = ({lifecycle, range, reader}: Construct) => 
                 }))
                 lifecycle.ownAll(
                     range.subscribe(requestUpdate),
+                    reader.subscribeChange(requestUpdate),
                     optWarping.catchupAndSubscribe(requestUpdate)
                 )
             }}/>

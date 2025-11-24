@@ -39,16 +39,16 @@ export const testAudioProject = (service: StudioService) => {
     const valueEventCollectionBox = ValueEventCollectionBox.create(boxGraph, UUID.generate())
     const audioWarpingBox = AudioWarpingBox.create(boxGraph, UUID.generate(), box => {
         const n = 9
-        AudioWarpingIO.writeTransientMarkers(box.transients, Arrays.create(index => ({
+        AudioWarpingIO.writeTransientMarkers(box.transientMarkers, Arrays.create(index => ({
             seconds: index / (n - 1) * durationInSeconds,
             energy: 0.0
         }), n))
-        AudioWarpingIO.writeWarpMarkers(box.wraps, [
+        AudioWarpingIO.writeWarpMarkers(box.warpMarkers, [
             {
                 time: 0, seconds: 0.0
             },
             {
-                time: PPQN.Bar * 1, seconds: durationInSeconds * 0.5
+                time: PPQN.Bar * 3, seconds: durationInSeconds * 0.5
             },
             {
                 time: PPQN.Bar * 4, seconds: durationInSeconds
