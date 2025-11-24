@@ -6,12 +6,12 @@ import {AudioEventOwnerReader} from "@/ui/timeline/editors/EventOwnerReader"
 import {Project, TimelineRange} from "@opendaw/studio-core"
 import {Snapping} from "@/ui/timeline/Snapping"
 import {CanvasPainter} from "@/ui/canvas/painter"
-import {Colors} from "@opendaw/studio-enums"
 import {FilteredSelection, WarpMarkerBoxAdapter} from "@opendaw/studio-adapters"
 import {WarpMarkerBox} from "@opendaw/studio-boxes"
 import {ElementCapturing} from "@/ui/canvas/capturing"
 import {ContextMenu} from "@/ui/ContextMenu"
 import {MenuItem} from "@/ui/model/menu-item"
+import {DebugMenus} from "@/ui/menu/debug"
 
 const className = Html.adoptStyleSheet(css, "AudioWrapMarkers")
 
@@ -39,7 +39,9 @@ export const AudioWrapMarkers = ({lifecycle, project, range, snapping, reader}: 
                             const x = range.unitToX(unit) * devicePixelRatio
                             context.beginPath()
                             context.arc(x, actualHeight * 0.5, markerRadius, 0.0, TAU)
-                            context.fillStyle = warp.isSelected ? Colors.white.toString() : Colors.orange.toString()
+                            context.fillStyle = warp.isSelected
+                                ? `hsl(${reader.hue}, 60%, 80%)`
+                                : `hsl(${reader.hue}, 60%, 60%)`
                             context.fill()
                         })
                     })
@@ -87,11 +89,15 @@ export const AudioWrapMarkers = ({lifecycle, project, range, snapping, reader}: 
                                 ContextMenu.subscribe(canvas, collector => {
                                     const marker = capturing.captureEvent(collector.client)
                                     if (isNotNull(marker)) {
+                                        selection.deselectAll()
                                         selection.select(marker)
-                                        collector.addItems(MenuItem.default({label: "Remove warp marker"})
-                                            .setTriggerProcedure(() =>
-                                                editing.modify(() =>
-                                                    selection.selected().forEach(marker => marker.box.delete()))))
+                                        collector.addItems(
+                                            MenuItem.default({label: "Remove warp marker"})
+                                                .setTriggerProcedure(() =>
+                                                    editing.modify(() =>
+                                                        selection.selected().forEach(marker => marker.box.delete()))),
+                                            DebugMenus.debugBox(marker.box, true)
+                                        )
                                     }
                                 }),
                                 Events.subscribeDblDwn(canvas, event => {

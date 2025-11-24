@@ -49,6 +49,7 @@ export class ClipReader<CONTENT> implements EventOwnerReader<CONTENT> {
     get contentDuration(): ppqn {return this.clip.duration}
     set contentDuration(value: ppqn) {this.clip.box.duration.setValue(value)}
     get hue(): number {return this.clip.hue}
+    get mute(): boolean {return this.clip.mute}
     get offset(): number {return 0}
     get hasContent(): boolean {return this.clip.hasCollection}
     get isMirrored(): boolean {return this.clip.isMirrowed}

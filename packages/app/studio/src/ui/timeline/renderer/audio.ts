@@ -18,7 +18,7 @@ export const renderAudio = (context: CanvasRenderingContext2D,
                                 resultEnd,
                                 resultStartValue,
                                 resultEndValue
-                            }: LoopableRegion.LoopCycle) => {
+                            }: LoopableRegion.LoopCycle, clip: boolean = true) => {
     if (file.peaks.isEmpty()) {return}
     const peaks: Peaks = file.peaks.unwrap()
     const numFrames = peaks.numFrames
@@ -29,22 +29,15 @@ export const renderAudio = (context: CanvasRenderingContext2D,
     const segments: Array<{ x0: number, x1: number, u0: number, u1: number }> = []
     if (warping.nonEmpty()) {
         const {warpMarkers} = warping.unwrap()
-        const firstMarker = warpMarkers.lowerEqual(Number.POSITIVE_INFINITY)
-        const lastMarker = warpMarkers.greaterEqual(Number.NEGATIVE_INFINITY)
-        if (firstMarker === null || lastMarker === null) {
-            return
-        }
-        const durationInSeconds = firstMarker.seconds
-        const offset = rawStart - lastMarker.position
-
-        for (const [w0, w1] of Iterables.pairWise(warpMarkers.iterateFrom(range.unitMin - offset))) {
+        const durationInSeconds = file.endInSeconds
+        for (const [w0, w1] of Iterables.pairWise(warpMarkers.iterateFrom(range.unitMin - rawStart))) {
             if (w1 === null) {break} // TODO
-            const segmentStart = offset + w0.position
-            const segmentEnd = offset + w1.position
+            const segmentStart = rawStart + w0.position
+            const segmentEnd = rawStart + w1.position
             if (segmentEnd <= resultStart || segmentStart >= resultEnd) {continue}
             if (segmentStart > range.unitMax) {break}
-            const clippedStart = Math.max(segmentStart, resultStart)
-            const clippedEnd = Math.min(segmentEnd, resultEnd)
+            const clippedStart = clip ? Math.max(segmentStart, resultStart) : segmentStart
+            const clippedEnd = clip ? Math.min(segmentEnd, resultEnd) : segmentEnd
             const t0 = (clippedStart - segmentStart) / (segmentEnd - segmentStart)
             const t1 = (clippedEnd - segmentStart) / (segmentEnd - segmentStart)
             const audioStart = w0.seconds + t0 * (w1.seconds - w0.seconds)

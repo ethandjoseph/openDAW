@@ -49,6 +49,7 @@ export class RegionReader<REGION extends LoopableRegionBoxAdapter<CONTENT>, CONT
     get contentDuration(): ppqn {return this.region.loopDuration}
     set contentDuration(value: ppqn) {this.region.box.loopDuration.setValue(value)}
     get hue(): number {return this.region.hue}
+    get mute(): boolean {return this.region.mute}
     get offset(): number {return this.region.offset}
     get hasContent(): boolean {return this.region.hasCollection}
     get isMirrored(): boolean {return this.region.isMirrowed}

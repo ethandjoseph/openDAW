@@ -1,6 +1,6 @@
 import css from "./AudioTransientMarkers.sass?inline"
 import {Html} from "@opendaw/lib-dom"
-import {Lifecycle, TAU, Terminator} from "@opendaw/lib-std"
+import {Lifecycle, Terminator} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {AudioEventOwnerReader} from "@/ui/timeline/editors/EventOwnerReader"
 import {Project, TimelineRange} from "@opendaw/studio-core"
@@ -44,9 +44,11 @@ export const AudioTransientMarkers = ({lifecycle, range, reader}: Construct) => 
                         transientMarkers.asArray().forEach(transient => {
                             const unit = reader.offset + secondsToUnit(transient.position, warpMarkers.asArray())
                             const x = range.unitToX(unit) * devicePixelRatio
-                            context.arc(x, actualHeight * 0.5, 7, 0.0, TAU)
+                            context.moveTo(x, actualHeight * 0.85)
+                            context.lineTo(x - 7, actualHeight * 0.50)
+                            context.lineTo(x + 7, actualHeight * 0.50)
                         })
-                        context.fillStyle = Colors.blue.toString()
+                        context.fillStyle = Colors.shadow.toString()
                         context.fill()
                     })
                 }))

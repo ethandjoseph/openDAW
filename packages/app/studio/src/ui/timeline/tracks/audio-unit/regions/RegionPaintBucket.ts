@@ -1,5 +1,3 @@
-import {AnyRegionBoxAdapter} from "@opendaw/studio-adapters"
-
 export interface RegionPaintBucket {
     labelColor: string
     labelBackground: string
@@ -9,7 +7,7 @@ export interface RegionPaintBucket {
 }
 
 export namespace RegionPaintBucket {
-    export const create = ({hue, mute}: AnyRegionBoxAdapter, selected: boolean): RegionPaintBucket => {
+    export const create = ({hue, mute}: { hue: number, mute: boolean }, selected: boolean): RegionPaintBucket => {
         const saturationFactor = mute ? 0.05 : 1.0
         const fullSat = 100 * saturationFactor
         const normSat = 60 * saturationFactor
