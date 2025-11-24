@@ -1,6 +1,6 @@
 import css from "./AudioWarpMarkers.sass?inline"
 import {Dragging, Events, Html} from "@opendaw/lib-dom"
-import {isNotNull, isNull, Lifecycle, Nullable, Option, TAU, Terminator} from "@opendaw/lib-std"
+import {isNotNull, isNull, Lifecycle, Nullable, Option, TAU, Terminator, UUID} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {AudioEventOwnerReader} from "@/ui/timeline/editors/EventOwnerReader"
 import {Project, TimelineRange} from "@opendaw/studio-core"
@@ -12,6 +12,7 @@ import {ElementCapturing} from "@/ui/canvas/capturing"
 import {ContextMenu} from "@/ui/ContextMenu"
 import {MenuItem} from "@/ui/model/menu-item"
 import {DebugMenus} from "@/ui/menu/debug"
+import {EventCollection, ppqn} from "@opendaw/lib-dsp"
 
 const className = Html.adoptStyleSheet(css, "AudioWrapMarkers")
 
@@ -23,10 +24,22 @@ type Construct = {
     reader: AudioEventOwnerReader
 }
 
+const findAdjacentWarpMarker = (position: ppqn,
+                                warpMarkers: EventCollection<WarpMarkerBoxAdapter>)
+    : Nullable<[WarpMarkerBoxAdapter, WarpMarkerBoxAdapter]> => {
+    const left = warpMarkers.lowerEqual(position - 1)
+    const right = warpMarkers.greaterEqual(position + 1)
+    if (isNotNull(left) && isNotNull(right)) {
+        return [left, right]
+    } else {
+        return null
+    }
+}
+
 export const AudioWrapMarkers = ({lifecycle, project, range, snapping, reader}: Construct) => {
     const optWarping = reader.warping
     const markerRadius = 7
-    const {editing} = project
+    const {boxGraph, editing} = project
     return (
         <div className={className}>
             <canvas onInit={canvas => {
@@ -108,16 +121,19 @@ export const AudioWrapMarkers = ({lifecycle, project, range, snapping, reader}: 
                                         const rect = canvas.getBoundingClientRect()
                                         const x = event.clientX - rect.left
                                         const unit = snapping.xToUnitRound(x) - reader.offset
-                                        console.debug("create warp marker at", unit)
-
-                                        // TODO find closest transient, if any
-
-                                        /*editing.modify(() => {
-                                            WarpMarkerBox.create(boxGraph, UUID.generate(), box => {
-                                                box.position.setValue(unit)
-                                                box.seconds.setValue()
+                                        const adjacentWarpMarkers = findAdjacentWarpMarker(unit, warping.warpMarkers)
+                                        if (isNotNull(adjacentWarpMarkers)) {
+                                            const [left, right] = adjacentWarpMarkers
+                                            editing.modify(() => {
+                                                const alpha = (unit - left.position) / (right.position - left.position)
+                                                const seconds = left.seconds + alpha * (right.seconds - left.seconds)
+                                                WarpMarkerBox.create(boxGraph, UUID.generate(), box => {
+                                                    box.owner.refer(warping.box.warpMarkers)
+                                                    box.position.setValue(unit)
+                                                    box.seconds.setValue(seconds)
+                                                })
                                             })
-                                        })*/
+                                        }
                                     }
                                 }),
                                 Dragging.attach(canvas, startEvent => {
