@@ -7,8 +7,8 @@ export const WarpMarkerBox: BoxSchema<Pointers> = {
         name: "WarpMarkerBox",
         fields: {
             1: {type: "pointer", name: "owner", pointerType: Pointers.WarpMarkers, mandatory: true},
-            2: {type: "float32", name: "position", constraints: "non-negative", unit: "seconds"},
-            3: {type: "float32", name: "time", constraints: "any", unit: "ppqn"}
+            2: {type: "int32", name: "position", constraints: "any", unit: "ppqn"},
+            3: {type: "float32", name: "seconds", constraints: "non-negative", unit: "seconds"}
         }
-    }, pointerRules: {accepts: [Pointers.Selection], mandatory: true}
+    }, pointerRules: {accepts: [Pointers.Selection], mandatory: false}
 }

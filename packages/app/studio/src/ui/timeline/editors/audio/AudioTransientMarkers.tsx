@@ -7,7 +7,7 @@ import {Project, TimelineRange} from "@opendaw/studio-core"
 import {Snapping} from "@/ui/timeline/Snapping"
 import {CanvasPainter} from "@/ui/canvas/painter"
 import {Colors} from "@opendaw/studio-enums"
-import {WarpMarker} from "@opendaw/studio-adapters"
+import {WarpMarkerBoxAdapter} from "@opendaw/studio-adapters"
 import {ppqn} from "@opendaw/lib-dsp"
 
 const className = Html.adoptStyleSheet(css, "AudioTransientMarkers")
@@ -20,13 +20,13 @@ type Construct = {
     reader: AudioEventOwnerReader
 }
 
-const secondsToUnit = (seconds: number, warpMarkers: ReadonlyArray<WarpMarker>): ppqn => {
+const secondsToUnit = (seconds: number, warpMarkers: ReadonlyArray<WarpMarkerBoxAdapter>): ppqn => {
     for (let i = 0; i < warpMarkers.length - 1; i++) {
         const current = warpMarkers[i]
         const next = warpMarkers[i + 1]
         if (seconds >= current.seconds && seconds <= next.seconds) {
             const t = (seconds - current.seconds) / (next.seconds - current.seconds)
-            return current.time + t * (next.time - current.time)
+            return current.position + t * (next.position - current.position)
         }
     }
     return 0 // fallback, shouldn't happen with proper warp markers
@@ -41,8 +41,8 @@ export const AudioTransientMarkers = ({lifecycle, range, reader}: Construct) => 
                     const {context, actualHeight, devicePixelRatio} = painter
                     optWarping.ifSome(({transientMarkers, warpMarkers}) => {
                         context.beginPath()
-                        transientMarkers.forEach(transient => {
-                            const unit = reader.offset + secondsToUnit(transient.seconds, warpMarkers)
+                        transientMarkers.asArray().forEach(transient => {
+                            const unit = reader.offset + secondsToUnit(transient.position, warpMarkers.asArray())
                             const x = range.unitToX(unit) * devicePixelRatio
                             context.arc(x, actualHeight * 0.5, 7, 0.0, TAU)
                         })

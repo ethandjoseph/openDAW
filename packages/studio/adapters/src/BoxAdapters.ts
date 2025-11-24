@@ -56,6 +56,7 @@ import {
     TidalDeviceBox,
     TimelineBox,
     TrackBox,
+    TransientMarkerBox,
     UnknownAudioEffectDeviceBox,
     UnknownMidiEffectDeviceBox,
     ValueClipBox,
@@ -64,6 +65,7 @@ import {
     ValueRegionBox,
     VaporisateurDeviceBox,
     VelocityDeviceBox,
+    WarpMarkerBox,
     ZeitgeistDeviceBox
 } from "@opendaw/studio-boxes"
 import {AudioUnitBoxAdapter} from "./audio-unit/AudioUnitBoxAdapter"
@@ -120,6 +122,8 @@ import {VelocityDeviceBoxAdapter} from "./devices/midi-effects/VelocityDeviceBox
 import {TidalDeviceBoxAdapter} from "./devices/audio-effects/TidalDeviceBoxAdapter"
 import {DattorroReverbDeviceBoxAdapter} from "./devices/audio-effects/DattorroReverbDeviceBoxAdapter"
 import {AudioWarpingBoxAdapter} from "./audio/AudioWarpingBoxAdapter"
+import {TransientMarkerBoxAdapter} from "./audio/TransientMarkerBoxAdapter"
+import {WarpMarkerBoxAdapter} from "./audio/WarpMarkerBoxAdapter"
 
 export class BoxAdapters implements Terminable {
     readonly #context: BoxAdaptersContext
@@ -177,6 +181,8 @@ export class BoxAdapters implements Terminable {
             visitAudioClipBox: (box: AudioClipBox) => new AudioClipBoxAdapter(this.#context, box),
             visitAudioFileBox: (box: AudioFileBox) => new AudioFileBoxAdapter(this.#context, box),
             visitAudioWarpingBox: (box: AudioWarpingBox) => new AudioWarpingBoxAdapter(this.#context, box),
+            visitTransientMarkerBox: (box: TransientMarkerBox) => new TransientMarkerBoxAdapter(box),
+            visitWarpMarkerBox: (box: WarpMarkerBox) => new WarpMarkerBoxAdapter(box),
             visitAudioRegionBox: (box: AudioRegionBox) => new AudioRegionBoxAdapter(this.#context, box),
             visitAudioUnitBox: (box: AudioUnitBox) => new AudioUnitBoxAdapter(this.#context, box),
             visitAuxSendBox: (box: AuxSendBox): BoxAdapter => new AuxSendBoxAdapter(this.#context, box),

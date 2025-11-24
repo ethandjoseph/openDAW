@@ -1,7 +1,7 @@
 import {Peaks, PeaksPainter} from "@opendaw/lib-fusion"
 import {TimelineRange} from "@opendaw/studio-core"
 import {AudioFileBoxAdapter, AudioWarpingBoxAdapter} from "@opendaw/studio-adapters"
-import {BinarySearch, NumberComparator, Option} from "@opendaw/lib-std"
+import {Iterables, Option} from "@opendaw/lib-std"
 import {RegionBound} from "@/ui/timeline/renderer/env"
 import {dbToGain, LoopableRegion} from "@opendaw/lib-dsp"
 
@@ -29,21 +29,18 @@ export const renderAudio = (context: CanvasRenderingContext2D,
     const segments: Array<{ x0: number, x1: number, u0: number, u1: number }> = []
     if (warping.nonEmpty()) {
         const {warpMarkers} = warping.unwrap()
-        const durationInSeconds = warpMarkers[warpMarkers.length - 1].seconds
-        const offset = rawStart - warpMarkers[0].time
-        const startIndex = Math.max(0,
-            BinarySearch.rightMostMapped(
-                warpMarkers,
-                range.unitMin,
-                NumberComparator,
-                warp => offset + warp.time
-            )
-        )
-        for (let i = startIndex; i < warpMarkers.length - 1; i++) {
-            const w0 = warpMarkers[i]
-            const w1 = warpMarkers[i + 1]
-            const segmentStart = offset + w0.time
-            const segmentEnd = offset + w1.time
+        const firstMarker = warpMarkers.lowerEqual(Number.POSITIVE_INFINITY)
+        const lastMarker = warpMarkers.greaterEqual(Number.NEGATIVE_INFINITY)
+        if (firstMarker === null || lastMarker === null) {
+            return
+        }
+        const durationInSeconds = firstMarker.seconds
+        const offset = rawStart - lastMarker.position
+
+        for (const [w0, w1] of Iterables.pairWise(warpMarkers.iterateFrom(range.unitMin - offset))) {
+            if (w1 === null) {break} // TODO
+            const segmentStart = offset + w0.position
+            const segmentEnd = offset + w1.position
             if (segmentEnd <= resultStart || segmentStart >= resultEnd) {continue}
             if (segmentStart > range.unitMax) {break}
             const clippedStart = Math.max(segmentStart, resultStart)

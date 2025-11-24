@@ -1,11 +1,5 @@
 import {StudioService} from "@/service/StudioService"
-import {
-    AudioUnitFactory,
-    AudioWarpingIO,
-    InstrumentFactories,
-    ProjectSkeleton,
-    TrackType
-} from "@opendaw/studio-adapters"
+import {AudioUnitFactory, InstrumentFactories, ProjectSkeleton, TrackType} from "@opendaw/studio-adapters"
 import {AudioPlayback, AudioUnitType, IconSymbol} from "@opendaw/studio-enums"
 import {
     AudioFileBox,
@@ -13,9 +7,11 @@ import {
     AudioWarpingBox,
     CaptureAudioBox,
     TrackBox,
-    ValueEventCollectionBox
+    TransientMarkerBox,
+    ValueEventCollectionBox,
+    WarpMarkerBox
 } from "@opendaw/studio-boxes"
-import {Arrays, Option, UUID} from "@opendaw/lib-std"
+import {Option, UUID} from "@opendaw/lib-std"
 import {Project} from "@opendaw/studio-core"
 import {PPQN, TimeBase} from "@opendaw/lib-dsp"
 
@@ -37,23 +33,29 @@ export const testAudioProject = (service: StudioService) => {
     const audioFileBox = AudioFileBox.create(boxGraph, UUID.parse("ae2360d9-3829-47d5-8c4d-4ba67c37451f"),
         box => box.endInSeconds.setValue(durationInSeconds))
     const valueEventCollectionBox = ValueEventCollectionBox.create(boxGraph, UUID.generate())
-    const audioWarpingBox = AudioWarpingBox.create(boxGraph, UUID.generate(), box => {
-        const n = 17
-        AudioWarpingIO.writeTransientMarkers(box.transientMarkers, Arrays.create(index => ({
-            seconds: index / (n - 1) * durationInSeconds,
-            energy: 0.0
-        }), n))
-        AudioWarpingIO.writeWarpMarkers(box.warpMarkers, [
-            {
-                time: 0, seconds: 0.0
-            },
-            {
-                time: PPQN.Bar * 2, seconds: durationInSeconds * 0.5
-            },
-            {
-                time: PPQN.Bar * 4, seconds: durationInSeconds
-            }
-        ])
+    const audioWarpingBox = AudioWarpingBox.create(boxGraph, UUID.generate())
+    const n = 17
+    for (let i = 0; i < n; i++) {
+        TransientMarkerBox.create(boxGraph, UUID.generate(), box => {
+            box.owner.refer(audioWarpingBox.transientMarkers)
+            box.position.setValue(i / (n - 1) * durationInSeconds)
+            box.energy.setValue(0.0)
+        })
+    }
+    WarpMarkerBox.create(boxGraph, UUID.generate(), box => {
+        box.owner.refer(audioWarpingBox.warpMarkers)
+        box.position.setValue(0)
+        box.seconds.setValue(0)
+    })
+    WarpMarkerBox.create(boxGraph, UUID.generate(), box => {
+        box.owner.refer(audioWarpingBox.warpMarkers)
+        box.position.setValue(PPQN.Bar * 2)
+        box.seconds.setValue(durationInSeconds * 0.5)
+    })
+    WarpMarkerBox.create(boxGraph, UUID.generate(), box => {
+        box.owner.refer(audioWarpingBox.warpMarkers)
+        box.position.setValue(PPQN.Bar * 4)
+        box.seconds.setValue(durationInSeconds)
     })
     const audioRegionBox = AudioRegionBox.create(boxGraph, UUID.generate(), box => {
         box.timeBase.setValue(TimeBase.Musical)

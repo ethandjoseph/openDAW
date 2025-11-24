@@ -1,6 +1,6 @@
 import css from "./AudioWarpMarkers.sass?inline"
-import {Dragging, Html} from "@opendaw/lib-dom"
-import {Lifecycle, Option, TAU, Terminator} from "@opendaw/lib-std"
+import {Html} from "@opendaw/lib-dom"
+import {Lifecycle, TAU, Terminator} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {AudioEventOwnerReader} from "@/ui/timeline/editors/EventOwnerReader"
 import {Project, TimelineRange} from "@opendaw/studio-core"
@@ -18,9 +18,8 @@ type Construct = {
     reader: AudioEventOwnerReader
 }
 
-export const AudioWrapMarkers = ({lifecycle, project, range, reader}: Construct) => {
+export const AudioWrapMarkers = ({lifecycle, range, reader}: Construct) => {
     const optWarping = reader.warping
-    const {editing} = project
     const markerRadius = 7
     return (
         <div className={className}>
@@ -29,10 +28,10 @@ export const AudioWrapMarkers = ({lifecycle, project, range, reader}: Construct)
                     const {context, actualHeight, devicePixelRatio} = painter
                     optWarping.ifSome(({warpMarkers}) => {
                         context.beginPath()
-                        warpMarkers.forEach(warp => {
-                            const unit = reader.offset + warp.time
+                        warpMarkers.asArray().forEach(warp => {
+                            const unit = reader.offset + warp.position
                             const x = range.unitToX(unit) * devicePixelRatio
-                            context.arc(x, actualHeight * 0.5, 7, 0.0, TAU)
+                            context.arc(x, actualHeight * 0.5, markerRadius, 0.0, TAU)
                         })
                         context.fillStyle = Colors.orange.toString()
                         context.fill()
@@ -45,8 +44,8 @@ export const AudioWrapMarkers = ({lifecycle, project, range, reader}: Construct)
                     optWarping.catchupAndSubscribe((optWarping) => {
                         warpingTerminator.terminate()
                         optWarping.ifSome(warping => warpingTerminator.own(warping.subscribe(requestUpdate)))
-                    }),
-                    Dragging.attach(canvas, startEvent => {
+                    })
+                    /*Dragging.attach(canvas, startEvent => {
                         return optWarping.flatMap((adapter) => {
                             const rect = canvas.getBoundingClientRect()
                             const x = startEvent.clientX - rect.left
@@ -64,7 +63,7 @@ export const AudioWrapMarkers = ({lifecycle, project, range, reader}: Construct)
                                 approve: () => editing.mark()
                             })
                         })
-                    }, {})
+                    }, {})*/
                 )
             }}/>
         </div>
