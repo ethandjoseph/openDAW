@@ -32,6 +32,11 @@ export const ProjectProfileInfo = ({lifecycle, service}: Construct) => {
                placeholder="Type in your's project name"
                value={meta.name}/>
     )
+    const inputArtist: HTMLInputElement = (
+        <input type="text" className="default"
+               placeholder="Type in your artist name"
+               value={meta.artist}/>
+    )
     const inputTags: HTMLInputElement = (
         <input type="text" className="default"
                placeholder="Type in your's project tags"
@@ -76,6 +81,8 @@ export const ProjectProfileInfo = ({lifecycle, service}: Construct) => {
         <div className="form">
             <div className="label">Name</div>
             <label info="Maximum 128 characters">{inputName}</label>
+            <div className="label">Artist</div>
+            <label info="Maximum 128 characters">{inputArtist}</label>
             <div className="label">Tags</div>
             <label info="Separate tags with commas">{inputTags}</label>
             <div className="label">Description</div>
@@ -144,6 +151,8 @@ export const ProjectProfileInfo = ({lifecycle, service}: Construct) => {
         }),
         Events.subscribe(inputName, "blur",
             () => profile.updateMetaData("name", inputName.value)),
+        Events.subscribe(inputArtist, "blur",
+            () => profile.updateMetaData("artist", inputArtist.value)),
         Events.subscribe(inputDescription, "blur",
             () => profile.updateMetaData("description", inputDescription.value)),
         Events.subscribe(inputTags, "blur",

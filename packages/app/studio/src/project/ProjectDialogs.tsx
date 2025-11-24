@@ -24,6 +24,7 @@ export namespace ProjectDialogs {
         const approve = () => {
             const date = new Date().toISOString()
             resolve({
+                artist: "",
                 name: inputField.value,
                 description: "",
                 tags: [],
