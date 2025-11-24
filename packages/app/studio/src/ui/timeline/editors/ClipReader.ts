@@ -1,6 +1,7 @@
 import {
     AudioClipBoxAdapter,
     AudioFileBoxAdapter,
+    AudioWarpingBoxAdapter,
     ClipBoxAdapter,
     NoteClipBoxAdapter,
     NoteEventCollectionBoxAdapter,
@@ -9,7 +10,7 @@ import {
     ValueEventCollectionBoxAdapter
 } from "@opendaw/studio-adapters"
 import {ppqn} from "@opendaw/lib-dsp"
-import {mod, Observer, Option, Subscription} from "@opendaw/lib-std"
+import {mod, ObservableOption, Observer, Option, Subscription} from "@opendaw/lib-std"
 import {TimelineRange} from "@opendaw/studio-core"
 import {Propagation} from "@opendaw/lib-box"
 import {
@@ -26,6 +27,7 @@ export class ClipReader<CONTENT> implements EventOwnerReader<CONTENT> {
 
             get file(): AudioFileBoxAdapter {return clip.file}
             get gain(): number {return clip.gain}
+            get warping(): ObservableOption<AudioWarpingBoxAdapter> {return clip.warping}
         }(clip)
     }
 

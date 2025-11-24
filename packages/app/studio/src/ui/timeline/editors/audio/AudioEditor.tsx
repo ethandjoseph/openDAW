@@ -8,6 +8,7 @@ import {Snapping} from "@/ui/timeline/Snapping.ts"
 import {EditorMenuCollector} from "@/ui/timeline/editors/EditorMenuCollector.ts"
 import {AudioEventOwnerReader} from "@/ui/timeline/editors/EventOwnerReader.ts"
 import {Html} from "@opendaw/lib-dom"
+import {AudioTransientEditor} from "@/ui/timeline/editors/audio/AudioTransientEditor"
 
 const className = Html.adoptStyleSheet(css, "AudioEditor")
 
@@ -24,15 +25,18 @@ export const AudioEditor = ({lifecycle, service, range, snapping, reader}: Const
     return (
         <div className={className}>
             <Frag>
-                <div><h5>Transients</h5></div>
-                <div><h5>Warp Markers</h5></div>
-                <div><h5>Waveform</h5></div>
+                <div className="label"><h5>Transients</h5></div>
+                <div className="label"><h5>Warp Markers</h5></div>
+                <div className="label"><h5>Waveform</h5></div>
             </Frag>
             <Frag>
-                <div/>
+                <AudioTransientEditor lifecycle={lifecycle}
+                                      project={service.project}
+                                      range={range}
+                                      snapping={snapping}
+                                      reader={reader}/>
                 <div/>
                 <AudioEditorCanvas lifecycle={lifecycle}
-                                   service={service}
                                    range={range}
                                    snapping={snapping}
                                    reader={reader}/>

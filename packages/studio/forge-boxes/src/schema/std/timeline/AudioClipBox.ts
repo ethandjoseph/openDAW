@@ -13,6 +13,7 @@ export const AudioClipBox: BoxSchema<Pointers> = {
             3: {type: "int32", name: "index", constraints: "index", unit: ""},
             4: {type: "object", name: "playback", class: ClipPlaybackFields},
             5: {type: "pointer", name: "events", pointerType: Pointers.ValueEventCollection, mandatory: true},
+            6: {type: "pointer", name: "warping", pointerType: Pointers.AudioWarping, mandatory: false},
             10: {type: "int32", name: "duration", constraints: "any", unit: "ppqn"},
             11: {type: "boolean", name: "mute"},
             12: {type: "string", name: "label"},

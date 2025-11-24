@@ -160,6 +160,7 @@ export const ContentEditor = ({lifecycle, service}: Construct) => {
 
     lifecycle.ownAll(
         editingSubject.catchupAndSubscribe(subject => {
+            console.debug("CHANGE SUBJECT", subject)
             element.classList.remove("disabled")
             runtime.terminate()
             subject.match({

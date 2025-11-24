@@ -284,7 +284,8 @@ export class ByteArrayField<E extends PointerTypes = UnreferenceableType> extend
     private constructor(construct: FieldConstruct<E>, value: Readonly<Int8Array>) {super(construct, PrimitiveType.Bytes, value)}
     serialization(): ValueSerialization<Readonly<Int8Array>> {return ValueSerialization[PrimitiveType.Bytes]}
     equals(value: Readonly<Int8Array>): boolean {
-        return this.getValue().length === value.length && this.getValue().every((x, index) => value[index] === x)
+        // we only test for reference equality because the bytes are immutable
+        return this.getValue() === value
     }
     clamp(value: Readonly<Int8Array>): Readonly<Int8Array> {return value}
     read(input: DataInput): void {

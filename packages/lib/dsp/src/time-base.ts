@@ -55,7 +55,7 @@ class TimeBaseAwareConverter implements TimeBaseConverter {
         const value = this.#property.getValue()
         if (this.getTimeBase() === TimeBase.Musical) {return value}
         const position = this.#position.getValue()
-        const startSeconds = this.#tempoMap.positionToSeconds(position)
+        const startSeconds = this.#tempoMap.ppqnToSeconds(position)
         const endSeconds = startSeconds + value
         return this.#tempoMap.intervalToPPQN(startSeconds, endSeconds)
     }

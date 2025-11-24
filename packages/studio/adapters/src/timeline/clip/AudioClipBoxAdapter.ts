@@ -2,8 +2,8 @@ import {ppqn, PPQN} from "@opendaw/lib-dsp"
 import {
     DefaultObservableValue,
     int,
-    Maybe,
-    Notifier,
+    Maybe, MutableObservableOption,
+    Notifier, ObservableOption,
     ObservableValue,
     Observer,
     Option,
@@ -19,6 +19,7 @@ import {Pointers} from "@opendaw/studio-enums"
 import {TrackBoxAdapter} from "../TrackBoxAdapter"
 import {BoxAdaptersContext} from "../../BoxAdaptersContext"
 import {AudioFileBoxAdapter} from "../../audio/AudioFileBoxAdapter"
+import {AudioWarpingBoxAdapter} from "../../audio/AudioWarpingBoxAdapter"
 
 export class AudioClipBoxAdapter implements ClipBoxAdapter<never> {
     readonly type = "audio-clip"
@@ -28,10 +29,11 @@ export class AudioClipBoxAdapter implements ClipBoxAdapter<never> {
     readonly #context: BoxAdaptersContext
     readonly #box: AudioClipBox
 
+    readonly #wraping: MutableObservableOption<AudioWarpingBoxAdapter>
     readonly #selectedValue: DefaultObservableValue<boolean>
     readonly #changeNotifier: Notifier<void>
 
-    #isConstructing: boolean // Prevents stack overflow due to infinite adapter queries
+    readonly #isConstructing: boolean // Prevents stack overflow due to infinite adapter queries
 
     #fileAdapter: Option<AudioFileBoxAdapter> = Option.None
     #fileSubscription: Option<Subscription> = Option.None
@@ -41,6 +43,7 @@ export class AudioClipBoxAdapter implements ClipBoxAdapter<never> {
         this.#box = box
 
         this.#isConstructing = true
+        this.#wraping = new MutableObservableOption()
         this.#selectedValue = this.#terminator.own(new DefaultObservableValue(false))
         this.#changeNotifier = this.#terminator.own(new Notifier<void>())
 
@@ -49,6 +52,9 @@ export class AudioClipBoxAdapter implements ClipBoxAdapter<never> {
                 onAdded: () => this.#dispatchChange(),
                 onRemoved: () => this.#dispatchChange()
             }),
+            this.#box.warping.catchupAndSubscribe(({targetVertex}) =>
+                this.#wraping.wrapOption(targetVertex.map(({box}) =>
+                    this.#context.boxAdapters.adapterFor(box, AudioWarpingBoxAdapter)))),
             this.#box.file.catchupAndSubscribe((pointerField: PointerField<Pointers.AudioFile>) => {
                 this.#fileAdapter = pointerField.targetVertex
                     .map(vertex => this.#context.boxAdapters.adapterFor(vertex.box, AudioFileBoxAdapter))
@@ -107,6 +113,7 @@ export class AudioClipBoxAdapter implements ClipBoxAdapter<never> {
     get file(): AudioFileBoxAdapter {return this.#fileAdapter.unwrap("Cannot access file.")}
     get hasCollection() {return !this.optCollection.isEmpty()}
     get optCollection(): Option<never> {return Option.None}
+    get warping(): ObservableOption<AudioWarpingBoxAdapter> {return this.#wraping}
     get label(): string {return this.#box.label.getValue()}
     get trackBoxAdapter(): Option<TrackBoxAdapter> {
         if (this.#isConstructing) {return Option.None}

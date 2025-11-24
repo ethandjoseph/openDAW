@@ -35,7 +35,7 @@ import {AudioOutputDevice} from "@/audio/AudioOutputDevice"
 import {FooterLabel} from "@/service/FooterLabel"
 import {RouteLocation} from "@opendaw/lib-jsx"
 import {PPQN} from "@opendaw/lib-dsp"
-import {Browser, ConsoleCommands, Dragging, Files} from "@opendaw/lib-dom"
+import {AnimationFrame, Browser, ConsoleCommands, Dragging, Files} from "@opendaw/lib-dom"
 import {Promises} from "@opendaw/lib-runtime"
 import {ExportStemsConfiguration, PresetDecoder} from "@opendaw/studio-adapters"
 import {Address} from "@opendaw/lib-box"
@@ -66,6 +66,7 @@ import {AudioUnitType} from "@opendaw/studio-enums"
 import {Surface} from "@/ui/surface/Surface"
 import {SoftwareMIDIPanel} from "@/ui/software-midi/SoftwareMIDIPanel"
 import {Mixdowns} from "@/service/Mixdowns"
+import {testAudioProject} from "@/service/TestAudioProject"
 
 /**
  * I am just piling stuff after stuff in here to boot the environment.
@@ -334,14 +335,6 @@ export class StudioService implements ProjectEnv {
                 const loopState = this.transport.loop
                 const loopEnabled = timelineBox.loopArea.enabled
                 loopState.setValue(loopEnabled.getValue())
-                lifeTime.ownAll(
-                    project,
-                    loopState.subscribe(value => editing.modify(() => loopEnabled.setValue(value.getValue()))),
-                    userEditingManager.timeline.catchupAndSubscribe(option => option
-                        .ifSome(() => this.panelLayout.showIfAvailable(PanelType.ContentEditor))),
-                    timelineBox.durationInPulses.catchupAndSubscribe(owner => range.maxUnits = owner.getValue() + PPQN.Bar),
-                    project.timelineBoxAdapter.catchupAndSubscribeSignature(signature => snapping.signature = signature)
-                )
                 range.showUnitInterval(0, PPQN.fromSignature(16, 1))
 
                 // -------------------------------
@@ -384,6 +377,14 @@ export class StudioService implements ProjectEnv {
                 }
                 this.engine.setWorklet(project.startAudioWorklet(restart, {pauseOnLoopDisabled: false}))
                 if (isRoot) {this.switchScreen("default")}
+                lifeTime.ownAll(
+                    project,
+                    loopState.subscribe(value => editing.modify(() => loopEnabled.setValue(value.getValue()))),
+                    userEditingManager.timeline.catchupAndSubscribe(option => option
+                        .ifSome(() => AnimationFrame.once(() => this.panelLayout.showIfAvailable(PanelType.ContentEditor)))),
+                    timelineBox.durationInPulses.catchupAndSubscribe(owner => range.maxUnits = owner.getValue() + PPQN.Bar),
+                    project.timelineBoxAdapter.catchupAndSubscribeSignature(signature => snapping.signature = signature)
+                )
             } else {
                 this.engine.releaseWorklet()
                 range.maxUnits = PPQN.fromSignature(128, 1)
@@ -392,6 +393,7 @@ export class StudioService implements ProjectEnv {
             }
         }
         this.#projectProfileService.catchupAndSubscribe(owner => observer(owner.getValue()))
+        testAudioProject(this)
     }
 
     #installConsoleCommands(): void {

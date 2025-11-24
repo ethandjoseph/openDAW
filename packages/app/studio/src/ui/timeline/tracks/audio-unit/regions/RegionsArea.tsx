@@ -111,7 +111,7 @@ export const RegionsArea = ({lifecycle, service, manager, scrollModel, scrollCon
                 editing.modify(() => {
                     userEditingManager.timeline.edit(target.region.box)
                     service.panelLayout.showIfAvailable(PanelType.ContentEditor)
-                })
+                }, false)
             } else if (target.type === "track") {
                 const {audioUnitBoxAdapter, trackBoxAdapter} = target.track
                 const name = audioUnitBoxAdapter.input.label.unwrapOrElse("")

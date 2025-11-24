@@ -1,7 +1,6 @@
 import css from "./AudioEditorCanvas.sass?inline"
 import {Lifecycle} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
-import {StudioService} from "@/service/StudioService.ts"
 import {TimelineRange} from "@opendaw/studio-core"
 import {CanvasPainter} from "@/ui/canvas/painter.ts"
 import {LoopableRegion} from "@opendaw/lib-dsp"
@@ -16,7 +15,6 @@ const className = Html.adoptStyleSheet(css, "AudioEditorCanvas")
 
 type Construct = {
     lifecycle: Lifecycle
-    service: StudioService
     range: TimelineRange
     snapping: Snapping
     reader: AudioEventOwnerReader
