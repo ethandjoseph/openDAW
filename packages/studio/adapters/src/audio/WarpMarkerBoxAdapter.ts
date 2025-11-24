@@ -1,20 +1,39 @@
-import {Notifier, Observer, Subscription, Terminator, UUID} from "@opendaw/lib-std"
-import {Address} from "@opendaw/lib-box"
+import {Notifier, Observer, Option, Selectable, Subscription, Terminator, UUID} from "@opendaw/lib-std"
+import {Address, Propagation} from "@opendaw/lib-box"
 import {Event} from "@opendaw/lib-dsp"
 import {WarpMarkerBox} from "@opendaw/studio-boxes"
 import {BoxAdapter} from "../BoxAdapter"
+import {AudioWarpingBoxAdapter} from "./AudioWarpingBoxAdapter"
+import {BoxAdaptersContext} from "../BoxAdaptersContext"
 
-export class WarpMarkerBoxAdapter implements BoxAdapter, Event {
+export class WarpMarkerBoxAdapter implements BoxAdapter, Event, Selectable {
     readonly type = "warp-marker"
+
     readonly #terminator = new Terminator()
 
+    readonly #context: BoxAdaptersContext
     readonly #box: WarpMarkerBox
     readonly #notifer: Notifier<void>
 
-    constructor(box: WarpMarkerBox) {
+    #isSelected: boolean = false
+
+    constructor(context: BoxAdaptersContext, box: WarpMarkerBox) {
+        this.#context = context
         this.#box = box
 
         this.#notifer = new Notifier()
+        this.#terminator.own(box.subscribe(Propagation.Children, () => this.#onChanged()))
+    }
+
+    onSelected(): void {
+        this.#isSelected = true
+        this.optWarping.ifSome(warping => warping.onChanged())
+        this.#onChanged()
+    }
+
+    onDeselected(): void {
+        this.#isSelected = false
+        this.#onChanged()
     }
 
     get box(): WarpMarkerBox {return this.#box}
@@ -22,8 +41,18 @@ export class WarpMarkerBoxAdapter implements BoxAdapter, Event {
     get address(): Address {return this.#box.address}
     get position(): number {return this.#box.position.getValue()}
     get seconds(): number {return this.#box.seconds.getValue()}
+    get isSelected(): boolean {return this.#isSelected}
+    get optWarping(): Option<AudioWarpingBoxAdapter> {
+        return this.#box.owner.targetVertex
+            .map(vertex => this.#context.boxAdapters.adapterFor(vertex.box, AudioWarpingBoxAdapter))
+    }
 
     subscribe(observer: Observer<void>): Subscription {return this.#notifer.subscribe(observer)}
 
     terminate(): void {this.#terminator.terminate()}
+
+    #onChanged(): void {
+        this.#notifer.notify()
+        this.optWarping.ifSome(warping => warping.onChanged())
+    }
 }

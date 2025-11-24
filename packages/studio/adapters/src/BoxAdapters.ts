@@ -182,7 +182,7 @@ export class BoxAdapters implements Terminable {
             visitAudioFileBox: (box: AudioFileBox) => new AudioFileBoxAdapter(this.#context, box),
             visitAudioWarpingBox: (box: AudioWarpingBox) => new AudioWarpingBoxAdapter(this.#context, box),
             visitTransientMarkerBox: (box: TransientMarkerBox) => new TransientMarkerBoxAdapter(box),
-            visitWarpMarkerBox: (box: WarpMarkerBox) => new WarpMarkerBoxAdapter(box),
+            visitWarpMarkerBox: (box: WarpMarkerBox) => new WarpMarkerBoxAdapter(this.#context, box),
             visitAudioRegionBox: (box: AudioRegionBox) => new AudioRegionBoxAdapter(this.#context, box),
             visitAudioUnitBox: (box: AudioUnitBox) => new AudioUnitBoxAdapter(this.#context, box),
             visitAuxSendBox: (box: AuxSendBox): BoxAdapter => new AuxSendBoxAdapter(this.#context, box),

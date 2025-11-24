@@ -65,6 +65,7 @@ export class AudioWarpingBoxAdapter implements BoxAdapter {
     get transientMarkers(): EventCollection<TransientMarkerBoxAdapter> {return this.#transientMarkers}
 
     subscribe(observer: Observer<void>): Subscription {return this.#notifer.subscribe(observer)}
+    onChanged(): void {this.#notifer.notify()}
 
     terminate(): void {this.#terminator.terminate()}
 }
