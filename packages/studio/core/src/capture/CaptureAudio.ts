@@ -123,8 +123,6 @@ export class CaptureAudio extends Capture<CaptureAudioBox> {
         const channelCount = this.#requestChannels.unwrapOrElse(1)
         return AudioDevices.requestStream({
             deviceId: {exact: deviceId},
-            sampleRate: this.manager.project.engine.sampleRate(),
-            sampleSize: 32,
             echoCancellation: false,
             noiseSuppression: false,
             autoGainControl: false,
