@@ -19,14 +19,6 @@ const envFolder = isMainBranch ? "main" : "dev"
 const readBuildInfo = () => JSON.parse(fs.readFileSync(buildInfoPath, "utf8"))
 const createRootHtaccess = (mainReleaseDir: string, devReleaseDir: string) => `# openDAW
 #
-# CORS Headers
-Header set Access-Control-Allow-Origin "https://localhost:8080"
-Header set Access-Control-Allow-Methods "GET, POST, OPTIONS, PUT, DELETE"
-Header set Access-Control-Allow-Headers "Authorization, Content-Type, X-Requested-With"
-Header set Access-Control-Allow-Credentials "true"
-Header set Cross-Origin-Opener-Policy "same-origin"
-Header set Cross-Origin-Embedder-Policy "require-corp"
-
 RewriteEngine On
 RewriteBase /
 
@@ -79,15 +71,31 @@ RewriteRule ^(.*)$ ${mainReleaseDir}/$1 [L]
 
     // Read existing .htaccess or create default values
     console.log("updating root .htaccess...")
-    let mainReleaseDir = "/main/releases/${uuid}"
-    let devReleaseDir = "/dev/releases/${uuid}"
+    let mainReleaseDir: string | null = null
+    let devReleaseDir: string | null = null
+
     try {
         const existingHtaccess = await sftp.get("/.htaccess")
         const content = existingHtaccess.toString()
-        const mainMatch = content.match(/RewriteCond %\{HTTP_HOST\} \^opendaw.*\nRewriteRule \^\(\.\*\)\$ (\/main\/releases\/[^\s]+)/)
-        const devMatch = content.match(/RewriteCond %\{HTTP_HOST\} \^dev.*\nRewriteRule \^\(\.\*\)\$ (\/dev\/releases\/[^\s]+)/)
-        if (mainMatch) mainReleaseDir = mainMatch[1]
-        if (devMatch) devReleaseDir = devMatch[1]
+
+        // Try new format first
+        const mainMatch = content.match(/RewriteCond %\{HTTP_HOST\} \^opendaw.*\nRewriteRule \^\(\.\*\)\$ (\/main\/releases\/[^\s/]+)/)
+        const devMatch = content.match(/RewriteCond %\{HTTP_HOST\} \^dev.*\nRewriteRule \^\(\.\*\)\$ (\/dev\/releases\/[^\s/]+)/)
+
+        if (mainMatch) {
+            mainReleaseDir = mainMatch[1]
+        } else {
+            // Try old format (migrate from /releases/ to /main/releases/)
+            const oldMatch = content.match(/RewriteRule \^\(\.\*\)\$ (\/releases\/[^\s/]+)/)
+            if (oldMatch) {
+                mainReleaseDir = oldMatch[1].replace('/releases/', '/main/releases/')
+                console.log(`migrating old main release: ${oldMatch[1]} -> ${mainReleaseDir}`)
+            }
+        }
+
+        if (devMatch) {
+            devReleaseDir = devMatch[1]
+        }
     } catch (err) {
         console.log("no existing .htaccess found, creating new one")
     }
@@ -98,6 +106,10 @@ RewriteRule ^(.*)$ ${mainReleaseDir}/$1 [L]
     } else {
         devReleaseDir = releaseDir
     }
+
+    // Use placeholder for environments that haven't been deployed yet
+    if (!mainReleaseDir) mainReleaseDir = "/main/releases/not-yet-deployed"
+    if (!devReleaseDir) devReleaseDir = "/dev/releases/not-yet-deployed"
 
     // Create and upload root .htaccess
     const rootHtaccess = createRootHtaccess(mainReleaseDir, devReleaseDir)
