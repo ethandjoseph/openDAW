@@ -1,6 +1,6 @@
-import css from "./AudioWarpMarkers.sass?inline"
+import css from "./WarpMarkerEditor.sass?inline"
 import {Dragging, Events, Html, Keyboard} from "@opendaw/lib-dom"
-import {clamp, isNotNull, isNull, Lifecycle, Nullable, Option, TAU, Terminator, UUID} from "@opendaw/lib-std"
+import {clamp, isNotNull, isNull, Lifecycle, Option, TAU, Terminator, UUID} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {AudioEventOwnerReader} from "@/ui/timeline/editors/EventOwnerReader"
 import {Project, TimelineRange} from "@opendaw/studio-core"
@@ -11,8 +11,9 @@ import {WarpMarkerBox} from "@opendaw/studio-boxes"
 import {ContextMenu} from "@/ui/ContextMenu"
 import {MenuItem} from "@/ui/model/menu-item"
 import {DebugMenus} from "@/ui/menu/debug"
-import {EventCollection, PPQN, ppqn} from "@opendaw/lib-dsp"
+import {PPQN} from "@opendaw/lib-dsp"
 import {WarpMarkerCapturing} from "@/ui/timeline/editors/audio/WarpMarkerCapturing"
+import {WarpMarkerUtils} from "@/ui/timeline/editors/audio/WarpMarkerUtils"
 
 const className = Html.adoptStyleSheet(css, "AudioWrapMarkers")
 
@@ -26,15 +27,7 @@ type Construct = {
 
 const MIN_DISTANCE = PPQN.SemiQuaver
 
-const findAdjacentWarpMarker = (position: ppqn,
-                                warpMarkers: EventCollection<WarpMarkerBoxAdapter>)
-    : [Nullable<WarpMarkerBoxAdapter>, Nullable<WarpMarkerBoxAdapter>] => {
-    const left = warpMarkers.lowerEqual(position - 1)
-    const right = warpMarkers.greaterEqual(position + 1)
-    return [left, right]
-}
-
-export const AudioWarpMarkers = ({lifecycle, project, range, snapping, reader}: Construct) => {
+export const WarpMarkerEditor = ({lifecycle, project, range, snapping, reader}: Construct) => {
     const optWarping = reader.warping
     const markerRadius = 7
     const {boxGraph, editing} = project
@@ -45,17 +38,17 @@ export const AudioWarpMarkers = ({lifecycle, project, range, snapping, reader}: 
                         const {requestUpdate} = lifecycle.own(new CanvasPainter(canvas, painter => {
                             const {context, actualHeight, devicePixelRatio} = painter
                             optWarping.ifSome(({warpMarkers}) => {
-                                // TODO optimise
-                                warpMarkers.asArray().forEach(warp => {
-                                    const unit = reader.offset + warp.position
+                                for (const marker of warpMarkers.iterateFrom(range.unitMin - reader.offset)) {
+                                    const unit = reader.offset + marker.position
+                                    if (unit > range.unitMax) {break}
                                     const x = range.unitToX(unit) * devicePixelRatio
                                     context.beginPath()
                                     context.arc(x, actualHeight * 0.5, markerRadius, 0.0, TAU)
-                                    context.fillStyle = warp.isSelected
+                                    context.fillStyle = marker.isSelected
                                         ? `hsl(${reader.hue}, 60%, 80%)`
                                         : `hsl(${reader.hue}, 60%, 60%)`
                                     context.fill()
-                                })
+                                }
                             })
                         }))
                         const warpingLifeCycle = lifecycle.own(new Terminator())
@@ -109,7 +102,7 @@ export const AudioWarpMarkers = ({lifecycle, project, range, snapping, reader}: 
                                                 const rect = canvas.getBoundingClientRect()
                                                 const x = event.clientX - rect.left
                                                 const unit = snapping.xToUnitRound(x) - reader.offset
-                                                const adjacentWarpMarkers = findAdjacentWarpMarker(unit, warpMarkers)
+                                                const adjacentWarpMarkers = WarpMarkerUtils.findAdjacent(unit, warpMarkers)
                                                 if (isNull(adjacentWarpMarkers)) {return}
                                                 const [left, right] = adjacentWarpMarkers
                                                 if (isNull(left) || isNull(right)) {return}
@@ -138,7 +131,7 @@ export const AudioWarpMarkers = ({lifecycle, project, range, snapping, reader}: 
                                             selection.deselectAll()
                                             if (isNull(marker)) {return Option.None}
                                             selection.select(marker)
-                                            const [left, right] = findAdjacentWarpMarker(marker.position, warpMarkers)
+                                            const [left, right] = WarpMarkerUtils.findAdjacent(marker.position, warpMarkers)
                                             if (isNull(left) && isNull(right)) {
                                                 console.warn("Broken warp-markers")
                                                 return Option.None

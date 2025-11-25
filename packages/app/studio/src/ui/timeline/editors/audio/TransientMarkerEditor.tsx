@@ -1,6 +1,6 @@
-import css from "./AudioTransientMarkers.sass?inline"
+import css from "./TransientMarkerEditor.sass?inline"
 import {Html} from "@opendaw/lib-dom"
-import {Lifecycle, Terminator} from "@opendaw/lib-std"
+import {Lifecycle, panic, Terminator} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {AudioEventOwnerReader} from "@/ui/timeline/editors/EventOwnerReader"
 import {Project, TimelineRange} from "@opendaw/studio-core"
@@ -10,7 +10,7 @@ import {Colors} from "@opendaw/studio-enums"
 import {WarpMarkerBoxAdapter} from "@opendaw/studio-adapters"
 import {ppqn} from "@opendaw/lib-dsp"
 
-const className = Html.adoptStyleSheet(css, "AudioTransientMarkers")
+const className = Html.adoptStyleSheet(css, "TransientMarkerEditor")
 
 type Construct = {
     lifecycle: Lifecycle
@@ -29,10 +29,10 @@ const secondsToUnit = (seconds: number, warpMarkers: ReadonlyArray<WarpMarkerBox
             return current.position + t * (next.position - current.position)
         }
     }
-    return 0 // fallback, shouldn't happen with proper warp markers
+    return panic("Broken Warp Markers: no warp marker found")
 }
 
-export const AudioTransientMarkers = ({lifecycle, range, reader}: Construct) => {
+export const TransientMarkerEditor = ({lifecycle, range, reader}: Construct) => {
     const optWarping = reader.warping
     return (
         <div className={className}>
