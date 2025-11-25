@@ -12,14 +12,11 @@ const config = {
 const sftp = new SftpClient()
 const distDir = "./packages/app/studio/dist"
 const buildInfoPath = "./packages/app/studio/public/build-info.json"
-
 const branchName = process.env.BRANCH_NAME || "main"
 const isMainBranch = branchName === "main"
 const domain = isMainBranch ? "opendaw.studio" : "dev.opendaw.studio"
-const rootPath = isMainBranch ? "/" : "/dev/"
-
+const rootPath = "/"
 const readBuildInfo = () => JSON.parse(fs.readFileSync(buildInfoPath, "utf8"))
-
 const createRootHtaccess = (releaseDir: string) => `# openDAW
 #
 # CORS Headers

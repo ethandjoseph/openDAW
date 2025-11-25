@@ -86,12 +86,12 @@ export const RegionsArea = ({lifecycle, service, manager, scrollModel, scrollCon
             onDeselected: (selectable: AnyRegionBoxAdapter) => selectable.onDeselected()
         }),
         Events.subscribe(element, "keydown", (event: KeyboardEvent) => {
-            if (Keyboard.GlobalShortcut.isDeselectAll(event)) {
+            if (Keyboard.isDeselectAll(event)) {
                 regionSelection.deselectAll()
-            } else if (Keyboard.GlobalShortcut.isSelectAll(event)) {
+            } else if (Keyboard.isSelectAll(event)) {
                 regionSelection.select(...manager.tracks()
                     .flatMap(({trackBoxAdapter: {regions}}) => regions.collection.asArray()))
-            } else if (Keyboard.GlobalShortcut.isDelete(event)) {
+            } else if (Keyboard.isDelete(event)) {
                 editing.modify(() => regionSelection.selected()
                     .forEach(region => region.box.delete()))
             }

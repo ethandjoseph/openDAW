@@ -1,5 +1,5 @@
 import css from "./AudioWarpMarkers.sass?inline"
-import {Dragging, Events, Html} from "@opendaw/lib-dom"
+import {Dragging, Events, Html, Keyboard} from "@opendaw/lib-dom"
 import {clamp, isNotNull, isNull, Lifecycle, Nullable, Option, TAU, Terminator, UUID} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {AudioEventOwnerReader} from "@/ui/timeline/editors/EventOwnerReader"
@@ -126,6 +126,13 @@ export const AudioWarpMarkers = ({lifecycle, project, range, snapping, reader}: 
                                                 box.seconds.setValue(seconds)
                                             })
                                         })
+                                    }
+                                }),
+                                Events.subscribe(canvas, "keypress", (event) => {
+                                    if (Keyboard.isDelete(event)) {
+                                        editing.modify(() => selection.selected()
+                                            .filter(marker => !marker.isAnchor)
+                                            .forEach(marker => marker.box.delete()))
                                     }
                                 }),
                                 Dragging.attach(canvas, startEvent => {

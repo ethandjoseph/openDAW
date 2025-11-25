@@ -96,12 +96,12 @@ export const ClipsArea = ({lifecycle, service, manager, scrollModel, scrollConta
             }
         }),
         Events.subscribe(element, "keydown", (event: KeyboardEvent) => {
-            if (Keyboard.GlobalShortcut.isDeselectAll(event)) {
+            if (Keyboard.isDeselectAll(event)) {
                 clipSelection.deselectAll()
-            } else if (Keyboard.GlobalShortcut.isSelectAll(event)) {
+            } else if (Keyboard.isSelectAll(event)) {
                 clipSelection.select(...manager.tracks()
                     .flatMap(({trackBoxAdapter: {clips}}) => clips.collection.adapters()))
-            } else if (Keyboard.GlobalShortcut.isDelete(event)) {
+            } else if (Keyboard.isDelete(event)) {
                 editing.modify(() => clipSelection.selected()
                     .forEach(clip => clip.box.delete()))
             }

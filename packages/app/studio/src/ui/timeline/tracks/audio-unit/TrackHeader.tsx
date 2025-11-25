@@ -88,7 +88,7 @@ export const TrackHeader = ({lifecycle, service, trackBoxAdapter, audioUnitBoxAd
             }
         }),
         Events.subscribe(element, "keydown", (event) => {
-            if (!Keyboard.GlobalShortcut.isDelete(event)) {return}
+            if (!Keyboard.isDelete(event)) {return}
             project.editing.modify(() => {
                 if (audioUnitBoxAdapter.tracks.collection.size() === 1) {
                     project.api.deleteAudioUnit(audioUnitBoxAdapter.box)
