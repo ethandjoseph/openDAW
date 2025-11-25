@@ -1,9 +1,25 @@
-import {AudioWarpingBoxAdapter, FilteredSelection, WarpMarkerBoxAdapter} from "@opendaw/studio-adapters"
+import {
+    AudioWarpingBoxAdapter,
+    FilteredSelection,
+    TransientMarkerBoxAdapter,
+    WarpMarkerBoxAdapter
+} from "@opendaw/studio-adapters"
 import {Project, TimelineRange} from "@opendaw/studio-core"
 import {AudioEventOwnerReader} from "@/ui/timeline/editors/EventOwnerReader"
 import {WarpMarkerBox} from "@opendaw/studio-boxes"
 import {ContextMenu} from "@/ui/ContextMenu"
-import {clamp, isNotNull, isNull, Option, Terminable, Terminator, UUID} from "@opendaw/lib-std"
+import {
+    clamp,
+    isNotNull,
+    isNull,
+    Iterables,
+    Nullable,
+    ObservableValue,
+    Option,
+    Terminable,
+    Terminator,
+    UUID
+} from "@opendaw/lib-std"
 import {MenuItem} from "@/ui/model/menu-item"
 import {DebugMenus} from "@/ui/menu/debug"
 import {WarpMarkerUtils} from "@/ui/timeline/editors/audio/WarpMarkerUtils"
@@ -13,14 +29,15 @@ import {Snapping} from "@/ui/timeline/Snapping"
 
 export namespace WarpMarkerEditing {
     const MIN_DISTANCE = PPQN.SemiQuaver
-    const MARKER_RADIUS = 7
+    const MARKER_RADIUS = 4
 
     export const install = (warping: AudioWarpingBoxAdapter,
                             project: Project,
                             canvas: HTMLCanvasElement,
                             range: TimelineRange,
                             snapping: Snapping,
-                            reader: AudioEventOwnerReader): Terminable => {
+                            reader: AudioEventOwnerReader,
+                            hoverTransient: ObservableValue<Nullable<TransientMarkerBoxAdapter>>): Terminable => {
         const terminator = new Terminator()
         const {warpMarkers} = warping
         const capturing = WarpMarkerUtils.createCapturing(
@@ -61,22 +78,40 @@ export namespace WarpMarkerEditing {
                         project.editing.modify(() => marker.box.delete())
                     }
                 } else {
-                    const rect = canvas.getBoundingClientRect()
-                    const x = event.clientX - rect.left
-                    const unit = snapping.xToUnitRound(x) - reader.offset
-                    const adjacentWarpMarkers = WarpMarkerUtils.findAdjacent(unit, warpMarkers)
-                    if (isNull(adjacentWarpMarkers)) {return}
-                    const [left, right] = adjacentWarpMarkers
-                    if (isNull(left) || isNull(right)) {return}
-                    if (right.position - left.position < MIN_DISTANCE * 2) {return}
-                    const clamped = clamp(unit, left.position + MIN_DISTANCE, right.position - MIN_DISTANCE)
-                    const alpha = (clamped - left.position) / (right.position - left.position)
-                    const seconds = left.seconds + alpha * (right.seconds - left.seconds)
-                    project.editing.modify(() => WarpMarkerBox.create(project.boxGraph, UUID.generate(), box => {
-                        box.owner.refer(warping.box.warpMarkers)
-                        box.position.setValue(unit)
-                        box.seconds.setValue(seconds)
-                    }))
+                    const transient = hoverTransient.getValue()
+                    if (isNull(transient)) {
+                        const rect = canvas.getBoundingClientRect()
+                        const x = event.clientX - rect.left
+                        const unit = snapping.xToUnitRound(x) - reader.offset
+                        const adjacentWarpMarkers = WarpMarkerUtils.findAdjacent(unit, warpMarkers)
+                        if (isNull(adjacentWarpMarkers)) {return}
+                        const [left, right] = adjacentWarpMarkers
+                        if (isNull(left) || isNull(right)) {return}
+                        if (right.position - left.position < MIN_DISTANCE * 2) {return}
+                        const clamped = clamp(unit, left.position + MIN_DISTANCE, right.position - MIN_DISTANCE)
+                        const alpha = (clamped - left.position) / (right.position - left.position)
+                        const seconds = left.seconds + alpha * (right.seconds - left.seconds)
+                        project.editing.modify(() => WarpMarkerBox.create(project.boxGraph, UUID.generate(), box => {
+                            box.owner.refer(warping.box.warpMarkers)
+                            box.position.setValue(unit)
+                            box.seconds.setValue(seconds)
+                        }))
+                    } else {
+                        for (const [left, right] of Iterables.pairWise(warpMarkers.asArray())) {
+                            if (isNull(right)) {break}
+                            const seconds = transient.position
+                            if (left.seconds <= seconds && seconds <= right.seconds) {
+                                // compute the position for the new warpMarker
+                                const alpha = (seconds - left.seconds) / (right.seconds - left.seconds)
+                                const position = left.position + alpha * (right.position - left.position)
+                                project.editing.modify(() => WarpMarkerBox.create(project.boxGraph, UUID.generate(), box => {
+                                    box.owner.refer(warping.box.warpMarkers)
+                                    box.position.setValue(position)
+                                    box.seconds.setValue(seconds)
+                                }))
+                            }
+                        }
+                    }
                 }
             }),
             Events.subscribe(canvas, "keydown", (event) => {

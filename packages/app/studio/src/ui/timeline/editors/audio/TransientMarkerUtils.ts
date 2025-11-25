@@ -6,12 +6,13 @@ import {ElementCapturing} from "@/ui/canvas/capturing"
 import {isNull, Iterables, Nullable} from "@opendaw/lib-std"
 
 export namespace TransientMarkerUtils {
+    const MARKER_RADIUS = 4
+
     export const createCapturing = (element: Element,
                                     range: TimelineRange,
                                     reader: AudioEventOwnerReader,
                                     warpMarkers: EventCollection<WarpMarkerBoxAdapter>,
-                                    transientMarkers: EventCollection<TransientMarkerBoxAdapter>,
-                                    markerRadius: number) => new ElementCapturing<TransientMarkerBoxAdapter>(element, {
+                                    transientMarkers: EventCollection<TransientMarkerBoxAdapter>) => new ElementCapturing<TransientMarkerBoxAdapter>(element, {
         capture: (x: number, _y: number): Nullable<TransientMarkerBoxAdapter> => {
             const unit = range.xToUnit(x) - reader.offset
             const pairWise = Iterables.pairWise(warpMarkers.iterateFrom(unit))
@@ -22,15 +23,25 @@ export namespace TransientMarkerUtils {
                     right = warpMarkers.asArray().at(-1)!
                     if (isNull(left) || isNull(right)) {return null}
                 }
+                let closest: Nullable<{ transient: TransientMarkerBoxAdapter, distance: number }> = null
                 for (const transient of transientMarkers.iterateFrom(left.seconds)) {
                     const seconds = transient.position
-                    if (seconds > right.seconds) {return null}
+                    if (seconds > right.seconds) {break}
                     const alpha = (seconds - left.seconds) / (right.seconds - left.seconds)
                     const unit = left.position + alpha * (right.position - left.position)
                     const transientX = range.unitToX(unit + reader.offset)
-                    if (Math.abs(transientX - x) < markerRadius) {
-                        return transient
+                    const distance = Math.abs(transientX - x)
+                    if (distance <= MARKER_RADIUS) {
+                        if (isNull(closest)) {
+                            closest = {transient, distance}
+                        } else if (closest.distance < distance) {
+                            closest.transient = transient
+                            closest.distance = distance
+                        }
                     }
+                }
+                if (closest !== null) {
+                    return closest.transient
                 }
             }
             return null

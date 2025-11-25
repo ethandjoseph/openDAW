@@ -54,10 +54,11 @@ export const WarpMarkerEditor = ({lifecycle, project, range, snapping, reader, h
                                 warpingLifeCycle.terminate()
                                 optWarping.ifSome((warping: AudioWarpingBoxAdapter) => {
                                     const capturing = TransientMarkerUtils.createCapturing(
-                                        canvas, range, reader, warping.warpMarkers, warping.transientMarkers, 7)
+                                        canvas, range, reader, warping.warpMarkers, warping.transientMarkers)
                                     warpingLifeCycle.ownAll(
                                         warping.subscribe(requestUpdate),
-                                        WarpMarkerEditing.install(warping, project, canvas, range, snapping, reader),
+                                        WarpMarkerEditing.install(
+                                            warping, project, canvas, range, snapping, reader, hoverTransient),
                                         Events.subscribe(canvas, "pointermove",
                                             event => hoverTransient.setValue(capturing.captureEvent(event))),
                                         Events.subscribe(canvas, "pointerout",
