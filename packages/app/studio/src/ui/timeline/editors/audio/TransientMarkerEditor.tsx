@@ -1,14 +1,12 @@
 import css from "./TransientMarkerEditor.sass?inline"
 import {Html} from "@opendaw/lib-dom"
-import {Lifecycle, panic, Terminator} from "@opendaw/lib-std"
+import {isNull, Iterables, Lifecycle, Terminator} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {AudioEventOwnerReader} from "@/ui/timeline/editors/EventOwnerReader"
 import {Project, TimelineRange} from "@opendaw/studio-core"
 import {Snapping} from "@/ui/timeline/Snapping"
 import {CanvasPainter} from "@/ui/canvas/painter"
 import {Colors} from "@opendaw/studio-enums"
-import {WarpMarkerBoxAdapter} from "@opendaw/studio-adapters"
-import {ppqn} from "@opendaw/lib-dsp"
 import {WheelScaling} from "@/ui/timeline/WheelScaling"
 
 const className = Html.adoptStyleSheet(css, "TransientMarkerEditor")
@@ -21,18 +19,6 @@ type Construct = {
     reader: AudioEventOwnerReader
 }
 
-const secondsToUnit = (seconds: number, warpMarkers: ReadonlyArray<WarpMarkerBoxAdapter>): ppqn => {
-    for (let i = 0; i < warpMarkers.length - 1; i++) {
-        const current = warpMarkers[i]
-        const next = warpMarkers[i + 1]
-        if (seconds >= current.seconds && seconds <= next.seconds) {
-            const t = (seconds - current.seconds) / (next.seconds - current.seconds)
-            return current.position + t * (next.position - current.position)
-        }
-    }
-    return panic("Broken Warp Markers: no warp marker found")
-}
-
 export const TransientMarkerEditor = ({lifecycle, range, reader}: Construct) => {
     const optWarping = reader.warping
     return (
@@ -42,13 +28,21 @@ export const TransientMarkerEditor = ({lifecycle, range, reader}: Construct) => 
                     const {context, actualHeight, devicePixelRatio} = painter
                     optWarping.ifSome(({transientMarkers, warpMarkers}) => {
                         context.beginPath()
-                        transientMarkers.asArray().forEach(transient => {
-                            const unit = reader.offset + secondsToUnit(transient.position, warpMarkers.asArray())
-                            const x = range.unitToX(unit) * devicePixelRatio
-                            context.moveTo(x, actualHeight * 0.85)
-                            context.lineTo(x - 7, actualHeight * 0.50)
-                            context.lineTo(x + 7, actualHeight * 0.50)
-                        })
+                        const pairWise = Iterables.pairWise(warpMarkers.iterateFrom(range.unitMin - reader.offset))
+                        for (const [left, right] of pairWise) {
+                            if (isNull(left) || isNull(right)) {break}
+                            if (left.position + reader.offset > range.unitMax) {break}
+                            for (const transient of transientMarkers.iterateFrom(left.seconds)) {
+                                const seconds = transient.position
+                                if (seconds > right.seconds) {break}
+                                const t = (seconds - left.seconds) / (right.seconds - left.seconds)
+                                const unit = left.position + t * (right.position - left.position)
+                                const x = range.unitToX(unit + reader.offset) * devicePixelRatio
+                                context.moveTo(x, actualHeight * 0.85)
+                                context.lineTo(x - 7, actualHeight * 0.50)
+                                context.lineTo(x + 7, actualHeight * 0.50)
+                            }
+                        }
                         context.fillStyle = Colors.shadow.toString()
                         context.fill()
                     })
