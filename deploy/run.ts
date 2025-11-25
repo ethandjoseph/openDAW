@@ -19,6 +19,13 @@ const envFolder = isMainBranch ? "main" : "dev"
 const readBuildInfo = () => JSON.parse(fs.readFileSync(buildInfoPath, "utf8"))
 const createRootHtaccess = (mainReleaseDir: string, devReleaseDir: string) => `# openDAW
 #
+Header set Access-Control-Allow-Origin "https://localhost:8080"
+Header set Access-Control-Allow-Methods "GET, POST, OPTIONS, PUT, DELETE"
+Header set Access-Control-Allow-Headers "Authorization, Content-Type, X-Requested-With"
+Header set Access-Control-Allow-Credentials "true"
+Header set Cross-Origin-Opener-Policy "same-origin"
+Header set Cross-Origin-Embedder-Policy "require-corp"
+
 RewriteEngine On
 RewriteBase /
 
