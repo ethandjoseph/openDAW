@@ -35,9 +35,10 @@ export const TransientMarkerEditor = ({lifecycle, range, reader, hoverTransient}
                             if (left.position + reader.offset > range.unitMax) {break}
                             for (const transient of transientMarkers.iterateFrom(left.seconds)) {
                                 const seconds = transient.position
+                                if (seconds < left.seconds) {continue}
                                 if (seconds > right.seconds) {break}
-                                const t = (seconds - left.seconds) / (right.seconds - left.seconds)
-                                const unit = left.position + t * (right.position - left.position)
+                                const alpha = (seconds - left.seconds) / (right.seconds - left.seconds)
+                                const unit = left.position + alpha * (right.position - left.position)
                                 const x = range.unitToX(unit + reader.offset) * devicePixelRatio
                                 context.beginPath()
                                 context.moveTo(x, actualHeight * 0.85)

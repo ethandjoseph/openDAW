@@ -60,7 +60,10 @@ export const WarpMarkerEditor = ({lifecycle, project, range, snapping, reader, h
                                         WarpMarkerEditing.install(
                                             warping, project, canvas, range, snapping, reader, hoverTransient),
                                         Events.subscribe(canvas, "pointermove",
-                                            event => hoverTransient.setValue(capturing.captureEvent(event))),
+                                            event => {
+                                                if (event.buttons !== 0) {return}
+                                                hoverTransient.setValue(capturing.captureEvent(event))
+                                            }),
                                         Events.subscribe(canvas, "pointerout",
                                             () => hoverTransient.setValue(null))
                                     )

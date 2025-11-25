@@ -26,6 +26,7 @@ export namespace TransientMarkerUtils {
                 let closest: Nullable<{ transient: TransientMarkerBoxAdapter, distance: number }> = null
                 for (const transient of transientMarkers.iterateFrom(left.seconds)) {
                     const seconds = transient.position
+                    if (seconds < left.seconds) {continue}
                     if (seconds > right.seconds) {break}
                     const alpha = (seconds - left.seconds) / (right.seconds - left.seconds)
                     const unit = left.position + alpha * (right.position - left.position)
