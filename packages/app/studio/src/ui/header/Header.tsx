@@ -9,11 +9,10 @@ import {createElement, Frag, RouteLocation} from "@opendaw/lib-jsx"
 import {StudioService} from "@/service/StudioService"
 import {MenuButton} from "@/ui/components/MenuButton.tsx"
 import {Workspace} from "@/ui/workspace/Workspace.ts"
-import {IconSymbol} from "@opendaw/studio-enums"
+import {Colors, IconSymbol} from "@opendaw/studio-enums"
 import {Html} from "@opendaw/lib-dom"
 import {MenuItem} from "@/ui/model/menu-item"
 import {MidiDevices} from "@opendaw/studio-core"
-import {Colors} from "@opendaw/studio-enums"
 import {Manual, Manuals} from "@/ui/pages/Manuals"
 import {HorizontalPeakMeter} from "@/ui/components/HorizontalPeakMeter"
 import {Address} from "@opendaw/lib-box"
@@ -125,13 +124,17 @@ export const Header = ({lifecycle, service}: Construct) => {
             </Checkbox>
             <hr/>
             <div style={{flex: "1 0 0"}}/>
-            <a className="support"
-               href="https://www.patreon.com/bePatron?u=61769481"
-               target="_blank"
-               rel="noopener noreferrer"
-               data-patreon-widget-type="become-patron-button">
-                <img src="/become_a_patron_button.png" alt="Patreon"/>
-            </a>
+            {
+                location.origin.includes("localhost") ||
+                location.origin.includes("dev.opendaw.studio")
+                    ? (<h5 style={{color: Colors.cream.toString()}}>DEV VERSION (UNSTABLE)</h5>)
+                    : (<a className="support"
+                          href="https://www.patreon.com/bePatron?u=61769481"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          data-patreon-widget-type="become-patron-button">
+                        <img src="/become_a_patron_button.png" alt="Patreon"/>
+                    </a>)}
             <div style={{flex: "2 0 0"}}/>
             <hr/>
             <div className="header">

@@ -9,7 +9,7 @@ import {EditorMenuCollector} from "@/ui/timeline/editors/EditorMenuCollector.ts"
 import {AudioEventOwnerReader} from "@/ui/timeline/editors/EventOwnerReader.ts"
 import {Html} from "@opendaw/lib-dom"
 import {AudioTransientMarkers} from "@/ui/timeline/editors/audio/AudioTransientMarkers"
-import {AudioWrapMarkers} from "@/ui/timeline/editors/audio/AudioWarpMarkers"
+import {AudioWarpMarkers} from "@/ui/timeline/editors/audio/AudioWarpMarkers"
 
 const className = Html.adoptStyleSheet(css, "AudioEditor")
 
@@ -36,7 +36,7 @@ export const AudioEditor = ({lifecycle, service, range, snapping, reader}: Const
                                        range={range}
                                        snapping={snapping}
                                        reader={reader}/>
-                <AudioWrapMarkers lifecycle={lifecycle}
+                <AudioWarpMarkers lifecycle={lifecycle}
                                   project={service.project}
                                   range={range}
                                   snapping={snapping}

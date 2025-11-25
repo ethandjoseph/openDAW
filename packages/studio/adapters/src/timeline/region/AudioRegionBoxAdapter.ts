@@ -50,6 +50,7 @@ export class AudioRegionBoxAdapter implements LoopableRegionBoxAdapter<ValueEven
 
     #fileAdapter: Option<AudioFileBoxAdapter> = Option.None
     #fileSubscription: Terminable = Terminable.Empty
+    #warpSubscription: Terminable = Terminable.Empty
     #tempoSubscription: Terminable = Terminable.Empty
     #eventCollectionSubscription: Subscription = Terminable.Empty
 
@@ -83,9 +84,14 @@ export class AudioRegionBoxAdapter implements LoopableRegionBoxAdapter<ValueEven
                 this.#fileSubscription = this.#fileAdapter.mapOr(adapter =>
                     adapter.getOrCreateLoader().subscribe(() => this.#dispatchChange()), Terminable.Empty)
             }),
-            this.#box.warping.catchupAndSubscribe(({targetVertex}) =>
-                this.#wraping.wrapOption(targetVertex.map(({box}) =>
-                    this.#context.boxAdapters.adapterFor(box, AudioWarpingBoxAdapter)))),
+            this.#box.warping.catchupAndSubscribe(({targetVertex}) => {
+                const warpingBoxAdapter = targetVertex.map(({box}) =>
+                    this.#context.boxAdapters.adapterFor(box, AudioWarpingBoxAdapter))
+                this.#warpSubscription.terminate()
+                this.#warpSubscription = warpingBoxAdapter
+                    .mapOr(adapter => adapter.subscribe(() => this.#dispatchChange()), Terminable.Empty)
+                this.#wraping.wrapOption(warpingBoxAdapter)
+            }),
             this.#box.timeBase.catchupAndSubscribe(owner => {
                 this.#tempoSubscription.terminate()
                 if (asEnumValue(owner.getValue(), TimeBase) === TimeBase.Seconds) {
@@ -256,6 +262,8 @@ export class AudioRegionBoxAdapter implements LoopableRegionBoxAdapter<ValueEven
     }
 
     terminate() {
+        this.#fileSubscription.terminate()
+        this.#warpSubscription.terminate()
         this.#eventCollectionSubscription.terminate()
         this.#terminator.terminate()
     }

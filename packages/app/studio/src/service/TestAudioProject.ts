@@ -34,7 +34,7 @@ export const testAudioProject = (service: StudioService) => {
         box => box.endInSeconds.setValue(durationInSeconds))
     const valueEventCollectionBox = ValueEventCollectionBox.create(boxGraph, UUID.generate())
     const audioWarpingBox = AudioWarpingBox.create(boxGraph, UUID.generate())
-    const n = 17
+    const n = 6
     for (let i = 0; i < n; i++) {
         TransientMarkerBox.create(boxGraph, UUID.generate(), box => {
             box.owner.refer(audioWarpingBox.transientMarkers)
@@ -65,6 +65,8 @@ export const testAudioProject = (service: StudioService) => {
         box.file.refer(audioFileBox)
         box.events.refer(valueEventCollectionBox.owners)
         box.regions.refer(trackBox.regions)
+        box.label.setValue("Test Audio Region")
+        box.hue.setValue(180)
         box.warping.refer(audioWarpingBox)
     })
 

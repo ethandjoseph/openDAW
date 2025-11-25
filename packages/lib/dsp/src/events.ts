@@ -167,6 +167,8 @@ export class EventCollection<EVENT extends Event = Event> implements EventArray<
         if (this.#array.isEmpty()) {return Generators.empty()}
         return this.#array.iterate(this.#array.ceilFirstIndex(fromPosition), toPosition, predicate)
     }
+    first(): Nullable<EVENT> {return this.#array.optAt(0)}
+    last(): Nullable<EVENT> {return this.#array.optAt(this.#array.length() - 1)}
     length(): number {return this.#array.length()}
     isEmpty(): boolean {return this.#array.isEmpty()}
     onIndexingChanged(): void {this.#array.onIndexingChanged()}

@@ -13,6 +13,11 @@ const sftp = new SftpClient()
 const distDir = "./packages/app/studio/dist"
 const buildInfoPath = "./packages/app/studio/public/build-info.json"
 
+const branchName = process.env.BRANCH_NAME || "main"
+const isMainBranch = branchName === "main"
+const domain = isMainBranch ? "opendaw.studio" : "dev.opendaw.studio"
+const rootPath = isMainBranch ? "/" : "/dev/"
+
 const readBuildInfo = () => JSON.parse(fs.readFileSync(buildInfoPath, "utf8"))
 
 const createRootHtaccess = (releaseDir: string) => `# openDAW
@@ -26,7 +31,7 @@ Header set Cross-Origin-Opener-Policy "same-origin"
 Header set Cross-Origin-Embedder-Policy "require-corp"
 
 RewriteEngine On
-RewriteBase /
+RewriteBase ${rootPath}
 
 # --------------------------------------------------
 # Allow extract.php to execute (don't redirect it)
@@ -41,8 +46,9 @@ RewriteRule ^(.*)$ ${releaseDir}/$1 [L]
     await sftp.connect(config)
 
     const {uuid} = readBuildInfo()
-    const releaseDir = `/releases/${uuid}`
+    const releaseDir = `${rootPath}releases/${uuid}`
 
+    console.log(`deploying branch "${branchName}" to ${domain}`)
     console.log("creating", releaseDir)
     await sftp.mkdir(releaseDir, true).catch(() => {})
 
@@ -60,7 +66,7 @@ RewriteRule ^(.*)$ ${releaseDir}/$1 [L]
 
     // Extract on server via PHP
     console.log("extracting on server via PHP...")
-    const extractUrl = `https://opendaw.studio/extract.php?file=${encodeURIComponent(remoteTarball)}`
+    const extractUrl = `https://${domain}/extract.php?file=${encodeURIComponent(remoteTarball)}`
     const extractResponse = await fetch(extractUrl)
     if (!extractResponse.ok) {
         throw new Error(`Extraction failed: ${extractResponse.status} - ${await extractResponse.text()}`)
@@ -75,7 +81,7 @@ RewriteRule ^(.*)$ ${releaseDir}/$1 [L]
     const rootHtaccess = createRootHtaccess(releaseDir)
     const tmpFile = "./.htaccess"
     fs.writeFileSync(tmpFile, rootHtaccess)
-    await sftp.put(tmpFile, "/.htaccess")
+    await sftp.put(tmpFile, `${rootPath}.htaccess`)
     fs.unlinkSync(tmpFile)
 
     await sftp.end()
@@ -84,8 +90,9 @@ RewriteRule ^(.*)$ ${releaseDir}/$1 [L]
     const webhookUrl = process.env.DISCORD_WEBHOOK
     if (webhookUrl) {
         const now = Math.floor(Date.now() / 1000)
+        const branchInfo = isMainBranch ? "" : ` (\`${branchName}\`)`
         const content =
-            `🚀 **openDAW** deployed <https://opendaw.studio> using release \`${uuid}\` <t:${now}:R>.`
+            `🚀 **openDAW** deployed <https://${domain}>${branchInfo} using release \`${uuid}\` <t:${now}:R>.`
         try {
             const response = await fetch(webhookUrl, {
                 method: "POST",

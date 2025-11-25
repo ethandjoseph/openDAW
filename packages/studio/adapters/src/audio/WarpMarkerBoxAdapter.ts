@@ -47,6 +47,11 @@ export class WarpMarkerBoxAdapter implements BoxAdapter, Event, Selectable {
             .map(vertex => this.#context.boxAdapters.adapterFor(vertex.box, AudioWarpingBoxAdapter))
     }
 
+    get isAnchor(): boolean {
+        return this.optWarping.mapOr(({warpMarkers}) =>
+            this === warpMarkers.optAt(0) || this === warpMarkers.optAt(warpMarkers.length() - 1), false)
+    }
+
     subscribe(observer: Observer<void>): Subscription {return this.#notifer.subscribe(observer)}
 
     terminate(): void {this.#terminator.terminate()}

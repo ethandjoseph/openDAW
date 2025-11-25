@@ -1,6 +1,6 @@
 import css from "./AudioWarpMarkers.sass?inline"
 import {Dragging, Events, Html} from "@opendaw/lib-dom"
-import {isNotNull, isNull, Lifecycle, Nullable, Option, TAU, Terminator, UUID} from "@opendaw/lib-std"
+import {clamp, isNotNull, isNull, Lifecycle, Nullable, Option, TAU, Terminator, UUID} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {AudioEventOwnerReader} from "@/ui/timeline/editors/EventOwnerReader"
 import {Project, TimelineRange} from "@opendaw/studio-core"
@@ -8,11 +8,11 @@ import {Snapping} from "@/ui/timeline/Snapping"
 import {CanvasPainter} from "@/ui/canvas/painter"
 import {FilteredSelection, WarpMarkerBoxAdapter} from "@opendaw/studio-adapters"
 import {WarpMarkerBox} from "@opendaw/studio-boxes"
-import {ElementCapturing} from "@/ui/canvas/capturing"
 import {ContextMenu} from "@/ui/ContextMenu"
 import {MenuItem} from "@/ui/model/menu-item"
 import {DebugMenus} from "@/ui/menu/debug"
-import {EventCollection, ppqn} from "@opendaw/lib-dsp"
+import {EventCollection, PPQN, ppqn} from "@opendaw/lib-dsp"
+import {WarpMarkerCapturing} from "@/ui/timeline/editors/audio/WarpMarkerCapturing"
 
 const className = Html.adoptStyleSheet(css, "AudioWrapMarkers")
 
@@ -23,6 +23,8 @@ type Construct = {
     snapping: Snapping
     reader: AudioEventOwnerReader
 }
+
+const MIN_DISTANCE = PPQN.SemiQuaver
 
 const findAdjacentWarpMarker = (position: ppqn,
                                 warpMarkers: EventCollection<WarpMarkerBoxAdapter>)
@@ -36,7 +38,7 @@ const findAdjacentWarpMarker = (position: ppqn,
     }
 }
 
-export const AudioWrapMarkers = ({lifecycle, project, range, snapping, reader}: Construct) => {
+export const AudioWarpMarkers = ({lifecycle, project, range, snapping, reader}: Construct) => {
     const optWarping = reader.warping
     const markerRadius = 7
     const {boxGraph, editing} = project
@@ -66,27 +68,9 @@ export const AudioWrapMarkers = ({lifecycle, project, range, snapping, reader}: 
                     optWarping.catchupAndSubscribe((optWarping) => {
                         warpingLifeCycle.terminate()
                         optWarping.ifSome(warping => {
-                            const capturing = new ElementCapturing<WarpMarkerBoxAdapter>(canvas, {
-                                capture: (x: number, _y: number): Nullable<WarpMarkerBoxAdapter> => {
-                                    const u0 = range.xToUnit(x - markerRadius) - reader.offset
-                                    const u1 = range.xToUnit(x + markerRadius) - reader.offset
-                                    let closest: Nullable<{ marker: WarpMarkerBoxAdapter, distance: number }> = null
-                                    for (const marker of warping.warpMarkers.iterateRange(u0, u1)) {
-                                        const dx = x - range.unitToX(marker.position + reader.offset)
-                                        const distance = Math.abs(dx)
-                                        if (distance <= markerRadius) {
-                                            if (closest === null) {
-                                                closest = {marker, distance}
-                                            } else if (closest.distance < distance) {
-                                                closest.marker = marker
-                                                closest.distance = distance
-                                            }
-                                        }
-                                    }
-                                    if (closest === null) {return null}
-                                    return closest.marker
-                                }
-                            })
+                            const {warpMarkers} = warping
+                            const capturing = WarpMarkerCapturing.create(
+                                canvas, range, reader, warpMarkers, markerRadius)
                             const selection: FilteredSelection<WarpMarkerBoxAdapter> = warpingLifeCycle.own(
                                 project.selection
                                     .createFilteredSelection(box => box instanceof WarpMarkerBox, {
@@ -105,10 +89,15 @@ export const AudioWrapMarkers = ({lifecycle, project, range, snapping, reader}: 
                                         selection.deselectAll()
                                         selection.select(marker)
                                         collector.addItems(
-                                            MenuItem.default({label: "Remove warp marker"})
-                                                .setTriggerProcedure(() =>
+                                            MenuItem.default({
+                                                label: "Remove warp marker",
+                                                selectable: !marker.isAnchor
+                                            }).setTriggerProcedure(() => {
+                                                if (!marker.isAnchor) {
                                                     editing.modify(() =>
-                                                        selection.selected().forEach(marker => marker.box.delete()))),
+                                                        selection.selected().forEach(marker => marker.box.delete()))
+                                                }
+                                            }),
                                             DebugMenus.debugBox(marker.box, true)
                                         )
                                     }
@@ -116,24 +105,27 @@ export const AudioWrapMarkers = ({lifecycle, project, range, snapping, reader}: 
                                 Events.subscribeDblDwn(canvas, event => {
                                     const marker = capturing.captureEvent(event)
                                     if (isNotNull(marker)) {
-                                        editing.modify(() => marker.box.delete())
+                                        if (!marker.isAnchor) {
+                                            editing.modify(() => marker.box.delete())
+                                        }
                                     } else {
                                         const rect = canvas.getBoundingClientRect()
                                         const x = event.clientX - rect.left
                                         const unit = snapping.xToUnitRound(x) - reader.offset
-                                        const adjacentWarpMarkers = findAdjacentWarpMarker(unit, warping.warpMarkers)
-                                        if (isNotNull(adjacentWarpMarkers)) {
-                                            const [left, right] = adjacentWarpMarkers
-                                            editing.modify(() => {
-                                                const alpha = (unit - left.position) / (right.position - left.position)
-                                                const seconds = left.seconds + alpha * (right.seconds - left.seconds)
-                                                WarpMarkerBox.create(boxGraph, UUID.generate(), box => {
-                                                    box.owner.refer(warping.box.warpMarkers)
-                                                    box.position.setValue(unit)
-                                                    box.seconds.setValue(seconds)
-                                                })
+                                        const adjacentWarpMarkers = findAdjacentWarpMarker(unit, warpMarkers)
+                                        if (isNull(adjacentWarpMarkers)) {return}
+                                        const [left, right] = adjacentWarpMarkers
+                                        if (right.position - left.position < MIN_DISTANCE * 2) {return}
+                                        const clamped = clamp(unit, left.position + MIN_DISTANCE, right.position - MIN_DISTANCE)
+                                        const alpha = (clamped - left.position) / (right.position - left.position)
+                                        const seconds = left.seconds + alpha * (right.seconds - left.seconds)
+                                        editing.modify(() => {
+                                            WarpMarkerBox.create(boxGraph, UUID.generate(), box => {
+                                                box.owner.refer(warping.box.warpMarkers)
+                                                box.position.setValue(unit)
+                                                box.seconds.setValue(seconds)
                                             })
-                                        }
+                                        })
                                     }
                                 }),
                                 Dragging.attach(canvas, startEvent => {
@@ -141,12 +133,19 @@ export const AudioWrapMarkers = ({lifecycle, project, range, snapping, reader}: 
                                     selection.deselectAll()
                                     if (isNull(marker)) {return Option.None}
                                     selection.select(marker)
+                                    const neighbors = findAdjacentWarpMarker(marker.position, warpMarkers)
                                     return Option.wrap({
                                         update: (event: Dragging.Event) => {
                                             const rect = canvas.getBoundingClientRect()
                                             const x = event.clientX - rect.left
                                             const unit = snapping.xToUnitRound(x) - reader.offset
-                                            editing.modify(() => marker.box.position.setValue(unit), false)
+                                            if (isNull(neighbors)) {
+                                                editing.modify(() => marker.box.position.setValue(unit), false)
+                                            } else {
+                                                const [left, right] = neighbors
+                                                const clamped = clamp(unit, left.position + MIN_DISTANCE, right.position - MIN_DISTANCE)
+                                                editing.modify(() => marker.box.position.setValue(clamped), false)
+                                            }
                                         },
                                         approve: () => editing.mark()
                                     })
