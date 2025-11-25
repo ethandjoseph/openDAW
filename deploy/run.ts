@@ -12,10 +12,12 @@ const config = {
 const sftp = new SftpClient()
 const distDir = "./packages/app/studio/dist"
 const buildInfoPath = "./packages/app/studio/public/build-info.json"
-
+const branchName = process.env.BRANCH_NAME || "main"
+const isMainBranch = branchName === "main"
+const domain = isMainBranch ? "opendaw.studio" : "dev.opendaw.studio"
+const envFolder = isMainBranch ? "main" : "dev"
 const readBuildInfo = () => JSON.parse(fs.readFileSync(buildInfoPath, "utf8"))
-
-const createRootHtaccess = (releaseDir: string) => `# openDAW
+const createRootHtaccess = (mainReleaseDir: string, devReleaseDir: string) => `# openDAW
 #
 # CORS Headers
 Header set Access-Control-Allow-Origin "https://localhost:8080"
@@ -32,8 +34,12 @@ RewriteBase /
 # Allow extract.php to execute (don't redirect it)
 RewriteRule ^extract\\.php$ - [L]
 
-# ACTIVE RELEASE REDIRECT
-RewriteRule ^(.*)$ ${releaseDir}/$1 [L]
+# Route based on hostname
+RewriteCond %{HTTP_HOST} ^dev\\.opendaw\\.studio$ [NC]
+RewriteRule ^(.*)$ ${devReleaseDir}/$1 [L]
+
+RewriteCond %{HTTP_HOST} ^opendaw\\.studio$ [NC]
+RewriteRule ^(.*)$ ${mainReleaseDir}/$1 [L]
 # --------------------------------------------------
 `
 
@@ -41,8 +47,9 @@ RewriteRule ^(.*)$ ${releaseDir}/$1 [L]
     await sftp.connect(config)
 
     const {uuid} = readBuildInfo()
-    const releaseDir = `/releases/${uuid}`
+    const releaseDir = `/${envFolder}/releases/${uuid}`
 
+    console.log(`deploying branch "${branchName}" to ${domain}`)
     console.log("creating", releaseDir)
     await sftp.mkdir(releaseDir, true).catch(() => {})
 
@@ -60,7 +67,7 @@ RewriteRule ^(.*)$ ${releaseDir}/$1 [L]
 
     // Extract on server via PHP
     console.log("extracting on server via PHP...")
-    const extractUrl = `https://opendaw.studio/extract.php?file=${encodeURIComponent(remoteTarball)}`
+    const extractUrl = `https://${domain}/extract.php?file=${encodeURIComponent(remoteTarball)}`
     const extractResponse = await fetch(extractUrl)
     if (!extractResponse.ok) {
         throw new Error(`Extraction failed: ${extractResponse.status} - ${await extractResponse.text()}`)
@@ -70,9 +77,30 @@ RewriteRule ^(.*)$ ${releaseDir}/$1 [L]
     // Clean up local tarball
     fs.unlinkSync(tarballPath)
 
-    // Create and upload root .htaccess (redirects to active release)
-    console.log("creating root .htaccess...")
-    const rootHtaccess = createRootHtaccess(releaseDir)
+    // Read existing .htaccess or create default values
+    console.log("updating root .htaccess...")
+    let mainReleaseDir = "/main/releases/${uuid}"
+    let devReleaseDir = "/dev/releases/${uuid}"
+    try {
+        const existingHtaccess = await sftp.get("/.htaccess")
+        const content = existingHtaccess.toString()
+        const mainMatch = content.match(/RewriteCond %\{HTTP_HOST\} \^opendaw.*\nRewriteRule \^\(\.\*\)\$ (\/main\/releases\/[^\s]+)/)
+        const devMatch = content.match(/RewriteCond %\{HTTP_HOST\} \^dev.*\nRewriteRule \^\(\.\*\)\$ (\/dev\/releases\/[^\s]+)/)
+        if (mainMatch) mainReleaseDir = mainMatch[1]
+        if (devMatch) devReleaseDir = devMatch[1]
+    } catch (err) {
+        console.log("no existing .htaccess found, creating new one")
+    }
+
+    // Update the appropriate release directory
+    if (isMainBranch) {
+        mainReleaseDir = releaseDir
+    } else {
+        devReleaseDir = releaseDir
+    }
+
+    // Create and upload root .htaccess
+    const rootHtaccess = createRootHtaccess(mainReleaseDir, devReleaseDir)
     const tmpFile = "./.htaccess"
     fs.writeFileSync(tmpFile, rootHtaccess)
     await sftp.put(tmpFile, "/.htaccess")
@@ -84,8 +112,9 @@ RewriteRule ^(.*)$ ${releaseDir}/$1 [L]
     const webhookUrl = process.env.DISCORD_WEBHOOK
     if (webhookUrl) {
         const now = Math.floor(Date.now() / 1000)
+        const branchInfo = isMainBranch ? "" : ` (\`${branchName}\`)`
         const content =
-            `🚀 **openDAW** deployed <https://opendaw.studio> using release \`${uuid}\` <t:${now}:R>.`
+            `🚀 **openDAW** deployed <https://${domain}>${branchInfo} using release \`${uuid}\` <t:${now}:R>.`
         try {
             const response = await fetch(webhookUrl, {
                 method: "POST",
