@@ -14,6 +14,7 @@ import {DebugMenus} from "@/ui/menu/debug"
 import {PPQN} from "@opendaw/lib-dsp"
 import {WarpMarkerCapturing} from "@/ui/timeline/editors/audio/WarpMarkerCapturing"
 import {WarpMarkerUtils} from "@/ui/timeline/editors/audio/WarpMarkerUtils"
+import {WheelScaling} from "@/ui/timeline/WheelScaling"
 
 const className = Html.adoptStyleSheet(css, "AudioWrapMarkers")
 
@@ -46,13 +47,14 @@ export const WarpMarkerEditor = ({lifecycle, project, range, snapping, reader}: 
                                     context.arc(x, actualHeight * 0.5, markerRadius, 0.0, TAU)
                                     context.fillStyle = marker.isSelected
                                         ? `hsl(${reader.hue}, 60%, 80%)`
-                                        : `hsl(${reader.hue}, 60%, 60%)`
+                                        : `hsl(${reader.hue}, 60%, 50%)`
                                     context.fill()
                                 }
                             })
                         }))
                         const warpingLifeCycle = lifecycle.own(new Terminator())
                         lifecycle.ownAll(
+                            WheelScaling.install(canvas, range),
                             range.subscribe(requestUpdate),
                             reader.subscribeChange(requestUpdate),
                             optWarping.catchupAndSubscribe((optWarping) => {

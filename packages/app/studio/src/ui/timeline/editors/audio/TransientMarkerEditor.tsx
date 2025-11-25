@@ -9,6 +9,7 @@ import {CanvasPainter} from "@/ui/canvas/painter"
 import {Colors} from "@opendaw/studio-enums"
 import {WarpMarkerBoxAdapter} from "@opendaw/studio-adapters"
 import {ppqn} from "@opendaw/lib-dsp"
+import {WheelScaling} from "@/ui/timeline/WheelScaling"
 
 const className = Html.adoptStyleSheet(css, "TransientMarkerEditor")
 
@@ -54,6 +55,7 @@ export const TransientMarkerEditor = ({lifecycle, range, reader}: Construct) => 
                 }))
                 const warpingTerminator = lifecycle.own(new Terminator())
                 lifecycle.ownAll(
+                    WheelScaling.install(canvas, range),
                     range.subscribe(requestUpdate),
                     reader.subscribeChange(requestUpdate),
                     optWarping.catchupAndSubscribe((optWarping) => {

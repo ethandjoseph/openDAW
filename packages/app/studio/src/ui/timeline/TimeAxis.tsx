@@ -8,9 +8,10 @@ import {Colors} from "@opendaw/studio-enums"
 import {Snapping} from "@/ui/timeline/Snapping.ts"
 import {CanvasPainter} from "@/ui/canvas/painter.ts"
 import {ppqn, PPQN} from "@opendaw/lib-dsp"
-import {Dragging, Events, Html} from "@opendaw/lib-dom"
+import {Dragging, Html} from "@opendaw/lib-dom"
 import {DblClckTextInput} from "@/ui/wrapper/DblClckTextInput"
 import {TextTooltip} from "@/ui/surface/TextTooltip"
+import {WheelScaling} from "@/ui/timeline/WheelScaling"
 
 const className = Html.adoptStyleSheet(css, "time-axis")
 
@@ -107,13 +108,7 @@ export const TimeAxis = ({lifecycle, service, snapping, range, mapper}: Construc
                 clientY: rect.top + 24
             })
         }),
-        Events.subscribe(canvas, "wheel", (event: WheelEvent) => {
-            event.preventDefault()
-            const scale = event.deltaY * 0.01
-            const rect = canvas.getBoundingClientRect()
-            range.scaleBy(scale, range.xToValue(event.clientX - rect.left))
-            range.moveBy(event.deltaX * 0.00001)
-        }, {passive: false}),
+        WheelScaling.install(canvas, range),
         Html.watchResize(canvas, onResize),
         range.subscribe(painter.requestUpdate),
         playbackTimestamp.subscribe(painter.requestUpdate),
