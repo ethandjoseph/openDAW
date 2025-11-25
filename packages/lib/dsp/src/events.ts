@@ -159,6 +159,11 @@ export class EventCollection<EVENT extends Event = Event> implements EventArray<
     }
     floorLastIndex(position: number): number {return this.#array.floorLastIndex(position)}
     ceilFirstIndex(position: number): number {return this.#array.ceilFirstIndex(position)}
+
+    /**
+     * Iterate over all events starting from the given position.
+     * If an event starts on or before(!) the given position, it will be included.
+     */
     iterateFrom(fromPosition: number, predicate?: Predicate<EVENT>): Generator<EVENT> {
         if (this.#array.isEmpty()) {return Generators.empty()}
         return this.#array.iterateFrom(fromPosition, predicate)
