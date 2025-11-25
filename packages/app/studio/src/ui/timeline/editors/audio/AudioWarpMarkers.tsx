@@ -28,14 +28,10 @@ const MIN_DISTANCE = PPQN.SemiQuaver
 
 const findAdjacentWarpMarker = (position: ppqn,
                                 warpMarkers: EventCollection<WarpMarkerBoxAdapter>)
-    : Nullable<[WarpMarkerBoxAdapter, WarpMarkerBoxAdapter]> => {
+    : [Nullable<WarpMarkerBoxAdapter>, Nullable<WarpMarkerBoxAdapter>] => {
     const left = warpMarkers.lowerEqual(position - 1)
     const right = warpMarkers.greaterEqual(position + 1)
-    if (isNotNull(left) && isNotNull(right)) {
-        return [left, right]
-    } else {
-        return null
-    }
+    return [left, right]
 }
 
 export const AudioWarpMarkers = ({lifecycle, project, range, snapping, reader}: Construct) => {
@@ -44,124 +40,127 @@ export const AudioWarpMarkers = ({lifecycle, project, range, snapping, reader}: 
     const {boxGraph, editing} = project
     return (
         <div className={className}>
-            <canvas onInit={canvas => {
-                const {requestUpdate} = lifecycle.own(new CanvasPainter(canvas, painter => {
-                    const {context, actualHeight, devicePixelRatio} = painter
-                    optWarping.ifSome(({warpMarkers}) => {
-                        // TODO optimise
-                        warpMarkers.asArray().forEach(warp => {
-                            const unit = reader.offset + warp.position
-                            const x = range.unitToX(unit) * devicePixelRatio
-                            context.beginPath()
-                            context.arc(x, actualHeight * 0.5, markerRadius, 0.0, TAU)
-                            context.fillStyle = warp.isSelected
-                                ? `hsl(${reader.hue}, 60%, 80%)`
-                                : `hsl(${reader.hue}, 60%, 60%)`
-                            context.fill()
-                        })
-                    })
-                }))
-                const warpingLifeCycle = lifecycle.own(new Terminator())
-                lifecycle.ownAll(
-                    range.subscribe(requestUpdate),
-                    reader.subscribeChange(requestUpdate),
-                    optWarping.catchupAndSubscribe((optWarping) => {
-                        warpingLifeCycle.terminate()
-                        optWarping.ifSome(warping => {
-                            const {warpMarkers} = warping
-                            const capturing = WarpMarkerCapturing.create(
-                                canvas, range, reader, warpMarkers, markerRadius)
-                            const selection: FilteredSelection<WarpMarkerBoxAdapter> = warpingLifeCycle.own(
-                                project.selection
-                                    .createFilteredSelection(box => box instanceof WarpMarkerBox, {
-                                        fx: adapter => adapter.box,
-                                        fy: vertex => project.boxAdapters.adapterFor(vertex.box, WarpMarkerBoxAdapter)
-                                    }))
-                            warpingLifeCycle.ownAll(
-                                warping.subscribe(requestUpdate),
-                                selection.catchupAndSubscribe({
-                                    onSelected: (adapter: WarpMarkerBoxAdapter) => adapter.onSelected(),
-                                    onDeselected: (adapter: WarpMarkerBoxAdapter) => adapter.onDeselected()
-                                }),
-                                ContextMenu.subscribe(canvas, collector => {
-                                    const marker = capturing.captureEvent(collector.client)
-                                    if (isNotNull(marker)) {
-                                        selection.deselectAll()
-                                        selection.select(marker)
-                                        collector.addItems(
-                                            MenuItem.default({
-                                                label: "Remove warp marker",
-                                                selectable: !marker.isAnchor
-                                            }).setTriggerProcedure(() => {
+            <canvas tabIndex={-1}
+                    onInit={canvas => {
+                        const {requestUpdate} = lifecycle.own(new CanvasPainter(canvas, painter => {
+                            const {context, actualHeight, devicePixelRatio} = painter
+                            optWarping.ifSome(({warpMarkers}) => {
+                                // TODO optimise
+                                warpMarkers.asArray().forEach(warp => {
+                                    const unit = reader.offset + warp.position
+                                    const x = range.unitToX(unit) * devicePixelRatio
+                                    context.beginPath()
+                                    context.arc(x, actualHeight * 0.5, markerRadius, 0.0, TAU)
+                                    context.fillStyle = warp.isSelected
+                                        ? `hsl(${reader.hue}, 60%, 80%)`
+                                        : `hsl(${reader.hue}, 60%, 60%)`
+                                    context.fill()
+                                })
+                            })
+                        }))
+                        const warpingLifeCycle = lifecycle.own(new Terminator())
+                        lifecycle.ownAll(
+                            range.subscribe(requestUpdate),
+                            reader.subscribeChange(requestUpdate),
+                            optWarping.catchupAndSubscribe((optWarping) => {
+                                warpingLifeCycle.terminate()
+                                optWarping.ifSome(warping => {
+                                    const {warpMarkers} = warping
+                                    const capturing = WarpMarkerCapturing.create(
+                                        canvas, range, reader, warpMarkers, markerRadius)
+                                    const selection: FilteredSelection<WarpMarkerBoxAdapter> = warpingLifeCycle.own(
+                                        project.selection
+                                            .createFilteredSelection(box => box instanceof WarpMarkerBox, {
+                                                fx: adapter => adapter.box,
+                                                fy: vertex => project.boxAdapters.adapterFor(vertex.box, WarpMarkerBoxAdapter)
+                                            }))
+                                    warpingLifeCycle.ownAll(
+                                        warping.subscribe(requestUpdate),
+                                        selection.catchupAndSubscribe({
+                                            onSelected: (adapter: WarpMarkerBoxAdapter) => adapter.onSelected(),
+                                            onDeselected: (adapter: WarpMarkerBoxAdapter) => adapter.onDeselected()
+                                        }),
+                                        ContextMenu.subscribe(canvas, collector => {
+                                            const marker = capturing.captureEvent(collector.client)
+                                            if (isNotNull(marker)) {
+                                                selection.deselectAll()
+                                                selection.select(marker)
+                                                collector.addItems(
+                                                    MenuItem.default({
+                                                        label: "Remove warp marker",
+                                                        selectable: !marker.isAnchor
+                                                    }).setTriggerProcedure(() => {
+                                                        if (!marker.isAnchor) {
+                                                            editing.modify(() =>
+                                                                selection.selected().forEach(marker => marker.box.delete()))
+                                                        }
+                                                    }),
+                                                    DebugMenus.debugBox(marker.box, true)
+                                                )
+                                            }
+                                        }),
+                                        Events.subscribeDblDwn(canvas, event => {
+                                            const marker = capturing.captureEvent(event)
+                                            if (isNotNull(marker)) {
                                                 if (!marker.isAnchor) {
-                                                    editing.modify(() =>
-                                                        selection.selected().forEach(marker => marker.box.delete()))
+                                                    editing.modify(() => marker.box.delete())
                                                 }
-                                            }),
-                                            DebugMenus.debugBox(marker.box, true)
-                                        )
-                                    }
-                                }),
-                                Events.subscribeDblDwn(canvas, event => {
-                                    const marker = capturing.captureEvent(event)
-                                    if (isNotNull(marker)) {
-                                        if (!marker.isAnchor) {
-                                            editing.modify(() => marker.box.delete())
-                                        }
-                                    } else {
-                                        const rect = canvas.getBoundingClientRect()
-                                        const x = event.clientX - rect.left
-                                        const unit = snapping.xToUnitRound(x) - reader.offset
-                                        const adjacentWarpMarkers = findAdjacentWarpMarker(unit, warpMarkers)
-                                        if (isNull(adjacentWarpMarkers)) {return}
-                                        const [left, right] = adjacentWarpMarkers
-                                        if (right.position - left.position < MIN_DISTANCE * 2) {return}
-                                        const clamped = clamp(unit, left.position + MIN_DISTANCE, right.position - MIN_DISTANCE)
-                                        const alpha = (clamped - left.position) / (right.position - left.position)
-                                        const seconds = left.seconds + alpha * (right.seconds - left.seconds)
-                                        editing.modify(() => {
-                                            WarpMarkerBox.create(boxGraph, UUID.generate(), box => {
-                                                box.owner.refer(warping.box.warpMarkers)
-                                                box.position.setValue(unit)
-                                                box.seconds.setValue(seconds)
+                                            } else {
+                                                const rect = canvas.getBoundingClientRect()
+                                                const x = event.clientX - rect.left
+                                                const unit = snapping.xToUnitRound(x) - reader.offset
+                                                const adjacentWarpMarkers = findAdjacentWarpMarker(unit, warpMarkers)
+                                                if (isNull(adjacentWarpMarkers)) {return}
+                                                const [left, right] = adjacentWarpMarkers
+                                                if (isNull(left) || isNull(right)) {return}
+                                                if (right.position - left.position < MIN_DISTANCE * 2) {return}
+                                                const clamped = clamp(unit, left.position + MIN_DISTANCE, right.position - MIN_DISTANCE)
+                                                const alpha = (clamped - left.position) / (right.position - left.position)
+                                                const seconds = left.seconds + alpha * (right.seconds - left.seconds)
+                                                editing.modify(() => {
+                                                    WarpMarkerBox.create(boxGraph, UUID.generate(), box => {
+                                                        box.owner.refer(warping.box.warpMarkers)
+                                                        box.position.setValue(unit)
+                                                        box.seconds.setValue(seconds)
+                                                    })
+                                                })
+                                            }
+                                        }),
+                                        Events.subscribe(canvas, "keydown", (event) => {
+                                            if (Keyboard.isDelete(event)) {
+                                                editing.modify(() => selection.selected()
+                                                    .filter(marker => !marker.isAnchor)
+                                                    .forEach(marker => marker.box.delete()))
+                                            }
+                                        }),
+                                        Dragging.attach(canvas, startEvent => {
+                                            const marker = capturing.captureEvent(startEvent)
+                                            selection.deselectAll()
+                                            if (isNull(marker)) {return Option.None}
+                                            selection.select(marker)
+                                            const [left, right] = findAdjacentWarpMarker(marker.position, warpMarkers)
+                                            if (isNull(left) && isNull(right)) {
+                                                console.warn("Broken warp-markers")
+                                                return Option.None
+                                            }
+                                            return Option.wrap({
+                                                update: (event: Dragging.Event) => {
+                                                    const rect = canvas.getBoundingClientRect()
+                                                    const x = event.clientX - rect.left
+                                                    const unit = snapping.xToUnitRound(x) - reader.offset
+                                                    const min = left?.position ?? Number.MIN_SAFE_INTEGER
+                                                    const max = right?.position ?? Number.MAX_SAFE_INTEGER
+                                                    const clamped = clamp(unit, min + MIN_DISTANCE, max - MIN_DISTANCE)
+                                                    editing.modify(() => marker.box.position.setValue(clamped), false)
+                                                },
+                                                approve: () => editing.mark()
                                             })
                                         })
-                                    }
-                                }),
-                                Events.subscribe(canvas, "keypress", (event) => {
-                                    if (Keyboard.isDelete(event)) {
-                                        editing.modify(() => selection.selected()
-                                            .filter(marker => !marker.isAnchor)
-                                            .forEach(marker => marker.box.delete()))
-                                    }
-                                }),
-                                Dragging.attach(canvas, startEvent => {
-                                    const marker = capturing.captureEvent(startEvent)
-                                    selection.deselectAll()
-                                    if (isNull(marker)) {return Option.None}
-                                    selection.select(marker)
-                                    const neighbors = findAdjacentWarpMarker(marker.position, warpMarkers)
-                                    return Option.wrap({
-                                        update: (event: Dragging.Event) => {
-                                            const rect = canvas.getBoundingClientRect()
-                                            const x = event.clientX - rect.left
-                                            const unit = snapping.xToUnitRound(x) - reader.offset
-                                            if (isNull(neighbors)) {
-                                                editing.modify(() => marker.box.position.setValue(unit), false)
-                                            } else {
-                                                const [left, right] = neighbors
-                                                const clamped = clamp(unit, left.position + MIN_DISTANCE, right.position - MIN_DISTANCE)
-                                                editing.modify(() => marker.box.position.setValue(clamped), false)
-                                            }
-                                        },
-                                        approve: () => editing.mark()
-                                    })
+                                    )
                                 })
-                            )
-                        })
-                    })
-                )
-            }}/>
+                            })
+                        )
+                    }}/>
         </div>
     )
 }
