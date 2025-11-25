@@ -3,7 +3,7 @@ import {AudioEventOwnerReader} from "@/ui/timeline/editors/EventOwnerReader"
 import {EventCollection} from "@opendaw/lib-dsp"
 import {TransientMarkerBoxAdapter, WarpMarkerBoxAdapter} from "@opendaw/studio-adapters"
 import {ElementCapturing} from "@/ui/canvas/capturing"
-import {isNull, Iterables, Nullable} from "@opendaw/lib-std"
+import {isNotNull, isNull, Iterables, Nullable} from "@opendaw/lib-std"
 
 export namespace TransientMarkerUtils {
     const MARKER_RADIUS = 4
@@ -41,7 +41,9 @@ export namespace TransientMarkerUtils {
                         }
                     }
                 }
-                if (closest !== null) {
+                if (isNotNull(closest)) {
+                    // webstorm false positive: closest is not null here
+                    // noinspection JSObjectNullOrUndefined
                     return closest.transient
                 }
             }
