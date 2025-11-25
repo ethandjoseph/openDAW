@@ -1,5 +1,5 @@
 import css from "./TransientMarkerEditor.sass?inline"
-import {Html} from "@opendaw/lib-dom"
+import {Events, Html} from "@opendaw/lib-dom"
 import {isNull, Iterables, Lifecycle, Terminator} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {AudioEventOwnerReader} from "@/ui/timeline/editors/EventOwnerReader"
@@ -8,6 +8,7 @@ import {Snapping} from "@/ui/timeline/Snapping"
 import {CanvasPainter} from "@/ui/canvas/painter"
 import {Colors} from "@opendaw/studio-enums"
 import {WheelScaling} from "@/ui/timeline/WheelScaling"
+import {TransientMarkerUtils} from "@/ui/timeline/editors/audio/TransientMarkerUtils"
 
 const className = Html.adoptStyleSheet(css, "TransientMarkerEditor")
 
@@ -54,7 +55,13 @@ export const TransientMarkerEditor = ({lifecycle, range, reader}: Construct) => 
                     reader.subscribeChange(requestUpdate),
                     optWarping.catchupAndSubscribe((optWarping) => {
                         warpingTerminator.terminate()
-                        optWarping.ifSome(warping => warpingTerminator.own(warping.subscribe(requestUpdate)))
+                        optWarping.ifSome(warping => {
+                            const capturing = TransientMarkerUtils.createCapturing(canvas, range, reader, warping.warpMarkers, warping.transientMarkers, 7)
+                            warpingTerminator.ownAll(
+                                warping.subscribe(requestUpdate),
+                                Events.subscribe(canvas, "pointerdown", event => console.debug(capturing.captureEvent(event)))
+                            )
+                        })
                     })
                 )
             }}/>

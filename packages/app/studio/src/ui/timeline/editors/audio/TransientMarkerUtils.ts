@@ -11,20 +11,23 @@ export namespace TransientMarkerUtils {
                                     reader: AudioEventOwnerReader,
                                     warpMarkers: EventCollection<WarpMarkerBoxAdapter>,
                                     transientMarkers: EventCollection<TransientMarkerBoxAdapter>,
-                                    _markerRadius: number) => new ElementCapturing<TransientMarkerBoxAdapter>(element, {
+                                    markerRadius: number) => new ElementCapturing<TransientMarkerBoxAdapter>(element, {
         capture: (x: number, _y: number): Nullable<TransientMarkerBoxAdapter> => {
             const unit = range.xToUnit(x) - reader.offset
-            const pairWise = Iterables.pairWise(warpMarkers.iterateFrom(unit - reader.offset))
+            const pairWise = Iterables.pairWise(warpMarkers.iterateFrom(unit))
             for (const [left, right] of pairWise) {
                 if (isNull(left) || isNull(right)) {break}
                 for (const transient of transientMarkers.iterateFrom(left.seconds)) {
                     const seconds = transient.position
-                    if (seconds >= left.seconds && seconds <= right.seconds) {
+                    if (seconds > right.seconds) {return null}
+                    const alpha = (seconds - left.seconds) / (right.seconds - left.seconds)
+                    const unit = left.position + alpha * (right.position - left.position)
+                    const transientX = range.unitToX(unit + reader.offset)
+                    if (Math.abs(transientX - x) < markerRadius) {
                         return transient
                     }
                 }
             }
-
             return null
         }
     })
