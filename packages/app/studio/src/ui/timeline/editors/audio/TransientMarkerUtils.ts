@@ -15,8 +15,13 @@ export namespace TransientMarkerUtils {
         capture: (x: number, _y: number): Nullable<TransientMarkerBoxAdapter> => {
             const unit = range.xToUnit(x) - reader.offset
             const pairWise = Iterables.pairWise(warpMarkers.iterateFrom(unit))
-            for (const [left, right] of pairWise) {
-                if (isNull(left) || isNull(right)) {break}
+            for (let [left, right] of pairWise) {
+                if (isNull(left)) {return null}
+                if (isNull(right)) {
+                    left = warpMarkers.asArray().at(-2)!
+                    right = warpMarkers.asArray().at(-1)!
+                    if (isNull(left) || isNull(right)) {return null}
+                }
                 for (const transient of transientMarkers.iterateFrom(left.seconds)) {
                     const seconds = transient.position
                     if (seconds > right.seconds) {return null}

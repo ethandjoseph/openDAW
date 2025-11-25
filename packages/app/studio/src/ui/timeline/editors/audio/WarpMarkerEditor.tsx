@@ -1,14 +1,15 @@
 import css from "./WarpMarkerEditor.sass?inline"
-import {Html} from "@opendaw/lib-dom"
-import {Lifecycle, TAU, Terminator} from "@opendaw/lib-std"
+import {Events, Html} from "@opendaw/lib-dom"
+import {Lifecycle, MutableObservableValue, Nullable, TAU, Terminator} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {AudioEventOwnerReader} from "@/ui/timeline/editors/EventOwnerReader"
 import {Project, TimelineRange} from "@opendaw/studio-core"
 import {Snapping} from "@/ui/timeline/Snapping"
 import {CanvasPainter} from "@/ui/canvas/painter"
-import {AudioWarpingBoxAdapter} from "@opendaw/studio-adapters"
+import {AudioWarpingBoxAdapter, TransientMarkerBoxAdapter} from "@opendaw/studio-adapters"
 import {WheelScaling} from "@/ui/timeline/WheelScaling"
 import {WarpMarkerEditing} from "@/ui/timeline/editors/audio/WarpMarkerEditing"
+import {TransientMarkerUtils} from "@/ui/timeline/editors/audio/TransientMarkerUtils"
 
 const className = Html.adoptStyleSheet(css, "AudioWrapMarkers")
 
@@ -18,9 +19,10 @@ type Construct = {
     range: TimelineRange
     snapping: Snapping
     reader: AudioEventOwnerReader
+    hoverTransient: MutableObservableValue<Nullable<TransientMarkerBoxAdapter>>
 }
 
-export const WarpMarkerEditor = ({lifecycle, project, range, snapping, reader}: Construct) => {
+export const WarpMarkerEditor = ({lifecycle, project, range, snapping, reader, hoverTransient}: Construct) => {
     const optWarping = reader.warping
     const markerRadius = 7
     return (
@@ -51,9 +53,15 @@ export const WarpMarkerEditor = ({lifecycle, project, range, snapping, reader}: 
                             optWarping.catchupAndSubscribe((optWarping) => {
                                 warpingLifeCycle.terminate()
                                 optWarping.ifSome((warping: AudioWarpingBoxAdapter) => {
+                                    const capturing = TransientMarkerUtils.createCapturing(
+                                        canvas, range, reader, warping.warpMarkers, warping.transientMarkers, 7)
                                     warpingLifeCycle.ownAll(
                                         warping.subscribe(requestUpdate),
-                                        WarpMarkerEditing.install(warping, project, canvas, range, snapping, reader)
+                                        WarpMarkerEditing.install(warping, project, canvas, range, snapping, reader),
+                                        Events.subscribe(canvas, "pointermove",
+                                            event => hoverTransient.setValue(capturing.captureEvent(event))),
+                                        Events.subscribe(canvas, "pointerout",
+                                            () => hoverTransient.setValue(null))
                                     )
                                 })
                             }))

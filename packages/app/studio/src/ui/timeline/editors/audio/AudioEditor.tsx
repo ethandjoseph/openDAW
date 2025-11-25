@@ -1,5 +1,5 @@
 import css from "./AudioEditor.sass?inline"
-import {Lifecycle} from "@opendaw/lib-std"
+import {DefaultObservableValue, Lifecycle, Nullable} from "@opendaw/lib-std"
 import {createElement, Frag} from "@opendaw/lib-jsx"
 import {StudioService} from "@/service/StudioService.ts"
 import {AudioEditorCanvas} from "@/ui/timeline/editors/audio/AudioEditorCanvas.tsx"
@@ -10,6 +10,7 @@ import {AudioEventOwnerReader} from "@/ui/timeline/editors/EventOwnerReader.ts"
 import {Html} from "@opendaw/lib-dom"
 import {TransientMarkerEditor} from "@/ui/timeline/editors/audio/TransientMarkerEditor"
 import {WarpMarkerEditor} from "@/ui/timeline/editors/audio/WarpMarkerEditor"
+import {TransientMarkerBoxAdapter} from "@opendaw/studio-adapters"
 
 const className = Html.adoptStyleSheet(css, "AudioEditor")
 
@@ -23,6 +24,7 @@ type Construct = {
 }
 
 export const AudioEditor = ({lifecycle, service, range, snapping, reader}: Construct) => {
+    const hoverTransient = new DefaultObservableValue<Nullable<TransientMarkerBoxAdapter>>(null)
     return (
         <div className={className}>
             <Frag>
@@ -35,12 +37,14 @@ export const AudioEditor = ({lifecycle, service, range, snapping, reader}: Const
                                        project={service.project}
                                        range={range}
                                        snapping={snapping}
-                                       reader={reader}/>
+                                       reader={reader}
+                                       hoverTransient={hoverTransient}/>
                 <WarpMarkerEditor lifecycle={lifecycle}
                                   project={service.project}
                                   range={range}
                                   snapping={snapping}
-                                  reader={reader}/>
+                                  reader={reader}
+                                  hoverTransient={hoverTransient}/>
                 <AudioEditorCanvas lifecycle={lifecycle}
                                    range={range}
                                    snapping={snapping}
