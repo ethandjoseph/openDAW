@@ -132,14 +132,9 @@ export const installRegionContextMenu =
                 }).setTriggerProcedure(() => {
                     if (region.type === "audio-region") {
                         region.file.data.ifSome(data => {
-                            // TODO This is just for testing BPMTools
                             const bpm = BPMTools.detect(data.frames[0], data.sampleRate)
-                            if (Browser.isLocalHost()) {
-                                console.debug(bpm)
-                            } else {
-                                Dialogs.info({headline: "BPMTools", message: `${bpm.toFixed(3)} BPM`})
-                                    .finally()
-                            }
+                            Dialogs.info({headline: "BPMTools", message: `${bpm.toFixed(3)} BPM`})
+                                .finally()
                         })
                     }
                 }),

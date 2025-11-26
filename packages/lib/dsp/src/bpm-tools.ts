@@ -14,6 +14,7 @@ export namespace BPMTools {
     }>
 
     export function detect(buf: Float32Array, sampleRate: number, options: Options = {}): number {
+        console.time("bpm detection")
         const {
             interval = 64,      // samples between energy taps
             scanSteps = 1_024,   // coarse grid
@@ -70,6 +71,7 @@ export namespace BPMTools {
                 bestBpm = bpm
             }
         }
+        console.timeEnd("bpm detection")
         return bestBpm
     }
 }

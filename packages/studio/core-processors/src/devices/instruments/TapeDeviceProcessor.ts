@@ -28,11 +28,8 @@ const enum PlayDirection { Forward = 1, Backward = -1 }
 const FADE_LENGTH = 256
 const LOOP_START_MARGIN_SECONDS = 0.080  // 80 ms after transient
 const LOOP_END_MARGIN_SECONDS = 0.010    // 10 ms before the next transient
-const loopStartMargin = Math.round(LOOP_START_MARGIN_SECONDS * sampleRate)
-const loopEndMargin = Math.round(LOOP_END_MARGIN_SECONDS * sampleRate)
 
 type Bounds = { left: number, right: number }
-type Segment = { start: number, end: number }
 type Lane = {
     adapter: TrackBoxAdapter
     voices: Array<StretchVoice>
@@ -56,6 +53,8 @@ class StretchVoice {
 
     constructor(segmentStart: number,
                 segmentEnd: number,
+                loopStartMargin: number,
+                loopEndMargin: number,
                 playMode: TransientPlayMode,
                 fadeLength: number,
                 playbackRate: number,
@@ -73,7 +72,6 @@ class StretchVoice {
             this.loopEnd = segmentEnd
         }
         this.fadeProgress = 0.0
-
         this.#initializePosition(offset)
     }
 
@@ -178,9 +176,7 @@ class StretchVoice {
     }
 
     #advance(): void {
-        if (this.state === VoiceState.Done) {
-            return
-        }
+        if (this.state === VoiceState.Done) {return}
         if (this.state === VoiceState.FadingOut) {
             this.readPosition += this.direction * this.playbackRate
             return
@@ -196,6 +192,10 @@ class StretchVoice {
             return
         }
         if (this.direction === PlayDirection.Forward && this.readPosition >= this.loopEnd) {
+            if (this.readPosition >= this.segmentEnd - this.#fadeLength * this.playbackRate) {
+                this.startFadeOut()
+                return
+            }
             if (this.playMode === TransientPlayMode.Pingpong) {
                 this.direction = PlayDirection.Backward
                 const overshoot = this.readPosition - this.loopEnd
@@ -204,6 +204,10 @@ class StretchVoice {
                 this.readPosition = this.loopStart + (this.readPosition - this.loopEnd)
             }
         } else if (this.direction === PlayDirection.Backward && this.readPosition < this.loopStart) {
+            if (this.readPosition <= this.segmentStart + this.#fadeLength * this.playbackRate) {
+                this.startFadeOut()
+                return
+            }
             this.direction = PlayDirection.Forward
             const overshoot = this.loopStart - this.readPosition
             this.readPosition = this.loopStart + overshoot
@@ -311,7 +315,7 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                  {p0, p1, s0, s1}: Block,
                  lane: Lane,
                  playMode: TransientPlayMode): void {
-        const {numberOfFrames, frames} = data
+        const {numberOfFrames, frames, sampleRate: fileSampleRate} = data
         const framesL = frames[0]
         const framesR = frames.length === 1 ? frames[0] : frames[1]
         const sn = s1 - s0
@@ -326,21 +330,23 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
             const wp0 = numberOfFrames * cycle.resultStartValue
             const wp1 = numberOfFrames * cycle.resultEndValue
             const stepSize = (wp1 - wp0) / bpn
-            this.#processWithoutWarping(outL, outR, framesL, framesR, numberOfFrames, bp0 | 0, bpn, wp0, stepSize, lane, playMode)
+            this.#processWithoutWarping(outL, outR, framesL, framesR, numberOfFrames, fileSampleRate, bp0 | 0, bpn, wp0, stepSize, lane, playMode)
         } else {
             const warping = optWarping.unwrap()
-            this.#processWithWarping(outL, outR, framesL, framesR, numberOfFrames, bp0 | 0, bpn, cycle, warping, lane, playMode)
+            this.#processWithWarping(outL, outR, framesL, framesR, numberOfFrames, fileSampleRate, bp0 | 0, bpn, cycle, warping, lane, playMode)
         }
         lane.voices = lane.voices.filter(v => v.state !== VoiceState.Done)
     }
 
     #processWithoutWarping(outL: Float32Array, outR: Float32Array,
-                           framesL: Float32Array, framesR: Float32Array, numberOfFrames: int,
+                           framesL: Float32Array, framesR: Float32Array, numberOfFrames: int, fileSampleRate: number,
                            bufferStart: int, bufferCount: int,
                            wp0: number, stepSize: number,
                            lane: Lane, playMode: TransientPlayMode): void {
         if (lane.voices.length === 0) {
-            lane.voices.push(new StretchVoice(0, numberOfFrames, playMode, FADE_LENGTH, stepSize, wp0))
+            const loopStartMargin = Math.round(LOOP_START_MARGIN_SECONDS * fileSampleRate)
+            const loopEndMargin = Math.round(LOOP_END_MARGIN_SECONDS * fileSampleRate)
+            lane.voices.push(new StretchVoice(0, numberOfFrames, loopStartMargin, loopEndMargin, playMode, FADE_LENGTH, stepSize, wp0))
         }
         for (const voice of lane.voices) {
             voice.process(outL, outR, framesL, framesR, numberOfFrames, bufferStart, bufferCount)
@@ -349,7 +355,7 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
 
     #processWithWarping(outL: Float32Array, outR: Float32Array,
                         framesL: Float32Array, framesR: Float32Array,
-                        numberOfFrames: int, bufferStart: int,
+                        numberOfFrames: int, fileSampleRate: number, bufferStart: int,
                         bufferCount: int, cycle: LoopableRegion.LoopCycle,
                         warping: AudioWarpingBoxAdapter,
                         lane: Lane,
@@ -358,13 +364,15 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
         const currentSeconds = this.#ppqnToSeconds(cycle.resultStart, cycle.resultStartValue, warpMarkers)
         const transientIndex = this.#findTransientIndex(currentSeconds, transientMarkers)
         if (transientIndex !== lane.lastTransientIndex) {
-            lane.voices.forEach(v => v.startFadeOut())
-            const segment = this.#getTransientSegment(transientIndex, transientMarkers, numberOfFrames)
+            lane.voices.forEach(voice => voice.startFadeOut())
+            const segment = this.#getTransientSegment(transientIndex, transientMarkers, numberOfFrames, fileSampleRate)
             if (segment !== null) {
-                const offsetInSegment = currentSeconds * sampleRate - segment.start
+                const offsetInSegment = currentSeconds * fileSampleRate - segment.start
                 const startAtBeginning = transientIndex !== lane.lastTransientIndex + 1
+                const loopStartMargin = Math.round(LOOP_START_MARGIN_SECONDS * fileSampleRate)
+                const loopEndMargin = Math.round(LOOP_END_MARGIN_SECONDS * fileSampleRate)
                 lane.voices.push(new StretchVoice(
-                    segment.start, segment.end, playMode, FADE_LENGTH, 1.0,
+                    segment.start, segment.end, loopStartMargin, loopEndMargin, playMode, FADE_LENGTH, 1.0,
                     startAtBeginning ? 0.0 : Math.max(0.0, offsetInSegment)
                 ))
             }
@@ -406,7 +414,8 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
 
     #getTransientSegment(index: number,
                          transientMarkers: EventCollection<TransientMarkerBoxAdapter>,
-                         numberOfFrames: number): Nullable<Segment> {
+                         numberOfFrames: number,
+                         fileSampleRate: number): Nullable<{ start: number, end: number }> {
         let current: Nullable<TransientMarkerBoxAdapter> = null
         let next: Nullable<TransientMarkerBoxAdapter> = null
         let i = 0
@@ -422,8 +431,8 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
         if (current === null) {
             return {start: 0, end: numberOfFrames}
         }
-        const start = current.position * sampleRate
-        const end = next !== null ? next.position * sampleRate : numberOfFrames
+        const start = current.position * fileSampleRate
+        const end = next !== null ? next.position * fileSampleRate : numberOfFrames
         return {start, end}
     }
 }
