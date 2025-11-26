@@ -62,8 +62,11 @@ export namespace Dragging {
                 const nearBottom = clientY > window.innerHeight - threshold
 
                 if (nearLeft || nearRight || nearTop || nearBottom) {
-                    targetElement.requestPointerLock?.()
-                    pointerLockActive = true
+                    // We sometimes get a NotAllowedError: A user gesture is required to request Pointer Lock.
+                    try {
+                        targetElement.requestPointerLock?.()
+                        pointerLockActive = true
+                    } catch (_) {}
                 }
             }
 
