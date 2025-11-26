@@ -191,26 +191,21 @@ class StretchVoice {
             }
             return
         }
-        if (this.direction === PlayDirection.Forward && this.readPosition >= this.loopEnd) {
-            if (this.readPosition >= this.segmentEnd - this.#fadeLength * this.playbackRate) {
-                this.startFadeOut()
-                return
-            }
-            if (this.playMode === TransientPlayMode.Pingpong) {
+        if (this.playMode === TransientPlayMode.Pingpong) {
+            if (this.direction === PlayDirection.Forward && this.readPosition >= this.loopEnd) {
                 this.direction = PlayDirection.Backward
                 const overshoot = this.readPosition - this.loopEnd
                 this.readPosition = this.loopEnd - overshoot
-            } else {
-                this.readPosition = this.loopStart + (this.readPosition - this.loopEnd)
+            } else if (this.direction === PlayDirection.Backward && this.readPosition < this.loopStart) {
+                this.direction = PlayDirection.Forward
+                const overshoot = this.loopStart - this.readPosition
+                this.readPosition = this.loopStart + overshoot
             }
-        } else if (this.direction === PlayDirection.Backward && this.readPosition < this.loopStart) {
-            if (this.readPosition <= this.segmentStart + this.#fadeLength * this.playbackRate) {
-                this.startFadeOut()
-                return
+        } else {
+            // Repeat mode - delay wrap to give transient detection time to fire
+            if (this.readPosition >= this.segmentEnd + this.#fadeLength * this.playbackRate) {
+                this.readPosition = this.loopStart + (this.readPosition - this.segmentEnd)
             }
-            this.direction = PlayDirection.Forward
-            const overshoot = this.loopStart - this.readPosition
-            this.readPosition = this.loopStart + overshoot
         }
     }
 }
