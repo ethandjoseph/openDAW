@@ -31,7 +31,7 @@ export const renderAudio = (context: CanvasRenderingContext2D,
         const {warpMarkers} = warping.unwrap()
         const durationInSeconds = file.endInSeconds
         for (const [w0, w1] of Iterables.pairWise(warpMarkers.iterateFrom(range.unitMin - rawStart))) {
-            if (w1 === null) {break} // TODO
+            if (w1 === null) {break}
             const segmentStart = rawStart + w0.position
             const segmentEnd = rawStart + w1.position
             if (segmentEnd <= resultStart || segmentStart >= resultEnd) {continue}

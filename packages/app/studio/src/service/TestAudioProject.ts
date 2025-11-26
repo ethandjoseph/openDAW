@@ -34,7 +34,7 @@ export const testAudioProject = (service: StudioService) => {
         box => box.endInSeconds.setValue(durationInSeconds))
     const valueEventCollectionBox = ValueEventCollectionBox.create(boxGraph, UUID.generate())
     const audioWarpingBox = AudioWarpingBox.create(boxGraph, UUID.generate())
-    const n = 17
+    const n = 33
     for (let i = 0; i < n; i++) {
         TransientMarkerBox.create(boxGraph, UUID.generate(), box => {
             box.owner.refer(audioWarpingBox.transientMarkers)
@@ -71,6 +71,7 @@ export const testAudioProject = (service: StudioService) => {
     })
 
     userInterfaceBoxes[0].editingTimelineRegion.refer(audioRegionBox)
+    userInterfaceBoxes[0].editingDeviceChain.refer(audioUnitBox.editing)
 
     boxGraph.endTransaction()
     service.projectProfileService.setProject(Project.skeleton(service, skeleton), "Test Project")

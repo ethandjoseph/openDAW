@@ -4,6 +4,7 @@ import {
     AudioClipBoxAdapter,
     AudioData,
     AudioRegionBoxAdapter,
+    AudioWarpingBoxAdapter,
     SampleLoader,
     TapeDeviceBoxAdapter,
     TrackBoxAdapter,
@@ -14,10 +15,199 @@ import {AudioGenerator, Block, BlockFlag, ProcessInfo, Processor} from "../../pr
 import {AbstractProcessor} from "../../AbstractProcessor"
 import {PeakBroadcaster} from "../../PeakBroadcaster"
 import {AutomatableParameter} from "../../AutomatableParameter"
-import {NoteEventTarget} from "../../NoteEventSource"
 import {DeviceProcessor} from "../../DeviceProcessor"
+import {NoteEventTarget} from "../../NoteEventSource"
 
-type Lane = { adapter: TrackBoxAdapter, lastRead: number, lastStepSize: number }
+export const enum PlayMode { Once, Repeat, Pingpong }
+
+const enum VoiceState { FadingIn, Active, FadingOut, Done }
+
+const enum PlayDirection { Forward = 1, Backward = -1 }
+
+const FADE_LENGTH = 256
+const LOOP_START_MARGIN_SECONDS = 0.080  // 80 ms after transient
+const LOOP_END_MARGIN_SECONDS = 0.010    // 10 ms before the next transient
+const loopStartMargin = Math.round(LOOP_START_MARGIN_SECONDS * sampleRate)
+const loopEndMargin = Math.round(LOOP_END_MARGIN_SECONDS * sampleRate)
+
+class StretchVoice {
+    state: VoiceState = VoiceState.Done
+    direction: PlayDirection = PlayDirection.Forward
+    readPosition: number = 0
+    segmentStart: number
+    segmentEnd: number
+    loopStart: number
+    loopEnd: number
+    playbackRate: number
+    fadeProgress: number
+    readonly playMode: PlayMode
+    readonly #fadeLength: number
+    #canLoop: boolean
+
+    constructor(
+        segmentStart: number,
+        segmentEnd: number,
+        playMode: PlayMode,
+        fadeLength: number,
+        playbackRate: number,
+        offset: number = 0.0
+    ) {
+        this.segmentStart = segmentStart
+        this.segmentEnd = segmentEnd
+        this.playMode = playMode
+        this.playbackRate = playbackRate
+        this.#fadeLength = fadeLength
+        this.loopStart = segmentStart + loopStartMargin
+        this.loopEnd = segmentEnd - loopEndMargin
+        this.#canLoop = this.loopEnd > this.loopStart
+        if (!this.#canLoop) {
+            this.loopStart = segmentStart
+            this.loopEnd = segmentEnd
+        }
+        this.fadeProgress = 0.0
+        this.#initializePosition(offset)
+        console.log(`Voice init: segment=[${this.segmentStart}, ${this.segmentEnd}], loop=[${this.loopStart}, ${this.loopEnd}], offset=${offset}`)
+    }
+
+    #initializePosition(offset: number): void {
+        if (offset <= 0.0) {
+            this.state = VoiceState.FadingIn
+            this.direction = PlayDirection.Forward
+            this.readPosition = this.segmentStart
+            return
+        }
+        this.state = VoiceState.Active
+        if (this.playMode === PlayMode.Once || !this.#canLoop) {
+            this.direction = PlayDirection.Forward
+            this.readPosition = this.segmentStart + offset
+            if (this.readPosition >= this.segmentEnd) {
+                this.state = VoiceState.Done
+            }
+            return
+        }
+        const firstPassLength = this.loopEnd - this.segmentStart
+        if (offset < firstPassLength) {
+            this.direction = PlayDirection.Forward
+            this.readPosition = this.segmentStart + offset
+            return
+        }
+        const loopLength = this.loopEnd - this.loopStart
+        const loopOffset = offset - firstPassLength
+        const passCount = Math.floor(loopOffset / loopLength)
+        const positionInPass = loopOffset % loopLength
+        if (this.playMode === PlayMode.Repeat) {
+            this.direction = PlayDirection.Forward
+            this.readPosition = this.loopStart + positionInPass
+        } else {
+            if (passCount % 2 === 0) {
+                this.direction = PlayDirection.Backward
+                this.readPosition = this.loopEnd - positionInPass
+            } else {
+                this.direction = PlayDirection.Forward
+                this.readPosition = this.loopStart + positionInPass
+            }
+        }
+    }
+
+    startFadeOut(): void {
+        if (this.state !== VoiceState.Done && this.state !== VoiceState.FadingOut) {
+            this.state = VoiceState.FadingOut
+            this.fadeProgress = 0.0
+        }
+    }
+
+    process(outL: Float32Array, outR: Float32Array, framesL: Float32Array, framesR: Float32Array,
+            numberOfFrames: number, bufferStart: number, bufferCount: number): void {
+        for (let i = 0; i < bufferCount; i++) {
+            if (this.state === VoiceState.Done) {break}
+            const j = bufferStart + i
+            const amplitude = this.#calculateAmplitude()
+            const sample = this.#readSample(framesL, framesR, numberOfFrames)
+            outL[j] += sample.left * amplitude
+            outR[j] += sample.right * amplitude
+            this.#advance()
+        }
+    }
+
+    #calculateAmplitude(): number {
+        switch (this.state) {
+            case VoiceState.FadingIn: {
+                const amp = this.fadeProgress / this.#fadeLength
+                this.fadeProgress++
+                if (this.fadeProgress >= this.#fadeLength) {
+                    this.state = VoiceState.Active
+                    this.fadeProgress = 0.0
+                }
+                return amp
+            }
+            case VoiceState.FadingOut: {
+                const amp = 1.0 - this.fadeProgress / this.#fadeLength
+                this.fadeProgress++
+                if (this.fadeProgress >= this.#fadeLength) {
+                    this.state = VoiceState.Done
+                }
+                return amp
+            }
+            case VoiceState.Active:
+                return 1.0
+            case VoiceState.Done:
+                return 0.0
+        }
+    }
+
+    #readSample(framesL: Float32Array, framesR: Float32Array, numberOfFrames: number): { left: number, right: number } {
+        const readInt = this.readPosition | 0
+        if (readInt < 0 || readInt >= numberOfFrames - 1) {
+            return {left: 0.0, right: 0.0}
+        }
+        const alpha = this.readPosition - readInt
+        const fL = framesL[readInt]
+        const fR = framesR[readInt]
+        return {
+            left: fL + alpha * (framesL[readInt + 1] - fL),
+            right: fR + alpha * (framesR[readInt + 1] - fR)
+        }
+    }
+
+    #advance(): void {
+        if (this.state === VoiceState.Done) {
+            return
+        }
+        if (this.state === VoiceState.FadingOut) {
+            this.readPosition += this.direction * this.playbackRate
+            return
+        }
+        this.readPosition += this.direction * this.playbackRate
+        if (this.playMode === PlayMode.Once || !this.#canLoop) {
+            const distanceToEnd = this.direction === PlayDirection.Forward
+                ? this.segmentEnd - this.readPosition
+                : this.readPosition - this.segmentStart
+            if (distanceToEnd <= this.#fadeLength * this.playbackRate) {
+                this.startFadeOut()
+            }
+            return
+        }
+        if (this.direction === PlayDirection.Forward && this.readPosition >= this.loopEnd) {
+            if (this.playMode === PlayMode.Pingpong) {
+                this.direction = PlayDirection.Backward
+                const overshoot = this.readPosition - this.loopEnd
+                this.readPosition = this.loopEnd - overshoot
+            } else {
+                this.readPosition = this.loopStart + (this.readPosition - this.loopEnd)
+            }
+        } else if (this.direction === PlayDirection.Backward && this.readPosition < this.loopStart) {
+            this.direction = PlayDirection.Forward
+            const overshoot = this.loopStart - this.readPosition
+            this.readPosition = this.loopStart + overshoot
+        }
+    }
+}
+
+type Lane = {
+    adapter: TrackBoxAdapter
+    voices: StretchVoice[]
+    lastTransientIndex: number
+}
 
 export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProcessor, AudioGenerator {
     readonly #adapter: TapeDeviceBoxAdapter
@@ -25,19 +215,15 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
     readonly #peaks: PeakBroadcaster
     readonly #lanes: SortedSet<UUID.Bytes, Lane>
 
-    readonly #fadeLength: number = 128
-
     constructor(context: EngineContext, adapter: TapeDeviceBoxAdapter) {
         super(context)
-
         this.#adapter = adapter
         this.#audioOutput = new AudioBuffer(2)
         this.#peaks = this.own(new PeakBroadcaster(context.broadcaster, adapter.address))
         this.#lanes = UUID.newSet<Lane>(({adapter: {uuid}}) => uuid)
-
         this.ownAll(
             this.#adapter.deviceHost().audioUnitBoxAdapter().tracks.catchupAndSubscribe({
-                onAdd: (adapter: TrackBoxAdapter) => this.#lanes.add({adapter, lastRead: NaN, lastStepSize: 0.0}),
+                onAdd: (adapter: TrackBoxAdapter) => this.#lanes.add({adapter, voices: [], lastTransientIndex: -1}),
                 onRemove: (adapter: TrackBoxAdapter) => this.#lanes.removeByKey(adapter.uuid),
                 onReorder: (_adapter: TrackBoxAdapter) => {}
             }),
@@ -51,6 +237,10 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
         this.#peaks.clear()
         this.#audioOutput.clear()
         this.eventInput.clear()
+        this.#lanes.forEach(lane => {
+            lane.voices = []
+            lane.lastTransientIndex = -1
+        })
     }
 
     get uuid(): UUID.Bytes {return this.#adapter.uuid}
@@ -63,7 +253,10 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
         const [outL, outR] = this.#audioOutput.channels()
         this.#lanes.forEach(lane => blocks.forEach((block) => {
             const {adapter} = lane
-            if (adapter.type !== TrackType.Audio || !adapter.enabled.getValue()) {return}
+            if (adapter.type !== TrackType.Audio || !adapter.enabled.getValue()) {
+                lane.voices.forEach(v => v.startFadeOut())
+                return
+            }
             const {p0, p1, flags} = block
             if (!Bits.every(flags, BlockFlag.transporting | BlockFlag.playing)) {return}
             const intervals = this.context.clipSequencing.iterate(adapter.uuid, p0, p1)
@@ -76,8 +269,9 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                             const optData = loader.data
                             if (optData.isEmpty()) {return}
                             const data = optData.unwrap()
+                            const optWarping = region.warping
                             for (const cycle of LoopableRegion.locateLoops(region, p0, p1)) {
-                                this.#processPass(this.#audioOutput, data, cycle, block, lane)
+                                this.#processPass(outL, outR, data, optWarping, cycle, block, lane, PlayMode.Pingpong)
                             }
                         }
                     },
@@ -86,80 +280,148 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                         const optData = clip.file.getOrCreateLoader().data
                         if (optData.isEmpty()) {return}
                         const data = optData.unwrap()
+                        const optWarping = clip.warping
                         for (const cycle of LoopableRegion.locateLoops({
                             position: 0.0,
                             loopDuration: clip.duration,
                             loopOffset: 0.0,
                             complete: Number.POSITIVE_INFINITY
                         }, sectionFrom, sectionTo)) {
-                            this.#processPass(this.#audioOutput, data, cycle, block, lane)
+                            this.#processPass(outL, outR, data, optWarping, cycle, block, lane, PlayMode.Once)
                         }
                     }
                 })
             }
         }))
-
         this.#audioOutput.assertSanity()
         this.#peaks.process(outL, outR)
     }
 
     parameterChanged(_parameter: AutomatableParameter): void {}
 
-    #processPass(output: AudioBuffer,
+    #processPass(outL: Float32Array, outR: Float32Array,
                  data: AudioData,
+                 optWarping: Option<AudioWarpingBoxAdapter>,
                  cycle: LoopableRegion.LoopCycle,
                  {p0, p1, s0, s1}: Block,
-                 lane: Lane): void {
-        const [outL, outR] = output.channels()
-        const {numberOfFrames, frames} = data
+                 lane: Lane,
+                 playMode: PlayMode): void {
+        const {numberOfFrames, sampleRate, frames} = data
         const framesL = frames[0]
         const framesR = frames.length === 1 ? frames[0] : frames[1]
         const sn = s1 - s0
         const pn = p1 - p0
-        const wp0 = numberOfFrames * cycle.resultStartValue
-        const wp1 = numberOfFrames * cycle.resultEndValue
         const r0 = (cycle.resultStart - p0) / pn
         const r1 = (cycle.resultEnd - p0) / pn
         const bp0 = s0 + sn * r0
         const bp1 = s0 + sn * r1
         const bpn = (bp1 - bp0) | 0
-        const stepSize = (wp1 - wp0) / bpn
         assert(s0 <= bp0 && bp1 <= s1, `Out of bounds ${bp0}, ${bp1}`)
-        const fading = !Number.isFinite(lane.lastRead) || Math.abs(wp0 - (lane.lastRead + stepSize)) > 2.0
-        for (let i = 0 | 0, j = bp0 | 0; i < bpn; i++, j++) {
-            const readNew = wp0 + i * stepSize
-            const readNewInt = readNew | 0
-            let lNew = 0.0, rNew = 0.0
-            if (readNewInt >= 0 && readNewInt < numberOfFrames - 1) {
-                const alpha = readNew - readNewInt
-                const fL = framesL[readNewInt]
-                const fR = framesR[readNewInt]
-                lNew = fL + alpha * (framesL[readNewInt + 1] - fL)
-                rNew = fR + alpha * (framesR[readNewInt + 1] - fR)
+        if (optWarping.isEmpty()) {
+            const wp0 = numberOfFrames * cycle.resultStartValue
+            const wp1 = numberOfFrames * cycle.resultEndValue
+            const stepSize = (wp1 - wp0) / bpn
+            this.#processWithoutWarping(outL, outR, framesL, framesR, numberOfFrames,
+                bp0 | 0, bpn, wp0, stepSize, lane, playMode)
+        } else {
+            const warping = optWarping.unwrap()
+            this.#processWithWarping(outL, outR, framesL, framesR, numberOfFrames, sampleRate,
+                bp0 | 0, bpn, cycle, warping, lane, playMode)
+        }
+        lane.voices = lane.voices.filter(v => v.state !== VoiceState.Done)
+    }
+
+    #processWithoutWarping(outL: Float32Array, outR: Float32Array,
+                           framesL: Float32Array, framesR: Float32Array, numberOfFrames: number,
+                           bufferStart: number, bufferCount: number,
+                           wp0: number, stepSize: number,
+                           lane: Lane, playMode: PlayMode): void {
+        if (lane.voices.length === 0) {
+            lane.voices.push(new StretchVoice(0, numberOfFrames, playMode, FADE_LENGTH, stepSize, wp0))
+        }
+        for (const voice of lane.voices) {
+            voice.process(outL, outR, framesL, framesR, numberOfFrames, bufferStart, bufferCount)
+        }
+    }
+
+    #processWithWarping(outL: Float32Array, outR: Float32Array,
+                        framesL: Float32Array, framesR: Float32Array,
+                        numberOfFrames: number, sampleRate: number,
+                        bufferStart: number, bufferCount: number,
+                        cycle: LoopableRegion.LoopCycle,
+                        warping: AudioWarpingBoxAdapter,
+                        lane: Lane, playMode: PlayMode): void {
+        const {warpMarkers, transientMarkers} = warping
+        const currentSeconds = this.#ppqnToSeconds(cycle.resultStart, cycle.resultStartValue, warpMarkers)
+        const transientIndex = this.#findTransientIndex(currentSeconds, transientMarkers)
+        if (transientIndex !== lane.lastTransientIndex) {
+            lane.voices.forEach(v => v.startFadeOut())
+            const segment = this.#getTransientSegment(transientIndex, transientMarkers, numberOfFrames, sampleRate)
+            if (segment !== null) {
+                const offsetInSegment = currentSeconds * sampleRate - segment.start
+                const startAtBeginning = transientIndex !== lane.lastTransientIndex + 1
+                lane.voices.push(new StretchVoice(
+                    segment.start, segment.end, playMode, FADE_LENGTH, 1.0,
+                    startAtBeginning ? 0.0 : Math.max(0.0, offsetInSegment)
+                ))
             }
-            if (fading && i < this.#fadeLength && Number.isFinite(lane.lastRead)) {
-                const fadeIn = i / this.#fadeLength
-                const fadeOut = 1.0 - fadeIn
-                const readOld = lane.lastRead + i * lane.lastStepSize
-                const readOldInt = readOld | 0
-                if (readOldInt >= 0 && readOldInt < numberOfFrames - 1) {
-                    const alpha = readOld - readOldInt
-                    const fL = framesL[readOldInt]
-                    const fR = framesR[readOldInt]
-                    const lOld = fL + alpha * (framesL[readOldInt + 1] - fL)
-                    const rOld = fR + alpha * (framesR[readOldInt + 1] - fR)
-                    outL[j] += fadeOut * lOld + fadeIn * lNew
-                    outR[j] += fadeOut * rOld + fadeIn * rNew
-                } else {
-                    outL[j] += lNew
-                    outR[j] += rNew
-                }
+            lane.lastTransientIndex = transientIndex
+        }
+        for (const voice of lane.voices) {
+            voice.process(outL, outR, framesL, framesR, numberOfFrames, bufferStart, bufferCount)
+        }
+    }
+
+    #ppqnToSeconds(ppqn: number, normalizedFallback: number, warpMarkers: {
+        iterateFrom(pos: number): Iterable<{ position: number, seconds: number }>
+    }): number {
+        let left: { position: number, seconds: number } | null = null
+        let right: { position: number, seconds: number } | null = null
+        for (const marker of warpMarkers.iterateFrom(0)) {
+            if (marker.position <= ppqn) {
+                left = marker
             } else {
-                outL[j] += lNew
-                outR[j] += rNew
+                right = marker
+                break
             }
         }
-        lane.lastRead = wp0 + (bpn - 1) * stepSize
-        lane.lastStepSize = stepSize
+        if (left === null || right === null) {
+            return normalizedFallback
+        }
+        const alpha = (ppqn - left.position) / (right.position - left.position)
+        return left.seconds + alpha * (right.seconds - left.seconds)
+    }
+
+    #findTransientIndex(seconds: number, transientMarkers: {
+        iterateFrom(pos: number): Iterable<{ position: number }>
+    }): number {
+        let index = -1
+        for (const transient of transientMarkers.iterateFrom(0)) {
+            if (transient.position > seconds) {break}
+            index++
+        }
+        return index
+    }
+
+    #getTransientSegment(index: number, transientMarkers: { iterateFrom(pos: number): Iterable<{ position: number }> },
+                         numberOfFrames: number, sampleRate: number): { start: number, end: number } | null {
+        let current: { position: number } | null = null
+        let next: { position: number } | null = null
+        let i = 0
+        for (const transient of transientMarkers.iterateFrom(0)) {
+            if (i === index) {
+                current = transient
+            } else if (i === index + 1) {
+                next = transient
+                break
+            }
+            i++
+        }
+        if (current === null) {
+            return {start: 0, end: numberOfFrames}
+        }
+        const start = current.position * sampleRate
+        const end = next !== null ? next.position * sampleRate : numberOfFrames
+        return {start, end}
     }
 }
