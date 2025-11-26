@@ -718,6 +718,18 @@ export const IconLibrary = () => (
                 <path d="M12 7V12L7.66986 14.5"/>
                 <path d="M12 12L16.3301 14.5"/>
             </symbol>
+            <symbol id={IconSymbol.toName(IconSymbol.PlayOnce)} viewBox="0 0 24 24" fill="currentColor">
+                <path
+                    d="M10.0858 12L5.29289 16.7929L6.70711 18.2071L12.9142 12L6.70711 5.79291L5.29289 7.20712L10.0858 12ZM17 6.00002L17 18H15L15 6.00002L17 6.00002Z"/>
+            </symbol>
+            <symbol id={IconSymbol.toName(IconSymbol.PlayRepeat)} viewBox="0 0 24 24" fill="currentColor">
+                <path
+                    d="M19.1642 12L12.9571 5.79291L11.5429 7.20712L16.3358 12L11.5429 16.7929L12.9571 18.2071L19.1642 12ZM13.5143 12L7.30722 5.79291L5.89301 7.20712L10.6859 12L5.89301 16.7929L7.30722 18.2071L13.5143 12Z"/>
+            </symbol>
+            <symbol id={IconSymbol.toName(IconSymbol.PlayAlternate)} viewBox="0 0 24 24" fill="currentColor">
+                <path
+                    d="M18.793 5.79285 12.5859 12 18.793 18.2071 20.2072 16.7928 15.4143 12 20.2072 7.20706 18.793 5.79285ZM5.20694 18.2072 11.414 12.0001 5.20694 5.793 3.79272 7.20721 8.58562 12.0001 3.79272 16.793 5.20694 18.2072Z"/>
+            </symbol>
         </defs>
     </svg>
 )

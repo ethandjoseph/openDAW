@@ -9,6 +9,10 @@ import {MenuItems} from "@/ui/devices/menu-items.ts"
 import {DevicePeakMeter} from "@/ui/devices/panel/DevicePeakMeter.tsx"
 import {Html} from "@opendaw/lib-dom"
 import {StudioService} from "@/service/StudioService"
+import {IconSymbol, TransientPlayMode} from "@opendaw/studio-enums"
+import {EditWrapper} from "@/ui/wrapper/EditWrapper"
+import {RadioGroup} from "@/ui/components/RadioGroup"
+import {Icon} from "@/ui/components/Icon"
 
 const className = Html.adoptStyleSheet(css, "TapeDeviceEditor")
 
@@ -30,7 +34,27 @@ export const TapeDeviceEditor = ({lifecycle, service, adapter, deviceHost}: Cons
                       populateMenu={parent => MenuItems.forAudioUnitInput(parent, service, deviceHost)}
                       populateControls={() => (
                           <div className={className}>
-                              <div className="controls"/>
+                              <div className="controls">
+                                  <RadioGroup lifecycle={lifecycle}
+                                              model={EditWrapper.forValue(project.editing, adapter.box.transientPlayMode)}
+                                              elements={[
+                                                  {
+                                                      value: TransientPlayMode.Once,
+                                                      element: (<Icon symbol={IconSymbol.PlayOnce}/>),
+                                                      tooltip: "Plays transients once (Warp)"
+                                                  },
+                                                  {
+                                                      value: TransientPlayMode.Repeat,
+                                                      element: (<Icon symbol={IconSymbol.PlayRepeat}/>),
+                                                      tooltip: "Repeats transients (Warp)"
+                                                  },
+                                                  {
+                                                      value: TransientPlayMode.Pingpong,
+                                                      element: (<Icon symbol={IconSymbol.PlayAlternate}/>),
+                                                      tooltip: "Repeats transients alternating (Warp)"
+                                                  }
+                                              ]}></RadioGroup>
+                              </div>
                               <div className="content">
                                   <Tape lifecycle={lifecycle} position={position} tracks={tracks}/>
                                   <Timeline lifecycle={lifecycle} position={position} tracks={tracks}/>

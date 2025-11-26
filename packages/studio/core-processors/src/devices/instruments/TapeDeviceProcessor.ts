@@ -19,8 +19,7 @@ import {PeakBroadcaster} from "../../PeakBroadcaster"
 import {AutomatableParameter} from "../../AutomatableParameter"
 import {DeviceProcessor} from "../../DeviceProcessor"
 import {NoteEventTarget} from "../../NoteEventSource"
-
-export const enum PlayMode { Once, Repeat, Pingpong }
+import {TransientPlayMode} from "@opendaw/studio-enums"
 
 const enum VoiceState { FadingIn, Active, FadingOut, Done }
 
@@ -33,8 +32,18 @@ const loopStartMargin = Math.round(LOOP_START_MARGIN_SECONDS * sampleRate)
 const loopEndMargin = Math.round(LOOP_END_MARGIN_SECONDS * sampleRate)
 
 type Bounds = { left: number, right: number }
+type Segment = { start: number, end: number }
+type Lane = {
+    adapter: TrackBoxAdapter
+    voices: Array<StretchVoice>
+    lastTransientIndex: int
+}
 
 class StretchVoice {
+    readonly playMode: TransientPlayMode
+    readonly #fadeLength: number
+    readonly #canLoop: boolean
+
     state: VoiceState = VoiceState.Done
     direction: PlayDirection = PlayDirection.Forward
     readPosition: number = 0
@@ -44,18 +53,13 @@ class StretchVoice {
     loopEnd: number
     playbackRate: number
     fadeProgress: number
-    readonly playMode: PlayMode
-    readonly #fadeLength: number
-    #canLoop: boolean
 
-    constructor(
-        segmentStart: number,
-        segmentEnd: number,
-        playMode: PlayMode,
-        fadeLength: number,
-        playbackRate: number,
-        offset: number = 0.0
-    ) {
+    constructor(segmentStart: number,
+                segmentEnd: number,
+                playMode: TransientPlayMode,
+                fadeLength: number,
+                playbackRate: number,
+                offset: number = 0.0) {
         this.segmentStart = segmentStart
         this.segmentEnd = segmentEnd
         this.playMode = playMode
@@ -69,8 +73,8 @@ class StretchVoice {
             this.loopEnd = segmentEnd
         }
         this.fadeProgress = 0.0
+
         this.#initializePosition(offset)
-        console.log(`Voice init: segment=[${this.segmentStart}, ${this.segmentEnd}], loop=[${this.loopStart}, ${this.loopEnd}], offset=${offset}`)
     }
 
     #initializePosition(offset: number): void {
@@ -81,7 +85,7 @@ class StretchVoice {
             return
         }
         this.state = VoiceState.Active
-        if (this.playMode === PlayMode.Once || !this.#canLoop) {
+        if (this.playMode === TransientPlayMode.Once || !this.#canLoop) {
             this.direction = PlayDirection.Forward
             this.readPosition = this.segmentStart + offset
             if (this.readPosition >= this.segmentEnd) {
@@ -99,7 +103,7 @@ class StretchVoice {
         const loopOffset = offset - firstPassLength
         const passCount = Math.floor(loopOffset / loopLength)
         const positionInPass = loopOffset % loopLength
-        if (this.playMode === PlayMode.Repeat) {
+        if (this.playMode === TransientPlayMode.Repeat) {
             this.direction = PlayDirection.Forward
             this.readPosition = this.loopStart + positionInPass
         } else {
@@ -182,7 +186,7 @@ class StretchVoice {
             return
         }
         this.readPosition += this.direction * this.playbackRate
-        if (this.playMode === PlayMode.Once || !this.#canLoop) {
+        if (this.playMode === TransientPlayMode.Once || !this.#canLoop) {
             const distanceToEnd = this.direction === PlayDirection.Forward
                 ? this.segmentEnd - this.readPosition
                 : this.readPosition - this.segmentStart
@@ -192,7 +196,7 @@ class StretchVoice {
             return
         }
         if (this.direction === PlayDirection.Forward && this.readPosition >= this.loopEnd) {
-            if (this.playMode === PlayMode.Pingpong) {
+            if (this.playMode === TransientPlayMode.Pingpong) {
                 this.direction = PlayDirection.Backward
                 const overshoot = this.readPosition - this.loopEnd
                 this.readPosition = this.loopEnd - overshoot
@@ -206,14 +210,6 @@ class StretchVoice {
         }
     }
 }
-
-type Lane = {
-    adapter: TrackBoxAdapter
-    voices: Array<StretchVoice>
-    lastTransientIndex: int
-}
-
-type Segment = { start: number, end: number }
 
 export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProcessor, AudioGenerator {
     readonly #adapter: TapeDeviceBoxAdapter
@@ -267,6 +263,7 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
             }
             const {p0, p1, flags} = block
             if (!Bits.every(flags, BlockFlag.transporting | BlockFlag.playing)) {return}
+            const playMode = this.#adapter.box.transientPlayMode.getValue()
             const intervals = this.context.clipSequencing.iterate(adapter.uuid, p0, p1)
             for (const {optClip, sectionFrom, sectionTo} of intervals) {
                 optClip.match({
@@ -279,7 +276,7 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                             const data = optData.unwrap()
                             const optWarping = region.warping
                             for (const cycle of LoopableRegion.locateLoops(region, p0, p1)) {
-                                this.#processPass(outL, outR, data, optWarping, cycle, block, lane, PlayMode.Repeat)
+                                this.#processPass(outL, outR, data, optWarping, cycle, block, lane, playMode)
                             }
                         }
                     },
@@ -295,7 +292,7 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                             loopOffset: 0.0,
                             complete: Number.POSITIVE_INFINITY
                         }, sectionFrom, sectionTo)) {
-                            this.#processPass(outL, outR, data, optWarping, cycle, block, lane, PlayMode.Once)
+                            this.#processPass(outL, outR, data, optWarping, cycle, block, lane, playMode)
                         }
                     }
                 })
@@ -313,7 +310,7 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                  cycle: LoopableRegion.LoopCycle,
                  {p0, p1, s0, s1}: Block,
                  lane: Lane,
-                 playMode: PlayMode): void {
+                 playMode: TransientPlayMode): void {
         const {numberOfFrames, frames} = data
         const framesL = frames[0]
         const framesR = frames.length === 1 ? frames[0] : frames[1]
@@ -341,7 +338,7 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                            framesL: Float32Array, framesR: Float32Array, numberOfFrames: int,
                            bufferStart: int, bufferCount: int,
                            wp0: number, stepSize: number,
-                           lane: Lane, playMode: PlayMode): void {
+                           lane: Lane, playMode: TransientPlayMode): void {
         if (lane.voices.length === 0) {
             lane.voices.push(new StretchVoice(0, numberOfFrames, playMode, FADE_LENGTH, stepSize, wp0))
         }
@@ -356,7 +353,7 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                         bufferCount: int, cycle: LoopableRegion.LoopCycle,
                         warping: AudioWarpingBoxAdapter,
                         lane: Lane,
-                        playMode: PlayMode): void {
+                        playMode: TransientPlayMode): void {
         const {warpMarkers, transientMarkers} = warping
         const currentSeconds = this.#ppqnToSeconds(cycle.resultStart, cycle.resultStartValue, warpMarkers)
         const transientIndex = this.#findTransientIndex(currentSeconds, transientMarkers)
