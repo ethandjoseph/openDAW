@@ -1,4 +1,4 @@
-import {AudioOfflineRenderer, ProjectBundle, ProjectProfile, WavFile} from "@opendaw/studio-core"
+import {AudioOfflineRenderer, AudioUtils, ProjectBundle, ProjectProfile, WavFile} from "@opendaw/studio-core"
 import {isDefined, Option, panic, Procedure, Progress} from "@opendaw/lib-std"
 import {Promises} from "@opendaw/lib-runtime"
 
@@ -23,8 +23,9 @@ export namespace PublishMusic {
             return panic(ffmpegResult.error)
         }
         log("Converting to MP3...")
+        const silentSample = AudioUtils.findLastNonSilentSample(mixdownResult.value)
         const mp3File = await ffmpegResult.value.mp3Converter()
-            .convert(new Blob([WavFile.encodeFloats(mixdownResult.value)]), convertProgress)
+            .convert(new Blob([WavFile.encodeFloats(mixdownResult.value, silentSample)]), convertProgress)
         const formData = new FormData()
         formData.append("mixdown", new Blob([mp3File], {type: "audio/mpeg"}), "mixdown.mp3")
         formData.append("bundle", new Blob([bundleResult.value], {type: "application/zip"}), "project.odb")

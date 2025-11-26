@@ -1,4 +1,4 @@
-import {Arrays, panic} from "@opendaw/lib-std"
+import {Arrays, int, panic} from "@opendaw/lib-std"
 
 export namespace WavFile {
     const MAGIC_RIFF = 0x46464952
@@ -57,7 +57,7 @@ export namespace WavFile {
         return {channels, sampleRate, numFrames}
     }
 
-    export const encodeFloats = (audio: Audio | AudioBuffer): ArrayBuffer => {
+    export const encodeFloats = (audio: Audio | AudioBuffer, maxLength: int = Number.MAX_SAFE_INTEGER): ArrayBuffer => {
         const bytesPerChannel = Float32Array.BYTES_PER_ELEMENT
         const sampleRate = audio.sampleRate
         let numFrames: number
@@ -72,6 +72,7 @@ export namespace WavFile {
             numFrames = audio.numFrames
             numberOfChannels = audio.channels.length
         }
+        numFrames = Math.min(maxLength, numFrames)
         const size = 44 + numFrames * numberOfChannels * bytesPerChannel
         const buf = new ArrayBuffer(size)
         const view = new DataView(buf)

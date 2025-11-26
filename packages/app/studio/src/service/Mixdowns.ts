@@ -1,6 +1,14 @@
 import {DefaultObservableValue, Errors, Option, panic, RuntimeNotifier} from "@opendaw/lib-std"
-import type {FFmpegConverter, FFmpegWorker} from "@opendaw/studio-core"
-import {AudioOfflineRenderer, ExternalLib, ProjectMeta, ProjectProfile, WavFile} from "@opendaw/studio-core"
+import {
+    AudioOfflineRenderer,
+    AudioUtils,
+    ExternalLib,
+    FFmpegConverter,
+    FFmpegWorker,
+    ProjectMeta,
+    ProjectProfile,
+    WavFile
+} from "@opendaw/studio-core"
 import {Files} from "@opendaw/lib-dom"
 import {Promises} from "@opendaw/lib-runtime"
 import {ExportStemsConfiguration} from "@opendaw/studio-adapters"
@@ -24,7 +32,7 @@ export namespace Mixdowns {
             }
             return
         }
-        const buffer = result.value
+        const buffer: AudioBuffer = result.value
         const {resolve, reject, promise} = Promise.withResolvers<void>()
         const {status, error} = await Promises.tryCatch(Dialogs.show({
             headline: "Encode Mixdown",
@@ -72,12 +80,14 @@ export namespace Mixdowns {
         await saveZipFile(value, meta, Object.values(config).map(({fileName}) => fileName))
     }
 
-    const saveWavFile = async (buffer: AudioBuffer, meta: ProjectMeta) =>
-        saveFileAfterAsync({
-            buffer: WavFile.encodeFloats(buffer),
+    const saveWavFile = async (buffer: AudioBuffer, meta: ProjectMeta) => {
+        const silentSample = AudioUtils.findLastNonSilentSample(buffer)
+        return saveFileAfterAsync({
+            buffer: WavFile.encodeFloats(buffer, silentSample),
             headline: "Save Wav",
             suggestedName: `${meta.name}.wav`
         })
+    }
 
     const saveMp3File = async (buffer: AudioBuffer, meta: ProjectMeta) => {
         const ffmpeg = await loadFFmepg()
@@ -110,7 +120,8 @@ export namespace Mixdowns {
     }) => {
         const progress = new DefaultObservableValue(0.0)
         const progressDialog = RuntimeNotifier.progress({headline: `Encoding ${fileType}...`, progress})
-        const flac = await converter.convert(new Blob([WavFile.encodeFloats(buffer)]),
+        const silentSample = AudioUtils.findLastNonSilentSample(buffer)
+        const flac = await converter.convert(new Blob([WavFile.encodeFloats(buffer, silentSample)]),
             value => progress.setValue(value))
         progressDialog.terminate()
         return saveFileAfterAsync({
