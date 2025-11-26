@@ -18,8 +18,9 @@ import {PPQN, TimeBase} from "@opendaw/lib-dsp"
 export const testAudioProject = (service: StudioService) => {
     const skeleton =
         ProjectSkeleton.empty({createDefaultUser: true, createOutputCompressor: false})
-    const {boxGraph, mandatoryBoxes: {userInterfaceBoxes}} = skeleton
+    const {boxGraph, mandatoryBoxes: {userInterfaceBoxes, timelineBox}} = skeleton
     boxGraph.beginTransaction()
+    timelineBox.bpm.setValue(174)
     const audioUnitBox = AudioUnitFactory.create(skeleton,
         AudioUnitType.Instrument, Option.wrap(CaptureAudioBox.create(boxGraph, UUID.generate())))
     const tapeBox = InstrumentFactories.Tape
