@@ -1,4 +1,4 @@
-import {isDefined} from "@opendaw/lib-std"
+import {isDefined, tryCatch} from "@opendaw/lib-std"
 
 export type ErrorInfo = {
     name: string
@@ -50,7 +50,11 @@ export namespace ErrorInfo {
         } else if (event instanceof SecurityPolicyViolationEvent) {
             return {name: "SecurityPolicyViolation", message: `${event.violatedDirective} blocked ${event.blockedURI}`}
         } else {
-            return {name: "UnknownError", message: "Unknown error"}
+            const {status, value} = tryCatch(() => JSON.stringify(event))
+            if (status === "success") {
+                return {name: "UnknownError", message: value}
+            }
+            return {name: "UnknownError", message: String(event)}
         }
     }
 }
