@@ -1,4 +1,4 @@
-import {assert, Bits, int, isInstanceOf, Nullable, Option, SortedSet, UUID} from "@opendaw/lib-std"
+import {asDefined, assert, Bits, int, isInstanceOf, Nullable, Option, SortedSet, UUID} from "@opendaw/lib-std"
 import {AudioBuffer, EventCollection, LoopableRegion, RenderQuantum} from "@opendaw/lib-dsp"
 import {
     AudioClipBoxAdapter,
@@ -307,9 +307,15 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                  data: AudioData,
                  optWarping: Option<AudioWarpingBoxAdapter>,
                  cycle: LoopableRegion.LoopCycle,
-                 {p0, p1, s0, s1}: Block,
+                 {p0, p1, s0, s1, flags}: Block,
                  lane: Lane,
                  playMode: TransientPlayMode): void {
+        if (Bits.some(flags, BlockFlag.discontinuous)) {
+            this.#lanes.forEach(lane => {
+                lane.lastTransientIndex = -1
+                lane.voices.forEach(v => v.startFadeOut())
+            })
+        }
         const {numberOfFrames, frames, sampleRate: fileSampleRate} = data
         const framesL = frames[0]
         const framesR = frames.length === 1 ? frames[0] : frames[1]
@@ -325,10 +331,12 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
             const wp0 = numberOfFrames * cycle.resultStartValue
             const wp1 = numberOfFrames * cycle.resultEndValue
             const stepSize = (wp1 - wp0) / bpn
-            this.#processWithoutWarping(outL, outR, framesL, framesR, numberOfFrames, fileSampleRate, bp0 | 0, bpn, wp0, stepSize, lane, playMode)
+            this.#processWithoutWarping(outL, outR, framesL, framesR, numberOfFrames,
+                fileSampleRate, bp0 | 0, bpn, wp0, stepSize, lane, playMode)
         } else {
             const warping = optWarping.unwrap()
-            this.#processWithWarping(outL, outR, framesL, framesR, numberOfFrames, fileSampleRate, bp0 | 0, bpn, cycle, warping, lane, playMode)
+            this.#processWithWarping(outL, outR, framesL, framesR, numberOfFrames,
+                fileSampleRate, bp0 | 0, bpn, cycle, warping, lane, playMode)
         }
         lane.voices = lane.voices.filter(v => v.state !== VoiceState.Done)
     }
@@ -341,7 +349,8 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
         if (lane.voices.length === 0) {
             const loopStartMargin = Math.round(LOOP_START_MARGIN_SECONDS * fileSampleRate)
             const loopEndMargin = Math.round(LOOP_END_MARGIN_SECONDS * fileSampleRate)
-            lane.voices.push(new StretchVoice(0, numberOfFrames, loopStartMargin, loopEndMargin, playMode, FADE_LENGTH, stepSize, wp0))
+            lane.voices.push(new StretchVoice(0, numberOfFrames, loopStartMargin, loopEndMargin,
+                playMode, FADE_LENGTH, stepSize, wp0))
         }
         for (const voice of lane.voices) {
             voice.process(outL, outR, framesL, framesR, numberOfFrames, bufferStart, bufferCount)
@@ -356,8 +365,13 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                         lane: Lane,
                         playMode: TransientPlayMode): void {
         const {warpMarkers, transientMarkers} = warping
+        const firstWarp = asDefined(warpMarkers.first(), "there must be at least one warp marker (1st)")
+        const lastWarp = asDefined(warpMarkers.last(), "there must be at least one warp marker (nth)")
+        if (cycle.resultStart < firstWarp.position || cycle.resultStart >= lastWarp.position) {
+            return
+        }
         const currentSeconds = this.#ppqnToSeconds(cycle.resultStart, cycle.resultStartValue, warpMarkers)
-        const transientIndex = this.#findTransientIndex(currentSeconds, transientMarkers)
+        const transientIndex = transientMarkers.floorLastIndex(currentSeconds)
         if (transientIndex !== lane.lastTransientIndex) {
             lane.voices.forEach(voice => voice.startFadeOut())
             const segment = this.#getTransientSegment(transientIndex, transientMarkers, numberOfFrames, fileSampleRate)
@@ -378,56 +392,29 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
         }
     }
 
+    #getTransientSegment(index: int,
+                         transientMarkers: EventCollection<TransientMarkerBoxAdapter>,
+                         numberOfFrames: number,
+                         fileSampleRate: number): Nullable<{ start: number, end: number }> {
+        const current = transientMarkers.optAt(index)
+        if (current === null) {
+            return null
+        }
+        const next = transientMarkers.optAt(index + 1)
+        const start = current.position * fileSampleRate
+        const end = next !== null ? next.position * fileSampleRate : numberOfFrames
+        return {start, end}
+    }
+
     #ppqnToSeconds(ppqn: number, normalizedFallback: number,
                    warpMarkers: EventCollection<WarpMarkerBoxAdapter>): number {
-        let left: Nullable<WarpMarkerBoxAdapter> = null
-        let right: Nullable<WarpMarkerBoxAdapter> = null
-        for (const marker of warpMarkers.iterateFrom(0)) {
-            if (marker.position <= ppqn) {
-                left = marker
-            } else {
-                right = marker
-                break
-            }
-        }
+        const leftIndex = warpMarkers.floorLastIndex(ppqn)
+        const left = warpMarkers.optAt(leftIndex)
+        const right = warpMarkers.optAt(leftIndex + 1)
         if (left === null || right === null) {
             return normalizedFallback
         }
         const alpha = (ppqn - left.position) / (right.position - left.position)
         return left.seconds + alpha * (right.seconds - left.seconds)
-    }
-
-    #findTransientIndex(seconds: number,
-                        transientMarkers: EventCollection<TransientMarkerBoxAdapter>): number {
-        let index = -1
-        for (const transient of transientMarkers.iterateFrom(0)) {
-            if (transient.position > seconds) {break}
-            index++
-        }
-        return index
-    }
-
-    #getTransientSegment(index: number,
-                         transientMarkers: EventCollection<TransientMarkerBoxAdapter>,
-                         numberOfFrames: number,
-                         fileSampleRate: number): Nullable<{ start: number, end: number }> {
-        let current: Nullable<TransientMarkerBoxAdapter> = null
-        let next: Nullable<TransientMarkerBoxAdapter> = null
-        let i = 0
-        for (const transient of transientMarkers.iterateFrom(0)) {
-            if (i === index) {
-                current = transient
-            } else if (i === index + 1) {
-                next = transient
-                break
-            }
-            i++
-        }
-        if (current === null) {
-            return {start: 0, end: numberOfFrames}
-        }
-        const start = current.position * fileSampleRate
-        const end = next !== null ? next.position * fileSampleRate : numberOfFrames
-        return {start, end}
     }
 }
