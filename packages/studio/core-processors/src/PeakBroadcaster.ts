@@ -41,15 +41,20 @@ export class PeakBroadcaster implements Terminable {
     }
 
     process(outL: Float32Array, outR: Float32Array, fromIndex: int = 0, toIndex: int = RenderQuantum): void {
-        const [rmsL, rmsR] = this.#rms
+        const samples = toIndex - fromIndex
+        const decay = PeakBroadcaster.PEAK_DECAY ** samples
+        let maxL = 0.0
+        let maxR = 0.0
         for (let i = fromIndex; i < toIndex; i++) {
-            const l = outL[i]
-            const r = outR[i]
-            if (this.#peakL <= l) {this.#peakL = l} else {this.#peakL *= PeakBroadcaster.PEAK_DECAY}
-            if (this.#peakR <= r) {this.#peakR = r} else {this.#peakR *= PeakBroadcaster.PEAK_DECAY}
-            this.#rmsL = rmsL.pushPop(l)
-            this.#rmsR = rmsR.pushPop(r)
+            const l = Math.abs(outL[i])
+            const r = Math.abs(outR[i])
+            if (l > maxL) maxL = l
+            if (r > maxR) maxR = r
         }
+        this.#peakL = Math.max(maxL, this.#peakL * decay)
+        this.#peakR = Math.max(maxR, this.#peakR * decay)
+        this.#rmsL = this.#rms[0].processBlock(outL, fromIndex, toIndex)
+        this.#rmsR = this.#rms[1].processBlock(outR, fromIndex, toIndex)
     }
 
     processStereo([l, r]: StereoMatrix.Channels, fromIndex: int = 0, toIndex: int = RenderQuantum): void {
