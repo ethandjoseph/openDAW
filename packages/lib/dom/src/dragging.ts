@@ -1,4 +1,4 @@
-import {Func, int, isDefined, Option, safeRead, Terminable, Terminator} from "@opendaw/lib-std"
+import {EmptyExec, Func, int, isDefined, Option, safeRead, Terminable, Terminator} from "@opendaw/lib-std"
 import {Browser} from "./browser"
 import {AnimationFrame} from "./frames"
 import {Events, PointerCaptureTarget} from "./events"
@@ -62,8 +62,7 @@ export namespace Dragging {
                 const nearBottom = clientY > window.innerHeight - threshold
 
                 if (nearLeft || nearRight || nearTop || nearBottom) {
-                    targetElement.requestPointerLock?.()
-                    pointerLockActive = true
+                    targetElement.requestPointerLock().then(() => pointerLockActive = true, EmptyExec)
                 }
             }
 
