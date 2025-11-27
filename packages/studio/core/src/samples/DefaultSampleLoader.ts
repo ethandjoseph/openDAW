@@ -15,6 +15,7 @@ import {AudioData, SampleLoader, SampleLoaderState, SampleMetaData} from "@opend
 import {Workers} from "../Workers"
 import {DefaultSampleLoaderManager} from "./DefaultSampleLoaderManager"
 import {SampleStorage} from "./SampleStorage"
+import {detectTransients} from "@opendaw/lib-dsp"
 
 export class DefaultSampleLoader implements SampleLoader {
     readonly #manager: DefaultSampleLoaderManager
@@ -73,6 +74,14 @@ export class DefaultSampleLoader implements SampleLoader {
                     console.warn(`Ignore obsolete version: ${this.#version} / ${version}`)
                     return
                 }
+                console.debug("transient detection")
+                console.debug(data)
+                const duration = data.numberOfFrames / data.sampleRate
+                const now = performance.now()
+                const transients = detectTransients(data)
+                const took = (((performance.now() - now) / 1000.0) / duration * 100.0).toFixed(2)
+                console.debug(`realtime factor: ${took}%`)
+                console.debug(transients)
                 this.#data = Option.wrap(data)
                 this.#meta = Option.wrap(meta)
                 this.#peaks = Option.wrap(peaks)

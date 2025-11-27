@@ -4,3 +4,5 @@ export type AudioData = {
     numberOfChannels: number
     frames: ReadonlyArray<Float32Array>
 }
+
+// TODO Move to dsp
