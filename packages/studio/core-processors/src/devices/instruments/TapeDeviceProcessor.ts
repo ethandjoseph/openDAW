@@ -321,7 +321,7 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
         const bp0 = s0 + sn * r0
         const bp1 = s0 + sn * r1
         const bpn = (bp1 - bp0) | 0
-        assert(s0 <= bp0 && bp1 <= s1, `Out of bounds ${bp0}, ${bp1}`)
+        assert(s0 <= bp0 && bp1 <= s1, () => `Out of bounds ${bp0}, ${bp1}`)
         if (optWarping.isEmpty()) {
             const wp0 = numberOfFrames * cycle.resultStartValue
             const wp1 = numberOfFrames * cycle.resultEndValue

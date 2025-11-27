@@ -21,7 +21,7 @@ export class Metronome {
                 const [nominator, denominator] = this.#timelineBoxAdapter.signature
                 const stepSize = PPQN.fromSignature(1, denominator)
                 for (const position of Fragmentor.iterate(p0, p1, stepSize)) {
-                    assert(p0 <= position && position < p1, `${position} out of bounds (${p0}, ${p1})`)
+                    assert(p0 <= position && position < p1, () => `${position} out of bounds (${p0}, ${p1})`)
                     const distanceToEvent = Math.floor(PPQN.pulsesToSamples(position - p0, bpm, sampleRate))
                     this.#clicks.push(new Click(position, s0 + distanceToEvent, nominator, denominator))
                 }
