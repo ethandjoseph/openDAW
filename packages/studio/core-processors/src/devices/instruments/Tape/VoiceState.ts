@@ -1,0 +1,1 @@
+export enum VoiceState { FadingIn, Active, FadingOut, Done }
