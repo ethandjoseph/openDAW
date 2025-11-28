@@ -24,6 +24,7 @@ import {OnceVoice} from "./Tape/OnceVoice"
 import {RepeatVoice} from "./Tape/RepeatVoice"
 import {PingpongVoice} from "./Tape/PingpongVoice"
 import {PitchVoice} from "./Tape/PitchVoice"
+import {Voice} from "./Tape/Voice"
 
 const LOOP_START_MARGIN = 256
 const LOOP_END_MARGIN = 256
@@ -34,8 +35,6 @@ type SegmentInfo = {
     hasNext: boolean
     nextTransientSeconds: number
 }
-
-type Voice = OnceVoice | RepeatVoice | PingpongVoice | PitchVoice
 
 type Lane = {
     adapter: TrackBoxAdapter
@@ -94,7 +93,7 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
     #processBlock(lane: Lane, block: Block): void {
         const {adapter} = lane
         if (adapter.type !== TrackType.Audio || !adapter.enabled.getValue()) {
-            lane.voices.forEach(v => v.startFadeOut())
+            lane.voices.forEach(voice => voice.startFadeOut())
             return
         }
         const {p0, p1, flags} = block
@@ -116,7 +115,7 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                             }
                         } else {
                             for (const cycle of LoopableRegion.locateLoops(region, p0, p1)) {
-                                this.#processPassPitch(lane, block, cycle, optData.unwrap())
+                                this.#processPassPitch(lane, block, cycle, optData.unwrap(), region.warping)
                             }
                         }
                     }
@@ -144,7 +143,7 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                             loopOffset: 0.0,
                             complete: Number.POSITIVE_INFINITY
                         }, sectionFrom, sectionTo)) {
-                            this.#processPassPitch(lane, block, cycle, optData.unwrap())
+                            this.#processPassPitch(lane, block, cycle, optData.unwrap(), clip.warping)
                         }
                     }
                 }
@@ -152,7 +151,7 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
         }
     }
 
-    #processPassPitch(lane: Lane, block: Block, cycle: LoopableRegion.LoopCycle, data: AudioData): void {
+    #processPassPitch(lane: Lane, block: Block, cycle: LoopableRegion.LoopCycle, data: AudioData, optWarping: Option<AudioWarpingBoxAdapter>): void {
         const {p0, p1, s0, s1, flags} = block
         const sn = s1 - s0
         const pn = p1 - p0
@@ -162,28 +161,65 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
         const bp1 = s0 + sn * r1
         const bpn = (bp1 - bp0) | 0
         assert(s0 <= bp0 && bp1 <= s1, () => `Out of bounds ${bp0}, ${bp1}`)
-        const audioDurationSamples = data.numberOfFrames
-        const audioDurationNormalized = cycle.resultEndValue - cycle.resultStartValue
-        const audioSamplesInCycle = audioDurationNormalized * audioDurationSamples
-        const timelineSamplesInCycle = (cycle.resultEnd - cycle.resultStart) / pn * sn
-        const playbackRate = audioSamplesInCycle / timelineSamplesInCycle
         if (Bits.some(flags, BlockFlag.discontinuous)) {
-            lane.voices.forEach(v => v.startFadeOut())
+            lane.voices.forEach(voice => voice.startFadeOut())
         }
-        if (lane.voices.length === 0) {
-            const offset = cycle.resultStartValue * data.numberOfFrames
-            lane.voices.push(new PitchVoice(this.#audioOutput, data, FADE_LENGTH, playbackRate, offset))
-        } else {
-            for (const voice of lane.voices) {
-                if (voice instanceof PitchVoice) {
-                    voice.setPlaybackRate(playbackRate)
-                }
+        if (optWarping.nonEmpty()) {
+            const warping = optWarping.unwrap()
+            const {warpMarkers} = warping
+            const firstWarp = warpMarkers.first()
+            const lastWarp = warpMarkers.last()
+            if (firstWarp === null || lastWarp === null) {
+                lane.voices.forEach(voice => voice.startFadeOut())
+                return
             }
+            const contentPpqn = cycle.resultStart - cycle.rawStart
+            if (contentPpqn < firstWarp.position || contentPpqn >= lastWarp.position) {
+                lane.voices.forEach(voice => voice.startFadeOut())
+                return
+            }
+            const currentSeconds = this.#ppqnToSeconds(contentPpqn, cycle.resultStartValue, warpMarkers)
+            const offset = currentSeconds * data.sampleRate
+            const playbackRate = this.#getPlaybackRateFromWarp(contentPpqn, warpMarkers, data.sampleRate, pn, sn)
+            this.#updateOrCreatePitchVoice(lane, data, playbackRate, offset)
+        } else {
+            const audioDurationSamples = data.numberOfFrames
+            const audioDurationNormalized = cycle.resultEndValue - cycle.resultStartValue
+            const audioSamplesInCycle = audioDurationNormalized * audioDurationSamples
+            const timelineSamplesInCycle = (cycle.resultEnd - cycle.resultStart) / pn * sn
+            const playbackRate = audioSamplesInCycle / timelineSamplesInCycle
+            const offset = cycle.resultStartValue * data.numberOfFrames
+            this.#updateOrCreatePitchVoice(lane, data, playbackRate, offset)
         }
         for (const voice of lane.voices) {
             voice.process(bp0 | 0, bpn)
         }
-        lane.voices = lane.voices.filter(voice => !voice.done)
+        lane.voices = lane.voices.filter(voice => !voice.done())
+    }
+
+    #updateOrCreatePitchVoice(lane: Lane, data: AudioData, playbackRate: number, offset: number): void {
+        if (lane.voices.length === 0) {
+            lane.voices.push(new PitchVoice(this.#audioOutput, data, FADE_LENGTH, playbackRate, offset))
+        } else {
+            let hasActiveVoice = false
+            for (const voice of lane.voices) {
+                if (voice instanceof PitchVoice) {
+                    if (voice.isFadingOut()) {
+                        continue
+                    }
+                    const drift = Math.abs(voice.readPosition - offset)
+                    if (drift > FADE_LENGTH) {
+                        voice.startFadeOut()
+                    } else {
+                        voice.setPlaybackRate(playbackRate)
+                        hasActiveVoice = true
+                    }
+                }
+            }
+            if (!hasActiveVoice) {
+                lane.voices.push(new PitchVoice(this.#audioOutput, data, FADE_LENGTH, playbackRate, offset))
+            }
+        }
     }
 
     #processPassTimestretch(lane: Lane,
@@ -194,7 +230,7 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
         const {p0, p1, s0, s1, flags} = block
         if (Bits.some(flags, BlockFlag.discontinuous)) {
             lane.lastTransientIndex = -1
-            lane.voices.forEach(v => v.startFadeOut())
+            lane.voices.forEach(voice => voice.startFadeOut())
         }
         const sn = s1 - s0
         const pn = p1 - p0
@@ -217,7 +253,7 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                 const {segment, hasNext, nextTransientSeconds} = segmentInfo
                 const segmentLength = segment.end - segment.start
                 if (segmentLength >= FADE_LENGTH * 2) {
-                    lane.voices.forEach(v => v.startFadeOut())
+                    lane.voices.forEach(voice => voice.startFadeOut())
                     const offsetInSegment = currentSeconds * data.sampleRate - segment.start
                     const startAtBeginning = lane.lastTransientIndex === -1 || transientIndex !== lane.lastTransientIndex + 1
                     const offset = startAtBeginning ? 0.0 : Math.max(0.0, offsetInSegment)
@@ -246,7 +282,7 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
         for (const voice of lane.voices) {
             voice.process(bp0 | 0, bpn)
         }
-        lane.voices = lane.voices.filter(v => !v.done)
+        lane.voices = lane.voices.filter(voice => !voice.done())
     }
 
     #getSegmentInfo(index: int, transientMarkers: EventCollection<TransientMarkerBoxAdapter>, data: AudioData): Nullable<SegmentInfo> {
@@ -260,6 +296,23 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
             hasNext: next !== null,
             nextTransientSeconds: next !== null ? next.position : Number.POSITIVE_INFINITY
         }
+    }
+
+    #getPlaybackRateFromWarp(ppqn: number,
+                             warpMarkers: EventCollection<WarpMarkerBoxAdapter>,
+                             sampleRate: number, pn: number, sn: number): number {
+        const leftIndex = warpMarkers.floorLastIndex(ppqn)
+        const left = warpMarkers.optAt(leftIndex)
+        const right = warpMarkers.optAt(leftIndex + 1)
+        if (left === null || right === null) {
+            return 1.0
+        }
+        const ppqnDelta = right.position - left.position
+        const secondsDelta = right.seconds - left.seconds
+        const samplesDelta = secondsDelta * sampleRate
+        const audioSamplesPerPpqn = samplesDelta / ppqnDelta
+        const timelineSamplesPerPpqn = sn / pn
+        return audioSamplesPerPpqn / timelineSamplesPerPpqn
     }
 
     #secondsToPpqn(seconds: number, warpMarkers: EventCollection<WarpMarkerBoxAdapter>): number {

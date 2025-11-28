@@ -1,8 +1,9 @@
 import {int} from "@opendaw/lib-std"
 import {AudioBuffer, AudioData} from "@opendaw/lib-dsp"
 import {VoiceState} from "./VoiceState"
+import {Voice} from "./Voice"
 
-export class PitchVoice {
+export class PitchVoice implements Voice {
     readonly #output: AudioBuffer
     readonly #data: AudioData
     readonly #fadeLength: number
@@ -23,7 +24,10 @@ export class PitchVoice {
         }
     }
 
-    get done(): boolean {return this.#state === VoiceState.Done}
+    get readPosition(): number {return this.#readPosition}
+
+    done(): boolean {return this.#state === VoiceState.Done}
+    isFadingOut(): boolean {return this.#state === VoiceState.FadingOut}
 
     startFadeOut(): void {
         if (this.#state !== VoiceState.Done && this.#state !== VoiceState.FadingOut) {

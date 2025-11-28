@@ -2,8 +2,9 @@ import {AudioBuffer, AudioData} from "@opendaw/lib-dsp"
 import {Segment} from "./Segment"
 import {VoiceState} from "./VoiceState"
 import {int} from "@opendaw/lib-std"
+import {Voice} from "./Voice"
 
-export class OnceVoice {
+export class OnceVoice implements Voice {
     readonly #output: AudioBuffer
     readonly #data: AudioData
     readonly #segment: Segment
@@ -24,7 +25,7 @@ export class OnceVoice {
         }
     }
 
-    get done(): boolean {return this.#state === VoiceState.Done}
+    done(): boolean {return this.#state === VoiceState.Done}
 
     startFadeOut(): void {
         if (this.#state === VoiceState.Done || this.#state === VoiceState.FadingOut) {return}

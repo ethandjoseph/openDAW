@@ -2,11 +2,12 @@ import {int} from "@opendaw/lib-std"
 import {AudioBuffer, AudioData} from "@opendaw/lib-dsp"
 import {Segment} from "./Segment"
 import {VoiceState} from "./VoiceState"
+import {Voice} from "./Voice"
 
 const LOOP_START_MARGIN = 256
 const LOOP_END_MARGIN = 256
 
-export class PingpongVoice {
+export class PingpongVoice implements Voice {
     readonly #output: AudioBuffer
     readonly #data: AudioData
     readonly #segment: Segment
@@ -32,7 +33,7 @@ export class PingpongVoice {
         }
     }
 
-    get done(): boolean {return this.#state === VoiceState.Done}
+    done(): boolean {return this.#state === VoiceState.Done}
 
     startFadeOut(): void {
         if (this.#state !== VoiceState.Done && this.#state !== VoiceState.FadingOut) {
