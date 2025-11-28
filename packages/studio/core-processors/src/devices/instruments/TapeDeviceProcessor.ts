@@ -106,7 +106,7 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                         if (region.mute || !isInstanceOf(region, AudioRegionBoxAdapter)) {continue}
                         const optData = region.file.getOrCreateLoader().data
                         if (optData.isEmpty()) {return}
-                        const playback = region.playback
+                        const playback = region.playback.getValue()
                         if (playback === AudioPlayback.Timestretch) {
                             const optWarping = region.warping
                             if (optWarping.isEmpty()) {return}
@@ -115,7 +115,7 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                             }
                         } else {
                             for (const cycle of LoopableRegion.locateLoops(region, p0, p1)) {
-                                this.#processPassPitch(lane, block, cycle, optData.unwrap(), region.warping, region.playback)
+                                this.#processPassPitch(lane, block, cycle, optData.unwrap(), region.warping, playback)
                             }
                         }
                     }
@@ -124,7 +124,7 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                     if (!isInstanceOf(clip, AudioClipBoxAdapter)) {return}
                     const optData = clip.file.getOrCreateLoader().data
                     if (optData.isEmpty()) {return}
-                    const playback = clip.playback
+                    const playback = clip.playback.getValue()
                     if (playback === AudioPlayback.Timestretch) {
                         const optWarping = clip.warping
                         if (optWarping.isEmpty()) {return}
@@ -143,7 +143,7 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                             loopOffset: 0.0,
                             complete: Number.POSITIVE_INFINITY
                         }, sectionFrom, sectionTo)) {
-                            this.#processPassPitch(lane, block, cycle, optData.unwrap(), clip.warping, clip.playback)
+                            this.#processPassPitch(lane, block, cycle, optData.unwrap(), clip.warping, playback)
                         }
                     }
                 }

@@ -26,7 +26,7 @@ export const WarpMarkerEditor = ({lifecycle, project, range, snapping, reader, h
     const optWarping = reader.warping
     const markerRadius = 7
     return (
-        <div className={className}>
+        <div className={Html.buildClassList(className, "warping-aware")}>
             <canvas tabIndex={-1}
                     onInit={canvas => {
                         const {requestUpdate} = lifecycle.own(new CanvasPainter(canvas, painter => {

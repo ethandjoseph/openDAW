@@ -106,33 +106,33 @@ export const installRegionContextMenu =
                     MenuItem.default({
                         label: "Pitch",
                         checked: region.type === "audio-region"
-                            && region.box.playback.getValue() === AudioPlayback.Pitch
+                            && region.playback.getValue() === AudioPlayback.Pitch
                     }).setTriggerProcedure(() => {
                         const adapters = selection.selected()
                             .filter((region): region is AudioRegionBoxAdapter =>
-                                region.type === "audio-region" && region.playback !== AudioPlayback.Pitch)
+                                region.type === "audio-region" && region.playback.getValue() !== AudioPlayback.Pitch)
                         if (adapters.length === 0) {return}
                         editing.modify(() => adapters.forEach(region => region.setPlayback(AudioPlayback.Pitch)))
                     }),
                     MenuItem.default({
                         label: "Timestretch",
                         checked: region.type === "audio-region"
-                            && region.box.playback.getValue() === AudioPlayback.Timestretch
+                            && region.playback.getValue() === AudioPlayback.Timestretch
                     }).setTriggerProcedure(() => {
                         const adapters = selection.selected()
                             .filter((region): region is AudioRegionBoxAdapter =>
-                                region.type === "audio-region" && region.playback !== AudioPlayback.Timestretch)
+                                region.type === "audio-region" && region.playback.getValue() !== AudioPlayback.Timestretch)
                         if (adapters.length === 0) {return}
                         editing.modify(() => adapters.forEach(region => region.setPlayback(AudioPlayback.Timestretch)))
                     }),
                     MenuItem.default({
                         label: "No Warp",
                         checked: region.type === "audio-region"
-                            && region.box.playback.getValue() === AudioPlayback.NoSync
+                            && region.playback.getValue() === AudioPlayback.NoSync
                     }).setTriggerProcedure(() => {
                         const adapters = selection.selected()
                             .filter((region): region is AudioRegionBoxAdapter =>
-                                region.type === "audio-region" && region.playback !== AudioPlayback.NoSync)
+                                region.type === "audio-region" && region.playback.getValue() !== AudioPlayback.NoSync)
                         if (adapters.length === 0) {return}
                         editing.modify(() => adapters.forEach(region => region.setPlayback(AudioPlayback.NoSync)))
                     })

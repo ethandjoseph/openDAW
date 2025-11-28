@@ -24,7 +24,7 @@ type Construct = {
 export const TransientMarkerEditor = ({lifecycle, range, reader, hoverTransient}: Construct) => {
     const optWarping = reader.warping
     return (
-        <div className={className}>
+        <div className={Html.buildClassList(className, "warping-aware")}>
             <canvas onInit={canvas => {
                 const {requestUpdate} = lifecycle.own(new CanvasPainter(canvas, painter => {
                     const {context, actualHeight, devicePixelRatio} = painter

@@ -5,6 +5,7 @@ import {
     MutableObservableOption,
     Notifier,
     ObservableOption,
+    ObservableValue,
     Observer,
     Option,
     safeExecute,
@@ -187,7 +188,7 @@ export class AudioRegionBoxAdapter implements LoopableRegionBoxAdapter<ValueEven
     set duration(value: ppqn) {this.#durationConverter.fromPPQN(value)}
     set loopOffset(value: ppqn) {this.#loopOffsetConverter.fromPPQN(value)}
     set loopDuration(value: ppqn) {this.#loopDurationConverter.fromPPQN(value)}
-    get playback(): AudioPlayback {return asEnumValue(this.#box.playback.getValue(), AudioPlayback)}
+    get playback(): ObservableValue<AudioPlayback> {return this.#box.playback as ObservableValue<AudioPlayback>}
 
     setPlayback(value: AudioPlayback, keepCurrentStretch: boolean = false) {
         const wasMusical = this.timeBase === TimeBase.Musical

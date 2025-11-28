@@ -16,9 +16,10 @@ import {
     ValueEventOwnerReader
 } from "@/ui/timeline/editors/EventOwnerReader.ts"
 import {ppqn} from "@opendaw/lib-dsp"
-import {mod, ObservableOption, Observer, Option, Subscription} from "@opendaw/lib-std"
+import {mod, ObservableOption, ObservableValue, Observer, Option, Subscription} from "@opendaw/lib-std"
 import {Propagation} from "@opendaw/lib-box"
 import {TimelineRange} from "@opendaw/studio-core"
+import {AudioPlayback} from "@opendaw/studio-enums"
 
 export class RegionReader<REGION extends LoopableRegionBoxAdapter<CONTENT>, CONTENT> implements EventOwnerReader<CONTENT> {
     static forAudioRegionBoxAdapter(region: AudioRegionBoxAdapter): AudioEventOwnerReader {
@@ -26,6 +27,7 @@ export class RegionReader<REGION extends LoopableRegionBoxAdapter<CONTENT>, CONT
             implements AudioEventOwnerReader {
             constructor(region: AudioRegionBoxAdapter) {super(region)}
             get warping(): ObservableOption<AudioWarpingBoxAdapter> {return region.warping}
+            get playback(): ObservableValue<AudioPlayback> {return region.playback}
             get file(): AudioFileBoxAdapter {return region.file}
             get gain(): number {return region.gain}
         }(region)

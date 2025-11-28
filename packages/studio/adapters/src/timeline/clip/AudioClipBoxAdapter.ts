@@ -1,6 +1,5 @@
 import {ppqn, PPQN} from "@opendaw/lib-dsp"
 import {
-    asEnumValue,
     DefaultObservableValue,
     int,
     Maybe,
@@ -116,7 +115,7 @@ export class AudioClipBoxAdapter implements ClipBoxAdapter<never> {
     get file(): AudioFileBoxAdapter {return this.#fileAdapter.unwrap("Cannot access file.")}
     get hasCollection() {return !this.optCollection.isEmpty()}
     get optCollection(): Option<never> {return Option.None}
-    get playback(): AudioPlayback {return asEnumValue(this.#box.playback.getValue(), AudioPlayback)}
+    get playback(): ObservableValue<AudioPlayback> {return this.#box.playback as ObservableValue<AudioPlayback>}
     get warping(): ObservableOption<AudioWarpingBoxAdapter> {return this.#wraping}
     get label(): string {return this.#box.label.getValue()}
     get trackBoxAdapter(): Option<TrackBoxAdapter> {
