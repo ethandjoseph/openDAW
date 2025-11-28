@@ -115,7 +115,7 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                             }
                         } else {
                             for (const cycle of LoopableRegion.locateLoops(region, p0, p1)) {
-                                this.#processPassPitch(lane, block, cycle, optData.unwrap(), region.warping)
+                                this.#processPassPitch(lane, block, cycle, optData.unwrap(), region.warping, region.playback)
                             }
                         }
                     }
@@ -143,7 +143,7 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                             loopOffset: 0.0,
                             complete: Number.POSITIVE_INFINITY
                         }, sectionFrom, sectionTo)) {
-                            this.#processPassPitch(lane, block, cycle, optData.unwrap(), clip.warping)
+                            this.#processPassPitch(lane, block, cycle, optData.unwrap(), clip.warping, clip.playback)
                         }
                     }
                 }
@@ -151,7 +151,12 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
         }
     }
 
-    #processPassPitch(lane: Lane, block: Block, cycle: LoopableRegion.LoopCycle, data: AudioData, optWarping: Option<AudioWarpingBoxAdapter>): void {
+    #processPassPitch(lane: Lane,
+                      block: Block,
+                      cycle: LoopableRegion.LoopCycle,
+                      data: AudioData,
+                      optWarping: Option<AudioWarpingBoxAdapter>,
+                      playback: AudioPlayback): void {
         const {p0, p1, s0, s1, flags} = block
         const sn = s1 - s0
         const pn = p1 - p0
@@ -164,7 +169,15 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
         if (Bits.some(flags, BlockFlag.discontinuous)) {
             lane.voices.forEach(voice => voice.startFadeOut())
         }
-        if (optWarping.nonEmpty()) {
+        if (optWarping.isEmpty() || playback === AudioPlayback.NoSync) {
+            const audioDurationSamples = data.numberOfFrames
+            const audioDurationNormalized = cycle.resultEndValue - cycle.resultStartValue
+            const audioSamplesInCycle = audioDurationNormalized * audioDurationSamples
+            const timelineSamplesInCycle = (cycle.resultEnd - cycle.resultStart) / pn * sn
+            const playbackRate = audioSamplesInCycle / timelineSamplesInCycle
+            const offset = cycle.resultStartValue * data.numberOfFrames
+            this.#updateOrCreatePitchVoice(lane, data, playbackRate, offset)
+        } else {
             const warping = optWarping.unwrap()
             const {warpMarkers} = warping
             const firstWarp = warpMarkers.first()
@@ -181,14 +194,6 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
             const currentSeconds = this.#ppqnToSeconds(contentPpqn, cycle.resultStartValue, warpMarkers)
             const offset = currentSeconds * data.sampleRate
             const playbackRate = this.#getPlaybackRateFromWarp(contentPpqn, warpMarkers, data.sampleRate, pn, sn)
-            this.#updateOrCreatePitchVoice(lane, data, playbackRate, offset)
-        } else {
-            const audioDurationSamples = data.numberOfFrames
-            const audioDurationNormalized = cycle.resultEndValue - cycle.resultStartValue
-            const audioSamplesInCycle = audioDurationNormalized * audioDurationSamples
-            const timelineSamplesInCycle = (cycle.resultEnd - cycle.resultStart) / pn * sn
-            const playbackRate = audioSamplesInCycle / timelineSamplesInCycle
-            const offset = cycle.resultStartValue * data.numberOfFrames
             this.#updateOrCreatePitchVoice(lane, data, playbackRate, offset)
         }
         for (const voice of lane.voices) {
