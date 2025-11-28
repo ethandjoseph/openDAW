@@ -3,7 +3,6 @@ import {Browser} from "./browser"
 import {AnimationFrame} from "./frames"
 import {Events, PointerCaptureTarget} from "./events"
 import {Keyboard} from "./keyboard"
-import {Promises} from "@opendaw/lib-runtime"
 
 export namespace Dragging {
     export interface Process {
@@ -63,10 +62,7 @@ export namespace Dragging {
                 const nearBottom = clientY > window.innerHeight - threshold
 
                 if (nearLeft || nearRight || nearTop || nearBottom) {
-                    // We sometimes get a NotAllowedError: A user gesture is required to request Pointer Lock.
-                    Promises
-                        .tryCatch(targetElement.requestPointerLock())
-                        .then(() => pointerLockActive = true, EmptyExec)
+                    targetElement.requestPointerLock().then(() => pointerLockActive = true, EmptyExec)
                 }
             }
 

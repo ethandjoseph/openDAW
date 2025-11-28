@@ -82,21 +82,23 @@ export class BiquadStack implements BiquadProcessor {
     }
 }
 
+const LUT_SIZE = 512
+
 export class ModulatedBiquad {
+    readonly #freqLUT: Float32Array
     readonly #coeff = new BiquadCoeff()
     readonly #filter: BiquadStack
-    readonly #minFreq: number
-    readonly #maxFreq: number
-    readonly #sampleRate: number
 
     #lastIdx: number = -1
 
     constructor(minFreq: number, maxFreq: number, sampleRate: number) {
-        this.#minFreq = minFreq
-        this.#maxFreq = maxFreq
-        this.#sampleRate = sampleRate
-
         this.#filter = new BiquadStack(4)
+        this.#freqLUT = new Float32Array(LUT_SIZE + 1)
+        const logRatio = Math.log(maxFreq / minFreq)
+        const invSampleRate = 1.0 / sampleRate
+        for (let i = 0; i <= LUT_SIZE; i++) {
+            this.#freqLUT[i] = minFreq * Math.exp(i / LUT_SIZE * logRatio) * invSampleRate
+        }
     }
 
     get order(): number {return this.#filter.order}
@@ -106,27 +108,23 @@ export class ModulatedBiquad {
 
     process(input: Float32Array, output: Float32Array, cutoffs: Float32Array, q: number,
             fromIndex: number, toIndex: number): void {
-        const R = 512 // Quantize to avoid coeff computation each sample
-        const invSampleRate = 1.0 / this.#sampleRate
-        const logRatio = Math.log(this.#maxFreq / this.#minFreq)
-        const qReduced = q / (this.#filter.order ** 1.25) // this exp seems to keep the filter from getting too loud
+        const freqLUT = this.#freqLUT
         const filter = this.#filter
         const coeff = this.#coeff
+        const qReduced = q / (filter.order ** 1.25)
         let from = fromIndex
         let lastIdx = this.#lastIdx
         while (from < toIndex) {
-            const idx = Math.floor(clampUnit(cutoffs[from]) * R)
+            const idx = Math.floor(clampUnit(cutoffs[from]) * LUT_SIZE)
             let to = from + 1
-            while (to < toIndex && Math.floor(clampUnit(cutoffs[to]) * R) === idx) ++to
+            while (to < toIndex && Math.floor(clampUnit(cutoffs[to]) * LUT_SIZE) === idx) ++to
             if (idx !== lastIdx) {
                 lastIdx = idx
-                coeff.setLowpassParams(this.#minFreq * Math.exp(idx / R * logRatio) * invSampleRate, qReduced)
+                coeff.setLowpassParams(freqLUT[idx], qReduced)
             }
             filter.process(coeff, input, output, from, to)
             from = to
         }
-
         this.#lastIdx = lastIdx
     }
-
 }
