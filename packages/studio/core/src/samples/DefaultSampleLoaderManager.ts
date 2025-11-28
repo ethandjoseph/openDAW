@@ -1,7 +1,8 @@
 import {Progress, SortedSet, UUID} from "@opendaw/lib-std"
 import {DefaultSampleLoader} from "./DefaultSampleLoader"
 import {SampleProvider} from "./SampleProvider"
-import {AudioData, SampleLoader, SampleLoaderManager, SampleMetaData} from "@opendaw/studio-adapters"
+import {SampleLoader, SampleLoaderManager, SampleMetaData} from "@opendaw/studio-adapters"
+import {AudioData} from "@opendaw/lib-dsp"
 
 export class DefaultSampleLoaderManager implements SampleLoaderManager, SampleProvider {
     readonly #provider: SampleProvider

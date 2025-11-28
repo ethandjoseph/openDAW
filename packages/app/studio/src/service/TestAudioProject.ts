@@ -11,11 +11,11 @@ import {
     ValueEventCollectionBox,
     WarpMarkerBox
 } from "@opendaw/studio-boxes"
-import {Option, UUID} from "@opendaw/lib-std"
-import {Project} from "@opendaw/studio-core"
-import {PPQN, TimeBase} from "@opendaw/lib-dsp"
+import {Option, Progress, UUID} from "@opendaw/lib-std"
+import {Project, SampleStorage} from "@opendaw/studio-core"
+import {PPQN, TimeBase, TransientDetector} from "@opendaw/lib-dsp"
 
-export const testAudioProject = (service: StudioService) => {
+export const testAudioProject = async (service: StudioService) => {
     const skeleton =
         ProjectSkeleton.empty({createDefaultUser: true, createOutputCompressor: false})
     const {boxGraph, mandatoryBoxes: {userInterfaceBoxes, timelineBox}} = skeleton
@@ -30,54 +30,18 @@ export const testAudioProject = (service: StudioService) => {
         box.type.setValue(TrackType.Audio)
         box.tracks.refer(audioUnitBox.tracks)
     })
-    const durationInSeconds = 5.485708236694336
-    const audioFileBox = AudioFileBox.create(boxGraph, UUID.parse("ae2360d9-3829-47d5-8c4d-4ba67c37451f"),
-        box => box.endInSeconds.setValue(durationInSeconds))
+    const arrayBuffer = await fetch("test/Drum.02.wav").then(response => response.arrayBuffer())
+    const sample = await service.sampleService.importFile({name: "Test", arrayBuffer, progressHandler: Progress.Empty})
+    const uuid = UUID.parse(sample.uuid)
+    const audioFileBox = AudioFileBox.create(boxGraph, uuid,
+        box => box.endInSeconds.setValue(sample.duration))
+
+    const [audioData] = await SampleStorage.get().load(uuid)
+    const transients = TransientDetector.detect(audioData)
+    const durationInSeconds = audioData.numberOfFrames / audioData.sampleRate
     const valueEventCollectionBox = ValueEventCollectionBox.create(boxGraph, UUID.generate())
     const audioWarpingBox = AudioWarpingBox.create(boxGraph, UUID.generate())
-        /*const n = 33
-        for (let i = 0; i < n; i++) {
-            TransientMarkerBox.create(boxGraph, UUID.generate(), box => {
-                box.owner.refer(audioWarpingBox.transientMarkers)
-                box.position.setValue(i / (n - 1) * durationInSeconds)
-                box.energy.setValue(0.0)
-            })
-        }*/
-    ;[
-        0,
-        0.17552083333333332,
-        0.35179166666666667,
-        0.5193125,
-        0.7120833333333333,
-        0.8621666666666666,
-        1.0365833333333334,
-        1.2051875,
-        1.3977916666666668,
-        1.5471875,
-        1.7223541666666666,
-        1.892875,
-        2.0812916666666665,
-        2.232458333333333,
-        2.4081041666666665,
-        2.5755208333333335,
-        2.7483541666666667,
-        2.9193125,
-        3.0939791666666667,
-        3.262166666666667,
-        3.452729166666667,
-        3.6043333333333334,
-        3.779541666666667,
-        3.9480416666666667,
-        4.120104166666667,
-        4.288916666666666,
-        4.465208333333333,
-        4.632666666666666,
-        4.826833333333333,
-        4.9753125,
-        5.1509583333333335,
-        5.3193125,
-        5.485708333333333
-    ].forEach(position => TransientMarkerBox.create(boxGraph, UUID.generate(), box => {
+    transients.forEach(position => TransientMarkerBox.create(boxGraph, UUID.generate(), box => {
         box.owner.refer(audioWarpingBox.transientMarkers)
         box.position.setValue(position)
         box.energy.setValue(0.0)

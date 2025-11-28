@@ -1,6 +1,5 @@
-import {Chord, dbToGain, FFT, gainToDb, Interpolation, midiToHz, PPQN, ppqn} from "@opendaw/lib-dsp"
+import {AudioData, Chord, dbToGain, FFT, gainToDb, Interpolation, midiToHz, PPQN, ppqn} from "@opendaw/lib-dsp"
 import {bipolar, float, int, Nullable, unitValue} from "@opendaw/lib-std"
-import type {AudioData} from "@opendaw/studio-adapters"
 import {Sample} from "@opendaw/studio-adapters"
 import {AudioPlayback} from "@opendaw/studio-enums"
 

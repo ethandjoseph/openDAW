@@ -11,10 +11,9 @@ import {
     Terminator,
     UUID
 } from "@opendaw/lib-std"
-import {BPMTools} from "@opendaw/lib-dsp"
+import {AudioData, BPMTools} from "@opendaw/lib-dsp"
 import {Peaks, SamplePeaks} from "@opendaw/lib-fusion"
 import {
-    AudioData,
     mergeChunkPlanes,
     RingBuffer,
     SampleLoader,

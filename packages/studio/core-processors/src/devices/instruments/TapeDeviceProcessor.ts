@@ -1,8 +1,7 @@
 import {asDefined, assert, Bits, int, isInstanceOf, Nullable, Option, SortedSet, UUID} from "@opendaw/lib-std"
-import {AudioBuffer, EventCollection, LoopableRegion, RenderQuantum} from "@opendaw/lib-dsp"
+import {AudioBuffer, AudioData, EventCollection, LoopableRegion, RenderQuantum} from "@opendaw/lib-dsp"
 import {
     AudioClipBoxAdapter,
-    AudioData,
     AudioRegionBoxAdapter,
     AudioWarpingBoxAdapter,
     SampleLoader,

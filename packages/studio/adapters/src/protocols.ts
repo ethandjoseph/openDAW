@@ -1,6 +1,5 @@
 import {int, Nullable, Terminable, UUID} from "@opendaw/lib-std"
-import {ppqn} from "@opendaw/lib-dsp"
-import {AudioData} from "./audio/AudioData"
+import {AudioData, ppqn} from "@opendaw/lib-dsp"
 import {ClipSequencingUpdates} from "./ClipNotifications"
 import {NoteSignal} from "./NoteSignal"
 import type {SoundFont2} from "soundfont2"

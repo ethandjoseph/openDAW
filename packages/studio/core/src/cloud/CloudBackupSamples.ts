@@ -1,7 +1,7 @@
 import {Arrays, Errors, panic, Procedure, Progress, RuntimeNotifier, UUID} from "@opendaw/lib-std"
 import {network, Promises} from "@opendaw/lib-runtime"
 import {SamplePeaks} from "@opendaw/lib-fusion"
-import {AudioData, Sample} from "@opendaw/studio-adapters"
+import {Sample} from "@opendaw/studio-adapters"
 import {OpenSampleAPI, SampleStorage} from "../samples"
 import {CloudHandler} from "./CloudHandler"
 import {Workers} from "../Workers"
@@ -64,8 +64,7 @@ export class CloudBackupSamples {
                 progress((index + 1) / length)
                 this.#log(`Uploading sample '${sample.name}'`)
                 const arrayBuffer = await SampleStorage.get().load(UUID.parse(sample.uuid))
-                    .then(([{frames: channels, numberOfChannels, numberOfFrames: numFrames, sampleRate}]) =>
-                        WavFile.encodeFloats({channels, numberOfChannels, numFrames, sampleRate}))
+                    .then(([data]) => WavFile.encodeFloats(data))
                 const path = CloudBackupSamples.pathFor(sample.uuid)
                 await Promises.approvedRetry(() => this.#cloudHandler.upload(path, arrayBuffer), error => ({
                     headline: "Upload failed",
@@ -125,13 +124,7 @@ export class CloudBackupSamples {
                 this.#log(`Downloading sample '${sample.name}'`)
                 const path = CloudBackupSamples.pathFor(sample.uuid)
                 const buffer = await Promises.guardedRetry(() => this.#cloudHandler.download(path), network.DefaultRetry)
-                const waveAudio = WavFile.decodeFloats(buffer)
-                const audioData: AudioData = {
-                    sampleRate: waveAudio.sampleRate,
-                    numberOfFrames: waveAudio.numFrames,
-                    numberOfChannels: waveAudio.channels.length,
-                    frames: waveAudio.channels
-                }
+                const audioData = WavFile.decodeFloats(buffer)
                 const shifts = SamplePeaks.findBestFit(audioData.numberOfFrames)
                 const peaks = await Workers.Peak.generateAsync(
                     Progress.Empty,

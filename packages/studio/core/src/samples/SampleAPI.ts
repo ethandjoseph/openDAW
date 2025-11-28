@@ -1,5 +1,6 @@
-import {AudioData, Sample, SampleMetaData} from "@opendaw/studio-adapters"
+import {Sample, SampleMetaData} from "@opendaw/studio-adapters"
 import {Procedure, unitValue, UUID} from "@opendaw/lib-std"
+import {AudioData} from "@opendaw/lib-dsp"
 
 export interface SampleAPI {
     all(): Promise<ReadonlyArray<Sample>>

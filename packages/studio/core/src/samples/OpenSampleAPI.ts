@@ -11,10 +11,11 @@ import {
     UUID
 } from "@opendaw/lib-std"
 import {network, Promises} from "@opendaw/lib-runtime"
-import {AudioData, Sample, SampleMetaData} from "@opendaw/studio-adapters"
+import {Sample, SampleMetaData} from "@opendaw/studio-adapters"
 import {SampleAPI} from "@opendaw/studio-core"
 import {base64Credentials, OpenDAWHeaders} from "../OpenDAWHeaders"
 import {z} from "zod"
+import {AudioData} from "@opendaw/lib-dsp"
 
 // Standard openDAW samples (considered to be non-removable)
 export class OpenSampleAPI implements SampleAPI {

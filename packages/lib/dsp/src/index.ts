@@ -9,6 +9,7 @@ if ((globalThis as any)[key]) {
 
 export * from "./AudioBuffer"
 export * from "./adsr"
+export * from "./audio-data"
 export * from "./bpm-tools"
 export * from "./biquad-coeff"
 export * from "./biquad-processor"
@@ -45,4 +46,4 @@ export * from "./rates"
 export * from "./utils"
 export * from "./value"
 export * from "./window"
-export {ClassicWaveform} from "./classic-waveform"
+export * from "./classic-waveform"

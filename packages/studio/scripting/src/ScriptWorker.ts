@@ -3,7 +3,8 @@ import {Communicator, Messenger} from "@opendaw/lib-runtime"
 import {ScriptExecutionContext, ScriptExecutionProtocol} from "./ScriptExecutionProtocol"
 import {ScriptRunner} from "./ScriptRunner"
 import {ScriptHostProtocol} from "./ScriptHostProtocol"
-import {AudioData, Sample} from "@opendaw/studio-adapters"
+import {Sample} from "@opendaw/studio-adapters"
+import {AudioData} from "@opendaw/lib-dsp"
 
 const messenger: Messenger = Messenger.for(self)
 

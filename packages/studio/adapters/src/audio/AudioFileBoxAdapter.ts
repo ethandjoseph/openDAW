@@ -1,11 +1,11 @@
 import {AudioFileBox} from "@opendaw/studio-boxes"
 import {Option, UUID} from "@opendaw/lib-std"
 import {Peaks} from "@opendaw/lib-fusion"
-import {AudioData} from "./AudioData"
 import {Address} from "@opendaw/lib-box"
 import {SampleLoader} from "../sample/SampleLoader"
 import {BoxAdaptersContext} from "../BoxAdaptersContext"
 import {BoxAdapter} from "../BoxAdapter"
+import {AudioData} from "@opendaw/lib-dsp"
 
 export class AudioFileBoxAdapter implements BoxAdapter {
     readonly #context: BoxAdaptersContext

@@ -1,6 +1,6 @@
 import {Id, int, Option, Terminable, UUID} from "@opendaw/lib-std"
-import {AudioBuffer, dbToGain, Event, NoteEvent} from "@opendaw/lib-dsp"
-import {AudioData, NanoDeviceBoxAdapter, SampleLoader} from "@opendaw/studio-adapters"
+import {AudioBuffer, AudioData, dbToGain, Event, NoteEvent} from "@opendaw/lib-dsp"
+import {NanoDeviceBoxAdapter, SampleLoader} from "@opendaw/studio-adapters"
 import {EngineContext} from "../../EngineContext"
 import {AudioProcessor} from "../../AudioProcessor"
 import {Block, Processor} from "../../processing"

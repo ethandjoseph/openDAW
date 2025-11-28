@@ -1,9 +1,9 @@
 import "./style.css"
 import {assert, Errors, InaccessibleProperty, Progress, UUID} from "@opendaw/lib-std"
-import {PPQN} from "@opendaw/lib-dsp"
+import {AudioData, PPQN} from "@opendaw/lib-dsp"
 import {AnimationFrame, Browser, Files} from "@opendaw/lib-dom"
 import {Promises} from "@opendaw/lib-runtime"
-import {AudioData, SampleMetaData} from "@opendaw/studio-adapters"
+import {SampleMetaData} from "@opendaw/studio-adapters"
 import {
     AudioWorklets,
     DefaultSampleLoaderManager,

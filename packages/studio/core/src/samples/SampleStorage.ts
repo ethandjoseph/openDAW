@@ -1,9 +1,10 @@
 import {ByteArrayInput, EmptyExec, Lazy, UUID} from "@opendaw/lib-std"
 import {Peaks, SamplePeaks} from "@opendaw/lib-fusion"
-import {AudioData, Sample, SampleMetaData} from "@opendaw/studio-adapters"
+import {Sample, SampleMetaData} from "@opendaw/studio-adapters"
 import {Workers} from "../Workers"
 import {WavFile} from "../WavFile"
 import {Storage} from "../Storage"
+import {AudioData} from "@opendaw/lib-dsp"
 
 export namespace SampleStorage {
     export type NewSample = {
@@ -27,8 +28,9 @@ export class SampleStorage extends Storage<Sample, SampleMetaData, SampleStorage
     async save({uuid, audio, peaks, meta}: SampleStorage.NewSample): Promise<void> {
         const path = `${this.folder}/${UUID.toString(uuid)}`
         const data = new Uint8Array(WavFile.encodeFloats({
-            channels: audio.frames.slice(),
-            numFrames: audio.numberOfFrames,
+            frames: audio.frames.slice(),
+            numberOfFrames: audio.numberOfFrames,
+            numberOfChannels: audio.numberOfChannels,
             sampleRate: audio.sampleRate
         }))
         console.debug(`save sample '${path}'`)
@@ -55,9 +57,9 @@ export class SampleStorage extends Storage<Sample, SampleMetaData, SampleStorage
                 .then(bytes => JSON.parse(new TextDecoder().decode(bytes)))
         ]).then(([buffer, peaks, meta]) => [{
             sampleRate: buffer.sampleRate,
-            numberOfFrames: buffer.numFrames,
-            numberOfChannels: buffer.channels.length,
-            frames: buffer.channels
+            numberOfFrames: buffer.numberOfFrames,
+            numberOfChannels: buffer.frames.length,
+            frames: buffer.frames
         }, peaks, meta])
     }
 }

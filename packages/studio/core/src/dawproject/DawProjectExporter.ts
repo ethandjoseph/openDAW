@@ -60,14 +60,8 @@ export namespace DawProjectExporter {
             .sort((a, b) => a.index.getValue() - b.index.getValue())
         boxGraph.boxes().forEach(box => box.accept<BoxVisitor>({
             visitAudioFileBox: (box: AudioFileBox): void => sampleManager.getOrCreate(box.address.uuid).data
-                .ifSome(({frames, numberOfFrames, sampleRate, numberOfChannels}) =>
-                    resourcePacker.write(`samples/${box.fileName.getValue()}.wav`, WavFile.encodeFloats({
-                        channels: frames,
-                        duration: numberOfFrames * sampleRate,
-                        numberOfChannels,
-                        sampleRate,
-                        numFrames: numberOfFrames
-                    })))
+                .ifSome((data) =>
+                    resourcePacker.write(`samples/${box.fileName.getValue()}.wav`, WavFile.encodeFloats(data)))
         }))
 
         const writeTransport = (): TransportSchema => Xml.element({
