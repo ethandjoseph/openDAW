@@ -10,7 +10,7 @@ import {
     TransientMarkerBoxAdapter,
     WarpMarkerBoxAdapter
 } from "@opendaw/studio-adapters"
-import {TransientPlayMode} from "@opendaw/studio-enums"
+import {AudioPlayback, TransientPlayMode} from "@opendaw/studio-enums"
 import {EngineContext} from "../../EngineContext"
 import {AudioGenerator, Block, BlockFlag, ProcessInfo, Processor} from "../../processing"
 import {AbstractProcessor} from "../../AbstractProcessor"
@@ -23,6 +23,7 @@ import {FADE_LENGTH} from "./Tape/FADE_LENGTH"
 import {OnceVoice} from "./Tape/OnceVoice"
 import {RepeatVoice} from "./Tape/RepeatVoice"
 import {PingpongVoice} from "./Tape/PingpongVoice"
+import {PitchVoice} from "./Tape/PitchVoice"
 
 const LOOP_START_MARGIN = 256
 const LOOP_END_MARGIN = 256
@@ -34,7 +35,7 @@ type SegmentInfo = {
     nextTransientSeconds: number
 }
 
-type Voice = OnceVoice | RepeatVoice | PingpongVoice
+type Voice = OnceVoice | RepeatVoice | PingpongVoice | PitchVoice
 
 type Lane = {
     adapter: TrackBoxAdapter
@@ -106,10 +107,17 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                         if (region.mute || !isInstanceOf(region, AudioRegionBoxAdapter)) {continue}
                         const optData = region.file.getOrCreateLoader().data
                         if (optData.isEmpty()) {return}
-                        const optWarping = region.warping
-                        if (optWarping.isEmpty()) {return}
-                        for (const cycle of LoopableRegion.locateLoops(region, p0, p1)) {
-                            this.#processPass(lane, block, cycle, optData.unwrap(), optWarping.unwrap())
+                        const playback = region.playback
+                        if (playback === AudioPlayback.Timestretch) {
+                            const optWarping = region.warping
+                            if (optWarping.isEmpty()) {return}
+                            for (const cycle of LoopableRegion.locateLoops(region, p0, p1)) {
+                                this.#processPassTimestretch(lane, block, cycle, optData.unwrap(), optWarping.unwrap())
+                            }
+                        } else {
+                            for (const cycle of LoopableRegion.locateLoops(region, p0, p1)) {
+                                this.#processPassPitch(lane, block, cycle, optData.unwrap())
+                            }
                         }
                     }
                 },
@@ -117,22 +125,72 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                     if (!isInstanceOf(clip, AudioClipBoxAdapter)) {return}
                     const optData = clip.file.getOrCreateLoader().data
                     if (optData.isEmpty()) {return}
-                    const optWarping = clip.warping
-                    if (optWarping.isEmpty()) {return}
-                    for (const cycle of LoopableRegion.locateLoops({
-                        position: 0.0,
-                        loopDuration: clip.duration,
-                        loopOffset: 0.0,
-                        complete: Number.POSITIVE_INFINITY
-                    }, sectionFrom, sectionTo)) {
-                        this.#processPass(lane, block, cycle, optData.unwrap(), optWarping.unwrap())
+                    const playback = clip.playback
+                    if (playback === AudioPlayback.Timestretch) {
+                        const optWarping = clip.warping
+                        if (optWarping.isEmpty()) {return}
+                        for (const cycle of LoopableRegion.locateLoops({
+                            position: 0.0,
+                            loopDuration: clip.duration,
+                            loopOffset: 0.0,
+                            complete: Number.POSITIVE_INFINITY
+                        }, sectionFrom, sectionTo)) {
+                            this.#processPassTimestretch(lane, block, cycle, optData.unwrap(), optWarping.unwrap())
+                        }
+                    } else {
+                        for (const cycle of LoopableRegion.locateLoops({
+                            position: 0.0,
+                            loopDuration: clip.duration,
+                            loopOffset: 0.0,
+                            complete: Number.POSITIVE_INFINITY
+                        }, sectionFrom, sectionTo)) {
+                            this.#processPassPitch(lane, block, cycle, optData.unwrap())
+                        }
                     }
                 }
             })
         }
     }
 
-    #processPass(lane: Lane, block: Block, cycle: LoopableRegion.LoopCycle, data: AudioData, warping: AudioWarpingBoxAdapter): void {
+    #processPassPitch(lane: Lane, block: Block, cycle: LoopableRegion.LoopCycle, data: AudioData): void {
+        const {p0, p1, s0, s1, flags} = block
+        const sn = s1 - s0
+        const pn = p1 - p0
+        const r0 = (cycle.resultStart - p0) / pn
+        const r1 = (cycle.resultEnd - p0) / pn
+        const bp0 = s0 + sn * r0
+        const bp1 = s0 + sn * r1
+        const bpn = (bp1 - bp0) | 0
+        assert(s0 <= bp0 && bp1 <= s1, () => `Out of bounds ${bp0}, ${bp1}`)
+        const audioDurationSamples = data.numberOfFrames
+        const audioDurationNormalized = cycle.resultEndValue - cycle.resultStartValue
+        const audioSamplesInCycle = audioDurationNormalized * audioDurationSamples
+        const timelineSamplesInCycle = (cycle.resultEnd - cycle.resultStart) / pn * sn
+        const playbackRate = audioSamplesInCycle / timelineSamplesInCycle
+        if (Bits.some(flags, BlockFlag.discontinuous)) {
+            lane.voices.forEach(v => v.startFadeOut())
+        }
+        if (lane.voices.length === 0) {
+            const offset = cycle.resultStartValue * data.numberOfFrames
+            lane.voices.push(new PitchVoice(this.#audioOutput, data, FADE_LENGTH, playbackRate, offset))
+        } else {
+            for (const voice of lane.voices) {
+                if (voice instanceof PitchVoice) {
+                    voice.setPlaybackRate(playbackRate)
+                }
+            }
+        }
+        for (const voice of lane.voices) {
+            voice.process(bp0 | 0, bpn)
+        }
+        lane.voices = lane.voices.filter(voice => !voice.done)
+    }
+
+    #processPassTimestretch(lane: Lane,
+                            block: Block,
+                            cycle: LoopableRegion.LoopCycle,
+                            data: AudioData,
+                            warping: AudioWarpingBoxAdapter): void {
         const {p0, p1, s0, s1, flags} = block
         if (Bits.some(flags, BlockFlag.discontinuous)) {
             lane.lastTransientIndex = -1
