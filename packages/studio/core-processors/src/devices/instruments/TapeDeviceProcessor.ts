@@ -22,6 +22,7 @@ import {Segment} from "./Tape/Segment"
 import {FADE_LENGTH} from "./Tape/FADE_LENGTH"
 import {OnceVoice} from "./Tape/OnceVoice"
 import {RepeatVoice} from "./Tape/RepeatVoice"
+import {PingpongVoice} from "./Tape/PingpongVoice"
 
 const LOOP_START_MARGIN = 256
 const LOOP_END_MARGIN = 256
@@ -33,7 +34,7 @@ type SegmentInfo = {
     nextTransientSeconds: number
 }
 
-type Voice = OnceVoice | RepeatVoice
+type Voice = OnceVoice | RepeatVoice | PingpongVoice
 
 type Lane = {
     adapter: TrackBoxAdapter
@@ -175,8 +176,10 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                     }
                     if (playMode === TransientPlayMode.Once || !canLoop) {
                         lane.voices.push(new OnceVoice(this.#audioOutput, data, segment, FADE_LENGTH, offset))
-                    } else {
+                    } else if (playMode === TransientPlayMode.Repeat) {
                         lane.voices.push(new RepeatVoice(this.#audioOutput, data, segment, FADE_LENGTH, offset))
+                    } else {
+                        lane.voices.push(new PingpongVoice(this.#audioOutput, data, segment, FADE_LENGTH, offset))
                     }
                 }
             }
