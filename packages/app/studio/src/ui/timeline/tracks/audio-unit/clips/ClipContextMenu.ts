@@ -56,10 +56,10 @@ export const installClipContextMenu = ({element, project, selection, capturing}:
                         selection.selected().forEach(clip => clip.consolidate()))),
                 MenuItem.default({label: "Playback", separatorBefore: true})
                     .setRuntimeChildrenProcedure(parent => parent.addMenuItem(
-                        MenuItem.default({label: "Loop", checked: clip.box.playback.loop.getValue()})
+                        MenuItem.default({label: "Loop", checked: clip.box.triggerMode.loop.getValue()})
                             .setTriggerProcedure(() => {
-                                const newValue = !clip.box.playback.loop.getValue()
-                                modify(({box: {playback: {loop}}}) => loop.setValue(newValue))
+                                const newValue = !clip.box.triggerMode.loop.getValue()
+                                modify(({box: {triggerMode: {loop}}}) => loop.setValue(newValue))
                             })
                     )),
                 MenuItem.default({

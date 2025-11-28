@@ -1,9 +1,12 @@
 import {ppqn, PPQN} from "@opendaw/lib-dsp"
 import {
+    asEnumValue,
     DefaultObservableValue,
     int,
-    Maybe, MutableObservableOption,
-    Notifier, ObservableOption,
+    Maybe,
+    MutableObservableOption,
+    Notifier,
+    ObservableOption,
     ObservableValue,
     Observer,
     Option,
@@ -15,7 +18,7 @@ import {
 import {AudioClipBox} from "@opendaw/studio-boxes"
 import {Address, Int32Field, PointerField, Propagation, Update} from "@opendaw/lib-box"
 import {ClipBoxAdapter, ClipBoxAdapterVisitor} from "../ClipBoxAdapter"
-import {Pointers} from "@opendaw/studio-enums"
+import {AudioPlayback, Pointers} from "@opendaw/studio-enums"
 import {TrackBoxAdapter} from "../TrackBoxAdapter"
 import {BoxAdaptersContext} from "../../BoxAdaptersContext"
 import {AudioFileBoxAdapter} from "../../audio/AudioFileBoxAdapter"
@@ -113,6 +116,7 @@ export class AudioClipBoxAdapter implements ClipBoxAdapter<never> {
     get file(): AudioFileBoxAdapter {return this.#fileAdapter.unwrap("Cannot access file.")}
     get hasCollection() {return !this.optCollection.isEmpty()}
     get optCollection(): Option<never> {return Option.None}
+    get playback(): AudioPlayback {return asEnumValue(this.#box.playback.getValue(), AudioPlayback)}
     get warping(): ObservableOption<AudioWarpingBoxAdapter> {return this.#wraping}
     get label(): string {return this.#box.label.getValue()}
     get trackBoxAdapter(): Option<TrackBoxAdapter> {

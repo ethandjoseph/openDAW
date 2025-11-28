@@ -130,7 +130,7 @@ export class ClipSequencingAudioContext implements ClipSequencing {
         } else {
             if (state.playing.nonEmpty()) {
                 const playing = state.playing.unwrap()
-                if (playing.box.playback.loop.getValue()) {
+                if (playing.box.triggerMode.loop.getValue()) {
                     yield {optClip: state.playing, sectionFrom: p0, sectionTo: p1}
                 } else {
                     const scheduleEnd = quantizeFloor(p0, playing.duration) + playing.duration
