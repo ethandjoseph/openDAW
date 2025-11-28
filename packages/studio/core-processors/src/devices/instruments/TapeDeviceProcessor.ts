@@ -75,13 +75,13 @@ class StretchVoice {
     }
 
     #initializePosition(offset: number): void {
+        this.state = VoiceState.FadingIn
+        this.fadeProgress = 0.0
         if (offset <= 0.0) {
-            this.state = VoiceState.FadingIn
             this.direction = PlayDirection.Forward
             this.readPosition = this.segmentStart
             return
         }
-        this.state = VoiceState.Active
         if (this.playMode === TransientPlayMode.Once || !this.#canLoop) {
             this.direction = PlayDirection.Forward
             this.readPosition = this.segmentStart + offset

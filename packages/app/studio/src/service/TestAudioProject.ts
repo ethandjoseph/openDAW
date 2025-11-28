@@ -1,6 +1,6 @@
 import {StudioService} from "@/service/StudioService"
 import {AudioUnitFactory, InstrumentFactories, ProjectSkeleton, TrackType} from "@opendaw/studio-adapters"
-import {AudioPlayback, AudioUnitType, IconSymbol} from "@opendaw/studio-enums"
+import {AudioPlayback, AudioUnitType, IconSymbol, TransientPlayMode} from "@opendaw/studio-enums"
 import {
     AudioFileBox,
     AudioRegionBox,
@@ -20,11 +20,12 @@ export const testAudioProject = async (service: StudioService) => {
         ProjectSkeleton.empty({createDefaultUser: true, createOutputCompressor: false})
     const {boxGraph, mandatoryBoxes: {userInterfaceBoxes, timelineBox}} = skeleton
     boxGraph.beginTransaction()
-    timelineBox.bpm.setValue(174)
+    timelineBox.bpm.setValue(30)
     const audioUnitBox = AudioUnitFactory.create(skeleton,
         AudioUnitType.Instrument, Option.wrap(CaptureAudioBox.create(boxGraph, UUID.generate())))
     const tapeBox = InstrumentFactories.Tape
         .create(boxGraph, audioUnitBox.input, "Tape", IconSymbol.Play)
+    tapeBox.transientPlayMode.setValue(TransientPlayMode.Once)
     const trackBox = TrackBox.create(boxGraph, UUID.generate(), box => {
         box.target.refer(tapeBox)
         box.type.setValue(TrackType.Audio)
