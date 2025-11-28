@@ -20,7 +20,7 @@ export const testAudioProject = async (service: StudioService) => {
         ProjectSkeleton.empty({createDefaultUser: true, createOutputCompressor: false})
     const {boxGraph, mandatoryBoxes: {userInterfaceBoxes, timelineBox}} = skeleton
     boxGraph.beginTransaction()
-    timelineBox.bpm.setValue(30)
+    timelineBox.bpm.setValue(140)
     const audioUnitBox = AudioUnitFactory.create(skeleton,
         AudioUnitType.Instrument, Option.wrap(CaptureAudioBox.create(boxGraph, UUID.generate())))
     const tapeBox = InstrumentFactories.Tape
