@@ -12,8 +12,8 @@ import {
     WarpMarkerBox
 } from "@opendaw/studio-boxes"
 import {Option, Progress, UUID} from "@opendaw/lib-std"
-import {Project, SampleStorage} from "@opendaw/studio-core"
-import {PPQN, TimeBase, TransientDetector} from "@opendaw/lib-dsp"
+import {Project, SampleStorage, Workers} from "@opendaw/studio-core"
+import {PPQN, TimeBase} from "@opendaw/lib-dsp"
 
 export const testAudioProject = async (service: StudioService) => {
     const skeleton =
@@ -25,7 +25,7 @@ export const testAudioProject = async (service: StudioService) => {
         AudioUnitType.Instrument, Option.wrap(CaptureAudioBox.create(boxGraph, UUID.generate())))
     const tapeBox = InstrumentFactories.Tape
         .create(boxGraph, audioUnitBox.input, "Tape", IconSymbol.Play)
-    tapeBox.transientPlayMode.setValue(TransientPlayMode.Once)
+    tapeBox.transientPlayMode.setValue(TransientPlayMode.Pingpong)
     const trackBox = TrackBox.create(boxGraph, UUID.generate(), box => {
         box.target.refer(tapeBox)
         box.type.setValue(TrackType.Audio)
@@ -38,7 +38,7 @@ export const testAudioProject = async (service: StudioService) => {
         box => box.endInSeconds.setValue(sample.duration))
 
     const [audioData] = await SampleStorage.get().load(uuid)
-    const transients = TransientDetector.detect(audioData)
+    const transients = await Workers.Transients.detect(audioData)
     const durationInSeconds = audioData.numberOfFrames / audioData.sampleRate
     const valueEventCollectionBox = ValueEventCollectionBox.create(boxGraph, UUID.generate())
     const audioWarpingBox = AudioWarpingBox.create(boxGraph, UUID.generate())

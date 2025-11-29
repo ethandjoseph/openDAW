@@ -3,9 +3,7 @@ import {AudioBuffer, AudioData} from "@opendaw/lib-dsp"
 import {Segment} from "./Segment"
 import {VoiceState} from "./VoiceState"
 import {Voice} from "./Voice"
-
-const LOOP_START_MARGIN = 256
-const LOOP_END_MARGIN = 256
+import {LOOP_END_MARGIN, LOOP_START_MARGIN} from "./constants"
 
 export class PingpongVoice implements Voice {
     readonly #output: AudioBuffer

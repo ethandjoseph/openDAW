@@ -1,19 +1,16 @@
 #!/bin/bash
+set -e
 
-# This script cleans everything
+echo "Removing node_modules..."
+find . -name node_modules -type d -prune -exec rm -rf {} \; 2>/dev/null || true
 
-set -e  # Exit on any error
+echo "Removing dist..."
+find . -name dist -type d -prune -exec rm -rf {} \; 2>/dev/null || true
 
-echo "📦 Removing all node_modules folders..."
-find . -name "node_modules" -type d -exec rm -rf {} + 2>/dev/null || true
+echo "Removing package-lock.json..."
+find . -name package-lock.json -type f -delete 2>/dev/null || true
 
-echo "🗂️  Removing all dist folders..."
-find . -name "dist" -type d -exec rm -rf {} + 2>/dev/null || true
-
-echo "🔒 Removing all package-lock.json files..."
-find . -name "package-lock.json" -type f -delete 2>/dev/null || true
-
-echo "🔒 Removing all .turbo files..."
-find . -name ".turbo" -type d -exec rm -rf {} + 2>/dev/null || true
+echo "Removing .turbo..."
+find . -name .turbo -type d -prune -exec rm -rf {} \; 2>/dev/null || true
 
 rm -rf packages/studio/boxes/src/* 2>/dev/null || true

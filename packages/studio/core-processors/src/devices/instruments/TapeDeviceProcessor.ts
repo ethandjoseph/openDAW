@@ -19,16 +19,12 @@ import {AutomatableParameter} from "../../AutomatableParameter"
 import {DeviceProcessor} from "../../DeviceProcessor"
 import {NoteEventTarget} from "../../NoteEventSource"
 import {Segment} from "./Tape/Segment"
-import {FADE_LENGTH} from "./Tape/FADE_LENGTH"
+import {FADE_LENGTH, LOOP_END_MARGIN, LOOP_MIN_LENGTH_SAMPLES, LOOP_START_MARGIN} from "./Tape/constants"
 import {OnceVoice} from "./Tape/OnceVoice"
 import {RepeatVoice} from "./Tape/RepeatVoice"
 import {PingpongVoice} from "./Tape/PingpongVoice"
 import {PitchVoice} from "./Tape/PitchVoice"
 import {Voice} from "./Tape/Voice"
-
-const LOOP_START_MARGIN = 256
-const LOOP_END_MARGIN = 256
-const LOOP_MIN_LENGTH_SAMPLES = 2048
 
 type SegmentInfo = {
     segment: Segment
