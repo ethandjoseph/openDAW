@@ -37,6 +37,7 @@ export const ShadertoyPreview = ({lifecycle, service}: Construct) => {
                                         output.textContent = String(error)
                                         return
                                     }
+                                    output.textContent = "Running"
                                     runner.resetTime()
                                     shaderLifecycle.own(AnimationFrame.add(() => {
                                         canvas.width = canvas.clientWidth * devicePixelRatio

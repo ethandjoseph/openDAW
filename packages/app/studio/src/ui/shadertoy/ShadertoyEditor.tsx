@@ -1,8 +1,15 @@
 import css from "./ShadertoyEditor.sass?inline"
-import {Html} from "@opendaw/lib-dom"
-import {Lifecycle} from "@opendaw/lib-std"
-import {createElement} from "@opendaw/lib-jsx"
+import {asInstanceOf, Lifecycle, UUID} from "@opendaw/lib-std"
+import {Await, createElement} from "@opendaw/lib-jsx"
+import {Events, Html} from "@opendaw/lib-dom"
+import {Promises} from "@opendaw/lib-runtime"
+import {IconSymbol} from "@opendaw/studio-enums"
+import {ShadertoyBox} from "@opendaw/studio-boxes"
 import {StudioService} from "@/service/StudioService"
+import {ThreeDots} from "@/ui/spinner/ThreeDots"
+import {Button} from "@/ui/components/Button"
+import {Icon} from "@/ui/components/Icon"
+import Example from "./example.glsl?raw"
 
 const className = Html.adoptStyleSheet(css, "ShadertoyEditor")
 
@@ -11,8 +18,86 @@ type Construct = {
     service: StudioService
 }
 
-export const ShadertoyEditor = ({}: Construct) => {
+export const ShadertoyEditor = ({service, lifecycle}: Construct) => {
+    const {project} = service
+    const {boxGraph, editing, rootBox} = project
+    if (rootBox.shadertoy.isEmpty()) {
+        editing.modify(() => rootBox.shadertoy
+            .refer(ShadertoyBox.create(boxGraph, UUID.generate(), box => box.shaderCode.setValue(Example))))
+    }
     return (
-        <div className={className}></div>
+        <div className={className}>
+            <Await
+                factory={() => Promise.all([
+                    Promises.guardedRetry(() => import("./monaco-setup"), (_error, count) => count < 10)
+                        .then(({monaco}) => monaco)
+                ])}
+                failure={({retry, reason}) => (<p onclick={retry}>{reason}</p>)}
+                loading={() => ThreeDots()}
+                success={([monaco]) => {
+                    const container = (<div className="monaco-editor"/>)
+                    const modelUri = monaco.Uri.parse("file:///main.ts")
+                    let model = monaco.editor.getModel(modelUri)
+                    if (!model) {
+                        model = monaco.editor.createModel(Example, "glsl", modelUri)
+                    }
+                    const editor = monaco.editor.create(container, {
+                        language: "glsl",
+                        quickSuggestions: {
+                            other: true,
+                            comments: false,
+                            strings: false
+                        },
+                        suggestOnTriggerCharacters: true,
+                        acceptSuggestionOnCommitCharacter: true,
+                        acceptSuggestionOnEnter: "on",
+                        wordBasedSuggestions: "off",
+                        model: model,
+                        theme: "vs-dark",
+                        automaticLayout: true
+                    })
+                    const allowed = ["c", "v", "x", "a", "z", "y"]
+                    lifecycle.ownAll(
+                        Events.subscribe(container, "keydown", event => {
+                            if ((event.ctrlKey || event.metaKey) && allowed.includes(event.key.toLowerCase())) {
+                                return // Let Monaco handle these
+                            }
+                            event.stopPropagation()
+                        }),
+                        Events.subscribe(container, "keyup", event => {
+                            if ((event.ctrlKey || event.metaKey) && allowed.includes(event.key.toLowerCase())) {
+                                return // Let Monaco handle these
+                            }
+                            event.stopPropagation()
+                        }),
+                        Events.subscribe(container, "keypress", event => event.stopPropagation())
+                    )
+                    requestAnimationFrame(() => editor.focus())
+                    return (
+                        <div>
+                            <header>
+                                <Button lifecycle={lifecycle}
+                                        onClick={() => {
+                                            // TODO Validate the code
+                                            // TODO if valid, set the code like this...
+                                            const code = `here is the code`
+                                            editing.modify(() => {
+                                                if (rootBox.shadertoy.isEmpty()) {
+                                                    rootBox.shadertoy
+                                                        .refer(ShadertoyBox.create(boxGraph, UUID.generate(), box => box.shaderCode.setValue(code)))
+                                                } else {
+                                                    asInstanceOf(rootBox.shadertoy.targetVertex.unwrap(), ShadertoyBox).shaderCode.setValue(code)
+                                                }
+                                            })
+                                        }}
+                                        appearance={{tooltip: "Run script"}}>
+                                    <span>Run</span> <Icon symbol={IconSymbol.Play}/>
+                                </Button>
+                            </header>
+                            {container}
+                        </div>
+                    )
+                }}/>
+        </div>
     )
 }
