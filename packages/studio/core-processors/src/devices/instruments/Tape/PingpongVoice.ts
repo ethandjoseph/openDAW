@@ -5,29 +5,26 @@ import {VoiceState} from "./VoiceState"
 import {Voice} from "./Voice"
 import {LOOP_END_MARGIN, LOOP_START_MARGIN} from "./constants"
 
+const BOUNCE_FADE_LENGTH = 256
+
 export class PingpongVoice implements Voice {
     readonly #output: AudioBuffer
     readonly #data: AudioData
-    readonly #segment: Segment
     readonly #fadeLength: number
     readonly #loopStart: number
     readonly #loopEnd: number
-    readonly #bounceFadeLength: number = 256
 
     #state: VoiceState = VoiceState.Fading
     #readPosition: number
     #fadeProgress: number = 0.0
     #fadeDirection: number = 1.0
     #direction: number = 1.0
-    #bouncing: boolean = false
-    #bounceFadeProgress: number = 0.0
-    #bounceReadPosition: number = 0.0
-    #bounceDirection: number = 1.0
+    #bounceProgress: number = 0.0
+    #bouncePosition: number = 0.0
 
     constructor(output: AudioBuffer, data: AudioData, segment: Segment, fadeLength: number, offset: number = 0.0) {
         this.#output = output
         this.#data = data
-        this.#segment = segment
         this.#fadeLength = fadeLength
         this.#loopStart = segment.start + LOOP_START_MARGIN
         this.#loopEnd = segment.end - LOOP_END_MARGIN
@@ -56,18 +53,15 @@ export class PingpongVoice implements Voice {
         const fadeLength = this.#fadeLength
         const loopStart = this.#loopStart
         const loopEnd = this.#loopEnd
-        const bounceFadeLength = this.#bounceFadeLength
-        const bounceCrossfadeStartForward = loopEnd - bounceFadeLength
-        const bounceCrossfadeStartBackward = loopStart + bounceFadeLength
+        const bounceStart = loopEnd - BOUNCE_FADE_LENGTH
+        const bounceEnd = loopStart + BOUNCE_FADE_LENGTH
         let state = this.#state
         let readPosition = this.#readPosition
         let fadeProgress = this.#fadeProgress
         let fadeDirection = this.#fadeDirection
         let direction = this.#direction
-        let bouncing = this.#bouncing
-        let bounceFadeProgress = this.#bounceFadeProgress
-        let bounceReadPosition = this.#bounceReadPosition
-        let bounceDirection = this.#bounceDirection
+        let bounceProgress = this.#bounceProgress
+        let bouncePosition = this.#bouncePosition
         for (let i = 0; i < bufferCount; i++) {
             if (state === VoiceState.Done) {break}
             const j = bufferStart + i
@@ -84,7 +78,6 @@ export class PingpongVoice implements Voice {
             } else {
                 amplitude = 1.0
             }
-            // Read primary sample
             const readInt = readPosition | 0
             let sampleL = 0.0
             let sampleR = 0.0
@@ -95,41 +88,37 @@ export class PingpongVoice implements Voice {
                 sampleL = sL + alpha * (framesL[readInt + 1] - sL)
                 sampleR = sR + alpha * (framesR[readInt + 1] - sR)
             }
-            // Check if we should start bounce crossfade
-            if (!bouncing) {
-                if (direction > 0.0 && readPosition >= bounceCrossfadeStartForward) {
-                    bouncing = true
-                    bounceFadeProgress = 0.0
-                    bounceReadPosition = loopEnd
-                    bounceDirection = -1.0
-                } else if (direction < 0.0 && readPosition <= bounceCrossfadeStartBackward) {
-                    bouncing = true
-                    bounceFadeProgress = 0.0
-                    bounceReadPosition = loopStart
-                    bounceDirection = 1.0
+            // Start bounce crossfade when approaching boundaries
+            if (bounceProgress === 0.0) {
+                if (direction > 0.0 && readPosition >= bounceStart) {
+                    bounceProgress = 1.0
+                    bouncePosition = loopEnd
+                } else if (direction < 0.0 && readPosition <= bounceEnd) {
+                    bounceProgress = 1.0
+                    bouncePosition = loopStart
                 }
             }
-            // Handle bounce crossfade
-            if (bouncing) {
-                const bounceReadInt = bounceReadPosition | 0
-                if (bounceReadInt >= 0 && bounceReadInt < numberOfFrames - 1) {
-                    const alpha = bounceReadPosition - bounceReadInt
-                    const bsL = framesL[bounceReadInt]
-                    const bsR = framesR[bounceReadInt]
-                    const bounceSampleL = bsL + alpha * (framesL[bounceReadInt + 1] - bsL)
-                    const bounceSampleR = bsR + alpha * (framesR[bounceReadInt + 1] - bsR)
-                    const t = bounceFadeProgress / bounceFadeLength
-                    const crossfadeOut = Math.cos(t * Math.PI * 0.5)
-                    const crossfadeIn = Math.sin(t * Math.PI * 0.5)
-                    sampleL = sampleL * crossfadeOut + bounceSampleL * crossfadeIn
-                    sampleR = sampleR * crossfadeOut + bounceSampleR * crossfadeIn
+            // Apply bounce crossfade
+            if (bounceProgress > 0.0) {
+                const bounceInt = bouncePosition | 0
+                if (bounceInt >= 0 && bounceInt < numberOfFrames - 1) {
+                    const alpha = bouncePosition - bounceInt
+                    const bL = framesL[bounceInt]
+                    const bR = framesR[bounceInt]
+                    const bounceSampleL = bL + alpha * (framesL[bounceInt + 1] - bL)
+                    const bounceSampleR = bR + alpha * (framesR[bounceInt + 1] - bR)
+                    const t = bounceProgress / BOUNCE_FADE_LENGTH
+                    const fadeOut = Math.cos(t * Math.PI * 0.5)
+                    const fadeIn = Math.sin(t * Math.PI * 0.5)
+                    sampleL = sampleL * fadeOut + bounceSampleL * fadeIn
+                    sampleR = sampleR * fadeOut + bounceSampleR * fadeIn
                 }
-                bounceFadeProgress += 1.0
-                bounceReadPosition += bounceDirection
-                if (bounceFadeProgress >= bounceFadeLength) {
-                    readPosition = bounceReadPosition
-                    direction = bounceDirection
-                    bouncing = false
+                bouncePosition -= direction
+                bounceProgress += 1.0
+                if (bounceProgress >= BOUNCE_FADE_LENGTH) {
+                    readPosition = bouncePosition
+                    direction = -direction
+                    bounceProgress = 0.0
                 }
             }
             outL[j] += sampleL * amplitude
@@ -141,9 +130,7 @@ export class PingpongVoice implements Voice {
         this.#fadeProgress = fadeProgress
         this.#fadeDirection = fadeDirection
         this.#direction = direction
-        this.#bouncing = bouncing
-        this.#bounceFadeProgress = bounceFadeProgress
-        this.#bounceReadPosition = bounceReadPosition
-        this.#bounceDirection = bounceDirection
+        this.#bounceProgress = bounceProgress
+        this.#bouncePosition = bouncePosition
     }
 }
