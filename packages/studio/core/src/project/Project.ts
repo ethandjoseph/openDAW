@@ -211,10 +211,9 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
             console.debug("receivedMIDIFromEngine", MidiData.debug(data), relativeTimeInMs)
         }
         const timestamp = performance.now() + relativeTimeInMs
-        MidiDevices.get().ifSome(midiAccess => {
-            const output = midiAccess.outputs.get(midiDeviceId)
+        MidiDevices.findOutputDeviceById(midiDeviceId).ifSome(midiOutputDevice => {
             try {
-                output?.send(data, timestamp)
+                midiOutputDevice?.send(data, timestamp)
             } catch (reason) {
                 console.warn("Failed to send MIDI message", reason)
             }

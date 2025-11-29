@@ -9,8 +9,11 @@ import {
     ObservableValue,
     Observer,
     Option,
+    panic,
+    Procedure,
     Subscription,
-    Terminator
+    Terminator,
+    UUID
 } from "@opendaw/lib-std"
 import {MidiData} from "@opendaw/lib-midi"
 import {Promises} from "@opendaw/lib-runtime"
@@ -21,6 +24,38 @@ export class MidiDevices {
     static canRequestMidiAccess(): boolean {return "requestMIDIAccess" in navigator}
 
     static readonly softwareMIDIInput: SoftwareMIDIInput = new SoftwareMIDIInput()
+
+    static readonly #softwareMIDIOutputs: Map<string, MIDIOutput> = new Map<string, MIDIOutput>()
+
+    static createSoftwareMIDIOutput(procedure: Procedure<Uint8Array>, name: string, id?: string): MIDIOutput {
+        const output = new class implements MIDIOutput {
+            readonly id: string = id ?? UUID.toString(UUID.generate())
+            readonly name: string = name
+            readonly manufacturer: string | null = null
+            readonly state: MIDIPortDeviceState = "connected"
+            readonly connection: MIDIPortConnectionState = "open"
+            readonly type: MIDIPortType = "output"
+            readonly version: string | null = null
+
+            send(data: unknown, _timestamp?: number): void {
+                if (data instanceof Uint8Array) {
+                    procedure(data)
+                } else if (Array.isArray(data) && data.every(value => typeof value === "number")) {
+                    procedure(new Uint8Array(data))
+                } else {
+                    return panic("MIDI output data must be an array of numbers or a Uint8Array")
+                }
+            }
+            addEventListener(_type: unknown, _listener: unknown, _options?: unknown): void {}
+            removeEventListener(_type: unknown, _listener: unknown, _options?: unknown): void {}
+            close(): Promise<MIDIPort> {return Promise.resolve(this)}
+            open(): Promise<MIDIPort> {return Promise.resolve(this)}
+            dispatchEvent(_event: unknown): boolean {return false}
+            onstatechange: ((this: MIDIPort, ev: MIDIConnectionEvent) => any) | null = null
+        }
+        MidiDevices.#softwareMIDIOutputs.set(output.id, output)
+        return output
+    }
 
     static #memoizedRequest = Promises.memoizeAsync(() => navigator.requestMIDIAccess({sysex: false}))
 
@@ -59,8 +94,18 @@ export class MidiDevices {
             .mapOr((inputs) => Array.from(inputs.values()).concat(this.softwareMIDIInput), [this.softwareMIDIInput])
     }
 
+    static outputDevices(): ReadonlyArray<MIDIOutput> {
+        const softwareOutputs = Array.from(this.#softwareMIDIOutputs.values())
+        return this.externalOutputDevices()
+            .mapOr((inputs) => Array.from(inputs.values()).concat(...softwareOutputs), softwareOutputs)
+    }
+
     static findInputDeviceById(id: string): Option<MIDIInput> {
         return Option.wrap(this.inputDevices().find(input => input.id === id))
+    }
+
+    static findOutputDeviceById(id: string): Option<MIDIOutput> {
+        return Option.wrap(this.outputDevices().find(output => output.id === id))
     }
 
     static externalInputDevices(): Option<ReadonlyArray<MIDIInput>> {
@@ -127,3 +172,7 @@ export class MidiDevices {
 
     static #midiAccess: MutableObservableOption<MIDIAccess> = new MutableObservableOption<MIDIAccess>()
 }
+
+MidiDevices.createSoftwareMIDIOutput(data => {
+    console.debug(MidiData.debug(data))
+}, "Shadertoy", "ksdhbjcnn")

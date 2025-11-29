@@ -4,6 +4,7 @@ import {
     clamp,
     DefaultObservableValue,
     int,
+    isAbsent,
     isNotNull,
     Lifecycle,
     Strings,
@@ -48,9 +49,8 @@ export const DeviceSelector = ({lifecycle, project, adapter}: Construct) => {
     const {box: {device}, midiDevice} = adapter
     const deviceLabelClass = Inject.classList("device-label")
     const deviceIdObserver = (requestedId: string) => {
-        const optDevice = MidiDevices.externalOutputDevices()
-            .map(devices => devices.find(device => device.id === requestedId))
-        deviceLabelClass.toggle("not-available", optDevice.isEmpty() && requestedId !== "")
+        const device = MidiDevices.outputDevices().find(device => device.id === requestedId)
+        deviceLabelClass.toggle("not-available", isAbsent(device) && requestedId !== "")
     }
     const delayInMs = lifecycle.own(new DefaultObservableValue<int>(0))
     const sendTransportMessages = lifecycle.own(new DefaultObservableValue<boolean>(true))
@@ -78,34 +78,33 @@ export const DeviceSelector = ({lifecycle, project, adapter}: Construct) => {
     )
     return (
         <div className={className}>
-            <MenuButton root={MenuItem.root().setRuntimeChildrenProcedure(parent =>
-                parent.addMenuItem(...MidiDevices.externalOutputDevices().match({
-                    none: () => [MenuItem.default({label: "No MIDI requested.", selectable: false})],
-                    some: outputs => outputs.length === 0
-                        ? [MenuItem.default({label: "No device found.", selectable: false})]
-                        : outputs.map(output => MenuItem.default({
-                            label: output.name ?? "Unnamed device",
-                            checked: output.id === device.targetVertex
-                                .mapOr(({box}) => asInstanceOf(box, MIDIOutputBox).id.getValue(), "")
-                        }).setTriggerProcedure(() => editing.modify(() => {
-                            const disconnectedDevice = midiDevice.unwrapOrNull()
-                            device.refer(getOrCreateMIDIOutput(rootBox, output).device)
-                            if (isNotNull(disconnectedDevice) && disconnectedDevice.device.pointerHub.size() === 0) {
-                                disconnectedDevice.delete()
-                            }
-                        }))).concat(MenuItem.default({
-                            label: `Remove ${midiDevice.match({
-                                none: () => "MIDI device",
-                                some: device => device.label.getValue()
-                            })}`
-                        }).setTriggerProcedure(() => editing.modify(() => {
-                            const disconnectedDevice = midiDevice.unwrapOrNull()
-                            device.defer()
-                            if (isNotNull(disconnectedDevice) && disconnectedDevice.device.pointerHub.size() === 0) {
-                                disconnectedDevice.delete()
-                            }
-                        })))
-                })))} style={{width: "100%"}} appearance={{color: Colors.dark, activeColor: Colors.gray}}>
+            <MenuButton root={MenuItem.root().setRuntimeChildrenProcedure(parent => {
+                const outputs = MidiDevices.outputDevices()
+                parent.addMenuItem(...(outputs.length === 0
+                    ? [MenuItem.default({label: "No device found.", selectable: false})]
+                    : outputs.map(output => MenuItem.default({
+                        label: output.name ?? "Unnamed device",
+                        checked: output.id === device.targetVertex
+                            .mapOr(({box}) => asInstanceOf(box, MIDIOutputBox).id.getValue(), "")
+                    }).setTriggerProcedure(() => editing.modify(() => {
+                        const disconnectedDevice = midiDevice.unwrapOrNull()
+                        device.refer(getOrCreateMIDIOutput(rootBox, output).device)
+                        if (isNotNull(disconnectedDevice) && disconnectedDevice.device.pointerHub.size() === 0) {
+                            disconnectedDevice.delete()
+                        }
+                    }))).concat(MenuItem.default({
+                        label: `Remove ${midiDevice.match({
+                            none: () => "MIDI device",
+                            some: device => device.label.getValue()
+                        })}`
+                    }).setTriggerProcedure(() => editing.modify(() => {
+                        const disconnectedDevice = midiDevice.unwrapOrNull()
+                        device.defer()
+                        if (isNotNull(disconnectedDevice) && disconnectedDevice.device.pointerHub.size() === 0) {
+                            disconnectedDevice.delete()
+                        }
+                    })))))
+            })} style={{width: "100%"}} appearance={{color: Colors.dark, activeColor: Colors.gray}}>
                 <div className={deviceLabelClass}
                      onInit={element => {
                          const subscriber = lifecycle.own(new Terminator())
