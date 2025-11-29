@@ -12,6 +12,7 @@ import {
     Option,
     safeExecute,
     Subscription,
+    Terminable,
     Terminator,
     UUID,
     ValueOwner
@@ -44,6 +45,7 @@ export class AudioClipBoxAdapter implements ClipBoxAdapter<never> {
 
     #fileAdapter: Option<AudioFileBoxAdapter> = Option.None
     #fileSubscription: Option<Subscription> = Option.None
+    #warpSubscription: Terminable = Terminable.Empty
 
     constructor(context: BoxAdaptersContext, box: AudioClipBox) {
         this.#context = context
@@ -60,9 +62,14 @@ export class AudioClipBoxAdapter implements ClipBoxAdapter<never> {
                 onAdded: () => this.#dispatchChange(),
                 onRemoved: () => this.#dispatchChange()
             }),
-            this.#box.warping.catchupAndSubscribe(({targetVertex}) =>
-                this.#wraping.wrapOption(targetVertex.map(({box}) =>
-                    this.#context.boxAdapters.adapterFor(box, AudioWarpingBoxAdapter)))),
+            this.#box.warping.catchupAndSubscribe(({targetVertex}) => {
+                const warpingBoxAdapter = targetVertex.map(({box}) =>
+                    this.#context.boxAdapters.adapterFor(box, AudioWarpingBoxAdapter))
+                this.#warpSubscription.terminate()
+                this.#warpSubscription = warpingBoxAdapter
+                    .mapOr(adapter => adapter.subscribe(() => this.#dispatchChange()), Terminable.Empty)
+                this.#wraping.wrapOption(warpingBoxAdapter)
+            }),
             this.#box.file.catchupAndSubscribe((pointerField: PointerField<Pointers.AudioFile>) => {
                 this.#fileAdapter = pointerField.targetVertex
                     .map(vertex => this.#context.boxAdapters.adapterFor(vertex.box, AudioFileBoxAdapter))
