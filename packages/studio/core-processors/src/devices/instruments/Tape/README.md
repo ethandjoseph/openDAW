@@ -13,8 +13,8 @@ looking at the current tempo-map and updates TimeBase accordingly.
 ### TODO
 
 * `AudioClipBoxAdapter` needs the same conversion logic
-* Fix No Warp waveform rendering in track
 * Check and fix all tools including cutting
+* ~~Fix No Warp waveform rendering in track~~
 * ~~Move transient detection into worker~~
 
 ## Playback Modes
