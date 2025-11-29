@@ -10,6 +10,7 @@ import {ThreeDots} from "@/ui/spinner/ThreeDots"
 import {Button} from "@/ui/components/Button"
 import {Icon} from "@/ui/components/Icon"
 import Example from "./example.glsl?raw"
+import {ShadertoyRunner} from "@/ui/shadertoy/ShadertoyRunner"
 
 const className = Html.adoptStyleSheet(css, "ShadertoyEditor")
 
@@ -57,13 +58,50 @@ export const ShadertoyEditor = ({service, lifecycle}: Construct) => {
                         automaticLayout: true
                     })
                     const allowed = ["c", "v", "x", "a", "z", "y"]
+                    const compileAndRun = () => {
+                        const code = editor.getValue()
+                        const canvas = document.createElement("canvas")
+                        const gl = canvas.getContext("webgl2")
+                        if (gl) {
+                            try {
+                                const testRunner = new ShadertoyRunner(gl)
+                                testRunner.compile(code)
+                                testRunner.terminate()
+                            } catch (error) {
+                                const match = /ERROR: \d+:(\d+): (.+)/.exec(String(error))
+                                if (match) {
+                                    const lineNumber = parseInt(match[1], 10) - 9
+                                    monaco.editor.setModelMarkers(editor.getModel()!, "glsl", [{
+                                        startLineNumber: lineNumber,
+                                        startColumn: 1,
+                                        endLineNumber: lineNumber,
+                                        endColumn: 1000,
+                                        message: match[2],
+                                        severity: monaco.MarkerSeverity.Error
+                                    }])
+                                }
+                                return
+                            }
+                        }
+                        monaco.editor.setModelMarkers(editor.getModel()!, "glsl", [])
+                        editing.modify(() => {
+                            if (rootBox.shadertoy.isEmpty()) {
+                                rootBox.shadertoy
+                                    .refer(ShadertoyBox.create(boxGraph, UUID.generate(), box => box.shaderCode.setValue(code)))
+                            } else {
+                                asInstanceOf(rootBox.shadertoy.targetVertex.unwrap(), ShadertoyBox).shaderCode.setValue(code)
+                            }
+                        })
+                    }
                     lifecycle.ownAll(
                         Events.subscribe(container, "keydown", event => {
-                            if ((event.ctrlKey || event.metaKey) && allowed.includes(event.key.toLowerCase())) {
+                            if (event.altKey && event.key === "Enter") {
+                                compileAndRun()
+                            } else if ((event.ctrlKey || event.metaKey) && allowed.includes(event.key.toLowerCase())) {
                                 return // Let Monaco handle these
                             }
                             event.stopPropagation()
-                        }),
+                        }, {capture: true}),
                         Events.subscribe(container, "keyup", event => {
                             if ((event.ctrlKey || event.metaKey) && allowed.includes(event.key.toLowerCase())) {
                                 return // Let Monaco handle these
@@ -77,21 +115,9 @@ export const ShadertoyEditor = ({service, lifecycle}: Construct) => {
                         <div>
                             <header>
                                 <Button lifecycle={lifecycle}
-                                        onClick={() => {
-                                            // TODO Validate the code
-                                            // TODO if valid, set the code like this...
-                                            const code = `here is the code`
-                                            editing.modify(() => {
-                                                if (rootBox.shadertoy.isEmpty()) {
-                                                    rootBox.shadertoy
-                                                        .refer(ShadertoyBox.create(boxGraph, UUID.generate(), box => box.shaderCode.setValue(code)))
-                                                } else {
-                                                    asInstanceOf(rootBox.shadertoy.targetVertex.unwrap(), ShadertoyBox).shaderCode.setValue(code)
-                                                }
-                                            })
-                                        }}
+                                        onClick={compileAndRun}
                                         appearance={{tooltip: "Run script"}}>
-                                    <span>Run</span> <Icon symbol={IconSymbol.Play}/>
+                                    <span>Run (alt+enter)</span> <Icon symbol={IconSymbol.Play}/>
                                 </Button>
                             </header>
                             {container}
