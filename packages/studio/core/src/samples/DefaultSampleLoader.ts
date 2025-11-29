@@ -47,7 +47,7 @@ export class DefaultSampleLoader implements SampleLoader {
     }
 
     subscribe(observer: Observer<SampleLoaderState>): Subscription {
-        if (this.#state.type === "loaded") {
+        if (this.#state.type === "loaded" || this.#state.type === "error") {
             observer(this.#state)
             return Terminable.Empty
         }

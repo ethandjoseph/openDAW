@@ -1,1 +1,1 @@
-export enum VoiceState { FadingIn, Active, FadingOut, Done }
+export enum VoiceState { Fading, FadingIn, Active, FadingOut, Done }

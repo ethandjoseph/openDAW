@@ -46,6 +46,7 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
 
     constructor(context: EngineContext, adapter: TapeDeviceBoxAdapter) {
         super(context)
+
         this.#adapter = adapter
         this.#audioOutput = new AudioBuffer(2)
         this.#peaks = this.own(new PeakBroadcaster(context.broadcaster, adapter.address))

@@ -25,4 +25,17 @@ export class DefaultSampleLoaderManager implements SampleLoaderManager, SamplePr
     getOrCreate(uuid: UUID.Bytes): SampleLoader {
         return this.#loaders.getOrCreate(uuid, uuid => new DefaultSampleLoader(this, uuid))
     }
+
+    async getAudioData(uuid: UUID.Bytes): Promise<AudioData> {
+        const {promise, resolve, reject} = Promise.withResolvers<AudioData>()
+        const loader = this.getOrCreate(uuid)
+        loader.subscribe(state => {
+            if (state.type === "error") {
+                reject(state.reason)
+            } else if (loader.data.nonEmpty()) {
+                resolve(loader.data.unwrap())
+            }
+        })
+        return promise
+    }
 }
