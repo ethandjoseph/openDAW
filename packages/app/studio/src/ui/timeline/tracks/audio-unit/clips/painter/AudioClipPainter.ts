@@ -3,11 +3,12 @@ import {int, Iterables, Nullable, Procedure, TAU} from "@opendaw/lib-std"
 import {AudioClipBoxAdapter} from "@opendaw/studio-adapters"
 import {Peaks} from "@opendaw/lib-fusion"
 import {dbToGain} from "@opendaw/lib-dsp"
+import {AudioPlayback} from "@opendaw/studio-enums"
 
 export const createAudioClipPainter = (adapter: AudioClipBoxAdapter): Procedure<CanvasPainter> => painter => {
     const {context, actualHeight: size} = painter
     const radius = size >> 1
-    const {file, gain, warping, duration} = adapter
+    const {file, gain, warping, duration, playback} = adapter
     if (file.peaks.isEmpty()) {return}
     const numRays = 256
     const peaks = file.peaks.unwrap()
@@ -30,7 +31,7 @@ export const createAudioClipPainter = (adapter: AudioClipBoxAdapter): Procedure<
         context.moveTo(sin * minR, cos * minR)
         context.lineTo(sin * maxR, cos * maxR)
     }
-    if (warping.nonEmpty()) {
+    if (warping.nonEmpty() && playback.getValue() !== AudioPlayback.NoSync) {
         const {warpMarkers} = warping.unwrap()
         const data: Int32Array = peaks.data[0]
         for (const [w0, w1] of Iterables.pairWise(warpMarkers.iterateFrom(0))) {
