@@ -66,7 +66,6 @@ import {AudioUnitType} from "@opendaw/studio-enums"
 import {Surface} from "@/ui/surface/Surface"
 import {SoftwareMIDIPanel} from "@/ui/software-midi/SoftwareMIDIPanel"
 import {Mixdowns} from "@/service/Mixdowns"
-import {testAudioProject} from "@/service/TestAudioProject"
 
 /**
  * I am just piling stuff after stuff in here to boot the environment.
@@ -393,7 +392,6 @@ export class StudioService implements ProjectEnv {
             }
         }
         this.#projectProfileService.catchupAndSubscribe(owner => observer(owner.getValue()))
-        testAudioProject(this)
     }
 
     #installConsoleCommands(): void {
