@@ -22,9 +22,10 @@ import {ValueEventBox} from "./timeline/ValueEventBox"
 import {ValueEventCurveBox} from "./timeline/ValueEventCurveBox"
 import {ValueEventCollectionBox} from "./timeline/ValueEventCollectionBox"
 import {ValueRegionBox} from "./timeline/ValueRegionBox"
+import {ShadertoyBox} from "./ShadertoyBox"
 
 export const Definitions = [
-    RootBox, SelectionBox, UserInterfaceBox, UploadFileBox,
+    RootBox, SelectionBox, UserInterfaceBox, UploadFileBox, ShadertoyBox,
     TimelineBox, TrackBox,
     NoteEventBox, NoteEventRepeatBox, NoteEventCollectionBox, NoteRegionBox, NoteClipBox,
     ValueEventBox, ValueEventCollectionBox, ValueEventCurveBox, ValueRegionBox, ValueClipBox,

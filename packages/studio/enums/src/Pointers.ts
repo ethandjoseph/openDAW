@@ -22,6 +22,7 @@ export enum Pointers {
     MidiControl,
     StepAutomation,
     Editing,
+    Shadertoy,
     AudioFile,
     SoundfontFile,
     AudioUnit,
