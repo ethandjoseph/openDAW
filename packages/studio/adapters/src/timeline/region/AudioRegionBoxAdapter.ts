@@ -48,6 +48,7 @@ export class AudioRegionBoxAdapter implements LoopableRegionBoxAdapter<ValueEven
     readonly #loopDurationConverter: TimeBaseConverter
     readonly #wraping: MutableObservableOption<AudioWarpingBoxAdapter>
     readonly #changeNotifier: Notifier<void>
+    readonly #constructing: boolean
 
     #fileAdapter: Option<AudioFileBoxAdapter> = Option.None
     #fileSubscription: Terminable = Terminable.Empty
@@ -56,7 +57,6 @@ export class AudioRegionBoxAdapter implements LoopableRegionBoxAdapter<ValueEven
     #eventCollectionSubscription: Subscription = Terminable.Empty
 
     #isSelected: boolean
-    #constructing: boolean
 
     constructor(context: BoxAdaptersContext, box: AudioRegionBox) {
         this.#context = context
@@ -235,22 +235,24 @@ export class AudioRegionBoxAdapter implements LoopableRegionBoxAdapter<ValueEven
         const eventTarget = params?.consolidate === true
             ? eventCollection.copy().box.owners
             : eventCollection.box.owners
-        return this.#context.boxAdapters.adapterFor(
+        const adapter = this.#context.boxAdapters.adapterFor(
             AudioRegionBox.create(this.#context.boxGraph, UUID.generate(), box => {
                 box.timeBase.setValue(this.#box.timeBase.getValue())
+                box.playback.setValue(this.#box.playback.getValue())
                 box.position.setValue(params?.position ?? this.#box.position.getValue())
-                // TODO Respect time-base.
-                box.duration.setValue(params?.duration ?? this.#box.duration.getValue())
-                box.loopOffset.setValue(params?.loopOffset ?? this.#box.loopOffset.getValue())
-                box.loopDuration.setValue(params?.loopDuration ?? this.#box.loopDuration.getValue())
                 box.regions.refer(params?.track ?? this.#box.regions.targetVertex.unwrap())
                 box.file.refer(this.#box.file.targetVertex.unwrap())
+                this.#box.warping.ifVertex(vertex => box.warping.refer(vertex.box))
                 box.events.refer(eventTarget)
                 box.mute.setValue(this.mute)
                 box.hue.setValue(this.hue)
                 box.label.setValue(this.label)
                 box.gain.setValue(this.gain)
             }), AudioRegionBoxAdapter)
+        adapter.duration = params?.duration ?? this.duration
+        adapter.loopOffset = params?.loopOffset ?? this.loopOffset
+        adapter.loopDuration = params?.loopDuration ?? this.loopDuration
+        return adapter
     }
 
     consolidate(): void {

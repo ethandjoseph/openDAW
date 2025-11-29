@@ -9,6 +9,7 @@ import {
     Option,
     Optional,
     panic,
+    Procedure,
     Provider,
     safeExecute,
     Subscription,
@@ -128,6 +129,9 @@ export class PointerField<P extends PointerTypes = PointerTypes> extends Field<U
 
     isEmpty(): boolean {return this.targetAddress.isEmpty()}
     nonEmpty(): boolean {return this.targetAddress.nonEmpty()}
+    ifVertex(procedure: Procedure<Vertex>): void {
+        if (this.targetVertex.nonEmpty()) {procedure(this.targetVertex.unwrap())}
+    }
 
     resolvedTo(newTarget: Option<Vertex>): void {this.#targetVertex = newTarget}
 

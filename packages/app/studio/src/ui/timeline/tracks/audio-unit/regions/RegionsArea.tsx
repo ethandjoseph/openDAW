@@ -96,14 +96,7 @@ export const RegionsArea = ({lifecycle, service, manager, scrollModel, scrollCon
                     .forEach(region => region.box.delete()))
             }
         }),
-        installRegionContextMenu({
-            timelineBox,
-            element,
-            service,
-            capturing,
-            selection: regionSelection,
-            range
-        }),
+        installRegionContextMenu({timelineBox, element, service, capturing, selection: regionSelection, range}),
         Events.subscribeDblDwn(element, event => {
             const target = capturing.captureEvent(event)
             if (target === null) {return}
@@ -150,17 +143,17 @@ export const RegionsArea = ({lifecycle, service, manager, scrollModel, scrollCon
         })
     )
     element.appendChild(
-        <SelectionRectangle
-            target={element}
-            lifecycle={lifecycle}
-            editing={editing}
-            selection={regionSelection}
-            locator={regionLocator}
-            xAxis={range.valueAxis}
-            yAxis={{
-                axisToValue: y => clamp(y + scrollContainer.scrollTop, 0, scrollContainer.scrollTop + element.scrollHeight),
-                valueToAxis: value => value - scrollContainer.scrollTop
-            }}/>
+        <SelectionRectangle target={element}
+                            lifecycle={lifecycle}
+                            editing={editing}
+                            selection={regionSelection}
+                            locator={regionLocator}
+                            xAxis={range.valueAxis}
+                            yAxis={{
+                                axisToValue: y => clamp(y + scrollContainer.scrollTop,
+                                    0, scrollContainer.scrollTop + element.scrollHeight),
+                                valueToAxis: value => value - scrollContainer.scrollTop
+                            }}/>
     )
     lifecycle.ownAll(
         installAutoScroll(element, (deltaX, deltaY) => {

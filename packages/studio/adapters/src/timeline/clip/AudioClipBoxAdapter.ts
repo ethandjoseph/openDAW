@@ -1,5 +1,6 @@
-import {ppqn, PPQN} from "@opendaw/lib-dsp"
+import {ppqn, PPQN, TimeBase, TimeBaseConverter} from "@opendaw/lib-dsp"
 import {
+    asEnumValue,
     DefaultObservableValue,
     int,
     Maybe,
@@ -12,7 +13,8 @@ import {
     safeExecute,
     Subscription,
     Terminator,
-    UUID
+    UUID,
+    ValueOwner
 } from "@opendaw/lib-std"
 import {AudioClipBox} from "@opendaw/studio-boxes"
 import {Address, Int32Field, PointerField, Propagation, Update} from "@opendaw/lib-box"
@@ -24,6 +26,8 @@ import {AudioFileBoxAdapter} from "../../audio/AudioFileBoxAdapter"
 import {AudioWarpingBoxAdapter} from "../../audio/AudioWarpingBoxAdapter"
 
 export class AudioClipBoxAdapter implements ClipBoxAdapter<never> {
+    static readonly STATIC_POSITION: ValueOwner<number> = {getValue: (): number => 0}
+
     readonly type = "audio-clip"
 
     readonly #terminator: Terminator = new Terminator()
@@ -33,6 +37,7 @@ export class AudioClipBoxAdapter implements ClipBoxAdapter<never> {
 
     readonly #wraping: MutableObservableOption<AudioWarpingBoxAdapter>
     readonly #selectedValue: DefaultObservableValue<boolean>
+    readonly #durationConverter: TimeBaseConverter
     readonly #changeNotifier: Notifier<void>
 
     readonly #isConstructing: boolean // Prevents stack overflow due to infinite adapter queries
@@ -47,6 +52,7 @@ export class AudioClipBoxAdapter implements ClipBoxAdapter<never> {
         this.#isConstructing = true
         this.#wraping = new MutableObservableOption()
         this.#selectedValue = this.#terminator.own(new DefaultObservableValue(false))
+        this.#durationConverter = TimeBaseConverter.aware(context.tempoMap, box.timeBase, AudioClipBoxAdapter.STATIC_POSITION, box.duration)
         this.#changeNotifier = this.#terminator.own(new Notifier<void>())
 
         this.#terminator.ownAll(
@@ -108,7 +114,8 @@ export class AudioClipBoxAdapter implements ClipBoxAdapter<never> {
     get uuid(): UUID.Bytes {return this.#box.address.uuid}
     get address(): Address {return this.#box.address}
     get indexField(): Int32Field {return this.#box.index}
-    get duration(): ppqn {return this.#box.duration.getValue()}
+    get duration(): ppqn {return this.#durationConverter.toPPQN()}
+    set duration(value: ppqn) {this.#durationConverter.fromPPQN(value)}
     get mute(): boolean {return this.#box.mute.getValue()}
     get hue(): int {return this.#box.hue.getValue()}
     get gain(): number {return this.#box.gain.getValue()}
@@ -117,6 +124,7 @@ export class AudioClipBoxAdapter implements ClipBoxAdapter<never> {
     get optCollection(): Option<never> {return Option.None}
     get playback(): ObservableValue<AudioPlayback> {return this.#box.playback as ObservableValue<AudioPlayback>}
     get warping(): ObservableOption<AudioWarpingBoxAdapter> {return this.#wraping}
+    get timeBase(): TimeBase {return asEnumValue(this.#box.timeBase.getValue(), TimeBase)}
     get label(): string {return this.#box.label.getValue()}
     get trackBoxAdapter(): Option<TrackBoxAdapter> {
         if (this.#isConstructing) {return Option.None}
@@ -125,6 +133,32 @@ export class AudioClipBoxAdapter implements ClipBoxAdapter<never> {
     }
     get isMirrowed(): boolean {return false}
     get canMirror(): boolean {return false}
+
+    setPlayback(value: AudioPlayback, keepCurrentStretch: boolean = false) {
+        console.debug("setPlayback", value, keepCurrentStretch)
+        const wasMusical = this.timeBase === TimeBase.Musical
+        this.#box.playback.setValue(value)
+        if (value === AudioPlayback.NoSync) {
+            if (wasMusical) {
+                if (keepCurrentStretch) {
+                    const duration = this.#durationConverter.toSeconds()
+                    this.#box.timeBase.setValue(TimeBase.Seconds)
+                    this.#box.duration.setValue(duration)
+                } else {
+                    // Reset to 100% playback speed (original file speed)
+                    this.#box.timeBase.setValue(TimeBase.Seconds)
+                    this.#box.duration.setValue(this.file.endInSeconds)
+                }
+            }
+        } else {
+            // Switching TO musical (Pitch/Timestretch/AudioFit)
+            if (!wasMusical) {
+                const duration = this.#durationConverter.toPPQN()
+                this.#box.timeBase.setValue(TimeBase.Musical)
+                this.#box.duration.setValue(duration)
+            }
+        }
+    }
 
     toString(): string {return `{AudioClipBoxAdapter ${UUID.toString(this.#box.address.uuid)} d: ${PPQN.toString(this.duration)}}`}
 

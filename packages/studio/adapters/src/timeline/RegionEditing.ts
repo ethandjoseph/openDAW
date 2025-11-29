@@ -7,7 +7,7 @@ export namespace RegionEditing {
         if (region.position >= cut || cut >= region.complete) {return}
         if (UnionAdapterTypes.isLoopableRegion(region)) {
             const {position, complete, loopOffset, loopDuration} = region
-            region.box.duration.setValue(cut - position)
+            region.duration = cut - position
             region.copyTo({
                 position: cut,
                 duration: complete - cut,
@@ -23,7 +23,7 @@ export namespace RegionEditing {
         if (UnionAdapterTypes.isLoopableRegion(region)) {
             const {position, complete, loopOffset, loopDuration} = region
             if (complete - end <= 0) {return panic(`duration will zero or negative(${complete - end})`)}
-            region.box.duration.setValue(begin - position)
+            region.duration = begin - position
             region.copyTo({
                 position: end,
                 duration: complete - end,
