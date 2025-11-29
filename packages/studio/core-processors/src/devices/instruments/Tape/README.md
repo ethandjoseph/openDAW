@@ -18,6 +18,8 @@ looking at the current tempo-map and updates TimeBase accordingly.
 * ~~Move transient detection into worker~~
 * Does PitchVoice work without warp-markers? (When switching from timestretch to pitch, we get glitches, good on the
   next repeat)
+* When Pitch is without warping, the editor cannot create warp-markers
+* Transients might be better off in a ByteArray after all
 * ~~Create warping when changing a clip to timestretch mode~~
 * ~~When switching to no-sync, ask the user to delete the warping information.~~
 * Idea to handle the shared nature of the warping information
