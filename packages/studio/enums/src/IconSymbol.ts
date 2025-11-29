@@ -99,6 +99,7 @@ export enum IconSymbol {
     Saxophone,
     Scissors,
     Search,
+    Shadertoy,
     Sine,
     Solo,
     SoundFont,

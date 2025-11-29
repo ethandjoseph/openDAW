@@ -183,7 +183,7 @@ export const DefaultWorkspace = Object.freeze({
     },
     "shadertoy": {
         name: "Shadertoy",
-        icon: IconSymbol.Dial,
+        icon: IconSymbol.Shadertoy,
         content: {
             type: "layout",
             orientation: "horizontal",
@@ -191,14 +191,14 @@ export const DefaultWorkspace = Object.freeze({
                 PanelState.create({
                     type: "panel",
                     name: "Shadertoy Preview",
-                    icon: IconSymbol.OpenDAW,
+                    icon: IconSymbol.Shadertoy,
                     panelType: PanelType.ShadertoyPreview,
                     constrains: {type: "flex", minSize: 320, flex: 1}
                 }),
                 PanelState.create({
                     type: "panel",
                     name: "Shadertoy Editor",
-                    icon: IconSymbol.OpenDAW,
+                    icon: IconSymbol.Generator,
                     panelType: PanelType.ShadertoyEditor,
                     constrains: {type: "flex", minSize: 0, flex: 1}
                 })

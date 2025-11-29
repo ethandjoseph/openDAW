@@ -23,6 +23,7 @@ export const ShadertoyEditor = ({service, lifecycle}: Construct) => {
     const {project} = service
     const {boxGraph, editing, rootBox} = project
     if (rootBox.shadertoy.isEmpty()) {
+        console.debug("New Shader")
         editing.modify(() => rootBox.shadertoy
             .refer(ShadertoyBox.create(boxGraph, UUID.generate(), box => box.shaderCode.setValue(Example))))
     }
@@ -40,7 +41,9 @@ export const ShadertoyEditor = ({service, lifecycle}: Construct) => {
                     const modelUri = monaco.Uri.parse("file:///main.ts")
                     let model = monaco.editor.getModel(modelUri)
                     if (!model) {
-                        model = monaco.editor.createModel(Example, "glsl", modelUri)
+                        const code = rootBox.shadertoy.targetVertex.mapOr((box) =>
+                            asInstanceOf(box, ShadertoyBox).shaderCode.getValue(), Example)
+                        model = monaco.editor.createModel(code, "glsl", modelUri)
                     }
                     const editor = monaco.editor.create(container, {
                         language: "glsl",

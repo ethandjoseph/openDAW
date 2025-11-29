@@ -1,10 +1,22 @@
 import css from "./ShadertoyPreview.sass?inline"
 import {AnimationFrame, Html} from "@opendaw/lib-dom"
-import {asInstanceOf, Lifecycle, Terminable, Terminator, tryCatch} from "@opendaw/lib-std"
+import {
+    asInstanceOf,
+    byte,
+    EmptyProcedure,
+    Lifecycle,
+    Procedure,
+    Terminable,
+    Terminator,
+    tryCatch,
+    unitValue
+} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {StudioService} from "@/service/StudioService"
 import {ShadertoyRunner} from "@/ui/shadertoy/ShadertoyRunner"
 import {ShadertoyBox} from "@opendaw/studio-boxes"
+import {MidiDevices} from "@opendaw/studio-core"
+import {MidiData} from "@opendaw/lib-midi"
 
 const className = Html.adoptStyleSheet(css, "ShadertoyPreview")
 
@@ -12,6 +24,11 @@ type Construct = {
     lifecycle: Lifecycle
     service: StudioService
 }
+
+let procedure: Procedure<Uint8Array> = EmptyProcedure
+
+MidiDevices.createSoftwareMIDIOutput(
+    message => procedure(message), "OpenDAW Shadertoy Editor", "openDAW-Shadertoy")
 
 export const ShadertoyPreview = ({lifecycle, service}: Construct) => {
     const output: HTMLElement = <p/>
@@ -21,7 +38,9 @@ export const ShadertoyPreview = ({lifecycle, service}: Construct) => {
                 const gl = canvas.getContext("webgl2")!
                 const runner = new ShadertoyRunner(gl)
                 const shaderLifecycle = lifecycle.own(new Terminator())
+                const ccValues = new Float32Array(128)
                 lifecycle.ownAll(
+                    Terminable.create(() => procedure = EmptyProcedure),
                     service.project.rootBox.shadertoy.catchupAndSubscribe(({targetVertex}) => {
                         shaderLifecycle.terminate()
                         targetVertex.match({
@@ -42,8 +61,14 @@ export const ShadertoyPreview = ({lifecycle, service}: Construct) => {
                                         canvas.width = canvas.clientWidth * devicePixelRatio
                                         canvas.height = canvas.clientHeight * devicePixelRatio
                                         gl.viewport(0, 0, canvas.width, canvas.height)
+                                        runner.setMidiCC(ccValues)
                                         runner.render()
                                     }))
+                                    procedure = message => {
+                                        MidiData.accept(message, {
+                                            controller: (id: byte, value: unitValue) => ccValues[id] = value
+                                        })
+                                    }
                                 })
                             }
                         })
