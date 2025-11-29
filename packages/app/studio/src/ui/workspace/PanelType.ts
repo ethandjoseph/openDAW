@@ -10,5 +10,7 @@ export enum PanelType {
     VUMeter,
     MidiFall,
     ProjectInfo,
+    ShadertoyPreview,
+    ShadertoyEditor,
     EmptyFlexSpace
 }

@@ -172,7 +172,3 @@ export class MidiDevices {
 
     static #midiAccess: MutableObservableOption<MIDIAccess> = new MutableObservableOption<MIDIAccess>()
 }
-
-MidiDevices.createSoftwareMIDIOutput(data => {
-    console.debug(MidiData.debug(data))
-}, "Shadertoy", "ksdhbjcnn")

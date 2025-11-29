@@ -15,6 +15,8 @@ import {NotePadPanel} from "@/ui/NotePadPanel"
 import {FlexSpace} from "./FlexSpace"
 import {VUMeterPanel} from "@/ui/meter/VUMeterPanel"
 import {PianoModePanel} from "@/ui/piano-panel/PianoModePanel.tsx"
+import {ShadertoyPreview} from "@/ui/shadertoy/ShadertoyPreview"
+import {ShadertoyEditor} from "@/ui/shadertoy/ShadertoyEditor"
 
 export const createPanelFactory = (service: StudioService): PanelContentFactory => ({
     create: (lifecycle: Lifecycle, type: PanelType): JsxValue => {
@@ -41,6 +43,10 @@ export const createPanelFactory = (service: StudioService): PanelContentFactory 
                 return (<ProjectProfileInfo lifecycle={lifecycle} service={service}/>)
             case PanelType.MidiFall:
                 return (<PianoModePanel lifecycle={lifecycle} service={service}/>)
+            case PanelType.ShadertoyPreview:
+                return (<ShadertoyPreview lifecycle={lifecycle} service={service}/>)
+            case PanelType.ShadertoyEditor:
+                return (<ShadertoyEditor lifecycle={lifecycle} service={service}/>)
             case PanelType.EmptyFlexSpace:
                 return (<FlexSpace/>)
             default:

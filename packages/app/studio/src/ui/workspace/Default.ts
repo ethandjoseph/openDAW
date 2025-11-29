@@ -181,6 +181,31 @@ export const DefaultWorkspace = Object.freeze({
             constrains: {type: "flex", minSize: 0, flex: 1}
         }
     },
+    "shadertoy": {
+        name: "Shadertoy",
+        icon: IconSymbol.Dial,
+        content: {
+            type: "layout",
+            orientation: "horizontal",
+            contents: [
+                PanelState.create({
+                    type: "panel",
+                    name: "Shadertoy Preview",
+                    icon: IconSymbol.OpenDAW,
+                    panelType: PanelType.ShadertoyPreview,
+                    constrains: {type: "flex", minSize: 320, flex: 1}
+                }),
+                PanelState.create({
+                    type: "panel",
+                    name: "Shadertoy Editor",
+                    icon: IconSymbol.OpenDAW,
+                    panelType: PanelType.ShadertoyEditor,
+                    constrains: {type: "flex", minSize: 0, flex: 1}
+                })
+            ],
+            constrains: {type: "flex", minSize: 0, flex: 1}
+        }
+    },
     "meter": {
         name: "VU-Meter",
         icon: IconSymbol.VUMeter,
