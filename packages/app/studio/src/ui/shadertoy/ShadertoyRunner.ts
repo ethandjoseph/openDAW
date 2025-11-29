@@ -45,6 +45,9 @@ export class ShadertoyRunner implements Terminable {
         uniform sampler2D iChannel0;
         uniform sampler2D iMidiCC;
         out vec4 fragColor;
+        float getCC(int cc) {
+            return texture(iMidiCC, vec2((float(cc) + 0.5) / 128.0, 0.5)).r;
+        }
     `
     static readonly #FRAGMENT_SUFFIX = `
         void main() {

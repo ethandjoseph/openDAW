@@ -8,7 +8,11 @@ self.MonacoEnvironment = {
 const shadertoyGlobals = [
     "iResolution", "iTime", "iTimeDelta", "iFrame", "iChannelTime",
     "iChannelResolution", "iMouse", "iChannel0", "iChannel1",
-    "iChannel2", "iChannel3", "iDate", "iSampleRate"
+    "iChannel2", "iChannel3", "iDate", "iSampleRate", "iMidiCC"
+]
+
+const shadertoyFunctions = [
+    "getCC"
 ]
 
 const glslTypes = [
@@ -54,13 +58,21 @@ const uniformDetails: Record<string, string> = {
     iChannel2: "sampler2D – input texture 2",
     iChannel3: "sampler2D – input texture 3",
     iDate: "vec4 – year, month, day, time in seconds",
-    iSampleRate: "float – audio sample rate"
+    iSampleRate: "float – audio sample rate",
+    iMidiCC: "sampler2D – MIDI CC values (128x1 texture, use getCC() to access)"
 }
+
+const functionDetails: Record<string, string> = {
+    getCC: "float getCC(int cc) – returns MIDI CC value (0.0-1.0) for controller 0-127"
+}
+
+const allDetails = { ...uniformDetails, ...functionDetails }
 
 monaco.languages.register({ id: "glsl" })
 
 monaco.languages.setMonarchTokensProvider("glsl", {
     shadertoyGlobals,
+    shadertoyFunctions,
     glslTypes,
     glslKeywords,
     glslBuiltins,
@@ -69,6 +81,7 @@ monaco.languages.setMonarchTokensProvider("glsl", {
             [/[a-zA-Z_]\w*/, {
                 cases: {
                     "@shadertoyGlobals": "variable.predefined",
+                    "@shadertoyFunctions": "support.function",
                     "@glslTypes": "type",
                     "@glslKeywords": "keyword",
                     "@glslBuiltins": "support.function",
@@ -136,6 +149,14 @@ monaco.languages.registerCompletionItemProvider("glsl", {
                 detail: uniformDetails[name],
                 range
             })),
+            ...shadertoyFunctions.map(name => ({
+                label: name,
+                kind: monaco.languages.CompletionItemKind.Function,
+                insertText: name + "($0)",
+                insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+                detail: functionDetails[name],
+                range
+            })),
             ...glslBuiltins.map(name => ({
                 label: name,
                 kind: monaco.languages.CompletionItemKind.Function,
@@ -172,7 +193,7 @@ monaco.languages.registerHoverProvider("glsl", {
     provideHover: (model, position) => {
         const word = model.getWordAtPosition(position)
         if (!word) return null
-        const detail = uniformDetails[word.word]
+        const detail = allDetails[word.word]
         if (!detail) return null
         return {
             range: {
