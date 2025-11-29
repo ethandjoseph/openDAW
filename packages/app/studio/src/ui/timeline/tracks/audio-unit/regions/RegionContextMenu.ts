@@ -137,9 +137,20 @@ export const installRegionContextMenu =
                     MenuItem.default({
                         label: "No Warp",
                         checked: region.type === "audio-region" && region.playback.getValue() === AudioPlayback.NoSync
-                    }).setTriggerProcedure(() =>
-                        editing.modify(AudioAdapterEditing.toNoWarp(selection.selected()
-                            .filter((region): region is AudioRegionBoxAdapter => region.type === "audio-region"))))
+                    }).setTriggerProcedure(async () => {
+                            const {status, value: editExec, error} =
+                                await Promises.tryCatch(AudioAdapterEditing.toNoWarp(selection.selected()
+                                    .filter((region): region is AudioRegionBoxAdapter => region.type === "audio-region")))
+                            if (status === "rejected") {
+                                await RuntimeNotifier.info({
+                                    headline: "Error",
+                                    message: `Could not detect transients (${error})`
+                                })
+                                return panic(error)
+                            }
+                            editing.modify(editExec)
+                        }
+                    )
                 )),
                 MenuItem.default({
                     label: "Calc Bpm",

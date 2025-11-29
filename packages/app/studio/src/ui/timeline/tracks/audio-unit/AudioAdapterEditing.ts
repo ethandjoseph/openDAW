@@ -1,5 +1,5 @@
 import {AudioClipBoxAdapter, AudioRegionBoxAdapter} from "@opendaw/studio-adapters"
-import {EmptyExec, Exec, isDefined, panic, UUID} from "@opendaw/lib-std"
+import {EmptyExec, Exec, isDefined, panic, RuntimeNotifier, UUID} from "@opendaw/lib-std"
 import {Promises} from "@opendaw/lib-runtime"
 import {DefaultSampleLoaderManager, Workers} from "@opendaw/studio-core"
 import {AudioWarpingBox, TransientMarkerBox, WarpMarkerBox} from "@opendaw/studio-boxes"
@@ -7,15 +7,22 @@ import {AudioPlayback} from "@opendaw/studio-enums"
 import {BoxGraph} from "@opendaw/lib-box"
 
 export namespace AudioAdapterEditing {
-    export const toNoWarp = (adapters: ReadonlyArray<AudioRegionBoxAdapter | AudioClipBoxAdapter>): Exec => {
+    export const toNoWarp = async (adapters: ReadonlyArray<AudioRegionBoxAdapter | AudioClipBoxAdapter>): Promise<Exec> => {
         const audioAdapters = adapters.filter(adapter => adapter.playback.getValue() !== AudioPlayback.NoSync)
         if (audioAdapters.length === 0) {return EmptyExec}
+        let deleteWarpMarkers = false
+        if (audioAdapters.filter(adapter => adapter.warping.nonEmpty()).length > 0) {
+            deleteWarpMarkers = await RuntimeNotifier
+                .approve({headline: "Delete Warp Markers", message: "Do you want to delete the warp markers?"})
+        }
         return () => audioAdapters.forEach(adapter => {
-            const warpingPointer = adapter.box.warping
-            const warping = warpingPointer.targetVertex.unwrapOrNull()
-            warpingPointer.defer()
-            if (isDefined(warping)) {
-                warping.box.delete()
+            if (deleteWarpMarkers) {
+                const warpingPointer = adapter.box.warping
+                const warping = warpingPointer.targetVertex.unwrapOrNull()
+                warpingPointer.defer()
+                if (isDefined(warping)) {
+                    warping.box.delete()
+                }
             }
             adapter.setPlayback(AudioPlayback.NoSync)
         })
