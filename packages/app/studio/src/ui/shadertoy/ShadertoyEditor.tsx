@@ -104,7 +104,7 @@ export const ShadertoyEditor = ({service, lifecycle}: Construct) => {
                                 return // Let Monaco handle these
                             }
                             event.stopPropagation()
-                        }, {capture: true}),
+                        }),
                         Events.subscribe(container, "keyup", event => {
                             if ((event.ctrlKey || event.metaKey) && allowed.includes(event.key.toLowerCase())) {
                                 return // Let Monaco handle these
