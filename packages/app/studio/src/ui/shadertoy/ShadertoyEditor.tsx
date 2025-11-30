@@ -32,6 +32,7 @@ type Construct = {
 export const ShadertoyEditor = ({service, lifecycle}: Construct) => {
     const {project} = service
     const {boxGraph, editing, rootBox} = project
+    let ignoreBoxUpdate = false // prevents reloading the script into the editor
     return (
         <div className={className}>
             <Await
@@ -94,6 +95,7 @@ export const ShadertoyEditor = ({service, lifecycle}: Construct) => {
                         }
                     }
                     const saveShadertoyCode = (code: string) => {
+                        ignoreBoxUpdate = true
                         editing.modify(() => {
                             if (rootBox.shadertoy.isEmpty()) {
                                 rootBox.shadertoy
@@ -102,6 +104,7 @@ export const ShadertoyEditor = ({service, lifecycle}: Construct) => {
                                 asInstanceOf(rootBox.shadertoy.targetVertex.unwrap(), ShadertoyBox).shaderCode.setValue(code)
                             }
                         })
+                        ignoreBoxUpdate = false
                     }
                     const deleteShadertoyCode = () => {
                         editing.modify(() => {
@@ -116,14 +119,15 @@ export const ShadertoyEditor = ({service, lifecycle}: Construct) => {
                         monaco.editor.setModelMarkers(editor.getModel()!, "glsl", [])
                         saveShadertoyCode(code)
                     }
+                    editor.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.Enter, compileAndRun)
                     const shadertoyLifecycle = lifecycle.own(new Terminator())
                     lifecycle.ownAll(
                         rootBox.shadertoy.catchupAndSubscribe(pointer => {
-                            console.debug("pointer changed")
                             shadertoyLifecycle.terminate()
                             if (pointer.nonEmpty()) {
                                 shadertoyLifecycle.own(asInstanceOf(rootBox.shadertoy.targetVertex.unwrap(), ShadertoyBox)
                                     .shaderCode.catchupAndSubscribe(owner => {
+                                        if (ignoreBoxUpdate) {return}
                                         const value = owner.getValue()
                                         if (value === "") {return}
                                         model.setValue(value)
@@ -144,11 +148,11 @@ export const ShadertoyEditor = ({service, lifecycle}: Construct) => {
                                     service.projectProfileService.save().then(EmptyProcedure, EmptyProcedure)
                                 }
                                 event.preventDefault()
-                            } else if (event.altKey && event.key === "Enter") {
+                            }/* else if (event.altKey && event.key === "Enter") {
                                 compileAndRun()
                                 event.preventDefault()
                                 event.stopPropagation()
-                            }
+                            }*/
                         }, {capture: true}),
                         Events.subscribe(container, "keydown", event => {
                             if ((event.ctrlKey || event.metaKey) && allowed.includes(event.key.toLowerCase())) {
