@@ -1,4 +1,4 @@
-import {Terminable} from "@opendaw/lib-std"
+import {clampUnit, Terminable} from "@opendaw/lib-std"
 import {gainToDb, PPQN} from "@opendaw/lib-dsp"
 
 export class ShadertoyRunner implements Terminable {
@@ -154,7 +154,7 @@ export class ShadertoyRunner implements Terminable {
         const binWidth = nyquist / numBins
         const ratio = maxFreq / minFreq
         for (let i = 0; i < 512; i++) {
-            const t = i / 511.0
+            const t = i / 512.0
             const freq = minFreq * Math.pow(ratio, t)
             const bin = freq / binWidth
             const binLow = Math.floor(bin)
@@ -163,10 +163,8 @@ export class ShadertoyRunner implements Terminable {
             const valueLow = binLow > 0 ? data[binLow] : 0.0
             const valueHigh = data[binHigh]
             const value = valueLow + frac * (valueHigh - valueLow)
-            const dB = gainToDb(value)
-            const normalized = (dB + 60.0) / 60.0
-            const clamped = Math.max(0.0, Math.min(1.0, normalized))
-            this.#audioData[i] = Math.floor(clamped * 255.0)
+            const normalized = (gainToDb(value) + 60.0) / 60.0
+            this.#audioData[i] = Math.floor(clampUnit(normalized) * 255.0)
         }
     }
 

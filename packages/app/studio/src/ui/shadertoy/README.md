@@ -7,6 +7,5 @@
 
 ### TODO
 
-* design for non-running shader (currently black)
 * waveform
 * export video
