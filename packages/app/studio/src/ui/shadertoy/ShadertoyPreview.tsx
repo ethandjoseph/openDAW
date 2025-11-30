@@ -36,7 +36,7 @@ export const ShadertoyPreview = ({lifecycle, service}: Construct) => {
     const output: HTMLElement = <p className="status"/>
     return (
         <div className={className}>
-            <h1>Shader Visualizations</h1>
+            <h1>Shadertoy</h1>
             <p>
                 Write GLSL shaders to create visuals for your music. The editor supports <a
                 href="https://shadertoy.com/" target="shadertoy">Shadertoy</a> compatible syntax. Audio spectrum is
@@ -52,7 +52,6 @@ export const ShadertoyPreview = ({lifecycle, service}: Construct) => {
                 }
                 const runner = new ShadertoyRunner(gl)
                 const shaderLifecycle = lifecycle.own(new Terminator())
-                const ccValues = new Float32Array(128)
                 lifecycle.ownAll(
                     Terminable.create(() => procedure = EmptyProcedure),
                     service.project.rootBox.shadertoy.catchupAndSubscribe(({targetVertex}) => {
@@ -75,11 +74,12 @@ export const ShadertoyPreview = ({lifecycle, service}: Construct) => {
                                         canvas.width = canvas.clientWidth * devicePixelRatio
                                         canvas.height = canvas.clientHeight * devicePixelRatio
                                         gl.viewport(0, 0, canvas.width, canvas.height)
-                                        runner.setMidiCC(ccValues)
                                         runner.render()
                                     }))
                                     procedure = message => MidiData.accept(message, {
-                                        controller: (id: byte, value: unitValue) => ccValues[id] = value
+                                        controller: (id: byte, value: unitValue) => runner.onMidiCC(id, value),
+                                        noteOn: (note: byte, velocity: byte) => runner.onMidiNoteOn(note, velocity),
+                                        noteOff: (note: byte) => runner.onMidiNoteOff(note)
                                     })
                                 })
                             }

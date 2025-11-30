@@ -6,13 +6,13 @@ self.MonacoEnvironment = {
 }
 
 const shadertoyGlobals = [
-    "iResolution", "iTime", "iTimeDelta", "iFrame", "iChannelTime",
-    "iChannelResolution", "iMouse", "iChannel0", "iChannel1",
-    "iChannel2", "iChannel3", "iDate", "iSampleRate", "iMidiCC"
+    "iResolution", "iTime", "iTimeDelta", "iFrame",
+    "iChannelResolution", "iChannel0", "iMidiCC", "iMidiNotes"
 ]
 
 const shadertoyFunctions = [
-    "midiCC"
+    "midiCC",
+    "midiNote"
 ]
 
 const glslTypes = [
@@ -46,24 +46,19 @@ const glslBuiltins = [
 ]
 
 const uniformDetails: Record<string, string> = {
-    iResolution: "vec3 – viewport resolution (width, height, pixel aspect ratio)",
+    iResolution: "vec3 – viewport resolution (width, height, 1.0)",
     iTime: "float – elapsed time in seconds",
     iTimeDelta: "float – time since last frame in seconds",
     iFrame: "int – frame counter",
-    iChannelTime: "float[4] – playback time for each channel",
-    iChannelResolution: "vec3[4] – resolution of each channel",
-    iMouse: "vec4 – mouse coordinates (xy = current, zw = click)",
-    iChannel0: "sampler2D – input texture 0 (audio: row 0 = waveform, row 1 = spectrum)",
-    iChannel1: "sampler2D – input texture 1",
-    iChannel2: "sampler2D – input texture 2",
-    iChannel3: "sampler2D – input texture 3",
-    iDate: "vec4 – year, month, day, time in seconds",
-    iSampleRate: "float – audio sample rate",
-    iMidiCC: "sampler2D – MIDI CC values (128x1 texture, use midiCC() to access)"
+    iChannelResolution: "vec3[1] – resolution of iChannel0 (512, 2, 1)",
+    iChannel0: "sampler2D – audio texture (row 0 = waveform, row 1 = spectrum)",
+    iMidiCC: "sampler2D – MIDI CC values (128x1 texture, use midiCC() to access)",
+    iMidiNotes: "sampler2D – MIDI note velocities (128x1 texture, use midiNote() to access)"
 }
 
 const functionDetails: Record<string, string> = {
-    midiCC: "float midiCC(int cc) – returns MIDI CC value (0.0-1.0) for controller 0-127"
+    midiCC: "float midiCC(int cc) – returns MIDI CC value (0.0-1.0) for controller 0-127",
+    midiNote: "float midiNote(int pitch) – returns velocity (0.0-1.0) if note is on, 0.0 if off"
 }
 
 const allDetails = { ...uniformDetails, ...functionDetails }
