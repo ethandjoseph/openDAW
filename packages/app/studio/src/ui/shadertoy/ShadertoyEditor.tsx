@@ -143,6 +143,8 @@ export const ShadertoyEditor = ({service, lifecycle}: Construct) => {
                                 event.preventDefault()
                             } else if (event.altKey && event.key === "Enter") {
                                 compileAndRun()
+                                event.preventDefault()
+                                event.stopPropagation()
                             }
                         }, {capture: true}),
                         Events.subscribe(container, "keydown", event => {
