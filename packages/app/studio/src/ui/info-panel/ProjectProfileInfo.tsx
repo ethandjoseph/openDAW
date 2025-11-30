@@ -89,7 +89,7 @@ export const ProjectProfileInfo = ({lifecycle, service}: Construct) => {
             <label info="Maximum 512 characters">{inputDescription}</label>
             <div className="label">Cover</div>
             <Cover lifecycle={lifecycle} model={coverModel}/>
-            <div className="beta-section" style={{display: "contents"}}>
+            <div className="experimental-section" style={{display: "contents"}}>
                 <div className="label"/>
                 <div style={{display: "flex", flexDirection: "column", rowGap: "1em"}}>
                     <div>

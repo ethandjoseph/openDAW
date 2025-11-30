@@ -9,11 +9,10 @@ import {createElement, Frag, RouteLocation} from "@opendaw/lib-jsx"
 import {StudioService} from "@/service/StudioService"
 import {MenuButton} from "@/ui/components/MenuButton.tsx"
 import {Workspace} from "@/ui/workspace/Workspace.ts"
-import {IconSymbol} from "@opendaw/studio-enums"
+import {Colors, IconSymbol} from "@opendaw/studio-enums"
 import {Html} from "@opendaw/lib-dom"
 import {MenuItem} from "@/ui/model/menu-item"
 import {MidiDevices} from "@opendaw/studio-core"
-import {Colors} from "@opendaw/studio-enums"
 import {Manual, Manuals} from "@/ui/pages/Manuals"
 import {HorizontalPeakMeter} from "@/ui/components/HorizontalPeakMeter"
 import {Address} from "@opendaw/lib-box"
@@ -160,7 +159,10 @@ export const Header = ({lifecycle, service}: Construct) => {
                                 .map(([key, {icon: iconSymbol, name}]) => ({
                                     value: key,
                                     element: <Icon symbol={iconSymbol}/>,
-                                    tooltip: name
+                                    tooltip: name,
+                                    className: name === "Shadertoy" || name === "Modular"
+                                        ? "experimental-section"
+                                        : undefined
                                 }))}
                             appearance={{framed: true, landscape: true}}/>
             </div>

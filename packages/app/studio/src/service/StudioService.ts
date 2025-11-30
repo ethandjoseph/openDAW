@@ -452,6 +452,6 @@ export class StudioService implements ProjectEnv {
         Preferences.catchupAndSubscribe(value =>
             Dragging.usePointerLock = value && Browser.isChrome(), "dragging-use-pointer-lock")
         Preferences.catchupAndSubscribe(value =>
-            document.body.classList.toggle("beta-visible", value), "enable-beta-features")
+            document.body.classList.toggle("experimental-visible", value), "enable-beta-features")
     }
 }
