@@ -30,7 +30,7 @@ type Construct = {
 let procedure: Procedure<Uint8Array> = EmptyProcedure
 
 MidiDevices.createSoftwareMIDIOutput(
-    message => procedure(message), "openDAW Shadertoy Editor", "openDAW-shadertoy")
+    message => procedure(message), "Shadertoy", "openDAW-shadertoy")
 
 export const ShadertoyPreview = ({lifecycle, service}: Construct) => {
     const output: HTMLElement = <p className="status"/>
@@ -41,9 +41,8 @@ export const ShadertoyPreview = ({lifecycle, service}: Construct) => {
                 Write GLSL shaders to create visuals for your music. The editor supports <a
                 href="https://shadertoy.com/" target="shadertoy">Shadertoy</a> compatible syntax. Audio spectrum is
                 available via iChannel0, and MIDI data arrives when you route a MIDI output to the <span
-                style={{color: Colors.green.toString()}}>openDAW Shadertoy Editor</span>.
+                style={{color: Colors.green.toString()}}>Shadertoy</span>.
             </p>
-            <code></code>
             <canvas onInit={canvas => {
                 const gl = canvas.getContext("webgl2")
                 if (isAbsent(gl)) {

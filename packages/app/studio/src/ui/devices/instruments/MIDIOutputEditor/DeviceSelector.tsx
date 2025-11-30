@@ -104,6 +104,10 @@ export const DeviceSelector = ({lifecycle, project, adapter}: Construct) => {
                             disconnectedDevice.delete()
                         }
                     })))))
+                if (MidiDevices.get().isEmpty()) {
+                    parent.addMenuItem(MenuItem.default({label: "Request MIDI...", separatorBefore: true})
+                        .setTriggerProcedure(() => MidiDevices.requestPermission()))
+                }
             })} style={{width: "100%"}} appearance={{color: Colors.dark, activeColor: Colors.gray}}>
                 <div className={deviceLabelClass}
                      onInit={element => {
