@@ -7,5 +7,6 @@
 
 ### TODO
 
+* option to disable devicePixelRatio scaling
 * spectrum and waveform
 * export video

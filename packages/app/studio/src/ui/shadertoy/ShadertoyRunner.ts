@@ -14,6 +14,7 @@ export class ShadertoyRunner implements Terminable {
         iTimeDelta: WebGLUniformLocation | null
         iFrame: WebGLUniformLocation | null
         iBeat: WebGLUniformLocation | null
+        iPeaks: WebGLUniformLocation | null
         iChannelResolution: WebGLUniformLocation | null
         iChannel0: WebGLUniformLocation | null
         iMidiCC: WebGLUniformLocation | null
@@ -24,6 +25,7 @@ export class ShadertoyRunner implements Terminable {
         iTimeDelta: null,
         iFrame: null,
         iBeat: null,
+        iPeaks: null,
         iChannelResolution: null,
         iChannel0: null,
         iMidiCC: null,
@@ -39,6 +41,7 @@ export class ShadertoyRunner implements Terminable {
     #lastFrameTime = 0.0
     #frameCount = 0
     #beat = 0.0
+    #peaks = new Float32Array(4) // [leftPeak, leftRMS, rightPeak, rightRMS]
 
     static readonly #VERTEX_SHADER = `#version 300 es
         in vec4 aPosition;
@@ -53,6 +56,7 @@ export class ShadertoyRunner implements Terminable {
         uniform float iTime;
         uniform float iTimeDelta;
         uniform int iFrame;
+        uniform vec4 iPeaks; // leftPeak, leftRMS, rightPeak, rightRMS
         uniform vec3 iChannelResolution[1];
         uniform sampler2D iChannel0;
         uniform sampler2D iMidiCC;
@@ -89,9 +93,7 @@ export class ShadertoyRunner implements Terminable {
             gl.deleteProgram(this.#program)
             this.#program = null
         }
-        // Clear any previous errors
         while (gl.getError() !== gl.NO_ERROR) {}
-
         const vertexShader = this.#compileShader(gl.VERTEX_SHADER, ShadertoyRunner.#VERTEX_SHADER)
         const fullFragmentSource = ShadertoyRunner.#FRAGMENT_PREFIX + fragmentSource + ShadertoyRunner.#FRAGMENT_SUFFIX
         const fragmentShader = this.#compileShader(gl.FRAGMENT_SHADER, fullFragmentSource)
@@ -116,6 +118,7 @@ export class ShadertoyRunner implements Terminable {
             iTimeDelta: gl.getUniformLocation(this.#program, "iTimeDelta"),
             iFrame: gl.getUniformLocation(this.#program, "iFrame"),
             iBeat: gl.getUniformLocation(this.#program, "iBeat"),
+            iPeaks: gl.getUniformLocation(this.#program, "iPeaks"),
             iChannelResolution: gl.getUniformLocation(this.#program, "iChannelResolution"),
             iChannel0: gl.getUniformLocation(this.#program, "iChannel0"),
             iMidiCC: gl.getUniformLocation(this.#program, "iMidiCC"),
@@ -153,8 +156,20 @@ export class ShadertoyRunner implements Terminable {
         }
     }
 
+    /**
+     * Sets the beat position.
+     * @param ppqn Position in PPQN ticks
+     */
     setPPQN(ppqn: number): void {
         this.#beat = ppqn / PPQN.Quarter
+    }
+
+    /**
+     * Sets stereo peak and RMS values.
+     * @param peaks Float32Array with [leftPeak, leftRMS, rightPeak, rightRMS]
+     */
+    setPeaks(peaks: Float32Array): void {
+        this.#peaks.set(peaks)
     }
 
     /**
@@ -223,6 +238,7 @@ export class ShadertoyRunner implements Terminable {
         gl.uniform1f(this.#uniformLocations.iTimeDelta, timeDelta)
         gl.uniform1i(this.#uniformLocations.iFrame, this.#frameCount)
         gl.uniform1f(this.#uniformLocations.iBeat, this.#beat)
+        gl.uniform4fv(this.#uniformLocations.iPeaks, this.#peaks)
         gl.uniform3fv(this.#uniformLocations.iChannelResolution, [512.0, 2.0, 1.0])
         gl.uniform1i(this.#uniformLocations.iChannel0, 0)
         gl.uniform1i(this.#uniformLocations.iMidiCC, 1)

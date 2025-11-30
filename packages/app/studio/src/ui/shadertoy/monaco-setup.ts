@@ -6,7 +6,7 @@ self.MonacoEnvironment = {
 }
 
 const shadertoyGlobals = [
-    "iResolution", "iTime", "iBeat", "iTimeDelta", "iFrame",
+    "iResolution", "iTime", "iBeat", "iPeaks", "iTimeDelta", "iFrame",
     "iChannelResolution", "iChannel0", "iMidiCC", "iMidiNotes"
 ]
 

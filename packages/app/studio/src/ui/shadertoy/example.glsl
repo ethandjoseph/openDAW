@@ -3,6 +3,7 @@
  * midiNote(int pitch) - returns normalized velocity or 0. if off. Pitch: 60 = C4
  * midiCC(int cc)      - returns normalized CC value
  * iBeat               - returns normalized beat position (ppqn / PPQN.Quaver)
+ * iPeaks              - returns vec4(leftPeak, rightPeak, leftRMS, rightRMS)
  */
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     // Normalized pixel coordinates (from 0 to 1)

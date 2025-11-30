@@ -9,7 +9,8 @@ import {
     Terminable,
     Terminator,
     tryCatch,
-    unitValue
+    unitValue,
+    UUID
 } from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {StudioService} from "@/service/StudioService"
@@ -18,6 +19,7 @@ import {ShadertoyBox} from "@opendaw/studio-boxes"
 import {MidiData} from "@opendaw/lib-midi"
 import {Colors} from "@opendaw/studio-enums"
 import {ShadertoyMIDIOutput} from "@/ui/shadertoy/ShadertoyMIDIOutput"
+import {Address} from "@opendaw/lib-box"
 
 const className = Html.adoptStyleSheet(css, "ShadertoyPreview")
 
@@ -65,18 +67,24 @@ export const ShadertoyPreview = ({lifecycle, service}: Construct) => {
                                         }
                                         output.textContent = "Running"
                                         runner.resetTime()
+                                        const peaks = new Float32Array(4)
                                         shaderLifecycle.ownAll(
                                             AnimationFrame.add(() => {
                                                 canvas.width = canvas.clientWidth * devicePixelRatio
                                                 canvas.height = canvas.clientHeight * devicePixelRatio
                                                 gl.viewport(0, 0, canvas.width, canvas.height)
+                                                runner.setPeaks(peaks)
                                                 runner.setPPQN(service.engine.position.getValue())
                                                 runner.render()
-                                            }), ShadertoyMIDIOutput.subscribe(message => MidiData.accept(message, {
+                                            }),
+                                            ShadertoyMIDIOutput.subscribe(message => MidiData.accept(message, {
                                                 controller: (id: byte, value: unitValue) => runner.onMidiCC(id, value),
                                                 noteOn: (note: byte, velocity: byte) => runner.onMidiNoteOn(note, velocity),
                                                 noteOff: (note: byte) => runner.onMidiNoteOff(note)
-                                            }))
+                                            })),
+                                            service.project.liveStreamReceiver
+                                                .subscribeFloats(Address.compose(UUID.Lowest), (enginePeaks) =>
+                                                    peaks.set(enginePeaks, 0))
                                         )
                                     })
                                 }

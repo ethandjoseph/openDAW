@@ -9,7 +9,8 @@ import {
     Terminable,
     Terminator,
     tryCatch,
-    unitValue
+    unitValue,
+    UUID
 } from "@opendaw/lib-std"
 import {createElement, Frag, replaceChildren} from "@opendaw/lib-jsx"
 import {StudioService} from "@/service/StudioService"
@@ -18,6 +19,7 @@ import {ShadertoyBox} from "@opendaw/studio-boxes"
 import {MidiData} from "@opendaw/lib-midi"
 import {ShadertoyMIDIOutput} from "@/ui/shadertoy/ShadertoyMIDIOutput"
 import {ShadertoyLogo} from "@/ui/devices/panel/ShadertoyLogo"
+import {Address} from "@opendaw/lib-box"
 
 const className = Html.adoptStyleSheet(css, "ShadertoyPreview")
 
@@ -44,6 +46,7 @@ export const ShadertoyPreview = ({lifecycle, service}: Construct) => {
                         }
                         const runner = new ShadertoyRunner(gl)
                         const shaderLifecycle = lifecycle.own(new Terminator())
+                        const peaks = new Float32Array(4)
                         lifecycle.ownAll(
                             visible.catchupAndSubscribe(owner => canvas.classList.toggle("hidden", !owner.getValue())),
                             service.project.rootBox.shadertoy.catchupAndSubscribe(({targetVertex}) => {
@@ -70,6 +73,7 @@ export const ShadertoyPreview = ({lifecycle, service}: Construct) => {
                                                         canvas.height = canvas.clientHeight * devicePixelRatio
                                                         gl.viewport(0, 0, canvas.width, canvas.height)
                                                         runner.setPPQN(service.engine.position.getValue())
+                                                        runner.setPeaks(peaks)
                                                         runner.render()
                                                     }
                                                 }),
@@ -83,6 +87,9 @@ export const ShadertoyPreview = ({lifecycle, service}: Construct) => {
                                     }
                                 })
                             }),
+                            service.project.liveStreamReceiver
+                                .subscribeFloats(Address.compose(UUID.Lowest), (enginePeaks) =>
+                                    peaks.set(enginePeaks, 0)),
                             Events.subscribe(canvas, "click", async () => {
                                 if (document.fullscreenElement) {
                                     await document.exitFullscreen()
