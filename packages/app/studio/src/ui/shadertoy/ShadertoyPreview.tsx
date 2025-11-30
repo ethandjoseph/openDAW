@@ -1,5 +1,5 @@
 import css from "./ShadertoyPreview.sass?inline"
-import {AnimationFrame, Html} from "@opendaw/lib-dom"
+import {AnimationFrame, Events, Html} from "@opendaw/lib-dom"
 import {
     asInstanceOf,
     byte,
@@ -81,6 +81,13 @@ export const ShadertoyPreview = ({lifecycle, service}: Construct) => {
                                     })
                                 }
                             })
+                        }),
+                        Events.subscribe(canvas, "click", async () => {
+                            if (document.fullscreenElement) {
+                                await document.exitFullscreen()
+                            } else {
+                                await canvas.requestFullscreen()
+                            }
                         })
                     )
                 }}/>

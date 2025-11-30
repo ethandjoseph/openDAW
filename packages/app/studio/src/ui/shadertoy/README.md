@@ -7,6 +7,5 @@
 
 ### TODO
 
-* Fullscreen
 * spectrum and waveform
 * export video
