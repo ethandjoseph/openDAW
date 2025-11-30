@@ -50,7 +50,16 @@ import {UpdateClock} from "./UpdateClock"
 import {PeakBroadcaster} from "./PeakBroadcaster"
 import {Metronome} from "./Metronome"
 import {BlockRenderer} from "./BlockRenderer"
-import {AudioData, ConstantTempoMap, Graph, ppqn, PPQN, TempoMap, TopologicalSort} from "@opendaw/lib-dsp"
+import {
+    AudioData,
+    ConstantTempoMap,
+    Graph,
+    ppqn,
+    PPQN,
+    RenderQuantum,
+    TempoMap,
+    TopologicalSort
+} from "@opendaw/lib-dsp"
 import {SampleManagerWorklet} from "./SampleManagerWorklet"
 import {ClipSequencingAudioContext} from "./ClipSequencingAudioContext"
 import {Communicator, Messenger} from "@opendaw/lib-runtime"
@@ -87,7 +96,6 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
     readonly #updateClock: UpdateClock
     readonly #peaks: PeakBroadcaster
     readonly #spectrumAnalyser: SpectrumAnalyser
-    readonly #spectrum: Float32Array
     readonly #metronome: Metronome
     readonly #midiTransportClock: MIDITransportClock
 
@@ -171,9 +179,9 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
         this.#updateClock = new UpdateClock(this)
         this.#peaks = this.#terminator.own(new PeakBroadcaster(this.#liveStreamBroadcaster, EngineAddresses.PEAKS))
         this.#spectrumAnalyser = new SpectrumAnalyser()
-        this.#spectrum = new Float32Array(this.#spectrumAnalyser.numBins())
-        this.#terminator.own(this.#liveStreamBroadcaster.broadcastFloats(EngineAddresses.SPECTRUM, this.#spectrum, () => {
-            this.#spectrum.set(this.#spectrumAnalyser.bins())
+        const spectrum = new Float32Array(this.#spectrumAnalyser.numBins())
+        this.#terminator.own(this.#liveStreamBroadcaster.broadcastFloats(EngineAddresses.SPECTRUM, spectrum, () => {
+            spectrum.set(this.#spectrumAnalyser.bins())
             this.#spectrumAnalyser.decay = true
         }))
         this.#clipSequencing = this.#terminator.own(new ClipSequencingAudioContext(this.#boxGraph))
@@ -310,6 +318,7 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
             this.#primaryOutput.unwrap().audioOutput().replaceInto(output)
             if (metronomeEnabled) {this.#metronome.output.mixInto(output)}
             this.#peaks.process(output[0], output[1])
+            this.#spectrumAnalyser.process(output[0], output[1], 0, RenderQuantum)
         } else {
             this.#stemExports.forEach((unit: AudioUnit, index: int) => {
                 const [l, r] = unit.audioOutput().channels()

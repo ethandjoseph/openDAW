@@ -80,6 +80,7 @@ export class EngineFacade implements Engine {
     get countInBeatsRemaining(): ObservableValue<int> {return this.#countInBeatsRemaining}
     get markerState(): DefaultObservableValue<Nullable<[UUID.Bytes, int]>> {return this.#markerState}
     get project(): Project {return this.#worklet.unwrap("No worklet to get project").project}
+    get sampleRate(): number {return this.#worklet.isEmpty() ? 44_100 : this.#worklet.unwrap().context.sampleRate}
 
     isReady(): Promise<void> {return this.#worklet.mapOr(worklet => worklet.isReady(), Promise.resolve())}
     queryLoadingComplete(): Promise<boolean> {
@@ -88,7 +89,6 @@ export class EngineFacade implements Engine {
     panic(): void {this.#worklet.ifSome(worklet => worklet.panic())}
     sleep(): void {this.#worklet.ifSome(worklet => worklet.sleep())}
     wake(): void {this.#worklet.ifSome(worklet => worklet.wake())}
-    sampleRate(): number {return this.#worklet.isEmpty() ? 44_100 : this.#worklet.unwrap().context.sampleRate}
     subscribeClipNotification(observer: Observer<ClipNotification>): Subscription {
         return this.#worklet.unwrap("No worklet to subscribeClipNotification").subscribeClipNotification(observer)
     }

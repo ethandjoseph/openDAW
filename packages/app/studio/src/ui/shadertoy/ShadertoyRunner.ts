@@ -1,5 +1,5 @@
 import {Terminable} from "@opendaw/lib-std"
-import {PPQN} from "@opendaw/lib-dsp"
+import {gainToDb, PPQN} from "@opendaw/lib-dsp"
 
 export class ShadertoyRunner implements Terminable {
     readonly #gl: WebGL2RenderingContext
@@ -134,7 +134,7 @@ export class ShadertoyRunner implements Terminable {
         const length = Math.min(data.length, 512)
         if (data.BYTES_PER_ELEMENT === 4) {
             for (let i = 0; i < length; i++) {
-                this.#audioData[i] = Math.floor(data[i] * 255.0)
+                this.#audioData[512 + i] = Math.floor(data[i] * 255.0)
             }
         } else {
             this.#audioData.set(data.subarray(0, length), 0)
@@ -143,16 +143,30 @@ export class ShadertoyRunner implements Terminable {
 
     /**
      * Sets the spectrum/FFT data (row 1 of iChannel0).
-     * @param data Up to 512 samples, normalized 0-255 for Uint8Array or 0.0-1.0 for Float32Array
+     * @param data 512 in Float32Array
+     * @param sampleRate Sample rate in Hz
      */
-    setSpectrum(data: Uint8Array | Float32Array): void {
-        const length = Math.min(data.length, 512)
-        if (data.BYTES_PER_ELEMENT === 4) {
-            for (let i = 0; i < length; i++) {
-                this.#audioData[512 + i] = Math.floor(data[i] * 255.0)
-            }
-        } else {
-            this.#audioData.set(data.subarray(0, length), 512)
+    setSpectrum(data: Float32Array, sampleRate: number): void {
+        const minFreq = 20.0
+        const maxFreq = 20000.0
+        const nyquist = sampleRate / 2.0
+        const numBins = data.length
+        const binWidth = nyquist / numBins
+        const ratio = maxFreq / minFreq
+        for (let i = 0; i < 512; i++) {
+            const t = i / 511.0
+            const freq = minFreq * Math.pow(ratio, t)
+            const bin = freq / binWidth
+            const binLow = Math.floor(bin)
+            const binHigh = Math.min(binLow + 1, numBins - 1)
+            const frac = bin - binLow
+            const valueLow = binLow > 0 ? data[binLow] : 0.0
+            const valueHigh = data[binHigh]
+            const value = valueLow + frac * (valueHigh - valueLow)
+            const dB = gainToDb(value)
+            const normalized = (dB + 60.0) / 60.0
+            const clamped = Math.max(0.0, Math.min(1.0, normalized))
+            this.#audioData[i] = Math.floor(clamped * 255.0)
         }
     }
 

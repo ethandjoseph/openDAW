@@ -11,14 +11,12 @@ export const setupShadertoyRunner = (runner: ShadertoyRunner,
                                      service: StudioService,
                                      highres: ValueOwner<boolean>): Terminable => {
     runner.resetTime()
-    const peaks = new Float32Array(4)
-    const {project: {engine: {position}, liveStreamReceiver}} = service
+    const {project: {engine: {position, sampleRate}, liveStreamReceiver}} = service
     return Terminable.many(
         AnimationFrame.add(() => {
             const scale = highres.getValue() ? devicePixelRatio : 1
             canvas.width = canvas.clientWidth * scale
             canvas.height = canvas.clientHeight * scale
-            runner.setPeaks(peaks)
             runner.setPPQN(position.getValue())
             runner.render()
         }),
@@ -27,8 +25,7 @@ export const setupShadertoyRunner = (runner: ShadertoyRunner,
             noteOn: (note: byte, velocity: byte) => runner.onMidiNoteOn(note, velocity),
             noteOff: (note: byte) => runner.onMidiNoteOff(note)
         })),
-        liveStreamReceiver
-            .subscribeFloats(EngineAddresses.PEAKS, (enginePeaks) =>
-                peaks.set(enginePeaks, 0))
+        liveStreamReceiver.subscribeFloats(EngineAddresses.PEAKS, (peaks) => runner.setPeaks(peaks)),
+        liveStreamReceiver.subscribeFloats(EngineAddresses.SPECTRUM, spectrum => runner.setSpectrum(spectrum, sampleRate))
     )
 }
