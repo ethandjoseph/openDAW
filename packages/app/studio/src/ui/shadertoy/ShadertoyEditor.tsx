@@ -193,7 +193,7 @@ export const ShadertoyEditor = ({service, lifecycle}: Construct) => {
                                 </Button>
                                 <Checkbox lifecycle={lifecycle}
                                           model={hiresModel}
-                                          appearance={{framed: true}}>
+                                          appearance={{tooltip: "Disable hd, if available"}}>
                                     Hires
                                 </Checkbox>
                             </header>
