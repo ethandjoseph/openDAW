@@ -12,7 +12,7 @@ const shadertoyGlobals = [
 ]
 
 const shadertoyFunctions = [
-    "getCC"
+    "midiCC"
 ]
 
 const glslTypes = [
@@ -59,11 +59,11 @@ const uniformDetails: Record<string, string> = {
     iChannel3: "sampler2D – input texture 3",
     iDate: "vec4 – year, month, day, time in seconds",
     iSampleRate: "float – audio sample rate",
-    iMidiCC: "sampler2D – MIDI CC values (128x1 texture, use getCC() to access)"
+    iMidiCC: "sampler2D – MIDI CC values (128x1 texture, use midiCC() to access)"
 }
 
 const functionDetails: Record<string, string> = {
-    getCC: "float getCC(int cc) – returns MIDI CC value (0.0-1.0) for controller 0-127"
+    midiCC: "float midiCC(int cc) – returns MIDI CC value (0.0-1.0) for controller 0-127"
 }
 
 const allDetails = { ...uniformDetails, ...functionDetails }

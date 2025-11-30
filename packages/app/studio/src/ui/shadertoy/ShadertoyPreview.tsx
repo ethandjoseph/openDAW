@@ -4,6 +4,7 @@ import {
     asInstanceOf,
     byte,
     EmptyProcedure,
+    isAbsent,
     Lifecycle,
     Procedure,
     Terminable,
@@ -17,6 +18,7 @@ import {ShadertoyRunner} from "@/ui/shadertoy/ShadertoyRunner"
 import {ShadertoyBox} from "@opendaw/studio-boxes"
 import {MidiDevices} from "@opendaw/studio-core"
 import {MidiData} from "@opendaw/lib-midi"
+import {Colors} from "@opendaw/studio-enums"
 
 const className = Html.adoptStyleSheet(css, "ShadertoyPreview")
 
@@ -28,14 +30,26 @@ type Construct = {
 let procedure: Procedure<Uint8Array> = EmptyProcedure
 
 MidiDevices.createSoftwareMIDIOutput(
-    message => procedure(message), "OpenDAW Shadertoy Editor", "openDAW-Shadertoy")
+    message => procedure(message), "openDAW Shadertoy Editor", "openDAW-shadertoy")
 
 export const ShadertoyPreview = ({lifecycle, service}: Construct) => {
-    const output: HTMLElement = <p/>
+    const output: HTMLElement = <p className="status"/>
     return (
         <div className={className}>
+            <h1>Shader Visualizations</h1>
+            <p>
+                Write GLSL shaders to create visuals for your music. The editor supports <a
+                href="https://shadertoy.com/" target="shadertoy">Shadertoy</a> compatible syntax. Audio spectrum is
+                available via iChannel0, and MIDI data arrives when you route a MIDI output to the <span
+                style={{color: Colors.green.toString()}}>openDAW Shadertoy Editor</span>.
+            </p>
+            <code></code>
             <canvas onInit={canvas => {
-                const gl = canvas.getContext("webgl2")!
+                const gl = canvas.getContext("webgl2")
+                if (isAbsent(gl)) {
+                    output.textContent = "WebGL2 not supported"
+                    return
+                }
                 const runner = new ShadertoyRunner(gl)
                 const shaderLifecycle = lifecycle.own(new Terminator())
                 const ccValues = new Float32Array(128)
@@ -64,11 +78,9 @@ export const ShadertoyPreview = ({lifecycle, service}: Construct) => {
                                         runner.setMidiCC(ccValues)
                                         runner.render()
                                     }))
-                                    procedure = message => {
-                                        MidiData.accept(message, {
-                                            controller: (id: byte, value: unitValue) => ccValues[id] = value
-                                        })
-                                    }
+                                    procedure = message => MidiData.accept(message, {
+                                        controller: (id: byte, value: unitValue) => ccValues[id] = value
+                                    })
                                 })
                             }
                         })

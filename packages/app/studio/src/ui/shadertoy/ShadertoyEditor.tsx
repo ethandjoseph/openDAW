@@ -1,7 +1,16 @@
 import css from "./ShadertoyEditor.sass?inline"
-import {asInstanceOf, Lifecycle, UUID} from "@opendaw/lib-std"
+import {
+    asInstanceOf,
+    Attempt,
+    Attempts,
+    EmptyProcedure,
+    isAbsent,
+    Lifecycle,
+    RuntimeNotifier,
+    UUID
+} from "@opendaw/lib-std"
 import {Await, createElement} from "@opendaw/lib-jsx"
-import {Events, Html} from "@opendaw/lib-dom"
+import {Events, Html, Keyboard} from "@opendaw/lib-dom"
 import {Promises} from "@opendaw/lib-runtime"
 import {IconSymbol} from "@opendaw/studio-enums"
 import {ShadertoyBox} from "@opendaw/studio-boxes"
@@ -23,7 +32,6 @@ export const ShadertoyEditor = ({service, lifecycle}: Construct) => {
     const {project} = service
     const {boxGraph, editing, rootBox} = project
     if (rootBox.shadertoy.isEmpty()) {
-        console.debug("New Shader")
         editing.modify(() => rootBox.shadertoy
             .refer(ShadertoyBox.create(boxGraph, UUID.generate(), box => box.shaderCode.setValue(Example))))
     }
@@ -61,32 +69,34 @@ export const ShadertoyEditor = ({service, lifecycle}: Construct) => {
                         automaticLayout: true
                     })
                     const allowed = ["c", "v", "x", "a", "z", "y"]
-                    const compileAndRun = () => {
-                        const code = editor.getValue()
+                    const canCompile = (code: string): Attempt<void, string> => {
                         const canvas = document.createElement("canvas")
                         const gl = canvas.getContext("webgl2")
-                        if (gl) {
-                            try {
-                                const testRunner = new ShadertoyRunner(gl)
-                                testRunner.compile(code)
-                                testRunner.terminate()
-                            } catch (error) {
-                                const match = /ERROR: \d+:(\d+): (.+)/.exec(String(error))
-                                if (match) {
-                                    const lineNumber = parseInt(match[1], 10) - 9
-                                    monaco.editor.setModelMarkers(editor.getModel()!, "glsl", [{
-                                        startLineNumber: lineNumber,
-                                        startColumn: 1,
-                                        endLineNumber: lineNumber,
-                                        endColumn: 1000,
-                                        message: match[2],
-                                        severity: monaco.MarkerSeverity.Error
-                                    }])
-                                }
-                                return
-                            }
+                        if (isAbsent(gl)) {
+                            return Attempts.err("Could not create webgl2 context")
                         }
-                        monaco.editor.setModelMarkers(editor.getModel()!, "glsl", [])
+                        try {
+                            const testRunner = new ShadertoyRunner(gl)
+                            testRunner.compile(code)
+                            testRunner.terminate()
+                            return Attempts.Ok
+                        } catch (error) {
+                            const match = /ERROR: \d+:(\d+): (.+)/.exec(String(error))
+                            if (match) {
+                                const lineNumber = parseInt(match[1], 10) - 9
+                                monaco.editor.setModelMarkers(editor.getModel()!, "glsl", [{
+                                    startLineNumber: lineNumber,
+                                    startColumn: 1,
+                                    endLineNumber: lineNumber,
+                                    endColumn: 1000,
+                                    message: match[2],
+                                    severity: monaco.MarkerSeverity.Error
+                                }])
+                            }
+                            return Attempts.err(String(error))
+                        }
+                    }
+                    const saveShadertoyCode = (code: string) => {
                         editing.modify(() => {
                             if (rootBox.shadertoy.isEmpty()) {
                                 rootBox.shadertoy
@@ -96,9 +106,26 @@ export const ShadertoyEditor = ({service, lifecycle}: Construct) => {
                             }
                         })
                     }
+                    const compileAndRun = () => {
+                        const code = editor.getValue()
+                        if (!canCompile(code)) {return}
+                        monaco.editor.setModelMarkers(editor.getModel()!, "glsl", [])
+                        saveShadertoyCode(code)
+                    }
                     lifecycle.ownAll(
                         Events.subscribe(container, "keydown", event => {
-                            if (event.altKey && event.key === "Enter") {
+                            if (Keyboard.isControlKey(event) && event.code === "KeyS") {
+                                const code = editor.getValue()
+                                const attempt = canCompile(code)
+                                if (attempt.isFailure()) {
+                                    RuntimeNotifier.info({headline: "Cannot Save", message: attempt.failureReason()})
+                                        .then(EmptyProcedure, EmptyProcedure)
+                                } else {
+                                    saveShadertoyCode(code)
+                                    service.projectProfileService.save().then(EmptyProcedure, EmptyProcedure)
+                                }
+                                event.preventDefault()
+                            } else if (event.altKey && event.key === "Enter") {
                                 compileAndRun()
                             } else if ((event.ctrlKey || event.metaKey) && allowed.includes(event.key.toLowerCase())) {
                                 return // Let Monaco handle these
@@ -113,7 +140,6 @@ export const ShadertoyEditor = ({service, lifecycle}: Construct) => {
                         }),
                         Events.subscribe(container, "keypress", event => event.stopPropagation())
                     )
-                    requestAnimationFrame(() => editor.focus())
                     return (
                         <div>
                             <header>

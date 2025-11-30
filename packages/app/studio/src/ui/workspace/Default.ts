@@ -190,14 +190,14 @@ export const DefaultWorkspace = Object.freeze({
             contents: [
                 PanelState.create({
                     type: "panel",
-                    name: "Shadertoy Preview",
+                    name: "Preview",
                     icon: IconSymbol.Shadertoy,
                     panelType: PanelType.ShadertoyPreview,
                     constrains: {type: "flex", minSize: 320, flex: 1}
                 }),
                 PanelState.create({
                     type: "panel",
-                    name: "Shadertoy Editor",
+                    name: "Editor",
                     icon: IconSymbol.Generator,
                     panelType: PanelType.ShadertoyEditor,
                     constrains: {type: "flex", minSize: 0, flex: 1}

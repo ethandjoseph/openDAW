@@ -9,7 +9,6 @@ import {BuildInfo} from "./BuildInfo"
 import {Surface} from "@/ui/surface/Surface.tsx"
 import {replaceChildren} from "@opendaw/lib-jsx"
 import {ContextMenu} from "@/ui/ContextMenu.ts"
-import {Spotlight} from "@/ui/spotlight/Spotlight.tsx"
 import {testFeatures} from "@/features.ts"
 import {MissingFeature} from "@/ui/MissingFeature.tsx"
 import {UpdateMessage} from "@/ui/UpdateMessage.tsx"
@@ -94,8 +93,8 @@ export const boot = async ({workersUrl, workletsUrl}: { workersUrl: string, work
                         }
                     } else if (event.defaultPrevented) {return}
                 }),
-                ContextMenu.install(surface.owner),
-                Spotlight.install(surface, service)
+                ContextMenu.install(surface.owner)
+                // Spotlight.install(surface, service)
             )
         }
     }, errorHandler)
