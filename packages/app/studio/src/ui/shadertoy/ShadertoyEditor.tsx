@@ -106,6 +106,13 @@ export const ShadertoyEditor = ({service, lifecycle}: Construct) => {
                             }
                         })
                     }
+                    const deleteShadertoyCode = () => {
+                        editing.modify(() => {
+                            if (rootBox.shadertoy.nonEmpty()) {
+                                asInstanceOf(rootBox.shadertoy.targetVertex.unwrap(), ShadertoyBox).delete()
+                            }
+                        })
+                    }
                     const compileAndRun = () => {
                         const code = editor.getValue()
                         if (!canCompile(code)) {return}
@@ -147,6 +154,11 @@ export const ShadertoyEditor = ({service, lifecycle}: Construct) => {
                                         onClick={compileAndRun}
                                         appearance={{tooltip: "Run script"}}>
                                     <span>Run (alt+enter)</span> <Icon symbol={IconSymbol.Play}/>
+                                </Button>
+                                <Button lifecycle={lifecycle}
+                                        onClick={deleteShadertoyCode}
+                                        appearance={{tooltip: "Delete script"}}>
+                                    <span>Delete</span> <Icon symbol={IconSymbol.Delete}/>
                                 </Button>
                             </header>
                             {container}

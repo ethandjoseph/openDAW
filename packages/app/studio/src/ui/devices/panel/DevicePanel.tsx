@@ -25,6 +25,7 @@ import {DeviceMount} from "@/ui/devices/panel/DeviceMount"
 import {Box} from "@opendaw/lib-box"
 import {Pointers} from "@opendaw/studio-enums"
 import {Project, ProjectProfile} from "@opendaw/studio-core"
+import {ShadertoyPreview} from "@/ui/devices/panel/ShadertoyPreview"
 
 const className = Html.adoptStyleSheet(css, "DevicePanel")
 
@@ -208,6 +209,7 @@ export const DevicePanel = ({lifecycle, service}: Construct) => {
                           orientation={Orientation.horizontal}/>
             </div>
             {channelStripContainer}
+            <ShadertoyPreview lifecycle={lifecycle} service={service}/>
         </div>
     )
     updateDom.request()
