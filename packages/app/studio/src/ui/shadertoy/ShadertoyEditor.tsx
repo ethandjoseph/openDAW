@@ -119,13 +119,14 @@ export const ShadertoyEditor = ({service, lifecycle}: Construct) => {
                     const shadertoyLifecycle = lifecycle.own(new Terminator())
                     lifecycle.ownAll(
                         rootBox.shadertoy.catchupAndSubscribe(pointer => {
+                            console.debug("pointer changed")
                             shadertoyLifecycle.terminate()
                             if (pointer.nonEmpty()) {
                                 shadertoyLifecycle.own(asInstanceOf(rootBox.shadertoy.targetVertex.unwrap(), ShadertoyBox)
                                     .shaderCode.catchupAndSubscribe(owner => {
                                         const value = owner.getValue()
                                         if (value === "") {return}
-                                        editor.setValue(value)
+                                        model.setValue(value)
                                     }))
                             } else {
                                 editor.setValue(Example)

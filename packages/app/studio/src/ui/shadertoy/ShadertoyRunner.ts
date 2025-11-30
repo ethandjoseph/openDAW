@@ -1,4 +1,5 @@
 import {Terminable} from "@opendaw/lib-std"
+import {PPQN} from "@opendaw/lib-dsp"
 
 export class ShadertoyRunner implements Terminable {
     readonly #gl: WebGL2RenderingContext
@@ -7,19 +8,12 @@ export class ShadertoyRunner implements Terminable {
     readonly #midiNoteData = new Uint8Array(128)
     readonly #noteVelocities: Array<Array<number>> = Array.from({length: 128}, () => [])
 
-    #program: WebGLProgram | null = null
-    #vao: WebGLVertexArrayObject | null = null
-    #audioTexture: WebGLTexture | null = null
-    #midiCCTexture: WebGLTexture | null = null
-    #midiNoteTexture: WebGLTexture | null = null
-    #startTime = 0.0
-    #lastFrameTime = 0.0
-    #frameCount = 0
     #uniformLocations: {
         iResolution: WebGLUniformLocation | null
         iTime: WebGLUniformLocation | null
         iTimeDelta: WebGLUniformLocation | null
         iFrame: WebGLUniformLocation | null
+        iBeat: WebGLUniformLocation | null
         iChannelResolution: WebGLUniformLocation | null
         iChannel0: WebGLUniformLocation | null
         iMidiCC: WebGLUniformLocation | null
@@ -29,11 +23,23 @@ export class ShadertoyRunner implements Terminable {
         iTime: null,
         iTimeDelta: null,
         iFrame: null,
+        iBeat: null,
         iChannelResolution: null,
         iChannel0: null,
         iMidiCC: null,
         iMidiNotes: null
     }
+
+    #program: WebGLProgram | null = null
+    #vao: WebGLVertexArrayObject | null = null
+    #audioTexture: WebGLTexture | null = null
+    #midiCCTexture: WebGLTexture | null = null
+    #midiNoteTexture: WebGLTexture | null = null
+    #startTime = 0.0
+    #lastFrameTime = 0.0
+    #frameCount = 0
+    #beat = 0.0
+
     static readonly #VERTEX_SHADER = `#version 300 es
         in vec4 aPosition;
         void main() {
@@ -43,6 +49,7 @@ export class ShadertoyRunner implements Terminable {
     static readonly #FRAGMENT_PREFIX = `#version 300 es
         precision highp float;
         uniform vec3 iResolution;
+        uniform float iBeat;
         uniform float iTime;
         uniform float iTimeDelta;
         uniform int iFrame;
@@ -108,6 +115,7 @@ export class ShadertoyRunner implements Terminable {
             iTime: gl.getUniformLocation(this.#program, "iTime"),
             iTimeDelta: gl.getUniformLocation(this.#program, "iTimeDelta"),
             iFrame: gl.getUniformLocation(this.#program, "iFrame"),
+            iBeat: gl.getUniformLocation(this.#program, "iBeat"),
             iChannelResolution: gl.getUniformLocation(this.#program, "iChannelResolution"),
             iChannel0: gl.getUniformLocation(this.#program, "iChannel0"),
             iMidiCC: gl.getUniformLocation(this.#program, "iMidiCC"),
@@ -143,6 +151,10 @@ export class ShadertoyRunner implements Terminable {
         } else {
             this.#audioData.set(data.subarray(0, length), 512)
         }
+    }
+
+    setPPQN(ppqn: number): void {
+        this.#beat = ppqn / PPQN.Quarter
     }
 
     /**
@@ -210,6 +222,7 @@ export class ShadertoyRunner implements Terminable {
         gl.uniform1f(this.#uniformLocations.iTime, currentTime)
         gl.uniform1f(this.#uniformLocations.iTimeDelta, timeDelta)
         gl.uniform1i(this.#uniformLocations.iFrame, this.#frameCount)
+        gl.uniform1f(this.#uniformLocations.iBeat, this.#beat)
         gl.uniform3fv(this.#uniformLocations.iChannelResolution, [512.0, 2.0, 1.0])
         gl.uniform1i(this.#uniformLocations.iChannel0, 0)
         gl.uniform1i(this.#uniformLocations.iMidiCC, 1)

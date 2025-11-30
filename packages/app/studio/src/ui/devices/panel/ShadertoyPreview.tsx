@@ -66,9 +66,10 @@ export const ShadertoyPreview = ({lifecycle, service}: Construct) => {
                                             shaderLifecycle.ownAll(
                                                 AnimationFrame.add(() => {
                                                     if (visible.getValue()) {
-                                                        canvas.width = canvas.clientWidth
-                                                        canvas.height = canvas.clientHeight
+                                                        canvas.width = canvas.clientWidth * devicePixelRatio
+                                                        canvas.height = canvas.clientHeight * devicePixelRatio
                                                         gl.viewport(0, 0, canvas.width, canvas.height)
+                                                        runner.setPPQN(service.engine.position.getValue())
                                                         runner.render()
                                                     }
                                                 }),

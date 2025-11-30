@@ -66,9 +66,10 @@ export const ShadertoyPreview = ({lifecycle, service}: Construct) => {
                                     runner.resetTime()
                                     shaderLifecycle.ownAll(
                                         AnimationFrame.add(() => {
-                                            canvas.width = canvas.clientWidth
-                                            canvas.height = canvas.clientHeight
+                                            canvas.width = canvas.clientWidth * devicePixelRatio
+                                            canvas.height = canvas.clientHeight * devicePixelRatio
                                             gl.viewport(0, 0, canvas.width, canvas.height)
+                                            runner.setPPQN(service.engine.position.getValue())
                                             runner.render()
                                         }), ShadertoyMIDIOutput.subscribe(message => MidiData.accept(message, {
                                             controller: (id: byte, value: unitValue) => runner.onMidiCC(id, value),

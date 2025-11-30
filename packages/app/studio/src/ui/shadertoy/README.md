@@ -2,14 +2,13 @@
 
 ### Bugs
 
-* Copy/Paste does not work in the editor
-* Alt+Enter jumps to pos:0 in editor
+* Copy/Paste sometimes does not work in the editor
+* Alt+Enter sometimes jumps to pos:0 in the editor
+* Timing resets when switching views
 
 ### TODO
 
-* Handle delete (reset editor and preview)
-* Handle new (creates box)
+* Fullscreen
 * spectrum and waveform
 * preview should not overflow
-* Header for device panel preview (portrait, minimizable)
 * export video

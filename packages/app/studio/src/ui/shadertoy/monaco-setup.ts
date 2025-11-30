@@ -6,7 +6,7 @@ self.MonacoEnvironment = {
 }
 
 const shadertoyGlobals = [
-    "iResolution", "iTime", "iTimeDelta", "iFrame",
+    "iResolution", "iTime", "iBeat", "iTimeDelta", "iFrame",
     "iChannelResolution", "iChannel0", "iMidiCC", "iMidiNotes"
 ]
 
@@ -61,9 +61,9 @@ const functionDetails: Record<string, string> = {
     midiNote: "float midiNote(int pitch) – returns velocity (0.0-1.0) if note is on, 0.0 if off"
 }
 
-const allDetails = { ...uniformDetails, ...functionDetails }
+const allDetails = {...uniformDetails, ...functionDetails}
 
-monaco.languages.register({ id: "glsl" })
+monaco.languages.register({id: "glsl"})
 
 monaco.languages.setMonarchTokensProvider("glsl", {
     shadertoyGlobals,
@@ -114,16 +114,16 @@ monaco.languages.setLanguageConfiguration("glsl", {
         ["(", ")"]
     ],
     autoClosingPairs: [
-        { open: "{", close: "}" },
-        { open: "[", close: "]" },
-        { open: "(", close: ")" },
-        { open: '"', close: '"' }
+        {open: "{", close: "}"},
+        {open: "[", close: "]"},
+        {open: "(", close: ")"},
+        {open: "\"", close: "\""}
     ],
     surroundingPairs: [
-        { open: "{", close: "}" },
-        { open: "[", close: "]" },
-        { open: "(", close: ")" },
-        { open: '"', close: '"' }
+        {open: "{", close: "}"},
+        {open: "[", close: "]"},
+        {open: "(", close: ")"},
+        {open: "\"", close: "\""}
     ]
 })
 
@@ -180,7 +180,7 @@ monaco.languages.registerCompletionItemProvider("glsl", {
                 range
             }
         ]
-        return { suggestions }
+        return {suggestions}
     }
 })
 
@@ -197,10 +197,10 @@ monaco.languages.registerHoverProvider("glsl", {
                 startColumn: word.startColumn,
                 endColumn: word.endColumn
             },
-            contents: [{ value: `**${word.word}**\n\n${detail}` }]
+            contents: [{value: `**${word.word}**\n\n${detail}`}]
         }
     }
 })
 
-export { monaco }
+export {monaco}
 export type Monaco = typeof monaco
