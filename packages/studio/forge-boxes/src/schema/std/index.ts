@@ -23,13 +23,16 @@ import {ValueEventCurveBox} from "./timeline/ValueEventCurveBox"
 import {ValueEventCollectionBox} from "./timeline/ValueEventCollectionBox"
 import {ValueRegionBox} from "./timeline/ValueRegionBox"
 import {ShadertoyBox} from "./ShadertoyBox"
+import {AudioWarpingBox} from "./AudioWarpingBox"
+import {TransientMarkerBox} from "./TransientMarkerBox"
+import {WarpMarkerBox} from "./WarpMarkerBox"
 
 export const Definitions = [
     RootBox, SelectionBox, UserInterfaceBox, UploadFileBox, ShadertoyBox,
     TimelineBox, TrackBox,
     NoteEventBox, NoteEventRepeatBox, NoteEventCollectionBox, NoteRegionBox, NoteClipBox,
     ValueEventBox, ValueEventCollectionBox, ValueEventCurveBox, ValueRegionBox, ValueClipBox,
-    AudioRegionBox, AudioClipBox,
+    AudioRegionBox, AudioClipBox, AudioWarpingBox, TransientMarkerBox, WarpMarkerBox,
     MarkerBox,
     AudioFileBox, SoundfontFileBox,
     AudioUnitBox, CaptureAudioBox, CaptureMidiBox,

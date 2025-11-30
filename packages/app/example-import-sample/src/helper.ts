@@ -1,8 +1,8 @@
-import {AudioData, InstrumentFactories, SampleMetaData} from "@opendaw/studio-adapters"
+import {InstrumentFactories, SampleMetaData} from "@opendaw/studio-adapters"
 import {Arrays, Progress, UUID} from "@opendaw/lib-std"
 import {Project, SampleStorage, Workers} from "@opendaw/studio-core"
 import {SamplePeaks} from "@opendaw/lib-fusion"
-import {estimateBpm, PPQN} from "@opendaw/lib-dsp"
+import {AudioData, estimateBpm, PPQN} from "@opendaw/lib-dsp"
 import {AudioFileBox, AudioRegionBox, ValueEventCollectionBox} from "@opendaw/studio-boxes"
 
 export const importSample = async ({api, boxGraph, timelineBox, rootBox}

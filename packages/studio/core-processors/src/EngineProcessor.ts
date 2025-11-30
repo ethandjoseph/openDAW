@@ -23,7 +23,6 @@ import {EngineContext} from "./EngineContext"
 import {TimeInfo} from "./TimeInfo"
 import {
     AnyClipBoxAdapter,
-    AudioData,
     AudioUnitBoxAdapter,
     BoxAdapters,
     ClipAdapters,
@@ -50,7 +49,7 @@ import {UpdateClock} from "./UpdateClock"
 import {PeakBroadcaster} from "./PeakBroadcaster"
 import {Metronome} from "./Metronome"
 import {BlockRenderer} from "./BlockRenderer"
-import {ConstantTempoMap, Graph, ppqn, PPQN, TempoMap, TopologicalSort} from "@opendaw/lib-dsp"
+import {AudioData, ConstantTempoMap, Graph, ppqn, PPQN, TempoMap, TopologicalSort} from "@opendaw/lib-dsp"
 import {SampleManagerWorklet} from "./SampleManagerWorklet"
 import {ClipSequencingAudioContext} from "./ClipSequencingAudioContext"
 import {Communicator, Messenger} from "@opendaw/lib-runtime"

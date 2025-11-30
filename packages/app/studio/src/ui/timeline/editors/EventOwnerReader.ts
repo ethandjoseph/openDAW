@@ -1,15 +1,19 @@
 import {ppqn} from "@opendaw/lib-dsp"
-import {int, Observer, Option, Subscription} from "@opendaw/lib-std"
+import {int, ObservableOption, ObservableValue, Observer, Option, Subscription} from "@opendaw/lib-std"
 import {TimeAxisCursorMapper} from "@/ui/timeline/TimeAxis.tsx"
 import {
     AudioFileBoxAdapter,
+    AudioWarpingBoxAdapter,
     NoteEventCollectionBoxAdapter,
     TrackBoxAdapter,
     ValueEventCollectionBoxAdapter
 } from "@opendaw/studio-adapters"
 import {TimelineRange} from "@opendaw/studio-core"
+import {AudioPlayback} from "@opendaw/studio-enums"
 
 export interface AudioEventOwnerReader extends EventOwnerReader<ValueEventCollectionBoxAdapter> {
+    get warping(): ObservableOption<AudioWarpingBoxAdapter>
+    get playback(): ObservableValue<AudioPlayback>
     get file(): AudioFileBoxAdapter
     get gain(): number
 }
@@ -28,6 +32,7 @@ export interface EventOwnerReader<CONTENT> extends TimeAxisCursorMapper {
     get offset(): ppqn
     get complete(): ppqn
     get hue(): int
+    get mute(): boolean
     get hasContent(): boolean
     get isMirrored(): boolean
     get content(): CONTENT

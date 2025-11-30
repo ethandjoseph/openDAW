@@ -4,6 +4,7 @@ import {
     assert,
     asValidIdentifier,
     isDefined,
+    isNotUndefined,
     isValidIdentifier,
     Maybe,
     Nullable,
@@ -12,7 +13,7 @@ import {
     Strings,
     Unhandled
 } from "@opendaw/lib-std"
-import {Constraints, FieldKey, NoPointers, PointerRules, PointerTypes} from "@opendaw/lib-box"
+import {ByteArrayField, Constraints, FieldKey, NoPointers, PointerRules, PointerTypes} from "@opendaw/lib-box"
 import {ModuleDeclarationKind, Project, Scope, SourceFile, VariableDeclarationKind} from "ts-morph"
 import {AnyField, BoxSchema, ClassSchema, FieldName, Referencable, Schema} from "./schema"
 import {header} from "./header"
@@ -398,9 +399,22 @@ class ClassWriter<E extends PointerTypes> {
                     ctorParams: [this.#writeFieldConstruct(fieldKey, fieldName, pointerRules, deprecated),
                         this.#serializeConstraint(field.constraints), JSON.stringify(field.unit), field.value]
                 }
+            case "bytes":
+                return {
+                    fieldKey,
+                    fieldName,
+                    fieldValue: field.value,
+                    importPath: BOX_LIBRARY,
+                    className: "ByteArrayField",
+                    new: "ByteArrayField.create",
+                    type: pointerRules.isEmpty ? `ByteArrayField` : `ByteArrayField<${pointerRules.union}>`,
+                    ctorParams: [this.#writeFieldConstruct(fieldKey, fieldName, pointerRules, deprecated),
+                        isNotUndefined(field.value)
+                            ? `new Int8Array(${JSON.stringify(Array.from(field.value))})`
+                            : undefined]
+                }
             case "boolean":
             case "string":
-            case "bytes":
                 const className = asDefined(PrimitiveFields[type], `Unknown type: ${type}`)
                 return {
                     fieldKey,

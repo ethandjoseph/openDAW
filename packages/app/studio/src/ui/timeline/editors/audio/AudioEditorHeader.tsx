@@ -13,6 +13,8 @@ type Construct = {
 
 export const AudioEditorHeader = ({}: Construct) => (
     <div className={className}>
+        <div></div>
+        <div></div>
         <p className="help-section">
             Navigatable but otherwise non-functional yet
         </p>

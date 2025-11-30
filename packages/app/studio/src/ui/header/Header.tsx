@@ -124,13 +124,17 @@ export const Header = ({lifecycle, service}: Construct) => {
             </Checkbox>
             <hr/>
             <div style={{flex: "1 0 0"}}/>
-            <a className="support"
-               href="https://www.patreon.com/bePatron?u=61769481"
-               target="_blank"
-               rel="noopener noreferrer"
-               data-patreon-widget-type="become-patron-button">
-                <img src="/become_a_patron_button.png" alt="Patreon"/>
-            </a>
+            {
+                location.origin.includes("localhost") ||
+                location.origin.includes("dev.opendaw.studio")
+                    ? (<h5 style={{color: Colors.cream.toString()}}>DEV VERSION (UNSTABLE)</h5>)
+                    : (<a className="support"
+                          href="https://www.patreon.com/bePatron?u=61769481"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          data-patreon-widget-type="become-patron-button">
+                        <img src="/become_a_patron_button.png" alt="Patreon"/>
+                    </a>)}
             <div style={{flex: "2 0 0"}}/>
             <hr/>
             <div className="header">

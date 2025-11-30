@@ -1,7 +1,6 @@
 import css from "./AudioEditorCanvas.sass?inline"
-import {Lifecycle} from "@opendaw/lib-std"
+import {Lifecycle, Option, Terminator} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
-import {StudioService} from "@/service/StudioService.ts"
 import {TimelineRange} from "@opendaw/studio-core"
 import {CanvasPainter} from "@/ui/canvas/painter.ts"
 import {LoopableRegion} from "@opendaw/lib-dsp"
@@ -11,20 +10,20 @@ import {renderTimeGrid} from "@/ui/timeline/editors/TimeGridRenderer.ts"
 import {AudioEventOwnerReader} from "@/ui/timeline/editors/EventOwnerReader.ts"
 import {installEditorMainBody} from "../EditorBody"
 import {Html} from "@opendaw/lib-dom"
+import {AudioPlayback} from "@opendaw/studio-enums"
 
 const className = Html.adoptStyleSheet(css, "AudioEditorCanvas")
 
 type Construct = {
     lifecycle: Lifecycle
-    service: StudioService
     range: TimelineRange
     snapping: Snapping
     reader: AudioEventOwnerReader
 }
 
 export const AudioEditorCanvas = ({lifecycle, range, snapping, reader}: Construct) => {
-    const canvas: HTMLCanvasElement = <canvas tabIndex={-1}/>
-    const painter = lifecycle.own(new CanvasPainter(canvas, painter => {
+    const waveformCanvas: HTMLCanvasElement = <canvas tabIndex={-1}/>
+    const painter = lifecycle.own(new CanvasPainter(waveformCanvas, painter => {
         const {context, actualHeight, devicePixelRatio} = painter
 
         renderTimeGrid(context, range, snapping, 0, actualHeight)
@@ -45,18 +44,27 @@ export const AudioEditorCanvas = ({lifecycle, range, snapping, reader}: Construc
 
         const pass = LoopableRegion.locateLoop(reader, range.unitMin - range.unitPadding, range.unitMax)
         if (pass.isEmpty()) {return}
-        renderAudio(context, range, reader.file, reader.gain, {top: 0, bottom: actualHeight},
-            `hsl(${reader.hue}, ${60}%, 45%)`, pass.unwrap())
+        renderAudio(context, range, reader.file,
+            reader.playback.getValue() === AudioPlayback.NoSync ? Option.None : reader.warping,
+            reader.gain, {top: 0, bottom: actualHeight},
+            `hsl(${reader.hue}, ${60}%, 45%)`, pass.unwrap(), false)
     }))
+    const warpingTerminator = lifecycle.own(new Terminator())
     lifecycle.ownAll(
-        installEditorMainBody({element: canvas, range, reader}),
+        installEditorMainBody({element: waveformCanvas, range, reader}),
         reader.subscribeChange(painter.requestUpdate),
+        reader.warping.catchupAndSubscribe((optWarping) => {
+            warpingTerminator.terminate()
+            optWarping.ifSome(warping => warpingTerminator.own(warping.subscribe(painter.requestUpdate)))
+        }),
         range.subscribe(painter.requestUpdate),
-        Html.watchResize(canvas, painter.requestUpdate)
+        Html.watchResize(waveformCanvas, painter.requestUpdate)
     )
     return (
         <div className={className}>
-            {canvas}
+            <div>TRANSIENTS</div>
+            <div>WRAP MARKER</div>
+            {waveformCanvas}
         </div>
     )
 }

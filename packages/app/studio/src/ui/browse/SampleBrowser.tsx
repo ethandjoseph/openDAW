@@ -126,7 +126,7 @@ export const SampleBrowser = ({lifecycle, service, fontSize}: Construct) => {
             () => linearVolume.setValue(clamp(slider.valueAsNumber, 0.0, 1.0))),
         linearVolume.catchupAndSubscribe(owner => slider.valueAsNumber = owner.getValue()),
         Events.subscribe(element, "keydown", async event => {
-            if (Keyboard.GlobalShortcut.isDelete(event) && location.getValue() === AssetLocation.Local) {
+            if (Keyboard.isDelete(event) && location.getValue() === AssetLocation.Local) {
                 await sampleSelection.deleteSelected()
                 reload.get().update()
             }

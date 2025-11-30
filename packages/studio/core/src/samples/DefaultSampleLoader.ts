@@ -11,10 +11,11 @@ import {
 } from "@opendaw/lib-std"
 import {Promises} from "@opendaw/lib-runtime"
 import {Peaks, SamplePeaks} from "@opendaw/lib-fusion"
-import {AudioData, SampleLoader, SampleLoaderState, SampleMetaData} from "@opendaw/studio-adapters"
+import {SampleLoader, SampleLoaderState, SampleMetaData} from "@opendaw/studio-adapters"
 import {Workers} from "../Workers"
 import {DefaultSampleLoaderManager} from "./DefaultSampleLoaderManager"
 import {SampleStorage} from "./SampleStorage"
+import {AudioData} from "@opendaw/lib-dsp"
 
 export class DefaultSampleLoader implements SampleLoader {
     readonly #manager: DefaultSampleLoaderManager
@@ -46,7 +47,7 @@ export class DefaultSampleLoader implements SampleLoader {
     }
 
     subscribe(observer: Observer<SampleLoaderState>): Subscription {
-        if (this.#state.type === "loaded") {
+        if (this.#state.type === "loaded" || this.#state.type === "error") {
             observer(this.#state)
             return Terminable.Empty
         }

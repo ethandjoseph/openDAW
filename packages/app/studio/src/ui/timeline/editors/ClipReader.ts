@@ -1,6 +1,7 @@
 import {
     AudioClipBoxAdapter,
     AudioFileBoxAdapter,
+    AudioWarpingBoxAdapter,
     ClipBoxAdapter,
     NoteClipBoxAdapter,
     NoteEventCollectionBoxAdapter,
@@ -9,7 +10,7 @@ import {
     ValueEventCollectionBoxAdapter
 } from "@opendaw/studio-adapters"
 import {ppqn} from "@opendaw/lib-dsp"
-import {mod, Observer, Option, Subscription} from "@opendaw/lib-std"
+import {mod, ObservableOption, ObservableValue, Observer, Option, Subscription} from "@opendaw/lib-std"
 import {TimelineRange} from "@opendaw/studio-core"
 import {Propagation} from "@opendaw/lib-box"
 import {
@@ -18,14 +19,16 @@ import {
     NoteEventOwnerReader,
     ValueEventOwnerReader
 } from "@/ui/timeline/editors/EventOwnerReader.ts"
+import {AudioPlayback} from "@opendaw/studio-enums"
 
 export class ClipReader<CONTENT> implements EventOwnerReader<CONTENT> {
     static forAudioClipBoxAdapter(clip: AudioClipBoxAdapter): AudioEventOwnerReader {
         return new class extends ClipReader<never> implements AudioEventOwnerReader {
             constructor(clip: AudioClipBoxAdapter) {super(clip)}
-
             get file(): AudioFileBoxAdapter {return clip.file}
             get gain(): number {return clip.gain}
+            get playback(): ObservableValue<AudioPlayback> {return clip.playback}
+            get warping(): ObservableOption<AudioWarpingBoxAdapter> {return clip.warping}
         }(clip)
     }
 
@@ -47,6 +50,7 @@ export class ClipReader<CONTENT> implements EventOwnerReader<CONTENT> {
     get contentDuration(): ppqn {return this.clip.duration}
     set contentDuration(value: ppqn) {this.clip.box.duration.setValue(value)}
     get hue(): number {return this.clip.hue}
+    get mute(): boolean {return this.clip.mute}
     get offset(): number {return 0}
     get hasContent(): boolean {return this.clip.hasCollection}
     get isMirrored(): boolean {return this.clip.isMirrowed}

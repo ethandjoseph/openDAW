@@ -13,7 +13,7 @@ import {
 import {createElement, DomElement} from "@opendaw/lib-jsx"
 import {StudioService} from "@/service/StudioService.ts"
 import {NoteLifeCycle, PlayfieldDeviceBoxAdapter, PlayfieldSampleBoxAdapter} from "@opendaw/studio-adapters"
-import {IconSymbol} from "@opendaw/studio-enums"
+import {Colors, IconSymbol} from "@opendaw/studio-enums"
 import {SampleSelector} from "@/ui/devices/SampleSelector"
 import {CanvasPainter} from "@/ui/canvas/painter"
 import {SlotUtils} from "@/ui/devices/instruments/PlayfieldDeviceEditor/SlotUtils"
@@ -27,7 +27,6 @@ import {SlotDragAndDrop} from "@/ui/devices/instruments/PlayfieldDeviceEditor/Sl
 import {NoteLabel} from "@/ui/devices/instruments/PlayfieldDeviceEditor/NoteLabel"
 import {DebugMenus} from "@/ui/menu/debug"
 import {TextTooltip} from "@/ui/surface/TextTooltip"
-import {Colors} from "@opendaw/studio-enums"
 
 const className = Html.adoptStyleSheet(css, "BusySlot")
 
@@ -167,7 +166,7 @@ export const BusySlot = ({
         }),
         Events.subscribe(header, "pointerup", () => noteLifeTime.terminate()),
         Events.subscribe(element, "keydown", (event) => {
-            if (Keyboard.GlobalShortcut.isDelete(event)) {
+            if (Keyboard.isDelete(event)) {
                 sampleSelector.replaceSample(Option.None)
             }
         }),

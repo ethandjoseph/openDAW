@@ -1,7 +1,7 @@
 import {ContextMenu} from "@/ui/ContextMenu.ts"
 import {MenuItem} from "@/ui/model/menu-item.ts"
 import {ElementCapturing} from "@/ui/canvas/capturing.ts"
-import {AnyClipBoxAdapter} from "@opendaw/studio-adapters"
+import {AnyClipBoxAdapter, AudioClipBoxAdapter} from "@opendaw/studio-adapters"
 import {EmptyExec, Procedure, Selection, UUID} from "@opendaw/lib-std"
 import {Surface} from "@/ui/surface/Surface.tsx"
 import {NameValidator} from "@/ui/validator/name.ts"
@@ -11,6 +11,7 @@ import {exportNotesToMidiFile} from "@/ui/timeline/editors/notes/NoteUtils"
 import {AudioRegionBox, NoteRegionBox, ValueRegionBox} from "@opendaw/studio-boxes"
 import {ColorMenu} from "@/ui/timeline/ColorMenu"
 import {Project} from "@opendaw/studio-core"
+import {AudioPlayback} from "@opendaw/studio-enums"
 
 type Creation = {
     element: HTMLElement
@@ -23,6 +24,7 @@ export const installClipContextMenu = ({element, project, selection, capturing}:
     ContextMenu.subscribe(element, collector => {
         const client = collector.client
         const target = capturing.captureEvent(client)
+        const {editing} = project
         if (target === null) {
             // TODO Create clips
         } else if (target.type === "clip") {
@@ -32,16 +34,16 @@ export const installClipContextMenu = ({element, project, selection, capturing}:
                 selection.select(clip)
             }
             const modify = <T extends AnyClipBoxAdapter>(procedure: Procedure<T>) =>
-                project.editing.modify(() => selection.selected().forEach(adapter => procedure(adapter as T)))
+                editing.modify(() => selection.selected().forEach(adapter => procedure(adapter as T)))
             collector.addItems(
                 MenuItem.default({label: "Delete"})
-                    .setTriggerProcedure(() => project.editing.modify(() =>
+                    .setTriggerProcedure(() => editing.modify(() =>
                         selection.selected().forEach(clip => clip.box.delete()))),
                 MenuItem.default({label: "Rename"})
                     .setTriggerProcedure(() => Surface.get(element).requestFloatingTextInput(client, clip.label)
                         .then(value => {
                             NameValidator.validate(value, {
-                                success: name => project.editing.modify(() => selection.selected()
+                                success: name => editing.modify(() => selection.selected()
                                     .forEach(adapter => adapter.box.label.setValue(name)))
                             })
                         }, EmptyExec)),
@@ -52,24 +54,63 @@ export const installClipContextMenu = ({element, project, selection, capturing}:
                     }),
                 ColorMenu.createItem(hue => modify(adapter => adapter.box.hue.setValue(hue))),
                 MenuItem.default({label: "Consolidate", selectable: clip.isMirrowed})
-                    .setTriggerProcedure(() => project.editing.modify(() =>
+                    .setTriggerProcedure(() => editing.modify(() =>
                         selection.selected().forEach(clip => clip.consolidate()))),
-                MenuItem.default({label: "Playback", separatorBefore: true})
+                MenuItem.default({
+                    label: "Playback",
+                    hidden: clip.type !== "audio-clip",
+                    separatorBefore: true
+                }).setRuntimeChildrenProcedure(parent => parent.addMenuItem(
+                    MenuItem.default({
+                        label: "Pitch",
+                        checked: clip.type === "audio-clip"
+                            && clip.playback.getValue() === AudioPlayback.Pitch
+                    }).setTriggerProcedure(() => {
+                        const adapters = selection.selected()
+                            .filter((clip): clip is AudioClipBoxAdapter =>
+                                clip.type === "audio-clip" && clip.playback.getValue() !== AudioPlayback.Pitch)
+                        if (adapters.length === 0) {return}
+                        editing.modify(() => adapters.forEach(clip => clip.setPlayback(AudioPlayback.Pitch)))
+                    }),
+                    MenuItem.default({
+                        label: "Timestretch",
+                        checked: clip.type === "audio-clip"
+                            && clip.playback.getValue() === AudioPlayback.Timestretch
+                    }).setTriggerProcedure(() => {
+                        const adapters = selection.selected()
+                            .filter((clip): clip is AudioClipBoxAdapter =>
+                                clip.type === "audio-clip" && clip.playback.getValue() !== AudioPlayback.Timestretch)
+                        if (adapters.length === 0) {return}
+                        editing.modify(() => adapters.forEach(clip => clip.setPlayback(AudioPlayback.Timestretch)))
+                    }),
+                    MenuItem.default({
+                        label: "No Warp",
+                        checked: clip.type === "audio-clip"
+                            && clip.playback.getValue() === AudioPlayback.NoSync
+                    }).setTriggerProcedure(() => {
+                        const adapters = selection.selected()
+                            .filter((clip): clip is AudioClipBoxAdapter =>
+                                clip.type === "audio-clip" && clip.playback.getValue() !== AudioPlayback.NoSync)
+                        if (adapters.length === 0) {return}
+                        editing.modify(() => adapters.forEach(clip => clip.setPlayback(AudioPlayback.NoSync)))
+                    })
+                )),
+                MenuItem.default({label: "Trigger"})
                     .setRuntimeChildrenProcedure(parent => parent.addMenuItem(
-                        MenuItem.default({label: "Loop", checked: clip.box.playback.loop.getValue()})
+                        MenuItem.default({label: "Loop", checked: clip.box.triggerMode.loop.getValue()})
                             .setTriggerProcedure(() => {
-                                const newValue = !clip.box.playback.loop.getValue()
-                                modify(({box: {playback: {loop}}}) => loop.setValue(newValue))
+                                const newValue = !clip.box.triggerMode.loop.getValue()
+                                modify(({box: {triggerMode: {loop}}}) => loop.setValue(newValue))
                             })
                     )),
                 MenuItem.default({
-                    label: "Convert to Region"
+                    label: "Convert to Region", separatorBefore: true
                 }).setTriggerProcedure(() => {
                     const trackBoxAdapter = clip.trackBoxAdapter.unwrap()
                     const regions = trackBoxAdapter.regions
                     const lastRegion = regions.collection.lowerEqual(Number.POSITIVE_INFINITY)
                     const position = lastRegion?.complete ?? 0
-                    project.editing.modify(() => {
+                    editing.modify(() => {
                         if (clip.type === "note-clip") {
                             NoteRegionBox.create(clip.box.graph, UUID.generate(), box => {
                                 box.position.setValue(position)

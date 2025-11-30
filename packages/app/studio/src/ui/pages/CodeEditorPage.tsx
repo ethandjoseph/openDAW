@@ -17,10 +17,11 @@ import ScriptAudioRegion from "./code-editor/examples/create-sample.ts?raw"
 import ScriptNanoWavetable from "./code-editor/examples/nano-wavetable.ts?raw"
 import ScriptStressTest from "./code-editor/examples/stress-test.ts?raw"
 import {Promises} from "@opendaw/lib-runtime"
-import {AudioData, ProjectSkeleton, Sample} from "@opendaw/studio-adapters"
+import {ProjectSkeleton, Sample} from "@opendaw/studio-adapters"
 import {BoxGraph} from "@opendaw/lib-box"
 import {BoxIO} from "@opendaw/studio-boxes"
 import {Project, WavFile} from "@opendaw/studio-core"
+import {AudioData} from "@opendaw/lib-dsp"
 
 const truncateImports = (script: string) => script.substring(script.indexOf("//"))
 const Examples = {
@@ -53,12 +54,7 @@ export const CodeEditorPage: PageFactory<StudioService> = ({lifecycle, service}:
             })
         },
         addSample: (data: AudioData, name: string): Promise<Sample> => service.sampleService.importFile({
-            name, arrayBuffer: WavFile.encodeFloats({
-                channels: data.frames,
-                numFrames: data.numberOfFrames,
-                sampleRate: data.sampleRate,
-                numberOfChannels: data.numberOfChannels
-            })
+            name, arrayBuffer: WavFile.encodeFloats(data)
         })
     }, scriptWorkerUrl)
     return (

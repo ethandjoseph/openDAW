@@ -140,9 +140,10 @@ export namespace Mixdowns {
             const l = buffer.getChannelData(stemIndex * 2)
             const r = buffer.getChannelData(stemIndex * 2 + 1)
             const file = WavFile.encodeFloats({
-                channels: [l, r],
+                frames: [l, r],
                 sampleRate: buffer.sampleRate,
-                numFrames: buffer.length
+                numberOfFrames: buffer.length,
+                numberOfChannels: buffer.numberOfChannels
             })
             zip.file(`${trackNames[stemIndex]}.wav`, file, {binary: true})
         }

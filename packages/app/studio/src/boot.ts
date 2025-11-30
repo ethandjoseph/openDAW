@@ -2,7 +2,7 @@ import "./main.sass"
 import {App} from "@/ui/App.tsx"
 import {panic, Progress, RuntimeNotification, RuntimeNotifier, UUID} from "@opendaw/lib-std"
 import {StudioService} from "@/service/StudioService"
-import {AudioData, SampleMetaData, SoundfontMetaData} from "@opendaw/studio-adapters"
+import {SampleMetaData, SoundfontMetaData} from "@opendaw/studio-adapters"
 import {Dialogs} from "@/ui/components/dialogs.tsx"
 import {installCursors} from "@/ui/Cursors.ts"
 import {BuildInfo} from "./BuildInfo"
@@ -28,6 +28,7 @@ import {
     SampleStorage,
     Workers
 } from "@opendaw/studio-core"
+import {AudioData} from "@opendaw/lib-dsp"
 
 const loadBuildInfo = async () => fetch(`/build-info.json?v=${Date.now()}`)
     .then(x => x.json())

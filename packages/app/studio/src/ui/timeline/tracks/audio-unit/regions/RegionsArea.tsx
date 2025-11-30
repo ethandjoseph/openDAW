@@ -86,24 +86,17 @@ export const RegionsArea = ({lifecycle, service, manager, scrollModel, scrollCon
             onDeselected: (selectable: AnyRegionBoxAdapter) => selectable.onDeselected()
         }),
         Events.subscribe(element, "keydown", (event: KeyboardEvent) => {
-            if (Keyboard.GlobalShortcut.isDeselectAll(event)) {
+            if (Keyboard.isDeselectAll(event)) {
                 regionSelection.deselectAll()
-            } else if (Keyboard.GlobalShortcut.isSelectAll(event)) {
+            } else if (Keyboard.isSelectAll(event)) {
                 regionSelection.select(...manager.tracks()
                     .flatMap(({trackBoxAdapter: {regions}}) => regions.collection.asArray()))
-            } else if (Keyboard.GlobalShortcut.isDelete(event)) {
+            } else if (Keyboard.isDelete(event)) {
                 editing.modify(() => regionSelection.selected()
                     .forEach(region => region.box.delete()))
             }
         }),
-        installRegionContextMenu({
-            timelineBox,
-            element,
-            service,
-            capturing,
-            selection: regionSelection,
-            range
-        }),
+        installRegionContextMenu({timelineBox, element, service, capturing, selection: regionSelection, range}),
         Events.subscribeDblDwn(element, event => {
             const target = capturing.captureEvent(event)
             if (target === null) {return}
@@ -111,7 +104,7 @@ export const RegionsArea = ({lifecycle, service, manager, scrollModel, scrollCon
                 editing.modify(() => {
                     userEditingManager.timeline.edit(target.region.box)
                     service.panelLayout.showIfAvailable(PanelType.ContentEditor)
-                })
+                }, false)
             } else if (target.type === "track") {
                 const {audioUnitBoxAdapter, trackBoxAdapter} = target.track
                 const name = audioUnitBoxAdapter.input.label.unwrapOrElse("")
@@ -150,17 +143,17 @@ export const RegionsArea = ({lifecycle, service, manager, scrollModel, scrollCon
         })
     )
     element.appendChild(
-        <SelectionRectangle
-            target={element}
-            lifecycle={lifecycle}
-            editing={editing}
-            selection={regionSelection}
-            locator={regionLocator}
-            xAxis={range.valueAxis}
-            yAxis={{
-                axisToValue: y => clamp(y + scrollContainer.scrollTop, 0, scrollContainer.scrollTop + element.scrollHeight),
-                valueToAxis: value => value - scrollContainer.scrollTop
-            }}/>
+        <SelectionRectangle target={element}
+                            lifecycle={lifecycle}
+                            editing={editing}
+                            selection={regionSelection}
+                            locator={regionLocator}
+                            xAxis={range.valueAxis}
+                            yAxis={{
+                                axisToValue: y => clamp(y + scrollContainer.scrollTop,
+                                    0, scrollContainer.scrollTop + element.scrollHeight),
+                                valueToAxis: value => value - scrollContainer.scrollTop
+                            }}/>
     )
     lifecycle.ownAll(
         installAutoScroll(element, (deltaX, deltaY) => {

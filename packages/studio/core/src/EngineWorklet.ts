@@ -13,12 +13,11 @@ import {
     Terminator,
     UUID
 } from "@opendaw/lib-std"
-import {ppqn} from "@opendaw/lib-dsp"
+import {AudioData, ppqn} from "@opendaw/lib-dsp"
 import {SyncSource} from "@opendaw/lib-box"
 import {AnimationFrame} from "@opendaw/lib-dom"
 import {Communicator, Messenger} from "@opendaw/lib-runtime"
 import {
-    AudioData,
     ClipNotification,
     ClipSequencingUpdates,
     EngineCommands,

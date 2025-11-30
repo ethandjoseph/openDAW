@@ -1,5 +1,5 @@
 import {ElementCapturing} from "@/ui/canvas/capturing.ts"
-import {EmptyExec, Selection, Terminable} from "@opendaw/lib-std"
+import {EmptyExec, panic, RuntimeNotifier, Selection, Terminable} from "@opendaw/lib-std"
 import {ContextMenu} from "@/ui/ContextMenu.ts"
 import {MenuItem} from "@/ui/model/menu-item.ts"
 import {AnyRegionBoxAdapter, AudioRegionBoxAdapter} from "@opendaw/studio-adapters"
@@ -17,6 +17,8 @@ import {Dialogs} from "@/ui/components/dialogs.tsx"
 import {StudioService} from "@/service/StudioService"
 import {TimelineRange} from "@opendaw/studio-core"
 import {AudioPlayback} from "@opendaw/studio-enums"
+import {AudioAdapterEditing} from "@/ui/timeline/tracks/audio-unit/AudioAdapterEditing"
+import {Promises} from "@opendaw/lib-runtime"
 
 type Construct = {
     element: Element
@@ -30,7 +32,7 @@ type Construct = {
 export const installRegionContextMenu =
     ({element, service, capturing, selection, timelineBox, range}: Construct): Terminable => {
         const {project} = service
-        const {editing, selection: vertexSelection} = project
+        const {boxGraph, editing, selection: vertexSelection} = project
         const computeSelectionRange = () => selection.selected().reduce((range, region) => {
             range[0] = Math.min(region.position, range[0])
             range[1] = Math.max(region.complete, range[1])
@@ -106,25 +108,49 @@ export const installRegionContextMenu =
                     MenuItem.default({
                         label: "Pitch",
                         checked: region.type === "audio-region"
-                            && region.box.playback.getValue() === AudioPlayback.Pitch
+                            && region.playback.getValue() === AudioPlayback.Pitch
                     }).setTriggerProcedure(() => {
                         const adapters = selection.selected()
                             .filter((region): region is AudioRegionBoxAdapter =>
-                                region.type === "audio-region" && region.playback !== AudioPlayback.Pitch)
+                                region.type === "audio-region" && region.playback.getValue() !== AudioPlayback.Pitch)
                         if (adapters.length === 0) {return}
                         editing.modify(() => adapters.forEach(region => region.setPlayback(AudioPlayback.Pitch)))
                     }),
                     MenuItem.default({
-                        label: "No Wrap",
+                        label: "Timestretch",
                         checked: region.type === "audio-region"
-                            && region.box.playback.getValue() === AudioPlayback.NoSync
-                    }).setTriggerProcedure(() => {
+                            && region.playback.getValue() === AudioPlayback.Timestretch
+                    }).setTriggerProcedure(async () => {
                         const adapters = selection.selected()
-                            .filter((region): region is AudioRegionBoxAdapter =>
-                                region.type === "audio-region" && region.playback !== AudioPlayback.NoSync)
-                        if (adapters.length === 0) {return}
-                        editing.modify(() => adapters.forEach(region => region.setPlayback(AudioPlayback.NoSync)))
-                    })
+                            .filter((region): region is AudioRegionBoxAdapter => region.type === "audio-region")
+                        const {status, value: editExec, error} = await Promises.tryCatch(
+                            AudioAdapterEditing.toTimestretch(service.sampleManager, boxGraph, adapters))
+                        if (status === "rejected") {
+                            await RuntimeNotifier.info({
+                                headline: "Error",
+                                message: `Could not detect transients (${error})`
+                            })
+                            return panic(error)
+                        }
+                        editing.modify(editExec)
+                    }),
+                    MenuItem.default({
+                        label: "No Warp",
+                        checked: region.type === "audio-region" && region.playback.getValue() === AudioPlayback.NoSync
+                    }).setTriggerProcedure(async () => {
+                            const {status, value: editExec, error} =
+                                await Promises.tryCatch(AudioAdapterEditing.toNoWarp(selection.selected()
+                                    .filter((region): region is AudioRegionBoxAdapter => region.type === "audio-region")))
+                            if (status === "rejected") {
+                                await RuntimeNotifier.info({
+                                    headline: "Error",
+                                    message: `Could not detect transients (${error})`
+                                })
+                                return panic(error)
+                            }
+                            editing.modify(editExec)
+                        }
+                    )
                 )),
                 MenuItem.default({
                     label: "Calc Bpm",
@@ -132,14 +158,9 @@ export const installRegionContextMenu =
                 }).setTriggerProcedure(() => {
                     if (region.type === "audio-region") {
                         region.file.data.ifSome(data => {
-                            // TODO This is just for testing BPMTools
                             const bpm = BPMTools.detect(data.frames[0], data.sampleRate)
-                            if (Browser.isLocalHost()) {
-                                console.debug(bpm)
-                            } else {
-                                Dialogs.info({headline: "BPMTools", message: `${bpm.toFixed(3)} BPM`})
-                                    .finally()
-                            }
+                            Dialogs.info({headline: "BPMTools", message: `${bpm.toFixed(3)} BPM`})
+                                .finally()
                         })
                     }
                 }),

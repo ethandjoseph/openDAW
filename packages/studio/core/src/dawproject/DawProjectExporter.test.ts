@@ -3,7 +3,6 @@ import {fileURLToPath} from "url"
 import * as path from "node:path"
 import * as fs from "node:fs"
 import {
-    AudioData,
     ProjectSkeleton,
     SampleLoader,
     SampleLoaderManager,
@@ -14,6 +13,7 @@ import {Xml} from "@opendaw/lib-xml"
 import {FileReferenceSchema} from "@opendaw/lib-dawproject"
 import {DawProjectExporter} from "./DawProjectExporter"
 import {Peaks} from "@opendaw/lib-fusion"
+import {AudioData} from "@opendaw/lib-dsp"
 
 describe("DawProjectExport", () => {
     it("export", async () => {

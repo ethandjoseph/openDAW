@@ -8,24 +8,24 @@ import {Notifier, Observable, ObservableValue, Observer, Subscription, Terminabl
 export interface TempoMap extends Observable<TempoMap> {
     /**
      * Get the tempo at a specific musical position.
-     * @param position Position in PPQN
+     * @param ppqn Position in PPQN
      * @returns Tempo in BPM at that position
      */
-    getTempoAt(position: ppqn): bpm
+    getTempoAt(ppqn: ppqn): bpm
 
     /**
      * Convert a musical position to absolute time.
      * @param position Position in PPQN
      * @returns Absolute time in seconds
      */
-    positionToSeconds(position: ppqn): seconds
+    ppqnToSeconds(position: ppqn): seconds
 
     /**
      * Convert an absolute time position to musical time.
      * @param time Absolute time in seconds
      * @returns Position in PPQN
      */
-    positionToPPQN(time: seconds): ppqn
+    secondsToPPQN(time: seconds): ppqn
 
     /**
      * Convert a musical time interval to absolute time duration.
@@ -71,11 +71,11 @@ export class ConstantTempoMap implements TempoMap, Terminable {
 
     getTempoAt(_position: ppqn): bpm {return this.#tempo}
 
-    positionToSeconds(position: ppqn): seconds {
+    ppqnToSeconds(position: ppqn): seconds {
         return PPQN.pulsesToSeconds(position, this.#tempo)
     }
 
-    positionToPPQN(time: seconds): ppqn {
+    secondsToPPQN(time: seconds): ppqn {
         return PPQN.secondsToPulses(time, this.#tempo)
     }
 

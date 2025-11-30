@@ -9,6 +9,7 @@ import {renderAudio} from "@/ui/timeline/renderer/audio.ts"
 import {renderValueStream} from "@/ui/timeline/renderer/value.ts"
 import {Context2d} from "@opendaw/lib-dom"
 import {RegionPaintBucket} from "@/ui/timeline/tracks/audio-unit/regions/RegionPaintBucket"
+import {AudioPlayback} from "@opendaw/studio-enums"
 
 export const renderRegions = (context: CanvasRenderingContext2D,
                               tracks: TracksManager,
@@ -109,7 +110,8 @@ export const renderRegions = (context: CanvasRenderingContext2D,
                             context.fillStyle = loopStrokeColor
                             context.fillRect(x, labelHeight, 1, height - labelHeight)
                         }
-                        renderAudio(context, range, region.file, region.gain, bound, contentColor, pass)
+                        const warping = region.playback.getValue() === AudioPlayback.NoSync ? Option.None : region.warping
+                        renderAudio(context, range, region.file, warping, region.gain, bound, contentColor, pass)
                     }
                     // TODO Record indicator?
                     const isRecording = region.file.getOrCreateLoader().state.type === "record"

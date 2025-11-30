@@ -1,7 +1,8 @@
 import {Progress, SortedSet, UUID} from "@opendaw/lib-std"
 import {DefaultSampleLoader} from "./DefaultSampleLoader"
 import {SampleProvider} from "./SampleProvider"
-import {AudioData, SampleLoader, SampleLoaderManager, SampleMetaData} from "@opendaw/studio-adapters"
+import {SampleLoader, SampleLoaderManager, SampleMetaData} from "@opendaw/studio-adapters"
+import {AudioData} from "@opendaw/lib-dsp"
 
 export class DefaultSampleLoaderManager implements SampleLoaderManager, SampleProvider {
     readonly #provider: SampleProvider
@@ -23,5 +24,18 @@ export class DefaultSampleLoaderManager implements SampleLoaderManager, SamplePr
 
     getOrCreate(uuid: UUID.Bytes): SampleLoader {
         return this.#loaders.getOrCreate(uuid, uuid => new DefaultSampleLoader(this, uuid))
+    }
+
+    async getAudioData(uuid: UUID.Bytes): Promise<AudioData> {
+        const {promise, resolve, reject} = Promise.withResolvers<AudioData>()
+        const loader = this.getOrCreate(uuid)
+        loader.subscribe(state => {
+            if (state.type === "error") {
+                reject(state.reason)
+            } else if (loader.data.nonEmpty()) {
+                resolve(loader.data.unwrap())
+            }
+        })
+        return promise
     }
 }

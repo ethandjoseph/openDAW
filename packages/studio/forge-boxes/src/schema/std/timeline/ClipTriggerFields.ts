@@ -1,8 +1,8 @@
 import {Pointers} from "@opendaw/studio-enums"
 import {ClassSchema} from "@opendaw/lib-box-forge"
 
-export const ClipPlaybackFields = {
-    name: "ClipPlaybackFields",
+export const ClipTriggerFields = {
+    name: "ClipPlaybackFields", // cannot change
     fields: {
         1: {type: "boolean", name: "loop", value: true},
         2: {type: "boolean", name: "reverse"},

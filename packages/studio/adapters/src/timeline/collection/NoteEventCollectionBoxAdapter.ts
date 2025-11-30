@@ -1,6 +1,5 @@
-import {BoxVisitor, NoteEventBox, NoteEventCollectionBox} from "@opendaw/studio-boxes"
+import {NoteEventBox, NoteEventCollectionBox} from "@opendaw/studio-boxes"
 import {
-    asDefined,
     Coordinates,
     float,
     int,
@@ -14,7 +13,7 @@ import {
     Terminator,
     UUID
 } from "@opendaw/lib-std"
-import {Address, Box} from "@opendaw/lib-box"
+import {Address} from "@opendaw/lib-box"
 import {EventCollection, NoteEvent, ppqn} from "@opendaw/lib-dsp"
 import {Pointers} from "@opendaw/studio-enums"
 import {BoxAdapter} from "../../BoxAdapter"
@@ -54,18 +53,14 @@ export class NoteEventCollectionBoxAdapter implements BoxAdapter, SelectableLoca
         this.#adapters = UUID.newSet(adapter => adapter.uuid)
         this.#events = EventCollection.create<NoteEventBoxAdapter>(NoteEvent.Comparator)
 
-        const addNoteProcedure = (box: Box) => {
-            const adapter = asDefined(box.accept<BoxVisitor<NoteEventBoxAdapter>>({
-                visitNoteEventBox: (box: NoteEventBox) => this.#context.boxAdapters.adapterFor(box, NoteEventBoxAdapter)
-            }), `Could not find adapter for ${box}`)
-            if (this.#adapters.add(adapter)) {
-                this.#events.add(adapter)
-                this.#onEventsChanged()
-            }
-        }
-        this.#box.events.pointerHub.incoming().forEach(({box}) => addNoteProcedure(box))
-        this.#terminator.own(this.#box.events.pointerHub.subscribe({
-            onAdded: ({box}) => addNoteProcedure(box),
+        this.#terminator.own(this.#box.events.pointerHub.catchupAndSubscribe({
+            onAdded: ({box}) => {
+                const adapter = this.#context.boxAdapters.adapterFor(box, NoteEventBoxAdapter)
+                if (this.#adapters.add(adapter)) {
+                    this.#events.add(adapter)
+                    this.#onEventsChanged()
+                }
+            },
             onRemoved: ({box: {address: {uuid}}}) => {
                 this.#events.remove(this.#adapters.removeByKey(uuid))
                 this.#onEventsChanged()

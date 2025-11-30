@@ -53,9 +53,10 @@ export class SamplePlayback {
             SampleStorage.get().load(UUID.parse(uuidAsString))
                 .then(([audio]) => {
                     this.#audio.src = URL.createObjectURL(new Blob([WavFile.encodeFloats({
-                        channels: audio.frames.slice(),
+                        frames: audio.frames.slice(),
                         sampleRate: audio.sampleRate,
-                        numFrames: audio.numberOfFrames
+                        numberOfFrames: audio.numberOfFrames,
+                        numberOfChannels: audio.numberOfChannels
                     })], {type: "audio/wav"}))
                 }, () => {
                     this.#audio.src = `${OpenSampleAPI.FileRoot}/${uuidAsString}`

@@ -1,5 +1,5 @@
-import {AudioData, Gate, PlayfieldSampleBoxAdapter} from "@opendaw/studio-adapters"
-import {NoteEvent, velocityToGain} from "@opendaw/lib-dsp"
+import {Gate, PlayfieldSampleBoxAdapter} from "@opendaw/studio-adapters"
+import {AudioData, NoteEvent, velocityToGain} from "@opendaw/lib-dsp"
 import {Id, int} from "@opendaw/lib-std"
 import {AutomatableParameters} from "./AutomatableParameters"
 
