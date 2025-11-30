@@ -127,6 +127,8 @@ export const ShadertoyEditor = ({service, lifecycle}: Construct) => {
                                         if (value === "") {return}
                                         editor.setValue(value)
                                     }))
+                            } else {
+                                editor.setValue(Example)
                             }
                         }),
                         Events.subscribe(window, "keydown", event => {

@@ -66,8 +66,8 @@ export const ShadertoyPreview = ({lifecycle, service}: Construct) => {
                                     runner.resetTime()
                                     shaderLifecycle.ownAll(
                                         AnimationFrame.add(() => {
-                                            canvas.width = canvas.clientWidth * devicePixelRatio
-                                            canvas.height = canvas.clientHeight * devicePixelRatio
+                                            canvas.width = canvas.clientWidth
+                                            canvas.height = canvas.clientHeight
                                             gl.viewport(0, 0, canvas.width, canvas.height)
                                             runner.render()
                                         }), ShadertoyMIDIOutput.subscribe(message => MidiData.accept(message, {
