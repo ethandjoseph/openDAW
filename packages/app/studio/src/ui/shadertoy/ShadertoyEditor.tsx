@@ -7,6 +7,7 @@ import {
     isAbsent,
     Lifecycle,
     RuntimeNotifier,
+    Terminator,
     UUID
 } from "@opendaw/lib-std"
 import {Await, createElement} from "@opendaw/lib-jsx"
@@ -31,10 +32,6 @@ type Construct = {
 export const ShadertoyEditor = ({service, lifecycle}: Construct) => {
     const {project} = service
     const {boxGraph, editing, rootBox} = project
-    if (rootBox.shadertoy.isEmpty()) {
-        editing.modify(() => rootBox.shadertoy
-            .refer(ShadertoyBox.create(boxGraph, UUID.generate(), box => box.shaderCode.setValue(Example))))
-    }
     return (
         <div className={className}>
             <Await
@@ -119,8 +116,20 @@ export const ShadertoyEditor = ({service, lifecycle}: Construct) => {
                         monaco.editor.setModelMarkers(editor.getModel()!, "glsl", [])
                         saveShadertoyCode(code)
                     }
+                    const shadertoyLifecycle = lifecycle.own(new Terminator())
                     lifecycle.ownAll(
-                        Events.subscribe(container, "keydown", event => {
+                        rootBox.shadertoy.catchupAndSubscribe(pointer => {
+                            shadertoyLifecycle.terminate()
+                            if (pointer.nonEmpty()) {
+                                shadertoyLifecycle.own(asInstanceOf(rootBox.shadertoy.targetVertex.unwrap(), ShadertoyBox)
+                                    .shaderCode.catchupAndSubscribe(owner => {
+                                        const value = owner.getValue()
+                                        if (value === "") {return}
+                                        editor.setValue(value)
+                                    }))
+                            }
+                        }),
+                        Events.subscribe(window, "keydown", event => {
                             if (Keyboard.isControlKey(event) && event.code === "KeyS") {
                                 const code = editor.getValue()
                                 const attempt = canCompile(code)
@@ -134,7 +143,10 @@ export const ShadertoyEditor = ({service, lifecycle}: Construct) => {
                                 event.preventDefault()
                             } else if (event.altKey && event.key === "Enter") {
                                 compileAndRun()
-                            } else if ((event.ctrlKey || event.metaKey) && allowed.includes(event.key.toLowerCase())) {
+                            }
+                        }, {capture: true}),
+                        Events.subscribe(container, "keydown", event => {
+                            if ((event.ctrlKey || event.metaKey) && allowed.includes(event.key.toLowerCase())) {
                                 return // Let Monaco handle these
                             }
                             event.stopPropagation()

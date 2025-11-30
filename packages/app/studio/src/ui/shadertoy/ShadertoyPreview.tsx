@@ -1,6 +1,16 @@
 import css from "./ShadertoyPreview.sass?inline"
 import {AnimationFrame, Html} from "@opendaw/lib-dom"
-import {asInstanceOf, byte, isAbsent, Lifecycle, Terminable, Terminator, tryCatch, unitValue} from "@opendaw/lib-std"
+import {
+    asInstanceOf,
+    byte,
+    isAbsent,
+    Lifecycle,
+    Nullable,
+    Terminable,
+    Terminator,
+    tryCatch,
+    unitValue
+} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {StudioService} from "@/service/StudioService"
 import {ShadertoyRunner} from "@/ui/shadertoy/ShadertoyRunner"
@@ -23,12 +33,12 @@ export const ShadertoyPreview = ({lifecycle, service}: Construct) => {
             <h1>Shadertoy</h1>
             <p>
                 Write GLSL shaders to create visuals for your music. The editor supports <a
-                href="https://shadertoy.com/" target="shadertoy">Shadertoy</a> compatible syntax. Audio spectrum is
-                available via iChannel0, and MIDI data arrives when you route a MIDI output to the <span
-                style={{color: Colors.green.toString()}}>Shadertoy</span>.
+                href="https://shadertoy.com/" target="shadertoy">Shadertoy</a> compatible syntax.<br/>
+                MIDI data is passed to the shader if you route a MIDI output to the <span
+                style={{color: Colors.green.toString()}}>Shadertoy</span> MIDI device.
             </p>
             <canvas onInit={canvas => {
-                const gl = canvas.getContext("webgl2")
+                const gl: Nullable<WebGL2RenderingContext> = canvas.getContext("webgl2")
                 if (isAbsent(gl)) {
                     output.textContent = "WebGL2 not supported"
                     return
@@ -40,6 +50,8 @@ export const ShadertoyPreview = ({lifecycle, service}: Construct) => {
                         shaderLifecycle.terminate()
                         targetVertex.match({
                             none: () => {
+                                gl.clearColor(0.0, 0.0, 0.0, 0.0)
+                                gl.clear(gl.COLOR_BUFFER_BIT)
                                 output.textContent = "No code"
                                 return Terminable.Empty
                             },

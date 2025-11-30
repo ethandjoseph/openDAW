@@ -1,7 +1,7 @@
 /*
  * Methods to read MIDI
- * midiNote(int pitch) - returns velocity (0.0-1.0) or 0.0 if off. Pitch: 60 = C4
- * midiCC(int cc)      - returns CC value (0.0-1.0). CC: 1 = mod, 74 = filter
+ * midiNote(int pitch) - returns normalized velocity or 0. if off. Pitch: 60 = C4
+ * midiCC(int cc)      - returns normalized CC value
  */
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
     // Normalized pixel coordinates (from 0 to 1)
