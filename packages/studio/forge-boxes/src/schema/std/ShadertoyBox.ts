@@ -6,7 +6,8 @@ export const ShadertoyBox: BoxSchema<Pointers> = {
     class: {
         name: "ShadertoyBox",
         fields: {
-            1: {type: "string", name: "shader-code"}
+            1: {type: "string", name: "shader-code"},
+            2: {type: "boolean", name: "highres", value: true}
         }
     },
     pointerRules: {accepts: [Pointers.Shadertoy], mandatory: true}

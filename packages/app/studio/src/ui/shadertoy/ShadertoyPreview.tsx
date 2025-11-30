@@ -59,7 +59,8 @@ export const ShadertoyPreview = ({lifecycle, service}: Construct) => {
                                     return Terminable.Empty
                                 },
                                 some: (box) => {
-                                    return asInstanceOf(box, ShadertoyBox).shaderCode.catchupAndSubscribe(code => {
+                                    const {shaderCode, highres} = asInstanceOf(box, ShadertoyBox)
+                                    return shaderCode.catchupAndSubscribe(code => {
                                         const {status, error} = tryCatch(() => runner.compile(code.getValue()))
                                         if (status === "failure") {
                                             output.textContent = String(error)
@@ -70,8 +71,9 @@ export const ShadertoyPreview = ({lifecycle, service}: Construct) => {
                                         const peaks = new Float32Array(4)
                                         shaderLifecycle.ownAll(
                                             AnimationFrame.add(() => {
-                                                canvas.width = canvas.clientWidth * devicePixelRatio
-                                                canvas.height = canvas.clientHeight * devicePixelRatio
+                                                const scale = highres.getValue() ? devicePixelRatio : 1
+                                                canvas.width = canvas.clientWidth * scale
+                                                canvas.height = canvas.clientHeight * scale
                                                 gl.viewport(0, 0, canvas.width, canvas.height)
                                                 runner.setPeaks(peaks)
                                                 runner.setPPQN(service.engine.position.getValue())

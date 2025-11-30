@@ -3,6 +3,7 @@ import {
     asInstanceOf,
     Attempt,
     Attempts,
+    DefaultObservableValue,
     EmptyProcedure,
     isAbsent,
     Lifecycle,
@@ -21,6 +22,7 @@ import {Button} from "@/ui/components/Button"
 import {Icon} from "@/ui/components/Icon"
 import Example from "./example.glsl?raw"
 import {ShadertoyRunner} from "@/ui/shadertoy/ShadertoyRunner"
+import {Checkbox} from "@/ui/components/Checkbox"
 
 const className = Html.adoptStyleSheet(css, "ShadertoyEditor")
 
@@ -32,6 +34,7 @@ type Construct = {
 export const ShadertoyEditor = ({service, lifecycle}: Construct) => {
     const {project} = service
     const {boxGraph, editing, rootBox} = project
+    const hiresModel = new DefaultObservableValue(true)
     let ignoreBoxUpdate = false // prevents reloading the script into the editor
     return (
         <div className={className}>
@@ -125,13 +128,20 @@ export const ShadertoyEditor = ({service, lifecycle}: Construct) => {
                         rootBox.shadertoy.catchupAndSubscribe(pointer => {
                             shadertoyLifecycle.terminate()
                             if (pointer.nonEmpty()) {
-                                shadertoyLifecycle.own(asInstanceOf(rootBox.shadertoy.targetVertex.unwrap(), ShadertoyBox)
-                                    .shaderCode.catchupAndSubscribe(owner => {
+                                const {
+                                    shaderCode,
+                                    highres
+                                } = asInstanceOf(rootBox.shadertoy.targetVertex.unwrap(), ShadertoyBox)
+                                shadertoyLifecycle.ownAll(
+                                    shaderCode.catchupAndSubscribe(owner => {
                                         if (ignoreBoxUpdate) {return}
                                         const value = owner.getValue()
                                         if (value === "") {return}
                                         model.setValue(value)
-                                    }))
+                                    }),
+                                    highres.catchupAndSubscribe(owner => hiresModel.setValue(owner.getValue())),
+                                    hiresModel.catchupAndSubscribe(owner => editing.modify(() => highres.setValue(owner.getValue())))
+                                )
                             } else {
                                 editor.setValue(Example)
                             }
@@ -181,6 +191,11 @@ export const ShadertoyEditor = ({service, lifecycle}: Construct) => {
                                         appearance={{tooltip: "Delete script"}}>
                                     <span>Delete</span> <Icon symbol={IconSymbol.Delete}/>
                                 </Button>
+                                <Checkbox lifecycle={lifecycle}
+                                          model={hiresModel}
+                                          appearance={{framed: true}}>
+                                    Hires
+                                </Checkbox>
                             </header>
                             {container}
                         </div>
