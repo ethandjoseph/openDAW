@@ -105,11 +105,13 @@ export class RevampDeviceProcessor extends AudioProcessor implements AudioEffect
         this.#parameterLowPassQ = this.own(this.bindParameter(namedParameter.lowPass.q))
         this.#parameterLowPassOrder = this.own(this.bindParameter(namedParameter.lowPass.order))
 
-        this.own(context.registerProcessor(this))
-        context.broadcaster.broadcastFloats(adapter.spectrum, this.#spectrum, () => {
-            this.#spectrum.set(this.#spectrumAnalyser.bins())
-            this.#spectrumAnalyser.decay = true
-        })
+        this.ownAll(
+            context.registerProcessor(this),
+            context.broadcaster.broadcastFloats(adapter.spectrum, this.#spectrum, () => {
+                this.#spectrum.set(this.#spectrumAnalyser.bins())
+                this.#spectrumAnalyser.decay = true
+            })
+        )
         this.readAllParameters()
     }
 

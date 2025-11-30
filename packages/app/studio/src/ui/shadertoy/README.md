@@ -7,6 +7,5 @@
 
 ### TODO
 
-* extract preview code
 * spectrum and waveform
 * export video

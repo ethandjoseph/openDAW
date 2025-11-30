@@ -17,7 +17,7 @@ import {
     Terminator,
     UUID
 } from "@opendaw/lib-std"
-import {Address, BoxGraph, createSyncTarget} from "@opendaw/lib-box"
+import {BoxGraph, createSyncTarget} from "@opendaw/lib-box"
 import {AudioFileBox, BoxIO, BoxVisitor} from "@opendaw/studio-boxes"
 import {EngineContext} from "./EngineContext"
 import {TimeInfo} from "./TimeInfo"
@@ -28,6 +28,7 @@ import {
     ClipAdapters,
     ClipSequencing,
     ClipSequencingUpdates,
+    EngineAddresses,
     EngineCommands,
     EngineProcessorAttachment,
     EngineStateSchema,
@@ -59,6 +60,7 @@ import {SoundfontManagerWorklet} from "./SoundfontManagerWorklet"
 import {MidiData} from "@opendaw/lib-midi"
 import {MIDITransportClock} from "./MIDITransportClock"
 import {MIDISender} from "./MIDISender"
+import {SpectrumAnalyser} from "./SpectrumAnalyser"
 
 const DEBUG = false
 
@@ -84,6 +86,8 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
     readonly #clipSequencing: ClipSequencingAudioContext
     readonly #updateClock: UpdateClock
     readonly #peaks: PeakBroadcaster
+    readonly #spectrumAnalyser: SpectrumAnalyser
+    readonly #spectrum: Float32Array
     readonly #metronome: Metronome
     readonly #midiTransportClock: MIDITransportClock
 
@@ -165,7 +169,13 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
         })
         this.#liveStreamBroadcaster = this.#terminator.own(LiveStreamBroadcaster.create(this.#messenger, "engine-live-data"))
         this.#updateClock = new UpdateClock(this)
-        this.#peaks = this.#terminator.own(new PeakBroadcaster(this.#liveStreamBroadcaster, Address.compose(UUID.Lowest)))
+        this.#peaks = this.#terminator.own(new PeakBroadcaster(this.#liveStreamBroadcaster, EngineAddresses.PEAKS))
+        this.#spectrumAnalyser = new SpectrumAnalyser()
+        this.#spectrum = new Float32Array(this.#spectrumAnalyser.numBins())
+        this.#terminator.own(this.#liveStreamBroadcaster.broadcastFloats(EngineAddresses.SPECTRUM, this.#spectrum, () => {
+            this.#spectrum.set(this.#spectrumAnalyser.bins())
+            this.#spectrumAnalyser.decay = true
+        }))
         this.#clipSequencing = this.#terminator.own(new ClipSequencingAudioContext(this.#boxGraph))
         this.#terminator.ownAll(
             createSyncTarget(this.#boxGraph, this.#messenger.channel("engine-sync")),

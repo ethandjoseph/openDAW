@@ -1,7 +1,7 @@
 import css from "./Header.sass?inline"
 import {Checkbox} from "@/ui/components/Checkbox.tsx"
 import {Icon} from "@/ui/components/Icon.tsx"
-import {Lifecycle, Nullable, ObservableValue, Observer, panic, Subscription, Terminator, UUID} from "@opendaw/lib-std"
+import {Lifecycle, Nullable, ObservableValue, Observer, panic, Subscription, Terminator} from "@opendaw/lib-std"
 import {TransportGroup} from "@/ui/header/TransportGroup.tsx"
 import {TimeStateDisplay} from "@/ui/header/TimeStateDisplay.tsx"
 import {RadioGroup} from "@/ui/components/RadioGroup.tsx"
@@ -15,9 +15,9 @@ import {MenuItem} from "@/ui/model/menu-item"
 import {MidiDevices} from "@opendaw/studio-core"
 import {Manual, Manuals} from "@/ui/pages/Manuals"
 import {HorizontalPeakMeter} from "@/ui/components/HorizontalPeakMeter"
-import {Address} from "@opendaw/lib-box"
 import {gainToDb} from "@opendaw/lib-dsp"
 import {ContextMenu} from "@/ui/ContextMenu"
+import {EngineAddresses} from "@opendaw/studio-adapters"
 
 const className = Html.adoptStyleSheet(css, "Header")
 
@@ -35,7 +35,7 @@ export const Header = ({lifecycle, service}: Construct) => {
             none: () => peaksInDb.fill(Number.NEGATIVE_INFINITY),
             some: ({project: {liveStreamReceiver}}) =>
                 runtime.own(liveStreamReceiver
-                    .subscribeFloats(Address.compose(UUID.Lowest), ([l, r]) => {
+                    .subscribeFloats(EngineAddresses.PEAKS, ([l, r]) => {
                         peaksInDb[0] = gainToDb(l)
                         peaksInDb[1] = gainToDb(r)
                     }))

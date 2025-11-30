@@ -1,25 +1,12 @@
 import css from "./ShadertoyPreview.sass?inline"
-import {AnimationFrame, Events, Html} from "@opendaw/lib-dom"
-import {
-    asInstanceOf,
-    byte,
-    isAbsent,
-    Lifecycle,
-    Nullable,
-    Terminable,
-    Terminator,
-    tryCatch,
-    unitValue,
-    UUID
-} from "@opendaw/lib-std"
+import {Events, Html} from "@opendaw/lib-dom"
+import {asInstanceOf, isAbsent, Lifecycle, Nullable, Terminable, Terminator, tryCatch} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {StudioService} from "@/service/StudioService"
 import {ShadertoyRunner} from "@/ui/shadertoy/ShadertoyRunner"
 import {ShadertoyBox} from "@opendaw/studio-boxes"
-import {MidiData} from "@opendaw/lib-midi"
 import {Colors} from "@opendaw/studio-enums"
-import {ShadertoyMIDIOutput} from "@/ui/shadertoy/ShadertoyMIDIOutput"
-import {Address} from "@opendaw/lib-box"
+import {setupShadertoyRunner} from "@/ui/shadertoy/runner-setup"
 
 const className = Html.adoptStyleSheet(css, "ShadertoyPreview")
 
@@ -67,27 +54,7 @@ export const ShadertoyPreview = ({lifecycle, service}: Construct) => {
                                             return
                                         }
                                         output.textContent = "Running"
-                                        runner.resetTime()
-                                        const peaks = new Float32Array(4)
-                                        shaderLifecycle.ownAll(
-                                            AnimationFrame.add(() => {
-                                                const scale = highres.getValue() ? devicePixelRatio : 1
-                                                canvas.width = canvas.clientWidth * scale
-                                                canvas.height = canvas.clientHeight * scale
-                                                gl.viewport(0, 0, canvas.width, canvas.height)
-                                                runner.setPeaks(peaks)
-                                                runner.setPPQN(service.engine.position.getValue())
-                                                runner.render()
-                                            }),
-                                            ShadertoyMIDIOutput.subscribe(message => MidiData.accept(message, {
-                                                controller: (id: byte, value: unitValue) => runner.onMidiCC(id, value),
-                                                noteOn: (note: byte, velocity: byte) => runner.onMidiNoteOn(note, velocity),
-                                                noteOff: (note: byte) => runner.onMidiNoteOff(note)
-                                            })),
-                                            service.project.liveStreamReceiver
-                                                .subscribeFloats(Address.compose(UUID.Lowest), (enginePeaks) =>
-                                                    peaks.set(enginePeaks, 0))
-                                        )
+                                        shaderLifecycle.own(setupShadertoyRunner(runner, canvas, service, highres))
                                     })
                                 }
                             })

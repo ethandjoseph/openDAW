@@ -222,6 +222,7 @@ export class ShadertoyRunner implements Terminable {
         const currentTime = time ?? (performance.now() / 1000.0 - this.#startTime)
         const timeDelta = currentTime - this.#lastFrameTime
         this.#lastFrameTime = currentTime
+        gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight)
         gl.disable(gl.BLEND)
         gl.activeTexture(gl.TEXTURE0)
         gl.bindTexture(gl.TEXTURE_2D, this.#audioTexture)
