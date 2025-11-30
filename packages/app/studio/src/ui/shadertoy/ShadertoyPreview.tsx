@@ -37,52 +37,54 @@ export const ShadertoyPreview = ({lifecycle, service}: Construct) => {
                 MIDI data is passed to the shader if you route a MIDI output to the <span
                 style={{color: Colors.green.toString()}}>Shadertoy</span> MIDI device.
             </p>
-            <canvas onInit={canvas => {
-                const gl: Nullable<WebGL2RenderingContext> = canvas.getContext("webgl2")
-                if (isAbsent(gl)) {
-                    output.textContent = "WebGL2 not supported"
-                    return
-                }
-                const runner = new ShadertoyRunner(gl)
-                const shaderLifecycle = lifecycle.own(new Terminator())
-                lifecycle.ownAll(
-                    service.project.rootBox.shadertoy.catchupAndSubscribe(({targetVertex}) => {
-                        shaderLifecycle.terminate()
-                        targetVertex.match({
-                            none: () => {
-                                gl.clearColor(0.0, 0.0, 0.0, 0.0)
-                                gl.clear(gl.COLOR_BUFFER_BIT)
-                                output.textContent = "No code"
-                                return Terminable.Empty
-                            },
-                            some: (box) => {
-                                return asInstanceOf(box, ShadertoyBox).shaderCode.catchupAndSubscribe(code => {
-                                    const {status, error} = tryCatch(() => runner.compile(code.getValue()))
-                                    if (status === "failure") {
-                                        output.textContent = String(error)
-                                        return
-                                    }
-                                    output.textContent = "Running"
-                                    runner.resetTime()
-                                    shaderLifecycle.ownAll(
-                                        AnimationFrame.add(() => {
-                                            canvas.width = canvas.clientWidth * devicePixelRatio
-                                            canvas.height = canvas.clientHeight * devicePixelRatio
-                                            gl.viewport(0, 0, canvas.width, canvas.height)
-                                            runner.setPPQN(service.engine.position.getValue())
-                                            runner.render()
-                                        }), ShadertoyMIDIOutput.subscribe(message => MidiData.accept(message, {
-                                            controller: (id: byte, value: unitValue) => runner.onMidiCC(id, value),
-                                            noteOn: (note: byte, velocity: byte) => runner.onMidiNoteOn(note, velocity),
-                                            noteOff: (note: byte) => runner.onMidiNoteOff(note)
-                                        }))
-                                    )
-                                })
-                            }
+            <div className="canvas-wrapper">
+                <canvas onInit={canvas => {
+                    const gl: Nullable<WebGL2RenderingContext> = canvas.getContext("webgl2")
+                    if (isAbsent(gl)) {
+                        output.textContent = "WebGL2 not supported"
+                        return
+                    }
+                    const runner = new ShadertoyRunner(gl)
+                    const shaderLifecycle = lifecycle.own(new Terminator())
+                    lifecycle.ownAll(
+                        service.project.rootBox.shadertoy.catchupAndSubscribe(({targetVertex}) => {
+                            shaderLifecycle.terminate()
+                            targetVertex.match({
+                                none: () => {
+                                    gl.clearColor(0.0, 0.0, 0.0, 0.0)
+                                    gl.clear(gl.COLOR_BUFFER_BIT)
+                                    output.textContent = "No code"
+                                    return Terminable.Empty
+                                },
+                                some: (box) => {
+                                    return asInstanceOf(box, ShadertoyBox).shaderCode.catchupAndSubscribe(code => {
+                                        const {status, error} = tryCatch(() => runner.compile(code.getValue()))
+                                        if (status === "failure") {
+                                            output.textContent = String(error)
+                                            return
+                                        }
+                                        output.textContent = "Running"
+                                        runner.resetTime()
+                                        shaderLifecycle.ownAll(
+                                            AnimationFrame.add(() => {
+                                                canvas.width = canvas.clientWidth * devicePixelRatio
+                                                canvas.height = canvas.clientHeight * devicePixelRatio
+                                                gl.viewport(0, 0, canvas.width, canvas.height)
+                                                runner.setPPQN(service.engine.position.getValue())
+                                                runner.render()
+                                            }), ShadertoyMIDIOutput.subscribe(message => MidiData.accept(message, {
+                                                controller: (id: byte, value: unitValue) => runner.onMidiCC(id, value),
+                                                noteOn: (note: byte, velocity: byte) => runner.onMidiNoteOn(note, velocity),
+                                                noteOff: (note: byte) => runner.onMidiNoteOff(note)
+                                            }))
+                                        )
+                                    })
+                                }
+                            })
                         })
-                    })
-                )
-            }}/>
+                    )
+                }}/>
+            </div>
             {output}
         </div>
     )
