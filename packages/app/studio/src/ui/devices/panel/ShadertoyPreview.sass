@@ -1,11 +1,12 @@
 @use "@/colors"
 
 component
+  padding: 0.5em 0.5em 0.5em 0
   display: flex
   flex-direction: row
   align-items: center
   position: relative
-  overflow: hidden auto
+  overflow: hidden
   min-height: 0
   @include colors.panel-background
 
@@ -25,4 +26,5 @@ component
   > canvas
     height: 100%
     aspect-ratio: 1280 / 720
+    border-radius: 0.5em
     @include colors.panel-background-dark

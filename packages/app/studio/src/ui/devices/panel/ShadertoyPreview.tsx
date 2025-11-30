@@ -34,7 +34,7 @@ export const ShadertoyPreview = ({lifecycle, service}: Construct) => {
             replaceChildren(element, (
                 <Frag>
                     <ShadertoyLogo onInit={element => {
-                        lifecycle.own(Events.subscribeDblDwn(element, () => visible.setValue(!visible.getValue())))
+                        lifecycle.own(Events.subscribe(element, "click", () => visible.setValue(!visible.getValue())))
                     }}/>
                     <canvas onInit={canvas => {
                         const gl = canvas.getContext("webgl2")
