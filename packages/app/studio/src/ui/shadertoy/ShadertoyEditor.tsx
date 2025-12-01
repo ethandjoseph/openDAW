@@ -69,6 +69,10 @@ export const ShadertoyEditor = ({service, lifecycle}: Construct) => {
                         theme: "vs-dark",
                         automaticLayout: true
                     })
+                    editor.updateOptions({
+                        scrollBeyondLastLine: true,
+                        scrollBeyondLastColumn: 5
+                    })
                     const allowed = ["c", "v", "x", "a", "z", "y"]
                     const canCompile = (code: string): Attempt<void, string> => {
                         const canvas = document.createElement("canvas")
