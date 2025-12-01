@@ -61,6 +61,7 @@ export const ShadertoyEditor = ({service, lifecycle}: Construct) => {
                             comments: false,
                             strings: false
                         },
+                        occurrencesHighlight: "off", // prevents Firefox issue
                         suggestOnTriggerCharacters: true,
                         acceptSuggestionOnCommitCharacter: true,
                         acceptSuggestionOnEnter: "on",
@@ -125,7 +126,6 @@ export const ShadertoyEditor = ({service, lifecycle}: Construct) => {
                     editor.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.Enter, compileAndRun)
                     const shadertoyLifecycle = lifecycle.own(new Terminator())
                     lifecycle.ownAll(
-                        lifecycle.own({terminate: () => model.dispose()}),
                         rootBox.shadertoy.catchupAndSubscribe(pointer => {
                             shadertoyLifecycle.terminate()
                             if (pointer.nonEmpty()) {

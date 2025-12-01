@@ -80,6 +80,7 @@ export const CodeEditorPage: PageFactory<StudioService> = ({lifecycle, service}:
                             comments: false,
                             strings: false
                         },
+                        occurrencesHighlight: "off", // prevents Firefox issue
                         suggestOnTriggerCharacters: true,
                         acceptSuggestionOnCommitCharacter: true,
                         acceptSuggestionOnEnter: "on",
