@@ -2,6 +2,8 @@
 
 Create real-time visuals for your music using GLSL shaders. The editor supports Shadertoy-compatible syntax, so you can learn from their community and adapt techniques to your own creations.
 
+[Shadertoy](https://shadertoy.com)
+
 ---
 
 ## 0. Overview
