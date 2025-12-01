@@ -1,8 +1,9 @@
 import {FFT, Window} from "@opendaw/lib-dsp"
 import {int} from "@opendaw/lib-std"
 
-export class SpectrumAnalyser {
-    static readonly DEFAULT_SIZE = 1024
+export class AudioAnalyser {
+    static readonly DEFAULT_SIZE = 512
+    static readonly DECAY = 0.90
 
     readonly #fftSize: number
     readonly #numBins: number
@@ -11,32 +12,37 @@ export class SpectrumAnalyser {
     readonly #imag: Float32Array
     readonly #window: Float32Array
     readonly #bins: Float32Array
+    readonly #waveform: Float32Array
 
     #index: number = 0
 
     decay: boolean = false
 
-    constructor(n: int = SpectrumAnalyser.DEFAULT_SIZE) {
-        this.#fftSize = n
+    constructor(size: int = AudioAnalyser.DEFAULT_SIZE) {
+        this.#fftSize = size << 1
         this.#fft = new FFT(this.#fftSize)
         this.#real = new Float32Array(this.#fftSize)
         this.#imag = new Float32Array(this.#fftSize)
         this.#window = Window.create(Window.Type.Blackman, this.#fftSize)
-        this.#numBins = this.#fftSize >> 1
-        this.#bins = new Float32Array(this.#numBins)
+        this.#numBins = size
+        this.#bins = new Float32Array(size)
+        this.#waveform = new Float32Array(size)
     }
 
     clear(): void {
         this.#bins.fill(0.0)
+        this.#real.fill(0.0)
+        this.#waveform.fill(0.0)
         this.#index = 0
     }
 
     numBins(): int {return this.#numBins}
     bins(): Float32Array {return this.#bins}
+    waveform(): Float32Array {return this.#waveform}
 
     process(left: Float32Array, right: Float32Array, fromIndex: int, toIndex: int): void {
         for (let i = fromIndex; i < toIndex; ++i) {
-            this.#real[this.#index] = this.#window[this.#index] * (left[i] + right[i])
+            this.#real[this.#index] = left[i] + right[i]
             if (++this.#index === this.#fftSize) {
                 this.#update()
             }
@@ -44,6 +50,12 @@ export class SpectrumAnalyser {
     }
 
     #update(): void {
+        for (let i = 0; i < this.#numBins; ++i) {
+            this.#waveform[i] = this.#real[i << 1]
+        }
+        for (let i = 0; i < this.#fftSize; ++i) {
+            this.#real[i] *= this.#window[i]
+        }
         this.#fft.process(this.#real, this.#imag)
         const scale = 1.0 / this.#numBins
         for (let i = 0; i < this.#numBins; ++i) {
@@ -53,7 +65,7 @@ export class SpectrumAnalyser {
             if (this.#bins[i] < energy) {
                 this.#bins[i] = energy
             } else if (this.decay) {
-                this.#bins[i] *= 0.90 // TODO Can we compute a coefficient? (depends on the FPS!)
+                this.#bins[i] *= AudioAnalyser.DECAY
             }
         }
         this.#index = 0

@@ -1,4 +1,4 @@
-import {clampUnit, Terminable} from "@opendaw/lib-std"
+import {clamp, clampUnit, Terminable} from "@opendaw/lib-std"
 import {gainToDb, PPQN} from "@opendaw/lib-dsp"
 
 export class ShadertoyRunner implements Terminable {
@@ -127,17 +127,13 @@ export class ShadertoyRunner implements Terminable {
     }
 
     /**
-     * Sets the waveform data (row 0 of iChannel0).
-     * @param data Up to 512 samples, normalized 0-255 for Uint8Array or 0.0-1.0 for Float32Array
+     * Sets the waveform data (row 1 of iChannel0).
+     * @param data Up to 512 samples, -1.0 to 1.0 range
      */
-    setWaveform(data: Uint8Array | Float32Array): void {
+    setWaveform(data: Float32Array): void {
         const length = Math.min(data.length, 512)
-        if (data.BYTES_PER_ELEMENT === 4) {
-            for (let i = 0; i < length; i++) {
-                this.#audioData[512 + i] = Math.floor(data[i] * 255.0)
-            }
-        } else {
-            this.#audioData.set(data.subarray(0, length), 0)
+        for (let i = 0; i < length; i++) {
+            this.#audioData[512 + i] = Math.floor(128.0 * (1.0 + clamp(data[i], -1.0, 1.0)))
         }
     }
 

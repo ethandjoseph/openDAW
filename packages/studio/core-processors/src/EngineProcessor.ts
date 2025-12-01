@@ -51,11 +51,12 @@ import {PeakBroadcaster} from "./PeakBroadcaster"
 import {Metronome} from "./Metronome"
 import {BlockRenderer} from "./BlockRenderer"
 import {
+    AudioAnalyser,
     AudioData,
     ConstantTempoMap,
     Graph,
-    ppqn,
     PPQN,
+    ppqn,
     RenderQuantum,
     TempoMap,
     TopologicalSort
@@ -69,7 +70,6 @@ import {SoundfontManagerWorklet} from "./SoundfontManagerWorklet"
 import {MidiData} from "@opendaw/lib-midi"
 import {MIDITransportClock} from "./MIDITransportClock"
 import {MIDISender} from "./MIDISender"
-import {SpectrumAnalyser} from "./SpectrumAnalyser"
 
 const DEBUG = false
 
@@ -95,7 +95,7 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
     readonly #clipSequencing: ClipSequencingAudioContext
     readonly #updateClock: UpdateClock
     readonly #peaks: PeakBroadcaster
-    readonly #spectrumAnalyser: SpectrumAnalyser
+    readonly #analyser: AudioAnalyser
     readonly #metronome: Metronome
     readonly #midiTransportClock: MIDITransportClock
 
@@ -178,12 +178,15 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
         this.#liveStreamBroadcaster = this.#terminator.own(LiveStreamBroadcaster.create(this.#messenger, "engine-live-data"))
         this.#updateClock = new UpdateClock(this)
         this.#peaks = this.#terminator.own(new PeakBroadcaster(this.#liveStreamBroadcaster, EngineAddresses.PEAKS))
-        this.#spectrumAnalyser = new SpectrumAnalyser()
-        const spectrum = new Float32Array(this.#spectrumAnalyser.numBins())
+        this.#analyser = new AudioAnalyser()
+        const spectrum = new Float32Array(this.#analyser.numBins())
+        const waveform = new Float32Array(this.#analyser.numBins())
         this.#terminator.own(this.#liveStreamBroadcaster.broadcastFloats(EngineAddresses.SPECTRUM, spectrum, () => {
-            spectrum.set(this.#spectrumAnalyser.bins())
-            this.#spectrumAnalyser.decay = true
+            spectrum.set(this.#analyser.bins())
+            this.#analyser.decay = true
         }))
+        this.#terminator.own(this.#liveStreamBroadcaster.broadcastFloats(EngineAddresses.WAVEFORM, waveform,
+            () => waveform.set(this.#analyser.waveform())))
         this.#clipSequencing = this.#terminator.own(new ClipSequencingAudioContext(this.#boxGraph))
         this.#terminator.ownAll(
             createSyncTarget(this.#boxGraph, this.#messenger.channel("engine-sync")),
@@ -318,7 +321,7 @@ export class EngineProcessor extends AudioWorkletProcessor implements EngineCont
             this.#primaryOutput.unwrap().audioOutput().replaceInto(output)
             if (metronomeEnabled) {this.#metronome.output.mixInto(output)}
             this.#peaks.process(output[0], output[1])
-            this.#spectrumAnalyser.process(output[0], output[1], 0, RenderQuantum)
+            this.#analyser.process(output[0], output[1], 0, RenderQuantum)
         } else {
             this.#stemExports.forEach((unit: AudioUnit, index: int) => {
                 const [l, r] = unit.audioOutput().channels()

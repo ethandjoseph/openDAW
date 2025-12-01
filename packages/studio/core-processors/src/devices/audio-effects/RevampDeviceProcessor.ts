@@ -4,7 +4,7 @@ import {AudioEffectDeviceAdapter, RevampDeviceBoxAdapter} from "@opendaw/studio-
 import {EngineContext} from "../../EngineContext"
 import {Block, Processor} from "../../processing"
 import {PeakBroadcaster} from "../../PeakBroadcaster"
-import {SpectrumAnalyser} from "../../SpectrumAnalyser"
+import {AudioAnalyser} from "@opendaw/lib-dsp"
 import {AudioProcessor} from "../../AudioProcessor"
 import {AutomatableParameter} from "../../AutomatableParameter"
 import {AudioEffectDeviceProcessor} from "../../AudioEffectDeviceProcessor"
@@ -17,7 +17,7 @@ export class RevampDeviceProcessor extends AudioProcessor implements AudioEffect
     readonly #adapter: RevampDeviceBoxAdapter
     readonly #output: AudioBuffer
     readonly #peaks: PeakBroadcaster
-    readonly #spectrumAnalyser: SpectrumAnalyser
+    readonly #spectrumAnalyser: AudioAnalyser
     readonly #spectrum: Float32Array
 
     readonly #biquadCoeff: ReadonlyArray<BiquadCoeff>
@@ -60,7 +60,7 @@ export class RevampDeviceProcessor extends AudioProcessor implements AudioEffect
         this.#adapter = adapter
         this.#output = new AudioBuffer()
         this.#peaks = this.own(new PeakBroadcaster(context.broadcaster, adapter.address))
-        this.#spectrumAnalyser = new SpectrumAnalyser()
+        this.#spectrumAnalyser = new AudioAnalyser()
         this.#spectrum = new Float32Array(this.#spectrumAnalyser.numBins())
 
         this.#biquadCoeff = Arrays.create(() => new BiquadCoeff(), 7)

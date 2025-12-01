@@ -7,5 +7,4 @@
 
 ### TODO
 
-* waveform
 * export video

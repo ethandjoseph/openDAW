@@ -26,6 +26,7 @@ export const setupShadertoyRunner = (runner: ShadertoyRunner,
             noteOff: (note: byte) => runner.onMidiNoteOff(note)
         })),
         liveStreamReceiver.subscribeFloats(EngineAddresses.PEAKS, (peaks) => runner.setPeaks(peaks)),
-        liveStreamReceiver.subscribeFloats(EngineAddresses.SPECTRUM, spectrum => runner.setSpectrum(spectrum, sampleRate))
+        liveStreamReceiver.subscribeFloats(EngineAddresses.SPECTRUM, spectrum => runner.setSpectrum(spectrum, sampleRate)),
+        liveStreamReceiver.subscribeFloats(EngineAddresses.WAVEFORM, waveform => runner.setWaveform(waveform))
     )
 }
