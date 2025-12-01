@@ -130,11 +130,13 @@ export class BlockRenderer {
                     const advanceToEvent = () => {
                         if (actionPosition > p0) {
                             const s1 = s0 + PPQN.pulsesToSamples(actionPosition - p0, bpm, sampleRate) | 0
-                            blocks.push({
-                                index: index++, p0, p1: actionPosition, s0, s1, bpm,
-                                flags: BlockFlags.create(transporting, discontinuous, playing, this.#tempoChanged)
-                            })
-                            discontinuous = false
+                            if (s1 > s0) {
+                                blocks.push({
+                                    index: index++, p0, p1: actionPosition, s0, s1, bpm,
+                                    flags: BlockFlags.create(transporting, discontinuous, playing, this.#tempoChanged)
+                                })
+                                discontinuous = false
+                            }
                             p0 = actionPosition
                             s0 = s1
                         }
