@@ -6,5 +6,7 @@
 
 ### TODO
 
+* absolute timing resets when switching views (ideas?)
+* set the size of canvas in the editor preview
+* allow skipping frames
 * export video
-* absolute timing resets when switching views

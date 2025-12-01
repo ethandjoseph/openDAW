@@ -47,7 +47,7 @@ export const ShadertoyEditor = ({service, lifecycle}: Construct) => {
                 loading={() => ThreeDots()}
                 success={([monaco]) => {
                     const container = (<div className="monaco-editor"/>)
-                    const modelUri = monaco.Uri.parse("file:///main.ts")
+                    const modelUri = monaco.Uri.parse("file:///shader.glsl")
                     let model = monaco.editor.getModel(modelUri)
                     if (!model) {
                         const code = rootBox.shadertoy.targetVertex.mapOr((box) =>

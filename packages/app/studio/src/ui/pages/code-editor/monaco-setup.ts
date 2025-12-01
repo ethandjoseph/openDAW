@@ -2,18 +2,9 @@
 import * as monaco from "monaco-editor"
 import "monaco-editor/esm/vs/language/typescript/monaco.contribution"
 import "monaco-editor/esm/vs/basic-languages/typescript/typescript.contribution"
-import EditorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker"
-import TsWorker from "monaco-editor/esm/vs/language/typescript/ts.worker?worker"
 import declarations from "@opendaw/studio-scripting/api.declaration?raw"
 import library from "@opendaw/studio-scripting/library?raw"
-
-// noinspection JSUnusedGlobalSymbols
-self.MonacoEnvironment = {
-    getWorker(_, label) {
-        console.debug("getWorker:", _, label)
-        return label === "typescript" || label === "javascript" ? new TsWorker() : new EditorWorker()
-    }
-}
+import "@/monaco/imports"
 
 // Configure TypeScript defaults
 const tsDefaults = monaco.languages.typescript.typescriptDefaults
