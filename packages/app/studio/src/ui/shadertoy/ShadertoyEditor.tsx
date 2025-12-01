@@ -69,10 +69,6 @@ export const ShadertoyEditor = ({service, lifecycle}: Construct) => {
                         theme: "vs-dark",
                         automaticLayout: true
                     })
-                    editor.updateOptions({
-                        scrollBeyondLastLine: true,
-                        scrollBeyondLastColumn: 5
-                    })
                     const allowed = ["c", "v", "x", "a", "z", "y"]
                     const canCompile = (code: string): Attempt<void, string> => {
                         const canvas = document.createElement("canvas")
@@ -129,13 +125,12 @@ export const ShadertoyEditor = ({service, lifecycle}: Construct) => {
                     editor.addCommand(monaco.KeyMod.Alt | monaco.KeyCode.Enter, compileAndRun)
                     const shadertoyLifecycle = lifecycle.own(new Terminator())
                     lifecycle.ownAll(
+                        lifecycle.own({terminate: () => model.dispose()}),
                         rootBox.shadertoy.catchupAndSubscribe(pointer => {
                             shadertoyLifecycle.terminate()
                             if (pointer.nonEmpty()) {
-                                const {
-                                    shaderCode,
-                                    highres
-                                } = asInstanceOf(rootBox.shadertoy.targetVertex.unwrap(), ShadertoyBox)
+                                const {shaderCode, highres} =
+                                    asInstanceOf(rootBox.shadertoy.targetVertex.unwrap(), ShadertoyBox)
                                 shadertoyLifecycle.ownAll(
                                     shaderCode.catchupAndSubscribe(owner => {
                                         if (ignoreBoxUpdate) {return}

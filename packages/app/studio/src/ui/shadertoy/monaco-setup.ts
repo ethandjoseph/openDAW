@@ -1,5 +1,5 @@
-import * as monaco from "monaco-editor"
 import "@/monaco/imports"
+import * as monaco from "monaco-editor"
 
 const shadertoyGlobals = [
     "iResolution", "iTime", "iBeat", "iPeaks", "iTimeDelta", "iFrame",
