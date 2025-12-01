@@ -20,16 +20,16 @@ To send MIDI to the visualizer, add a **MIDI Output** device to any track and se
 
 ## 2. Supported Uniforms
 
-| Uniform | Type | Description |
-|---------|------|-------------|
-| `iResolution` | `vec3` | Viewport size (width, height, 1.0) |
-| `iTime` | `float` | Elapsed time in seconds |
-| `iTimeDelta` | `float` | Time since last frame |
-| `iFrame` | `int` | Frame counter |
-| `iBeat` | `float` | Beat position (quarter notes) |
-| `iPeaks` | `vec4` | Stereo levels (leftPeak, leftRMS, rightPeak, rightRMS) |
-| `iChannel0` | `sampler2D` | Audio texture (512×2) |
-| `iChannelResolution` | `vec3[1]` | Audio texture size (512, 2, 1) |
+| Uniform | Type | Description                                            |
+|---------|------|--------------------------------------------------------|
+| `iResolution` | `vec3` | Viewport size (width, height, 1.0)                     |
+| `iTime` | `float` | Elapsed time in seconds                                |
+| `iTimeDelta` | `float` | Time since last frame                                  |
+| `iFrame` | `int` | Frame counter                                          |
+| `iBeat` | `float` | Beat position (quarter notes)                          |
+| `iPeaks` | `vec4` | Stereo levels (leftPeak, rightPeak, leftRMS, rightRMS) |
+| `iChannel0` | `sampler2D` | Audio texture (512×2)                                  |
+| `iChannelResolution` | `vec3[1]` | Audio texture size (512, 2, 1)                         |
 
 ---
 
