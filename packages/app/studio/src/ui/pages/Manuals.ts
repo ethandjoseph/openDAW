@@ -17,6 +17,7 @@ export const Manuals: ReadonlyArray<Manual> = [
     {type: "page", label: "Firefox Midi", path: "/manuals/firefox-midi"},
     {type: "page", label: "Permissions", path: "/manuals/permissions"},
     {type: "page", label: "Tech Stack", path: "/manuals/tech-stack"},
+    {type: "page", label: "Shadertoy", path: "/manuals/shadertoy"},
     {type: "page", label: "Dev Log", path: "/manuals/dev-log"},
     {
         type: "folder", label: "Devices", files: [{
