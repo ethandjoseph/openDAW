@@ -8,11 +8,15 @@ Create real-time visuals for your music using GLSL shaders. The editor supports 
 
 The Shadertoy panel lets you write fragment shaders that respond to audio and MIDI data from your project. Audio spectrum and waveform data arrive via `iChannel0`, and MIDI data is available through helper functions.
 
-To send MIDI to the visualizer, create a MIDI Output and select **Shadertoy** as the destination device.
+---
+
+## 1. MIDI Setup
+
+To send MIDI to the visualizer, add a **MIDI Output** device to any track and select **Shadertoy** as the destination. This routes note and controller data to the shader. You can use clips, live input, or automation to drive your visuals.
 
 ---
 
-## 1. Supported Uniforms
+## 2. Supported Uniforms
 
 | Uniform | Type | Description |
 |---------|------|-------------|
@@ -27,7 +31,7 @@ To send MIDI to the visualizer, create a MIDI Output and select **Shadertoy** as
 
 ---
 
-## 2. Audio Data
+## 3. Audio Data
 
 Audio data is stored in `iChannel0` as a 512×2 texture:
 
@@ -41,7 +45,7 @@ float wave = texture(iChannel0, vec2(uv.x, 0.75)).r * 2.0 - 1.0;
 
 ---
 
-## 3. MIDI Functions
+## 4. MIDI Functions
 
 ```glsl
 // Returns velocity (0.0-1.0) if note is on, 0.0 if off
@@ -49,20 +53,18 @@ float wave = texture(iChannel0, vec2(uv.x, 0.75)).r * 2.0 - 1.0;
 float midiNote(int pitch);
 
 // Returns CC value (0.0-1.0)
-// Common CCs: 1 = mod wheel, 74 = filter cutoff
 float midiCC(int cc);
 ```
 
 **Example:**
 ```glsl
-float kick = midiNote(36);      // C1
-float modWheel = midiCC(1);
-float brightness = midiCC(74);
+float kick = midiNote(60);      // C3
+float value = midiCC(64);
 ```
 
 ---
 
-## 4. Not Supported
+## 5. Not Supported
 
 The following Shadertoy features are **not available**:
 
@@ -76,7 +78,7 @@ The following Shadertoy features are **not available**:
 
 ---
 
-## 5. Keyboard Shortcuts
+## 6. Keyboard Shortcuts
 
 | Shortcut | Action |
 |----------|--------|
@@ -85,7 +87,7 @@ The following Shadertoy features are **not available**:
 
 ---
 
-## 6. Example
+## 7. Example
 
 ```glsl
 void mainImage(out vec4 fragColor, in vec2 fragCoord) {
