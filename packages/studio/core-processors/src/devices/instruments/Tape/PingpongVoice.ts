@@ -23,6 +23,7 @@ export class PingpongVoice implements Voice {
     #bouncePosition: number = 0.0
 
     constructor(output: AudioBuffer, data: AudioData, segment: Segment, fadeLength: number, offset: number = 0.0) {
+        console.debug("offset", offset)
         this.#output = output
         this.#data = data
         this.#fadeLength = fadeLength

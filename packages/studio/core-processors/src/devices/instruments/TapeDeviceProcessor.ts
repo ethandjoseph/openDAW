@@ -1,4 +1,4 @@
-import {asDefined, assert, Bits, int, isInstanceOf, Nullable, Option, SortedSet, UUID} from "@opendaw/lib-std"
+import {asDefined, assert, Bits, int, isInstanceOf, isNull, Nullable, Option, SortedSet, UUID} from "@opendaw/lib-std"
 import {AudioBuffer, AudioData, EventCollection, LoopableRegion, RenderQuantum} from "@opendaw/lib-dsp"
 import {
     AudioClipBoxAdapter,
@@ -104,15 +104,18 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                         const optData = region.file.getOrCreateLoader().data
                         if (optData.isEmpty()) {return}
                         const playback = region.playback.getValue()
+                        const waveformOffset = region.waveformOffset.getValue()
                         if (playback === AudioPlayback.Timestretch) {
                             const optWarping = region.warping
                             if (optWarping.isEmpty()) {return}
                             for (const cycle of LoopableRegion.locateLoops(region, p0, p1)) {
-                                this.#processPassTimestretch(lane, block, cycle, optData.unwrap(), optWarping.unwrap())
+                                this.#processPassTimestretch(lane, block, cycle,
+                                    optData.unwrap(), optWarping.unwrap(), waveformOffset)
                             }
                         } else {
                             for (const cycle of LoopableRegion.locateLoops(region, p0, p1)) {
-                                this.#processPassPitch(lane, block, cycle, optData.unwrap(), region.warping, playback)
+                                this.#processPassPitch(lane, block, cycle,
+                                    optData.unwrap(), region.warping, waveformOffset, playback)
                             }
                         }
                     }
@@ -131,7 +134,8 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                             loopOffset: 0.0,
                             complete: Number.POSITIVE_INFINITY
                         }, sectionFrom, sectionTo)) {
-                            this.#processPassTimestretch(lane, block, cycle, optData.unwrap(), optWarping.unwrap())
+                            this.#processPassTimestretch(lane, block, cycle, optData.unwrap(), optWarping.unwrap(),
+                                clip.waveformOffset.getValue())
                         }
                     } else {
                         for (const cycle of LoopableRegion.locateLoops({
@@ -140,7 +144,8 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                             loopOffset: 0.0,
                             complete: Number.POSITIVE_INFINITY
                         }, sectionFrom, sectionTo)) {
-                            this.#processPassPitch(lane, block, cycle, optData.unwrap(), clip.warping, playback)
+                            this.#processPassPitch(lane, block, cycle, optData.unwrap(), clip.warping,
+                                clip.waveformOffset.getValue(), playback)
                         }
                     }
                 }
@@ -153,6 +158,7 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                       cycle: LoopableRegion.LoopCycle,
                       data: AudioData,
                       optWarping: Option<AudioWarpingBoxAdapter>,
+                      waveformOffset: number,
                       playback: AudioPlayback): void {
         const {p0, p1, s0, s1, flags} = block
         const sn = s1 - s0
@@ -172,7 +178,7 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
             const audioSamplesInCycle = audioDurationNormalized * audioDurationSamples
             const timelineSamplesInCycle = (cycle.resultEnd - cycle.resultStart) / pn * sn
             const playbackRate = audioSamplesInCycle / timelineSamplesInCycle
-            const offset = cycle.resultStartValue * data.numberOfFrames
+            const offset = cycle.resultStartValue * data.numberOfFrames + waveformOffset * data.sampleRate
             this.#updateOrCreatePitchVoice(lane, data, playbackRate, offset)
         } else {
             const warping = optWarping.unwrap()
@@ -189,8 +195,8 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                 return
             }
             const currentSeconds = this.#ppqnToSeconds(contentPpqn, cycle.resultStartValue, warpMarkers)
-            const offset = currentSeconds * data.sampleRate
             const playbackRate = this.#getPlaybackRateFromWarp(contentPpqn, warpMarkers, data.sampleRate, pn, sn)
+            const offset = (currentSeconds + waveformOffset) * data.sampleRate
             this.#updateOrCreatePitchVoice(lane, data, playbackRate, offset)
         }
         for (const voice of lane.voices) {
@@ -228,7 +234,8 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                             block: Block,
                             cycle: LoopableRegion.LoopCycle,
                             data: AudioData,
-                            warping: AudioWarpingBoxAdapter): void {
+                            warping: AudioWarpingBoxAdapter,
+                            waveformOffset: number): void {
         const {p0, p1, s0, s1, flags} = block
         if (Bits.some(flags, BlockFlag.discontinuous)) {
             lane.lastTransientIndex = -1
@@ -247,36 +254,35 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
         const lastWarp = asDefined(warpMarkers.last(), "missing last warp marker")
         const contentPpqn = cycle.resultStart - cycle.rawStart
         if (contentPpqn < firstWarp.position || contentPpqn >= lastWarp.position) {return}
-        const currentSeconds = this.#ppqnToSeconds(contentPpqn, cycle.resultStartValue, warpMarkers)
+        const currentSeconds = this.#ppqnToSeconds(contentPpqn, cycle.resultStartValue, warpMarkers) + waveformOffset
         const transientIndex = transientMarkers.floorLastIndex(currentSeconds)
         if (transientIndex !== lane.lastTransientIndex) {
             const segmentInfo = this.#getSegmentInfo(transientIndex, transientMarkers, data)
-            if (segmentInfo !== null) {
-                const {segment, hasNext, nextTransientSeconds} = segmentInfo
-                const segmentLength = segment.end - segment.start
-                if (segmentLength >= FADE_LENGTH * 2) {
-                    lane.voices.forEach(voice => voice.startFadeOut())
-                    const offsetInSegment = currentSeconds * data.sampleRate - segment.start
-                    const startAtBeginning = lane.lastTransientIndex === -1 || transientIndex !== lane.lastTransientIndex + 1
-                    const offset = startAtBeginning ? 0.0 : Math.max(0.0, offsetInSegment)
-                    const playMode = this.#adapter.box.transientPlayMode.getValue() as TransientPlayMode
-                    let canLoop = false
-                    if (hasNext && playMode !== TransientPlayMode.Once) {
-                        const nextPpqn = this.#secondsToPpqn(nextTransientSeconds, warpMarkers)
-                        const ppqnUntilNext = nextPpqn - contentPpqn
-                        const samplesPerPpqn = bpn / pn
-                        const samplesNeeded = ppqnUntilNext * samplesPerPpqn
-                        const samplesAvailable = segmentLength
-                        const loopLength = samplesAvailable - (LOOP_START_MARGIN + LOOP_END_MARGIN)
-                        canLoop = samplesNeeded > samplesAvailable * 1.01 && loopLength >= LOOP_MIN_LENGTH_SAMPLES
-                    }
-                    if (playMode === TransientPlayMode.Once || !canLoop) {
-                        lane.voices.push(new OnceVoice(this.#audioOutput, data, segment, FADE_LENGTH, offset))
-                    } else if (playMode === TransientPlayMode.Repeat) {
-                        lane.voices.push(new RepeatVoice(this.#audioOutput, data, segment, FADE_LENGTH, offset))
-                    } else {
-                        lane.voices.push(new PingpongVoice(this.#audioOutput, data, segment, FADE_LENGTH, offset))
-                    }
+            if (isNull(segmentInfo)) {return}
+            const {segment, hasNext, nextTransientSeconds} = segmentInfo
+            const segmentLength = segment.end - segment.start
+            if (segmentLength >= FADE_LENGTH * 2) {
+                lane.voices.forEach(voice => voice.startFadeOut())
+                const offsetInSegment = currentSeconds * data.sampleRate - segment.start
+                const startAtBeginning = lane.lastTransientIndex === -1 || transientIndex !== lane.lastTransientIndex + 1
+                const offset = startAtBeginning ? 0.0 : Math.max(0.0, offsetInSegment)
+                const playMode = this.#adapter.box.transientPlayMode.getValue() as TransientPlayMode
+                let canLoop = false
+                if (hasNext && playMode !== TransientPlayMode.Once) {
+                    const nextPpqn = this.#secondsToPpqn(nextTransientSeconds, warpMarkers)
+                    const ppqnUntilNext = nextPpqn - contentPpqn
+                    const samplesPerPpqn = bpn / pn
+                    const samplesNeeded = ppqnUntilNext * samplesPerPpqn
+                    const samplesAvailable = segmentLength
+                    const loopLength = samplesAvailable - (LOOP_START_MARGIN + LOOP_END_MARGIN)
+                    canLoop = samplesNeeded > samplesAvailable * 1.01 && loopLength >= LOOP_MIN_LENGTH_SAMPLES
+                }
+                if (playMode === TransientPlayMode.Once || !canLoop) {
+                    lane.voices.push(new OnceVoice(this.#audioOutput, data, segment, FADE_LENGTH, offset))
+                } else if (playMode === TransientPlayMode.Repeat) {
+                    lane.voices.push(new RepeatVoice(this.#audioOutput, data, segment, FADE_LENGTH, offset))
+                } else {
+                    lane.voices.push(new PingpongVoice(this.#audioOutput, data, segment, FADE_LENGTH, offset))
                 }
             }
             lane.lastTransientIndex = transientIndex
