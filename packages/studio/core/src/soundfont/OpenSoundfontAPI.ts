@@ -1,7 +1,7 @@
 import {asDefined, Lazy, Procedure, RuntimeNotifier, unitValue, UUID} from "@opendaw/lib-std"
 import {Soundfont, SoundfontMetaData} from "@opendaw/studio-adapters"
 import {OpenDAWHeaders} from "../OpenDAWHeaders"
-import {Promises} from "@opendaw/lib-runtime"
+import {network, Promises} from "@opendaw/lib-runtime"
 import {z} from "zod"
 
 export class OpenSoundfontAPI {
@@ -11,14 +11,13 @@ export class OpenSoundfontAPI {
     @Lazy
     static get(): OpenSoundfontAPI {return new OpenSoundfontAPI()}
 
-    readonly #memoized: () => Promise<ReadonlyArray<Soundfont>> = Promises.memoizeAsync(() => Promises.guardedRetry(() =>
-        fetch(`${OpenSoundfontAPI.ApiRoot}/list.json`, OpenDAWHeaders)
-            .then(x => x.json())
-            .then(x => z.array(Soundfont).parse(x))
-            .catch(reason => RuntimeNotifier.info({
-                headline: "OpenSoundfont API",
-                message: `Could not connect to OpenSoundfont API\nReason: '${reason}'`
-            }).then(() => [])), (_error, count) => count < 10))
+    readonly #memoized: () => Promise<ReadonlyArray<Soundfont>> = Promises.memoizeAsync(() => network.defaultFetch(`${OpenSoundfontAPI.ApiRoot}/list.json`, OpenDAWHeaders)
+        .then(x => x.json())
+        .then(x => z.array(Soundfont).parse(x))
+        .catch(reason => RuntimeNotifier.info({
+            headline: "OpenSoundfont API",
+            message: `Could not connect to OpenSoundfont API\nReason: '${reason}'`
+        }).then(() => [])))
 
     private constructor() {}
 

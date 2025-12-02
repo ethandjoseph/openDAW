@@ -30,7 +30,7 @@ export class UserCounter {
             const data = await response.json()
             return data.count || 0
         } catch (error) {
-            console.error("Failed to get user count:", error)
+            console.warn("Failed to get user count:", error)
             return 0
         }
     }

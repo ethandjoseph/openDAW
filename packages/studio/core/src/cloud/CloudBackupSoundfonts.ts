@@ -120,7 +120,7 @@ export class CloudBackupSoundfonts {
                 progress((index + 1) / length)
                 this.#log(`Downloading soundfont '${soundfont.name}'`)
                 const path = CloudBackupSoundfonts.pathFor(soundfont.uuid)
-                const buffer = await Promises.guardedRetry(() => this.#cloudHandler.download(path), network.DefaultRetry)
+                const buffer = await Promises.guardedRetry(() => this.#cloudHandler.download(path), network.defaultRetry)
                 await SoundfontStorage.get().save({
                     uuid: UUID.parse(soundfont.uuid),
                     file: buffer,

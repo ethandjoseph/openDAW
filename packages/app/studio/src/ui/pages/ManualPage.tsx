@@ -8,6 +8,7 @@ import {Manual, Manuals} from "@/ui/pages/Manuals"
 import {Html} from "@opendaw/lib-dom"
 import {MenuItem} from "@/ui/model/menu-item"
 import {panic} from "@opendaw/lib-std"
+import {network} from "@opendaw/lib-runtime"
 
 const className = Html.adoptStyleSheet(css, "ManualPage")
 
@@ -38,7 +39,8 @@ export const ManualPage: PageFactory<StudioService> = ({service, path}: PageCont
             </aside>
             <div className="manual">
                 {path === "/manuals/" ? (<p>Select a topic in the side bar...</p>) : (<Await
-                    factory={() => fetch(`${path ?? "index"}.md?uuid=${service.buildInfo.uuid}`).then(x => x.text())}
+                    factory={() => network.defaultFetch(`${path ?? "index"}.md?uuid=${service.buildInfo.uuid}`)
+                        .then(x => x.text())}
                     failure={(error) => `Unknown request (${error.reason})`}
                     loading={() => <ThreeDots/>}
                     success={text => <Markdown text={text}/>}

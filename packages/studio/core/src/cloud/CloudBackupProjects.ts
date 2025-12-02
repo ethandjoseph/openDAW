@@ -161,7 +161,7 @@ export class CloudBackupProjects {
                 const path = `${CloudBackupProjects.RemotePath}/${uuidAsString}`
                 this.#log(`Downloading project '${meta.name}'`)
                 const files = await Promises.guardedRetry(() =>
-                    this.#cloudHandler.list(path), network.DefaultRetry)
+                    this.#cloudHandler.list(path), network.defaultRetry)
                 const hasProjectFile = files.includes("project.od")
                 const hasMetaFile = files.includes("meta.json")
                 if (!hasProjectFile || !hasMetaFile) {
@@ -182,15 +182,15 @@ export class CloudBackupProjects {
                 const metaPath = `${path}/meta.json`
                 const coverPath = `${path}/image.bin`
                 const projectArrayBuffer = await Promises.guardedRetry(() =>
-                    this.#cloudHandler.download(projectPath), network.DefaultRetry)
+                    this.#cloudHandler.download(projectPath), network.defaultRetry)
                 const metaArrayBuffer = await Promises.guardedRetry(() =>
-                    this.#cloudHandler.download(metaPath), network.DefaultRetry)
+                    this.#cloudHandler.download(metaPath), network.defaultRetry)
                 await Workers.Opfs.write(ProjectPaths.projectFile(uuid), new Uint8Array(projectArrayBuffer))
                 await Workers.Opfs.write(ProjectPaths.projectMeta(uuid), new Uint8Array(metaArrayBuffer))
                 const hasCover = files.some(file => file.endsWith("image.bin"))
                 if (hasCover) {
                     const arrayBuffer = await Promises.guardedRetry(() =>
-                        this.#cloudHandler.download(coverPath), network.DefaultRetry)
+                        this.#cloudHandler.download(coverPath), network.defaultRetry)
                     await Workers.Opfs.write(ProjectPaths.projectCover(uuid), new Uint8Array(arrayBuffer))
                 }
                 return uuidAsString

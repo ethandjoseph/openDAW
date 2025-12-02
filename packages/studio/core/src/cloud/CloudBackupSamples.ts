@@ -123,7 +123,7 @@ export class CloudBackupSamples {
                 progress((index + 1) / length)
                 this.#log(`Downloading sample '${sample.name}'`)
                 const path = CloudBackupSamples.pathFor(sample.uuid)
-                const buffer = await Promises.guardedRetry(() => this.#cloudHandler.download(path), network.DefaultRetry)
+                const buffer = await Promises.guardedRetry(() => this.#cloudHandler.download(path), network.defaultRetry)
                 const audioData = WavFile.decodeFloats(buffer)
                 const shifts = SamplePeaks.findBestFit(audioData.numberOfFrames)
                 const peaks = await Workers.Peak.generateAsync(
