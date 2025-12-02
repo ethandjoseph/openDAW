@@ -3,7 +3,7 @@ import {Browser, Files, ModfierKeys} from "@opendaw/lib-dom"
 import {RouteLocation} from "@opendaw/lib-jsx"
 import {Promises} from "@opendaw/lib-runtime"
 import {Colors, IconSymbol} from "@opendaw/studio-enums"
-import {CloudBackup, FilePickerAcceptTypes, ProjectSignals, Workers, YService} from "@opendaw/studio-core"
+import {CloudBackup, FilePickerAcceptTypes, Preferences, ProjectSignals, Workers, YService} from "@opendaw/studio-core"
 import {StudioService} from "@/service/StudioService"
 import {MenuItem} from "@/ui/model/menu-item"
 import {Dialogs} from "@/ui/components/dialogs.tsx"
@@ -96,32 +96,35 @@ export const populateStudioMenu = (service: StudioService) => {
                                 }).setTriggerProcedure(() => service.toggleSoftwareKeyboard())
                             )
                         }),
-                    MenuItem.default({label: "Beta Features", hidden: !isBeta, separatorBefore: true})
-                        .setRuntimeChildrenProcedure(parent => {
-                            parent.addMenuItem(
-                                MenuItem.default({label: "Connect Room..."})
-                                    .setTriggerProcedure(async () => {
-                                        const roomName = prompt("Enter a room name:", "")
-                                        if (isAbsent(roomName)) {return}
-                                        const dialog = RuntimeNotifier.progress({
-                                            headline: "Connecting to Room...",
-                                            message: "Please wait while we connect to the room..."
-                                        })
-                                        const {status, value: project, error} = await Promises.tryCatch(
-                                            YService.getOrCreateRoom(service.projectProfileService.getValue()
-                                                .map(profile => profile.project), service, roomName))
-                                        if (status === "resolved") {
-                                            service.projectProfileService.setProject(project, roomName)
-                                        } else {
-                                            await RuntimeNotifier.info({
-                                                headline: "Failed Connecting Room",
-                                                message: String(error)
-                                            })
-                                        }
-                                        dialog.terminate()
+                    MenuItem.default({
+                        label: "Experimental Features",
+                        hidden: !Preferences.values["enable-beta-features"],
+                        separatorBefore: true
+                    }).setRuntimeChildrenProcedure(parent => {
+                        parent.addMenuItem(
+                            MenuItem.default({label: "Connect Room..."})
+                                .setTriggerProcedure(async () => {
+                                    const roomName = prompt("Enter a room name:", "")
+                                    if (isAbsent(roomName)) {return}
+                                    const dialog = RuntimeNotifier.progress({
+                                        headline: "Connecting to Room...",
+                                        message: "Please wait while we connect to the room..."
                                     })
-                            )
-                        }),
+                                    const {status, value: project, error} = await Promises.tryCatch(
+                                        YService.getOrCreateRoom(service.projectProfileService.getValue()
+                                            .map(profile => profile.project), service, roomName))
+                                    if (status === "resolved") {
+                                        service.projectProfileService.setProject(project, roomName)
+                                    } else {
+                                        await RuntimeNotifier.info({
+                                            headline: "Failed Connecting Room",
+                                            message: String(error)
+                                        })
+                                    }
+                                    dialog.terminate()
+                                })
+                        )
+                    }),
                     MenuItem.default({label: "Debug", separatorBefore: true})
                         .setRuntimeChildrenProcedure(parent => {
                             return parent.addMenuItem(

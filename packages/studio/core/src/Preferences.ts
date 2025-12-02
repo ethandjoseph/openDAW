@@ -2,6 +2,7 @@ import {z} from "zod"
 import {isDefined, Notifier, Observer, Subscription, tryCatch} from "@opendaw/lib-std"
 
 const PreferencesSchema = z.object({
+    "visible-help-hints": z.boolean().default(true),
     "auto-open-clips": z.boolean().default(false),
     "auto-create-output-compressor": z.boolean().default(true),
     "footer-show-fps-meter": z.boolean().default(false),

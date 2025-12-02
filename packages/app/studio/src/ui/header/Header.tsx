@@ -68,18 +68,11 @@ export const Header = ({lifecycle, service}: Construct) => {
                     <Icon symbol={IconSymbol.Midi}/>
                 </Checkbox>
                 <MenuButton root={MenuItem.root()
-                    .setRuntimeChildrenProcedure(parent => {
-                        const helpVisible = service.layout.helpVisible
-                        return parent.addMenuItem(
+                    .setRuntimeChildrenProcedure(parent =>
+                        parent.addMenuItem(
                             MenuItem.header({label: "Manuals", icon: IconSymbol.OpenDAW, color: Colors.green}),
-                            ...addManualMenuItems(Manuals),
-                            MenuItem.default({
-                                label: "Visible Hints & Tooltips",
-                                checked: helpVisible.getValue(),
-                                separatorBefore: true
-                            }).setTriggerProcedure(() => helpVisible.setValue(!helpVisible.getValue()))
-                        )
-                    })} appearance={{color: Colors.green, tinyTriangle: true}}>
+                            ...addManualMenuItems(Manuals)
+                        ))} appearance={{color: Colors.green, tinyTriangle: true}}>
                     <Icon symbol={IconSymbol.Help}/>
                 </MenuButton>
             </div>

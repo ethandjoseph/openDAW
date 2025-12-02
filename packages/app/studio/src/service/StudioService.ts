@@ -9,7 +9,6 @@ import {
     Nullable,
     Observer,
     Option,
-    Procedure,
     Provider,
     RuntimeNotifier,
     safeRead,
@@ -81,8 +80,6 @@ const snapping = new Snapping(range)
 
 export class StudioService implements ProjectEnv {
     readonly layout = {
-        systemOpen: new DefaultObservableValue<boolean>(false),
-        helpVisible: new DefaultObservableValue<boolean>(true),
         screen: new DefaultObservableValue<Nullable<Workspace.ScreenKeys>>("default")
     } as const
     readonly transport = {
@@ -139,7 +136,6 @@ export class StudioService implements ProjectEnv {
         this.#listenProject()
         this.#installConsoleCommands()
         this.#populateSpotlightData()
-        this.#configLocalStorage()
         this.#configBeforeUnload()
         this.#checkRecovery()
         this.#listenPreferences()
@@ -412,23 +408,6 @@ export class StudioService implements ProjectEnv {
         this.spotlightDataSupplier.registerAction("Create ModularSystem", EmptyExec)
     }
 
-    #configLocalStorage(): void {
-        const configLocalStorageBoolean = (value: DefaultObservableValue<boolean>,
-                                           item: string,
-                                           set: Procedure<boolean>,
-                                           defaultValue: boolean = false) => {
-            value.setValue((localStorage.getItem(item) ?? String(defaultValue)) === String(true))
-            value.catchupAndSubscribe(owner => {
-                const bool = owner.getValue()
-                set(bool)
-                try {localStorage.setItem(item, String(bool))} catch (_reason: any) {}
-            })
-        }
-
-        configLocalStorageBoolean(this.layout.helpVisible, "help-visible",
-            visible => document.body.classList.toggle("help-hidden", !visible), true)
-    }
-
     #configBeforeUnload(): void {
         if (!Browser.isLocalHost()) {
             window.addEventListener("beforeunload", (event: Event) => {
@@ -453,5 +432,7 @@ export class StudioService implements ProjectEnv {
             Dragging.usePointerLock = value && Browser.isChrome(), "dragging-use-pointer-lock")
         Preferences.catchupAndSubscribe(value =>
             document.body.classList.toggle("experimental-visible", value), "enable-beta-features")
+        Preferences.catchupAndSubscribe(value =>
+            document.body.classList.toggle("help-hidden", !value), "visible-help-hints")
     }
 }
