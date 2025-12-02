@@ -36,6 +36,7 @@ const loadBuildInfo = async () => fetch(`/build-info.json?v=${Date.now()}`)
 
 export const boot = async ({workersUrl, workletsUrl}: { workersUrl: string, workletsUrl: string }) => {
     console.debug("booting...")
+    console.debug(location.origin)
     const {status, value: buildInfo} = await Promises.tryCatch(loadBuildInfo())
     if (status === "rejected") {
         alert("Error loading build info. Please reload the page.")

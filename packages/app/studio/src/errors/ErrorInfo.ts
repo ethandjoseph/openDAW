@@ -1,4 +1,4 @@
-import {isDefined, tryCatch} from "@opendaw/lib-std"
+import {isDefined} from "@opendaw/lib-std"
 
 export type ErrorInfo = {
     name: string
@@ -9,52 +9,45 @@ export type ErrorInfo = {
 export namespace ErrorInfo {
     const MAX_STACK_SIZE = 1000
 
+    const fromError = (error: Error, fallbackName: string = "Error"): ErrorInfo => ({
+        name: error.name || fallbackName,
+        message: error.message,
+        stack: error.stack?.slice(0, MAX_STACK_SIZE)
+    })
+
+    const fromUnknown = (value: unknown, name: string): ErrorInfo => {
+        if (value instanceof Error) {return fromError(value, name)}
+        return {name, message: typeof value === "string" ? value : JSON.stringify(value)}
+    }
+
     export const extract = (event: Event): ErrorInfo => {
-        if (event instanceof ErrorEvent && event.error instanceof Error) {
+        if (event instanceof ErrorEvent) {
+            if (event.error instanceof Error) {return fromError(event.error)}
             return {
-                name: event.error.name || "Error",
-                message: event.error.message,
-                stack: event.error.stack?.slice(0, MAX_STACK_SIZE)
+                name: "Error",
+                message: event.message || undefined,
+                stack: isDefined(event.filename) ? `at ${event.filename}:${event.lineno}:${event.colno}` : undefined
             }
-        } else if (event instanceof PromiseRejectionEvent) {
-            let reason = event.reason
-            if (reason instanceof Error) {
-                if (!isDefined(reason.stack)) {
-                    try {
-                        // noinspection ExceptionCaughtLocallyJS
-                        throw reason
-                    } catch (error) {
-                        if (error instanceof Error) {
-                            reason = {...reason, stack: error.stack?.slice(0, MAX_STACK_SIZE)}
-                        }
-                    }
-                }
-                return {
-                    name: reason.name || "UnhandledRejection",
-                    message: reason.message,
-                    stack: reason.stack?.slice(0, MAX_STACK_SIZE)
-                }
-            } else {
-                return {
-                    name: "UnhandledRejection",
-                    message: typeof reason === "string" ? reason : JSON.stringify(reason)
-                }
-            }
-        } else if (event instanceof MessageEvent) {
-            return {
-                name: "MessageError",
-                message: typeof event.data === "string" ? event.data : JSON.stringify(event.data)
-            }
-        } else if (event.type === "processorerror") {
-            return {name: "ProcessorError", message: "N/A"}
-        } else if (event instanceof SecurityPolicyViolationEvent) {
+        }
+        if (event instanceof PromiseRejectionEvent) {return fromUnknown(event.reason, "UnhandledRejection")}
+        if (event instanceof MessageEvent) {return fromUnknown(event.data, "MessageError")}
+        if (event instanceof SecurityPolicyViolationEvent) {
             return {name: "SecurityPolicyViolation", message: `${event.violatedDirective} blocked ${event.blockedURI}`}
-        } else {
-            const {status, value} = tryCatch(() => JSON.stringify(event))
-            if (status === "success") {
-                return {name: "UnknownError", message: value}
-            }
-            return {name: "UnknownError", message: String(event)}
+        }
+        // Media element errors (audio/video)
+        const target = event.target
+        if (target instanceof HTMLMediaElement && isDefined(target.error)) {
+            return {name: "MediaError", message: target.error.message || `code ${target.error.code}`}
+        }
+        // AudioWorklet processorerror - no error details exposed by spec
+        if (event.type === "processorerror") {
+            return {name: "ProcessorError", message: "AudioWorklet threw an exception (check console)"}
+        }
+        // Fallback: capture event type and target
+        const tagName = target instanceof Element ? target.tagName.toLowerCase() : null
+        return {
+            name: "UnknownError",
+            message: tagName !== null ? `${event.type} on <${tagName}>` : event.type
         }
     }
 }
