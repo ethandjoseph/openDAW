@@ -15,6 +15,7 @@ export const renderAudio = (context: CanvasRenderingContext2D,
                             contentColor: string,
                             {
                                 rawStart,
+                                rawEnd,
                                 resultStart,
                                 resultEnd,
                                 resultStartValue,
@@ -68,7 +69,7 @@ export const renderAudio = (context: CanvasRenderingContext2D,
                 x1,
                 u0: (audioStart / durationInSeconds) * numFrames,
                 u1: (audioEnd / durationInSeconds) * numFrames,
-                outside: segmentStart < resultStart || segmentEnd > resultEnd
+                outside: segmentStart < rawStart || segmentEnd > rawEnd
             })
         }
         const visibleLocalStart = (clip ? Math.max(range.unitMin, resultStart) : range.unitMin) - rawStart
@@ -119,7 +120,7 @@ export const renderAudio = (context: CanvasRenderingContext2D,
 
     context.fillStyle = contentColor
     for (const {x0, x1, u0, u1, outside} of segments) {
-        context.globalAlpha = outside ? 0.25 : 1.00
+        context.globalAlpha = outside && !clip ? 0.25 : 1.00
         for (let channel = 0; channel < numberOfChannels; channel++) {
             PeaksPainter.renderBlocks(context, peaks, channel, {
                 u0, u1,
