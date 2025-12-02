@@ -1,5 +1,5 @@
 import css from "./AudioEditorCanvas.sass?inline"
-import {Iterables, Lifecycle, Option, Terminator} from "@opendaw/lib-std"
+import {Lifecycle, Option, Terminator} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {Project, TimelineRange} from "@opendaw/studio-core"
 import {CanvasPainter} from "@/ui/canvas/painter.ts"
@@ -72,15 +72,13 @@ export const AudioEditorCanvas = ({lifecycle, project: {editing}, range, snappin
                         const rate = (last.seconds - secondLast.seconds) / (last.position - secondLast.position)
                         return last.seconds + (ppqn - last.position) * rate
                     }
-                    // Within range: interpolate
-                    for (const [w0, w1] of Iterables.pairWise(warpMarkers.iterateFrom(0))) {
-                        if (w1 === null) {break}
-                        if (ppqn >= w0.position && ppqn <= w1.position) {
-                            const t = (ppqn - w0.position) / (w1.position - w0.position)
-                            return w0.seconds + t * (w1.seconds - w0.seconds)
-                        }
-                    }
-                    return last.seconds
+                    // Within range: find bracketing markers directly
+                    const w0 = warpMarkers.lowerEqual(ppqn)
+                    const w1 = warpMarkers.greaterEqual(ppqn)
+                    if (w0 === null || w1 === null) {return last.seconds}
+                    if (w0.position === w1.position) {return w0.seconds}
+                    const t = (ppqn - w0.position) / (w1.position - w0.position)
+                    return w0.seconds + t * (w1.seconds - w0.seconds)
                 }
                 lifecycle.ownAll(
                     installEditorMainBody({element: canvas, range, reader}),
