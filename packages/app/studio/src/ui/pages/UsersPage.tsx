@@ -1,5 +1,5 @@
 import css from "./UsersPage.sass?inline"
-import {Await, createElement, Frag, PageContext, PageFactory} from "@opendaw/lib-jsx"
+import {Await, createElement, Frag, PageContext, PageFactory, replaceChildren} from "@opendaw/lib-jsx"
 import {Html} from "@opendaw/lib-dom"
 import type {StudioService} from "@/service/StudioService.ts"
 import {ThreeDots} from "@/ui/spinner/ThreeDots"
@@ -42,7 +42,7 @@ export const UsersPage: PageFactory<StudioService> = ({lifecycle}: PageContext<S
                                 const chartHeight = height - padding.top - padding.bottom
                                 const barWidth = chartWidth / values.length
                                 const barPadding = barWidth * 0.2
-                                element.appendChild(
+                                replaceChildren(element, (
                                     <svg viewBox={`0 0 ${width} ${height}`} width={width} height={height}>
                                         {Array.from({length: gridLines + 1}, (_, i) => {
                                             const y = padding.top + (chartHeight / gridLines) * i
@@ -79,7 +79,7 @@ export const UsersPage: PageFactory<StudioService> = ({lifecycle}: PageContext<S
                                             )
                                         })}
                                     </svg>
-                                )
+                                ))
                             }))
                         }}/>
                     )
