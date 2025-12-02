@@ -1,7 +1,7 @@
 import {Peaks, PeaksPainter} from "@opendaw/lib-fusion"
 import {TimelineRange} from "@opendaw/studio-core"
 import {AudioFileBoxAdapter, AudioWarpingBoxAdapter} from "@opendaw/studio-adapters"
-import {Iterables, Option} from "@opendaw/lib-std"
+import {Option} from "@opendaw/lib-std"
 import {RegionBound} from "@/ui/timeline/renderer/env"
 import {dbToGain, LoopableRegion} from "@opendaw/lib-dsp"
 
@@ -28,24 +28,30 @@ export const renderAudio = (context: CanvasRenderingContext2D,
     const ht = bottom - top
     const peaksHeight = Math.floor((ht - 4) / numberOfChannels)
     const scale = dbToGain(-gain)
-    const segments: Array<{ x0: number, x1: number, u0: number, u1: number }> = []
+    const segments: Array<{ x0: number, x1: number, u0: number, u1: number, outside: boolean }> = []
     if (warping.nonEmpty()) {
         const {warpMarkers} = warping.unwrap()
-        for (const [w0, w1] of Iterables.pairWise(warpMarkers.iterateFrom(range.unitMin - rawStart))) {
-            if (w1 === null) {break}
-            const segmentStart = rawStart + w0.position
-            const segmentEnd = rawStart + w1.position
-            if (segmentEnd <= resultStart || segmentStart >= resultEnd) {continue}
-            if (segmentStart > range.unitMax) {break}
-            const clippedStart = clip ? Math.max(segmentStart, resultStart) : segmentStart
-            const clippedEnd = clip ? Math.min(segmentEnd, resultEnd) : segmentEnd
+        const markers = warpMarkers.asArray()
+        if (markers.length < 2) {return}
+        const first = markers[0]
+        const second = markers[1]
+        const secondLast = markers[markers.length - 2]
+        const last = markers[markers.length - 1]
+        const firstRate = (second.seconds - first.seconds) / (second.position - first.position)
+        const lastRate = (last.seconds - secondLast.seconds) / (last.position - secondLast.position)
+        const addSegment = (segmentStart: number, segmentEnd: number, audioStartSeconds: number, audioEndSeconds: number) => {
+            if (segmentStart >= segmentEnd) {return}
+            if (segmentStart > range.unitMax || segmentEnd < range.unitMin) {return}
+            if (clip && (segmentEnd <= resultStart || segmentStart >= resultEnd)) {return}
+            const clippedStart = clip ? Math.max(segmentStart, resultStart, range.unitMin) : Math.max(segmentStart, range.unitMin)
+            const clippedEnd = clip ? Math.min(segmentEnd, resultEnd, range.unitMax) : Math.min(segmentEnd, range.unitMax)
+            if (clippedStart >= clippedEnd) {return}
             const t0 = (clippedStart - segmentStart) / (segmentEnd - segmentStart)
             const t1 = (clippedEnd - segmentStart) / (segmentEnd - segmentStart)
-            let audioStart = w0.seconds + t0 * (w1.seconds - w0.seconds) + waveformOffset
-            let audioEnd = w0.seconds + t1 * (w1.seconds - w0.seconds) + waveformOffset
+            let audioStart = audioStartSeconds + t0 * (audioEndSeconds - audioStartSeconds) + waveformOffset
+            let audioEnd = audioStartSeconds + t1 * (audioEndSeconds - audioStartSeconds) + waveformOffset
             let x0 = range.unitToX(clippedStart) * devicePixelRatio
             let x1 = range.unitToX(clippedEnd) * devicePixelRatio
-            // Clamp to valid file bounds, adjusting pixel range proportionally
             if (audioStart < 0.0) {
                 const ratio = -audioStart / (audioEnd - audioStart)
                 x0 = x0 + ratio * (x1 - x0)
@@ -56,21 +62,46 @@ export const renderAudio = (context: CanvasRenderingContext2D,
                 x1 = x1 - ratio * (x1 - x0)
                 audioEnd = durationInSeconds
             }
-            if (audioStart >= audioEnd) {continue}
+            if (audioStart >= audioEnd) {return}
             segments.push({
                 x0,
                 x1,
                 u0: (audioStart / durationInSeconds) * numFrames,
-                u1: (audioEnd / durationInSeconds) * numFrames
+                u1: (audioEnd / durationInSeconds) * numFrames,
+                outside: segmentStart < resultStart || segmentEnd > resultEnd
             })
         }
+        const visibleLocalStart = (clip ? Math.max(range.unitMin, resultStart) : range.unitMin) - rawStart
+        const visibleLocalEnd = (clip ? Math.min(range.unitMax, resultEnd) : range.unitMax) - rawStart
+        // With positive offset, audio from file start appears BEFORE first.position
+        // With negative offset, audio from file end appears AFTER last.position
+        const extraNeededBefore = waveformOffset > 0 ? waveformOffset / firstRate : 0
+        const extraNeededAfter = waveformOffset < 0 ? -waveformOffset / lastRate : 0
+        const extrapolateStartLocal = Math.min(visibleLocalStart, first.position - extraNeededBefore)
+        const extrapolateEndLocal = Math.max(visibleLocalEnd, last.position + extraNeededAfter)
+        // Extrapolate before the first warp marker
+        if (extrapolateStartLocal < first.position) {
+            const audioStart = first.seconds + (extrapolateStartLocal - first.position) * firstRate
+            addSegment(rawStart + extrapolateStartLocal, rawStart + first.position, audioStart, first.seconds)
+        }
+        // Interior warp segments
+        for (let i = 0; i < markers.length - 1; i++) {
+            const w0 = markers[i]
+            const w1 = markers[i + 1]
+            addSegment(rawStart + w0.position, rawStart + w1.position, w0.seconds, w1.seconds)
+        }
+        // Extrapolate after the last warp marker
+        if (extrapolateEndLocal > last.position) {
+            const audioEnd = last.seconds + (extrapolateEndLocal - last.position) * lastRate
+            addSegment(rawStart + last.position, rawStart + extrapolateEndLocal, last.seconds, audioEnd)
+        }
     } else {
+        // TODO Does not paint waveforms outside the loop bounds
         const frameOffset = (waveformOffset / durationInSeconds) * numFrames
         let u0 = resultStartValue * numFrames + frameOffset
         let u1 = resultEndValue * numFrames + frameOffset
         let x0 = range.unitToX(resultStart) * devicePixelRatio
         let x1 = range.unitToX(resultEnd) * devicePixelRatio
-        // Clamp to valid file bounds
         if (u0 < 0) {
             const ratio = -u0 / (u1 - u0)
             x0 = x0 + ratio * (x1 - x0)
@@ -82,11 +113,13 @@ export const renderAudio = (context: CanvasRenderingContext2D,
             u1 = numFrames
         }
         if (u0 < u1) {
-            segments.push({x0, x1, u0, u1})
+            segments.push({x0, x1, u0, u1, outside: false})
         }
     }
+
     context.fillStyle = contentColor
-    for (const {x0, x1, u0, u1} of segments) {
+    for (const {x0, x1, u0, u1, outside} of segments) {
+        context.globalAlpha = outside ? 0.25 : 1.00
         for (let channel = 0; channel < numberOfChannels; channel++) {
             PeaksPainter.renderBlocks(context, peaks, channel, {
                 u0, u1,

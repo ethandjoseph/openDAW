@@ -97,20 +97,39 @@ export namespace WarpMarkerEditing {
                             box.seconds.setValue(seconds)
                         }))
                     } else {
-                        for (const [left, right] of Iterables.pairWise(warpMarkers.asArray())) {
-                            if (isNull(right)) {break}
-                            const seconds = transient.position
-                            if (left.seconds <= seconds && seconds <= right.seconds) {
-                                // compute the position for the new warpMarker
-                                const alpha = (seconds - left.seconds) / (right.seconds - left.seconds)
-                                const position = left.position + alpha * (right.position - left.position)
-                                project.editing.modify(() => WarpMarkerBox.create(project.boxGraph, UUID.generate(), box => {
-                                    box.owner.refer(warping.box.warpMarkers)
-                                    box.position.setValue(position)
-                                    box.seconds.setValue(seconds)
-                                }))
+                        const waveformOffset = reader.waveformOffset.getValue()
+                        const adjustedSeconds = transient.position - waveformOffset
+                        const markers = warpMarkers.asArray()
+                        if (markers.length < 2) {return}
+                        const first = markers[0]
+                        const second = markers[1]
+                        const secondLast = markers[markers.length - 2]
+                        const last = markers[markers.length - 1]
+                        const firstRate = (second.position - first.position) / (second.seconds - first.seconds)
+                        const lastRate = (last.position - secondLast.position) / (last.seconds - secondLast.seconds)
+                        let position: number
+                        if (adjustedSeconds < first.seconds) {
+                            position = first.position + (adjustedSeconds - first.seconds) * firstRate
+                        } else if (adjustedSeconds > last.seconds) {
+                            position = last.position + (adjustedSeconds - last.seconds) * lastRate
+                        } else {
+                            let found = false
+                            for (const [left, right] of Iterables.pairWise(markers)) {
+                                if (isNull(right)) {break}
+                                if (left.seconds <= adjustedSeconds && adjustedSeconds <= right.seconds) {
+                                    const alpha = (adjustedSeconds - left.seconds) / (right.seconds - left.seconds)
+                                    position = left.position + alpha * (right.position - left.position)
+                                    found = true
+                                    break
+                                }
                             }
+                            if (!found) {return}
                         }
+                        project.editing.modify(() => WarpMarkerBox.create(project.boxGraph, UUID.generate(), box => {
+                            box.owner.refer(warping.box.warpMarkers)
+                            box.position.setValue(position)
+                            box.seconds.setValue(adjustedSeconds)
+                        }))
                     }
                 }
             }),

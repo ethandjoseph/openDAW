@@ -1,6 +1,6 @@
 import css from "./TransientMarkerEditor.sass?inline"
 import {Html} from "@opendaw/lib-dom"
-import {Iterables, Lifecycle, Nullable, ObservableValue, Terminator} from "@opendaw/lib-std"
+import {Lifecycle, Nullable, ObservableValue, Terminator} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {AudioEventOwnerReader} from "@/ui/timeline/editors/EventOwnerReader"
 import {Project, TimelineRange} from "@opendaw/studio-core"
@@ -21,7 +21,7 @@ type Construct = {
     hoverTransient: ObservableValue<Nullable<TransientMarkerBoxAdapter>>
 }
 
-export const TransientMarkerEditor = ({lifecycle, project, range, reader, hoverTransient}: Construct) => {
+export const TransientMarkerEditor = ({lifecycle, range, reader, hoverTransient}: Construct) => {
     const optWarping = reader.warping
     return (
         <div className={Html.buildClassList(className, "warping-aware")}>
@@ -30,24 +30,25 @@ export const TransientMarkerEditor = ({lifecycle, project, range, reader, hoverT
                     const {context, actualHeight, devicePixelRatio} = painter
                     optWarping.ifSome(({transientMarkers, warpMarkers}) => {
                         const waveformOffset = reader.waveformOffset.getValue()
-                        const first = warpMarkers.first()
-                        const last = warpMarkers.last()
-                        if (first === null || last === null) {return}
-                        const tempoMap = project.tempoMap
+                        const markers = warpMarkers.asArray()
+                        if (markers.length < 2) {return}
+                        const first = markers[0]
+                        const second = markers[1]
+                        const secondLast = markers[markers.length - 2]
+                        const last = markers[markers.length - 1]
+                        // Rates in ppqn per second (inverse of waveform's seconds per ppqn)
+                        const firstRate = (second.position - first.position) / (second.seconds - first.seconds)
+                        const lastRate = (last.position - secondLast.position) / (last.seconds - secondLast.seconds)
                         const secondsToLocalUnit = (seconds: number): number => {
                             if (seconds < first.seconds) {
-                                // Before first warp: extrapolate using tempoMap
-                                const deltaPpqn = tempoMap.intervalToPPQN(seconds, first.seconds)
-                                return first.position - deltaPpqn
+                                return first.position + (seconds - first.seconds) * firstRate
                             }
                             if (seconds > last.seconds) {
-                                // After last warp: extrapolate using tempoMap
-                                const deltaPpqn = tempoMap.intervalToPPQN(last.seconds, seconds)
-                                return last.position + deltaPpqn
+                                return last.position + (seconds - last.seconds) * lastRate
                             }
-                            // Within range: interpolate between warp markers
-                            for (const [left, right] of Iterables.pairWise(warpMarkers.iterateFrom(0))) {
-                                if (right === null) {break}
+                            for (let i = 0; i < markers.length - 1; i++) {
+                                const left = markers[i]
+                                const right = markers[i + 1]
                                 if (seconds >= left.seconds && seconds <= right.seconds) {
                                     const t = (seconds - left.seconds) / (right.seconds - left.seconds)
                                     return left.position + t * (right.position - left.position)
@@ -55,7 +56,7 @@ export const TransientMarkerEditor = ({lifecycle, project, range, reader, hoverT
                             }
                             return last.position
                         }
-                        for (const transient of transientMarkers.iterateFrom(0)) {
+                        for (const transient of transientMarkers.asArray()) {
                             const adjustedSeconds = transient.position - waveformOffset
                             const localUnit = secondsToLocalUnit(adjustedSeconds)
                             const unit = reader.offset + localUnit
