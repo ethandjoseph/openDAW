@@ -15,6 +15,7 @@ import {ImprintPage} from "@/ui/pages/ImprintPage.tsx"
 import {GraphPage} from "@/ui/pages/GraphPage"
 import {CodeEditorPage} from "@/ui/pages/CodeEditorPage"
 import {OpenBundlePage} from "@/ui/pages/OpenBundlePage"
+import {UsersPage} from "@/ui/pages/UsersPage"
 
 export const App = (service: StudioService) => {
     const terminator = new Terminator()
@@ -42,6 +43,7 @@ export const App = (service: StudioService) => {
                     {path: "/upload", factory: SampleUploadPage},
                     {path: "/colors", factory: ColorsPage},
                     {path: "/graph", factory: GraphPage},
+                    {path: "/users", factory: UsersPage},
                     {path: "/open-bundle/*", factory: OpenBundlePage}
                 ]}
             />
