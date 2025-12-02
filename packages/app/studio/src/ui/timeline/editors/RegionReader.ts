@@ -28,6 +28,7 @@ export class RegionReader<REGION extends LoopableRegionBoxAdapter<CONTENT>, CONT
             constructor(region: AudioRegionBoxAdapter) {super(region)}
             get warping(): ObservableOption<AudioWarpingBoxAdapter> {return region.warping}
             get playback(): ObservableValue<AudioPlayback> {return region.playback}
+            get waveformOffset(): number {return region.waveformOffset}
             get file(): AudioFileBoxAdapter {return region.file}
             get gain(): number {return region.gain}
         }(region)

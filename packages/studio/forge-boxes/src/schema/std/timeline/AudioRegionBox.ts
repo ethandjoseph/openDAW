@@ -14,6 +14,7 @@ export const AudioRegionBox: BoxSchema<Pointers> = {
             4: {type: "string", name: "time-base", value: TimeBase.Musical},
             5: {type: "pointer", name: "events", pointerType: Pointers.ValueEventCollection, mandatory: true},
             6: {type: "pointer", name: "warping", pointerType: Pointers.AudioWarping, mandatory: false},
+            7: {type: "float32", name: "waveform-offset", constraints: "any", unit: "seconds"},
             10: {type: "int32", name: "position", ...PPQNPositionConstraints},
             11: {type: "float32", name: "duration", constraints: "any", unit: "mixed"},
             12: {type: "float32", name: "loop-offset", constraints: "any", unit: "mixed"},

@@ -2,7 +2,7 @@ import {
     asEnumValue,
     int,
     Maybe,
-    MutableObservableOption,
+    MutableObservableOption, MutableObservableValue,
     Notifier,
     ObservableOption,
     ObservableValue,
@@ -25,6 +25,7 @@ import {AudioFileBoxAdapter} from "../../audio/AudioFileBoxAdapter"
 import {MutableRegion} from "./MutableRegion"
 import {ValueEventCollectionBoxAdapter} from "../collection/ValueEventCollectionBoxAdapter"
 import {AudioWarpingBoxAdapter} from "../../audio/AudioWarpingBoxAdapter"
+import {AudioContentBoxAdapter} from "../AudioContentBoxAdapter"
 
 type CopyToParams = {
     track?: Field<Pointers.RegionCollection>
@@ -35,7 +36,7 @@ type CopyToParams = {
     consolidate?: boolean
 }
 
-export class AudioRegionBoxAdapter implements LoopableRegionBoxAdapter<ValueEventCollectionBoxAdapter>, MutableRegion {
+export class AudioRegionBoxAdapter implements AudioContentBoxAdapter, LoopableRegionBoxAdapter<ValueEventCollectionBoxAdapter>, MutableRegion {
     readonly type = "audio-region"
 
     readonly #terminator: Terminator
@@ -120,15 +121,7 @@ export class AudioRegionBoxAdapter implements LoopableRegionBoxAdapter<ValueEven
                         .subscribeChange(() => this.#dispatchChange())
                 })
                 this.#dispatchChange()
-            }),
-            {
-                terminate: (): void => {
-                    this.#fileSubscription.terminate()
-                    this.#fileSubscription = Terminable.Empty
-                    this.#tempoSubscription.terminate()
-                    this.#tempoSubscription = Terminable.Empty
-                }
-            }
+            })
         )
         this.#constructing = false
     }
@@ -166,6 +159,7 @@ export class AudioRegionBoxAdapter implements LoopableRegionBoxAdapter<ValueEven
     get file(): AudioFileBoxAdapter {return this.#fileAdapter.unwrap("Cannot access file.")}
     get warping(): ObservableOption<AudioWarpingBoxAdapter> {return this.#wraping}
     get timeBase(): TimeBase {return asEnumValue(this.#box.timeBase.getValue(), TimeBase)}
+    get waveformOffset(): MutableObservableValue<number> {return this.#box.waveformOffset}
     get label(): string {
         if (this.#fileAdapter.isEmpty()) {return "No Audio File"}
         const state = this.#fileAdapter.unwrap().getOrCreateLoader().state
@@ -264,10 +258,15 @@ export class AudioRegionBoxAdapter implements LoopableRegionBoxAdapter<ValueEven
         return Option.None
     }
 
-    terminate() {
+    terminate(): void {
         this.#fileSubscription.terminate()
+        this.#fileSubscription = Terminable.Empty
+        this.#tempoSubscription.terminate()
+        this.#tempoSubscription = Terminable.Empty
         this.#warpSubscription.terminate()
+        this.#warpSubscription = Terminable.Empty
         this.#eventCollectionSubscription.terminate()
+        this.#eventCollectionSubscription = Terminable.Empty
         this.#terminator.terminate()
     }
 

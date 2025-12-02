@@ -1,5 +1,13 @@
 import {ppqn} from "@opendaw/lib-dsp"
-import {int, ObservableOption, ObservableValue, Observer, Option, Subscription} from "@opendaw/lib-std"
+import {
+    int,
+    MutableObservableValue,
+    ObservableOption,
+    ObservableValue,
+    Observer,
+    Option,
+    Subscription
+} from "@opendaw/lib-std"
 import {TimeAxisCursorMapper} from "@/ui/timeline/TimeAxis.tsx"
 import {
     AudioFileBoxAdapter,
@@ -15,6 +23,7 @@ export interface AudioEventOwnerReader extends EventOwnerReader<ValueEventCollec
     get warping(): ObservableOption<AudioWarpingBoxAdapter>
     get playback(): ObservableValue<AudioPlayback>
     get file(): AudioFileBoxAdapter
+    get waveformOffset(): MutableObservableValue<number>
     get gain(): number
 }
 

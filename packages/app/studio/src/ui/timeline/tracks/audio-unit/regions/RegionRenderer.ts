@@ -111,7 +111,8 @@ export const renderRegions = (context: CanvasRenderingContext2D,
                             context.fillRect(x, labelHeight, 1, height - labelHeight)
                         }
                         const warping = region.playback.getValue() === AudioPlayback.NoSync ? Option.None : region.warping
-                        renderAudio(context, range, region.file, warping, region.gain, bound, contentColor, pass)
+                        renderAudio(context, range, region.file, warping, region.waveformOffset.getValue(),
+                            region.gain, bound, contentColor, pass)
                     }
                     // TODO Record indicator?
                     const isRecording = region.file.getOrCreateLoader().state.type === "record"

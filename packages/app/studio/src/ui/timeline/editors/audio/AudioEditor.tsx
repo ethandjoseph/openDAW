@@ -49,6 +49,7 @@ export const AudioEditor = ({lifecycle, service, range, snapping, reader}: Const
                                   reader={reader}
                                   hoverTransient={hoverTransient}/>
                 <AudioEditorCanvas lifecycle={lifecycle}
+                                   project={service.project}
                                    range={range}
                                    snapping={snapping}
                                    reader={reader}/>

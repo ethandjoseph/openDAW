@@ -4,7 +4,7 @@ import {
     DefaultObservableValue,
     int,
     Maybe,
-    MutableObservableOption,
+    MutableObservableOption, MutableObservableValue,
     Notifier,
     ObservableOption,
     ObservableValue,
@@ -25,8 +25,9 @@ import {TrackBoxAdapter} from "../TrackBoxAdapter"
 import {BoxAdaptersContext} from "../../BoxAdaptersContext"
 import {AudioFileBoxAdapter} from "../../audio/AudioFileBoxAdapter"
 import {AudioWarpingBoxAdapter} from "../../audio/AudioWarpingBoxAdapter"
+import {AudioContentBoxAdapter} from "../AudioContentBoxAdapter"
 
-export class AudioClipBoxAdapter implements ClipBoxAdapter<never> {
+export class AudioClipBoxAdapter implements AudioContentBoxAdapter, ClipBoxAdapter<never> {
     static readonly STATIC_POSITION: ValueOwner<number> = {getValue: (): number => 0}
 
     readonly type = "audio-clip"
@@ -77,13 +78,7 @@ export class AudioClipBoxAdapter implements ClipBoxAdapter<never> {
                 this.#fileSubscription = this.#fileAdapter.map(adapter =>
                     adapter.getOrCreateLoader().subscribe(() => this.#dispatchChange()))
             }),
-            this.#box.subscribe(Propagation.Children, (_update: Update) => this.#dispatchChange()),
-            {
-                terminate: (): void => {
-                    this.#fileSubscription.ifSome(subscription => subscription.terminate())
-                    this.#fileSubscription = Option.None
-                }
-            }
+            this.#box.subscribe(Propagation.Children, (_update: Update) => this.#dispatchChange())
         )
         this.#isConstructing = false
     }
@@ -115,8 +110,6 @@ export class AudioClipBoxAdapter implements ClipBoxAdapter<never> {
 
     get isSelected(): boolean {return this.#selectedValue.getValue()}
 
-    terminate(): void {this.#terminator.terminate()}
-
     get box(): AudioClipBox {return this.#box}
     get uuid(): UUID.Bytes {return this.#box.address.uuid}
     get address(): Address {return this.#box.address}
@@ -132,6 +125,7 @@ export class AudioClipBoxAdapter implements ClipBoxAdapter<never> {
     get playback(): ObservableValue<AudioPlayback> {return this.#box.playback as ObservableValue<AudioPlayback>}
     get warping(): ObservableOption<AudioWarpingBoxAdapter> {return this.#wraping}
     get timeBase(): TimeBase {return asEnumValue(this.#box.timeBase.getValue(), TimeBase)}
+    get waveformOffset(): MutableObservableValue<number> {return this.#box.waveformOffset}
     get label(): string {return this.#box.label.getValue()}
     get trackBoxAdapter(): Option<TrackBoxAdapter> {
         if (this.#isConstructing) {return Option.None}
@@ -165,6 +159,14 @@ export class AudioClipBoxAdapter implements ClipBoxAdapter<never> {
                 this.#box.duration.setValue(duration)
             }
         }
+    }
+
+    terminate(): void {
+        this.#fileSubscription.ifSome(subscription => subscription.terminate())
+        this.#fileSubscription = Option.None
+        this.#warpSubscription.terminate()
+        this.#warpSubscription = Terminable.Empty
+        this.#terminator.terminate()
     }
 
     toString(): string {return `{AudioClipBoxAdapter ${UUID.toString(this.#box.address.uuid)} d: ${PPQN.toString(this.duration)}}`}
