@@ -254,8 +254,11 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
         const lastWarp = asDefined(warpMarkers.last(), "missing last warp marker")
         const contentPpqn = cycle.resultStart - cycle.rawStart
         if (contentPpqn < firstWarp.position || contentPpqn >= lastWarp.position) {return}
-        const currentSeconds = this.#ppqnToSeconds(contentPpqn, cycle.resultStartValue, warpMarkers) + waveformOffset
-        const transientIndex = transientMarkers.floorLastIndex(currentSeconds)
+        const warpSeconds = this.#ppqnToSeconds(contentPpqn, cycle.resultStartValue, warpMarkers)
+        const fileSeconds = warpSeconds + waveformOffset
+        // Clamp to valid file range
+        if (fileSeconds < 0.0 || fileSeconds >= data.numberOfFrames / data.sampleRate) {return}
+        const transientIndex = transientMarkers.floorLastIndex(fileSeconds)
         if (transientIndex !== lane.lastTransientIndex) {
             const segmentInfo = this.#getSegmentInfo(transientIndex, transientMarkers, data)
             if (isNull(segmentInfo)) {return}
@@ -263,13 +266,15 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
             const segmentLength = segment.end - segment.start
             if (segmentLength >= FADE_LENGTH * 2) {
                 lane.voices.forEach(voice => voice.startFadeOut())
-                const offsetInSegment = currentSeconds * data.sampleRate - segment.start
+                const offsetInSegment = fileSeconds * data.sampleRate - segment.start
                 const startAtBeginning = lane.lastTransientIndex === -1 || transientIndex !== lane.lastTransientIndex + 1
                 const offset = startAtBeginning ? 0.0 : Math.max(0.0, offsetInSegment)
                 const playMode = this.#adapter.box.transientPlayMode.getValue() as TransientPlayMode
                 let canLoop = false
                 if (hasNext && playMode !== TransientPlayMode.Once) {
-                    const nextPpqn = this.#secondsToPpqn(nextTransientSeconds, warpMarkers)
+                    // Convert file position back to warp space before converting to PPQN
+                    const nextWarpSeconds = nextTransientSeconds - waveformOffset
+                    const nextPpqn = this.#secondsToPpqn(nextWarpSeconds, warpMarkers)
                     const ppqnUntilNext = nextPpqn - contentPpqn
                     const samplesPerPpqn = bpn / pn
                     const samplesNeeded = ppqnUntilNext * samplesPerPpqn
