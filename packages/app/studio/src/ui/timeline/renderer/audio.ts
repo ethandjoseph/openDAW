@@ -44,7 +44,7 @@ export const renderAudio = (context: CanvasRenderingContext2D,
         const addSegment = (posStart: number, posEnd: number, audioStart: number, audioEnd: number, outside: boolean) => {
             if (posStart >= posEnd) {return}
             if (posStart > range.unitMax || posEnd < range.unitMin) {return}
-            const clippedStart = Math.max(posStart, range.unitMin)
+            const clippedStart = Math.max(posStart, range.unitMin - range.unitPadding)
             const clippedEnd = Math.min(posEnd, range.unitMax)
             if (clippedStart >= clippedEnd) {return}
             const t0 = (clippedStart - posStart) / (posEnd - posStart)

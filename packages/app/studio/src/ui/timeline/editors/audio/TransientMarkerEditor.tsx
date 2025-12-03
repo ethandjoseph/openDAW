@@ -60,7 +60,7 @@ export const TransientMarkerEditor = ({lifecycle, range, reader, hoverTransient}
                             const adjustedSeconds = transient.position - waveformOffset
                             const localUnit = secondsToLocalUnit(adjustedSeconds)
                             const unit = reader.offset + localUnit
-                            if (unit < range.unitMin) {continue}
+                            if (unit < range.unitMin - range.unitPadding) {continue}
                             if (unit > range.unitMax) {break}
                             const x = range.unitToX(unit) * devicePixelRatio
                             context.beginPath()
