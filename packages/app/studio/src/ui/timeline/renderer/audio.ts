@@ -5,6 +5,7 @@ import {Option} from "@opendaw/lib-std"
 import {RegionBound} from "@/ui/timeline/renderer/env"
 import {dbToGain, LoopableRegion} from "@opendaw/lib-dsp"
 
+type Segment = { x0: number, x1: number, u0: number, u1: number, outside: boolean }
 export const renderAudio = (context: CanvasRenderingContext2D,
                             range: TimelineRange,
                             file: AudioFileBoxAdapter,
@@ -29,7 +30,7 @@ export const renderAudio = (context: CanvasRenderingContext2D,
     const ht = bottom - top
     const peaksHeight = Math.floor((ht - 4) / numberOfChannels)
     const scale = dbToGain(-gain)
-    const segments: Array<{ x0: number, x1: number, u0: number, u1: number, outside: boolean }> = []
+    const segments: Array<Segment> = []
     if (warping.nonEmpty()) {
         const {warpMarkers} = warping.unwrap()
         const markers = warpMarkers.asArray()
@@ -97,24 +98,60 @@ export const renderAudio = (context: CanvasRenderingContext2D,
             addSegment(rawStart + last.position, rawStart + extrapolateEndLocal, last.seconds, audioEnd)
         }
     } else {
-        // TODO Does not paint waveforms outside the loop bounds
-        const frameOffset = (waveformOffset / durationInSeconds) * numFrames
-        let u0 = resultStartValue * numFrames + frameOffset
-        let u1 = resultEndValue * numFrames + frameOffset
-        let x0 = range.unitToX(resultStart) * devicePixelRatio
-        let x1 = range.unitToX(resultEnd) * devicePixelRatio
-        if (u0 < 0) {
-            const ratio = -u0 / (u1 - u0)
-            x0 = x0 + ratio * (x1 - x0)
-            u0 = 0
-        }
-        if (u1 > numFrames) {
-            const ratio = (u1 - numFrames) / (u1 - u0)
-            x1 = x1 - ratio * (x1 - x0)
-            u1 = numFrames
-        }
-        if (u0 < u1) {
-            segments.push({x0, x1, u0, u1, outside: false})
+        if (clip) {
+            const frameOffset = (waveformOffset / durationInSeconds) * numFrames
+            let u0 = resultStartValue * numFrames + frameOffset
+            let u1 = resultEndValue * numFrames + frameOffset
+            let x0 = range.unitToX(resultStart) * devicePixelRatio
+            let x1 = range.unitToX(resultEnd) * devicePixelRatio
+            if (u0 < 0) {
+                const ratio = -u0 / (u1 - u0)
+                x0 = x0 + ratio * (x1 - x0)
+                u0 = 0
+            }
+            if (u1 > numFrames) {
+                const ratio = (u1 - numFrames) / (u1 - u0)
+                x1 = x1 - ratio * (x1 - x0)
+                u1 = numFrames
+            }
+            if (u0 < u1) {
+                segments.push({x0, x1, u0, u1, outside: false})
+            }
+        } else {
+            const loopDuration = rawEnd - rawStart
+            const ppqnPerSecond = loopDuration / durationInSeconds
+            const offsetPpqn = waveformOffset * ppqnPerSecond
+            const waveStart = rawStart - offsetPpqn
+            const waveEnd = rawEnd - offsetPpqn
+            const addSegment = (posStart: number, posEnd: number, outside: boolean) => {
+                if (posStart >= posEnd) {return}
+                if (posEnd < range.unitMin || posStart > range.unitMax) {return}
+                const clippedStart = Math.max(posStart, range.unitMin)
+                const clippedEnd = Math.min(posEnd, range.unitMax)
+                if (clippedStart >= clippedEnd) {return}
+                const t0 = (clippedStart - waveStart) / (waveEnd - waveStart)
+                const t1 = (clippedEnd - waveStart) / (waveEnd - waveStart)
+                let u0 = t0 * numFrames
+                let u1 = t1 * numFrames
+                let x0 = range.unitToX(clippedStart) * devicePixelRatio
+                let x1 = range.unitToX(clippedEnd) * devicePixelRatio
+                if (u0 < 0) {
+                    const ratio = -u0 / (u1 - u0)
+                    x0 = x0 + ratio * (x1 - x0)
+                    u0 = 0
+                }
+                if (u1 > numFrames) {
+                    const ratio = (u1 - numFrames) / (u1 - u0)
+                    x1 = x1 - ratio * (x1 - x0)
+                    u1 = numFrames
+                }
+                if (u0 < u1) {
+                    segments.push({x0, x1, u0, u1, outside})
+                }
+            }
+            addSegment(waveStart, resultStart, true)
+            addSegment(resultStart, resultEnd, false)
+            addSegment(resultEnd, waveEnd, true)
         }
     }
 
