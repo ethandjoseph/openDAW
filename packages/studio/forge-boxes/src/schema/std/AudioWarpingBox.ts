@@ -8,7 +8,7 @@ export const AudioWarpingBox: BoxSchema<Pointers> = {
         fields: {
             10: {
                 type: "field", name: "warp-markers",
-                pointerRules: {accepts: [Pointers.WarpMarkers], mandatory: false}
+                pointerRules: {accepts: [Pointers.WarpMarkers], mandatory: true}
             },
             11: {
                 type: "field", name: "transient-markers",
