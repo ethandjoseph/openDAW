@@ -41,37 +41,71 @@ export const renderAudio = (context: CanvasRenderingContext2D,
         const last = markers[markers.length - 1]
         const firstRate = (second.seconds - first.seconds) / (second.position - first.position)
         const lastRate = (last.seconds - secondLast.seconds) / (last.position - secondLast.position)
-        const addSegment = (segmentStart: number, segmentEnd: number, audioStartSeconds: number, audioEndSeconds: number) => {
-            if (segmentStart >= segmentEnd) {return}
-            if (segmentStart > range.unitMax || segmentEnd < range.unitMin) {return}
-            if (clip && (segmentEnd <= resultStart || segmentStart >= resultEnd)) {return}
-            const clippedStart = clip ? Math.max(segmentStart, resultStart, range.unitMin) : Math.max(segmentStart, range.unitMin)
-            const clippedEnd = clip ? Math.min(segmentEnd, resultEnd, range.unitMax) : Math.min(segmentEnd, range.unitMax)
+        const pushSegment = (posStart: number, posEnd: number, audioStart: number, audioEnd: number, outside: boolean) => {
+            if (posStart >= posEnd) {return}
+            if (posStart > range.unitMax || posEnd < range.unitMin) {return}
+            const clippedStart = Math.max(posStart, range.unitMin)
+            const clippedEnd = Math.min(posEnd, range.unitMax)
             if (clippedStart >= clippedEnd) {return}
-            const t0 = (clippedStart - segmentStart) / (segmentEnd - segmentStart)
-            const t1 = (clippedEnd - segmentStart) / (segmentEnd - segmentStart)
-            let audioStart = audioStartSeconds + t0 * (audioEndSeconds - audioStartSeconds) + waveformOffset
-            let audioEnd = audioStartSeconds + t1 * (audioEndSeconds - audioStartSeconds) + waveformOffset
+            const t0 = (clippedStart - posStart) / (posEnd - posStart)
+            const t1 = (clippedEnd - posStart) / (posEnd - posStart)
+            let aStart = audioStart + t0 * (audioEnd - audioStart) + waveformOffset
+            let aEnd = audioStart + t1 * (audioEnd - audioStart) + waveformOffset
             let x0 = range.unitToX(clippedStart) * devicePixelRatio
             let x1 = range.unitToX(clippedEnd) * devicePixelRatio
-            if (audioStart < 0.0) {
-                const ratio = -audioStart / (audioEnd - audioStart)
+            if (aStart < 0.0) {
+                const ratio = -aStart / (aEnd - aStart)
                 x0 = x0 + ratio * (x1 - x0)
-                audioStart = 0.0
+                aStart = 0.0
             }
-            if (audioEnd > durationInSeconds) {
-                const ratio = (audioEnd - durationInSeconds) / (audioEnd - audioStart)
+            if (aEnd > durationInSeconds) {
+                const ratio = (aEnd - durationInSeconds) / (aEnd - aStart)
                 x1 = x1 - ratio * (x1 - x0)
-                audioEnd = durationInSeconds
+                aEnd = durationInSeconds
             }
-            if (audioStart >= audioEnd) {return}
+            if (aStart >= aEnd) {return}
             segments.push({
                 x0,
                 x1,
-                u0: (audioStart / durationInSeconds) * numFrames,
-                u1: (audioEnd / durationInSeconds) * numFrames,
-                outside: segmentStart < rawStart || segmentEnd > rawEnd
+                u0: (aStart / durationInSeconds) * numFrames,
+                u1: (aEnd / durationInSeconds) * numFrames,
+                outside
             })
+        }
+        const addSegment = (segmentStart: number, segmentEnd: number, audioStartSeconds: number, audioEndSeconds: number) => {
+            if (segmentStart >= segmentEnd) {return}
+            if (clip) {
+                if (segmentEnd <= resultStart || segmentStart >= resultEnd) {return}
+                const clippedStart = Math.max(segmentStart, resultStart)
+                const clippedEnd = Math.min(segmentEnd, resultEnd)
+                const t0 = (clippedStart - segmentStart) / (segmentEnd - segmentStart)
+                const t1 = (clippedEnd - segmentStart) / (segmentEnd - segmentStart)
+                const aStart = audioStartSeconds + t0 * (audioEndSeconds - audioStartSeconds)
+                const aEnd = audioStartSeconds + t1 * (audioEndSeconds - audioStartSeconds)
+                pushSegment(clippedStart, clippedEnd, aStart, aEnd, false)
+            } else {
+                const rate = (audioEndSeconds - audioStartSeconds) / (segmentEnd - segmentStart)
+                // Before audible
+                if (segmentStart < resultStart) {
+                    const endPos = Math.min(segmentEnd, resultStart)
+                    const aEnd = audioStartSeconds + (endPos - segmentStart) * rate
+                    pushSegment(segmentStart, endPos, audioStartSeconds, aEnd, true)
+                }
+                // Audible
+                if (segmentEnd > resultStart && segmentStart < resultEnd) {
+                    const startPos = Math.max(segmentStart, resultStart)
+                    const endPos = Math.min(segmentEnd, resultEnd)
+                    const aStart = audioStartSeconds + (startPos - segmentStart) * rate
+                    const aEnd = audioStartSeconds + (endPos - segmentStart) * rate
+                    pushSegment(startPos, endPos, aStart, aEnd, false)
+                }
+                // After audible
+                if (segmentEnd > resultEnd) {
+                    const startPos = Math.max(segmentStart, resultEnd)
+                    const aStart = audioStartSeconds + (startPos - segmentStart) * rate
+                    pushSegment(startPos, segmentEnd, aStart, audioEndSeconds, true)
+                }
+            }
         }
         const visibleLocalStart = (clip ? resultStart : range.unitMin) - rawStart
         const visibleLocalEnd = (clip ? resultEnd : range.unitMax) - rawStart
