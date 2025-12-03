@@ -137,7 +137,7 @@ export class ProjectApi {
     }
 
     replaceMIDIInstrument<A>(target: InstrumentBox,
-                             fromFactory: InstrumentFactory<A, any>,
+                             fromFactory: InstrumentFactory<A>,
                              attachment?: A): Attempt<InstrumentBox, string> {
         const replacedInstrumentName = target.label.getValue()
         const hostBox = target.host.targetVertex.unwrap("Is not connect to AudioUnitBox").box

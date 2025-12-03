@@ -6,7 +6,8 @@ import {
     AudioUnitBoxAdapter,
     Devices,
     InstrumentBox,
-    InstrumentFactories
+    InstrumentFactories,
+    InstrumentFactory
 } from "@opendaw/studio-adapters"
 import {InsertMarker} from "@/ui/components/InsertMarker"
 import {EffectFactories, Project} from "@opendaw/studio-core"
@@ -66,7 +67,8 @@ export namespace DevicePanelDragAndDrop {
                 if (type === "instrument" && deviceHost instanceof AudioUnitBoxAdapter) {
                     // unsafe cast, but will be handled in replaceMIDIInstrument
                     const inputBox = deviceHost.inputField.pointerHub.incoming().at(0)?.box as InstrumentBox
-                    const factory = asDefined(InstrumentFactories.Named[dragData.device], `Unknown: '${dragData.device}'`)
+                    const namedElement = InstrumentFactories.Named[dragData.device]
+                    const factory = asDefined(namedElement, `Unknown: '${dragData.device}'`) as InstrumentFactory
                     editing.modify(() => {
                         const attempt = project.api.replaceMIDIInstrument(inputBox, factory)
                         if (attempt.isFailure()) {console.debug(attempt.failureReason())}
