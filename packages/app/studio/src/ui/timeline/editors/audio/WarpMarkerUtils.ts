@@ -7,9 +7,10 @@ import {ElementCapturing} from "@/ui/canvas/capturing"
 
 export namespace WarpMarkerUtils {
     export const findAdjacent = (position: ppqn,
-                                 warpMarkers: EventCollection<WarpMarkerBoxAdapter>)
+                                 warpMarkers: EventCollection<WarpMarkerBoxAdapter>,
+                                 includePosition: boolean)
         : [Nullable<WarpMarkerBoxAdapter>, Nullable<WarpMarkerBoxAdapter>] => {
-        const left = warpMarkers.lowerEqual(position - 1)
+        const left = warpMarkers.lowerEqual(includePosition ? position : position - 1)
         const right = warpMarkers.greaterEqual(position + 1)
         return [left, right]
     }

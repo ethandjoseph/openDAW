@@ -1,13 +1,22 @@
 import {AudioWarpingBox} from "@opendaw/studio-boxes"
-import {Notifier, Observer, SortedSet, Subscription, Terminator, UUID} from "@opendaw/lib-std"
+import {int, Notifier, Observer, panic, SortedSet, Subscription, Terminator, UUID} from "@opendaw/lib-std"
 import {Address, PointerField} from "@opendaw/lib-box"
 import {BoxAdaptersContext} from "../BoxAdaptersContext"
 import {BoxAdapter} from "../BoxAdapter"
-import {EventCollection} from "@opendaw/lib-dsp"
+import {Event, EventCollection} from "@opendaw/lib-dsp"
 import {WarpMarkerBoxAdapter} from "./WarpMarkerBoxAdapter"
 import {TransientMarkerBoxAdapter} from "./TransientMarkerBoxAdapter"
 
 export class AudioWarpingBoxAdapter implements BoxAdapter {
+    static Comparator = <E extends Event>() => (a: E, b: E): int => {
+        const difference = a.position - b.position
+        if (difference === 0) {
+            console.warn(a, b)
+            return panic("Events at the same position: " + a.position + ", " + b.position)
+        }
+        return difference
+    }
+
     readonly #terminator = new Terminator()
 
     readonly #context: BoxAdaptersContext
@@ -25,9 +34,9 @@ export class AudioWarpingBoxAdapter implements BoxAdapter {
 
         this.#notifer = new Notifier()
         this.#warpMarkerAdapters = UUID.newSet(({uuid}) => uuid)
-        this.#warpMarkers = EventCollection.create()
+        this.#warpMarkers = EventCollection.create(AudioWarpingBoxAdapter.Comparator())
         this.#transientMarkerAdapters = UUID.newSet(({uuid}) => uuid)
-        this.#transientMarkers = EventCollection.create()
+        this.#transientMarkers = EventCollection.create(AudioWarpingBoxAdapter.Comparator())
         this.#terminator.ownAll(
             box.warpMarkers.pointerHub.catchupAndSubscribe({
                 onAdded: (pointer: PointerField) => {
