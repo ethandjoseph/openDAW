@@ -1,10 +1,10 @@
 import css from "./VUMeterPanel.sass?inline"
-import {DefaultObservableValue, Lifecycle, Terminator, UUID} from "@opendaw/lib-std"
+import {DefaultObservableValue, Lifecycle, Terminator} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {VUMeterDesign} from "@/ui/meter/VUMeterDesign.tsx"
 import {StudioService} from "@/service/StudioService.ts"
-import {Address} from "@opendaw/lib-box"
 import {Html} from "@opendaw/lib-dom"
+import {EngineAddresses} from "@opendaw/studio-adapters"
 
 const className = Html.adoptStyleSheet(css, "VUMeterPanel")
 
@@ -25,7 +25,7 @@ export const VUMeterPanel = ({lifecycle, service}: Construct) => {
                 peakR.setValue(0.0)
             },
             some: ({project: {liveStreamReceiver}}) => {
-                runtime.own(liveStreamReceiver.subscribeFloats(Address.compose(UUID.Lowest), peaks => {
+                runtime.own(liveStreamReceiver.subscribeFloats(EngineAddresses.PEAKS, peaks => {
                     const [pl, pr] = peaks
                     peakL.setValue(pl >= peakL.getValue() ? pl : peakL.getValue() * 0.98)
                     peakR.setValue(pr >= peakR.getValue() ? pr : peakR.getValue() * 0.98)

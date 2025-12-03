@@ -1,6 +1,7 @@
 {
     "name": "@opendaw/lib-box",
     "version": "0.0.50",
+    "sideEffects": false,
     "main": "./dist/index.js",
     "types": "./dist/index.d.ts",
     "license": "LGPL-3.0-or-later",
