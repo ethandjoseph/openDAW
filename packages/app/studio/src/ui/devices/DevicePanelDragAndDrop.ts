@@ -1,4 +1,4 @@
-import {asDefined, panic, Terminable, UUID} from "@opendaw/lib-std"
+import {asDefined, panic, Terminable} from "@opendaw/lib-std"
 import {DragAndDrop} from "@/ui/DragAndDrop"
 import {AnyDragData} from "@/ui/AnyDragData"
 import {
@@ -6,13 +6,11 @@ import {
     AudioUnitBoxAdapter,
     Devices,
     InstrumentBox,
-    InstrumentFactories,
-    InstrumentFactory
+    InstrumentFactories
 } from "@opendaw/studio-adapters"
 import {InsertMarker} from "@/ui/components/InsertMarker"
 import {EffectFactories, Project} from "@opendaw/studio-core"
 import {IndexedBox} from "@opendaw/lib-box"
-import {AudioBusBox, BoxVisitor, CaptureAudioBox, CaptureMidiBox, TapeDeviceBox} from "@opendaw/studio-boxes"
 
 export namespace DevicePanelDragAndDrop {
     export const install = (project: Project,
@@ -21,7 +19,7 @@ export namespace DevicePanelDragAndDrop {
                             instrumentContainer: HTMLElement,
                             audioEffectsContainer: HTMLElement): Terminable => {
         const insertMarker: HTMLElement = InsertMarker()
-        const {editing, boxGraph, boxAdapters, userEditingManager} = project
+        const {editing, boxAdapters, userEditingManager} = project
         return DragAndDrop.installTarget(editors, {
             drag: (event: DragEvent, dragData: AnyDragData): boolean => {
                 instrumentContainer.style.opacity = "1.0"
@@ -66,33 +64,12 @@ export namespace DevicePanelDragAndDrop {
                 if (editingDeviceChain.isEmpty()) {return}
                 const deviceHost = boxAdapters.adapterFor(editingDeviceChain.unwrap("editingDeviceChain isEmpty").box, Devices.isHost)
                 if (type === "instrument" && deviceHost instanceof AudioUnitBoxAdapter) {
-                    const inputField = deviceHost.inputField
-                    const inputBox = inputField.pointerHub.incoming().at(0)?.box
-                    console.debug(`Replace '${inputBox?.name ?? "no input"} with '${dragData.device}'`)
-                    if (inputBox instanceof AudioBusBox || inputBox instanceof TapeDeviceBox) {
-                        console.debug("Input is a bus or tape. Will not replace.")
-                        return
-                    }
-                    if (dragData.device === "Tape") {
-                        console.debug("New device is tape. Will not replace.")
-                        return
-                    }
+                    // unsafe cast, but will be handled in replaceMIDIInstrument
+                    const inputBox = deviceHost.inputField.pointerHub.incoming().at(0)?.box as InstrumentBox
+                    const factory = asDefined(InstrumentFactories.Named[dragData.device], `Unknown: '${dragData.device}'`)
                     editing.modify(() => {
-                        inputField.pointerHub.incoming().forEach(pointer => pointer.box.delete())
-                        const {create, defaultIcon, defaultName}: InstrumentFactory =
-                            asDefined(InstrumentFactories.Named[dragData.device], `Unknown: '${dragData.device}'`)
-                        const instrumentBox: InstrumentBox = create(boxGraph, inputField, defaultName, defaultIcon)
-                        // TODO This needs to be done in a more generic way
-                        const captureBox = asDefined(instrumentBox.box.accept<BoxVisitor<CaptureAudioBox | CaptureMidiBox>>({
-                            visitVaporisateurDeviceBox: () => CaptureMidiBox.create(boxGraph, UUID.generate()),
-                            visitNanoDeviceBox: () => CaptureMidiBox.create(boxGraph, UUID.generate()),
-                            visitPlayfieldDeviceBox: () => CaptureMidiBox.create(boxGraph, UUID.generate()),
-                            visitMIDIOutputDeviceBox: () => CaptureMidiBox.create(boxGraph, UUID.generate()),
-                            visitSoundfontDeviceBox: () => CaptureMidiBox.create(boxGraph, UUID.generate()),
-                            visitTapeDeviceBox: () => CaptureAudioBox.create(boxGraph, UUID.generate())
-                        }))
-                        deviceHost.box.capture.targetVertex.ifSome(({box}) => box.delete())
-                        deviceHost.box.capture.refer(captureBox)
+                        const attempt = project.api.replaceMIDIInstrument(inputBox, factory)
+                        if (attempt.isFailure()) {console.debug(attempt.failureReason())}
                     })
                     return
                 }

@@ -1,9 +1,27 @@
-import {assert, clamp, float, int, Observer, Option, Strings, Subscription, UUID} from "@opendaw/lib-std"
-import {ppqn, PPQN} from "@opendaw/lib-dsp"
-import {BoxGraph, Field, IndexedBox, PointerField} from "@opendaw/lib-box"
-import {AudioUnitType, Pointers} from "@opendaw/studio-enums"
 import {
+    asInstanceOf,
+    assert,
+    Attempt,
+    Attempts,
+    clamp,
+    float,
+    int,
+    isInstanceOf,
+    Observer,
+    Option,
+    panic,
+    Strings,
+    Subscription,
+    UUID
+} from "@opendaw/lib-std"
+import {ppqn, PPQN, TimeBase} from "@opendaw/lib-dsp"
+import {BoxGraph, Field, IndexedBox, PointerField} from "@opendaw/lib-box"
+import {AudioPlayback, AudioUnitType, Pointers} from "@opendaw/studio-enums"
+import {
+    AudioClipBox,
+    AudioFileBox,
     AudioUnitBox,
+    AudioWarpingBox,
     CaptureAudioBox,
     CaptureMidiBox,
     NoteClipBox,
@@ -16,7 +34,6 @@ import {
     ValueRegionBox
 } from "@opendaw/studio-boxes"
 import {
-    AnyClipBox,
     AudioUnitBoxAdapter,
     AudioUnitFactory,
     CaptureBox,
@@ -38,6 +55,13 @@ export type ClipRegionOptions = {
     name?: string
     hue?: number
 }
+
+export type AudioRegionOptions = {
+    file: AudioFileBox
+    warping: Option<AudioWarpingBox>
+    playback: AudioPlayback
+    timeBase: TimeBase
+} & ClipRegionOptions
 
 export type NoteEventParams = {
     owner: { events: PointerField<Pointers.NoteEventCollection> }
@@ -107,6 +131,32 @@ export class ProjectApi {
         return this.createInstrument(factory)
     }
 
+    replaceMIDIInstrument<A>(target: InstrumentBox,
+                             fromFactory: InstrumentFactory<A, any>,
+                             attachment?: A): Attempt<InstrumentBox, string> {
+        const replacedInstrumentName = target.label.getValue()
+        console.debug("will be track-type", fromFactory.trackType)
+        const hostBox = target.host.targetVertex.unwrap("Is not connect to AudioUnitBox").box
+        const audioUnitBox = asInstanceOf(hostBox, AudioUnitBox)
+        if (audioUnitBox.type.getValue() !== AudioUnitType.Instrument) {
+            return Attempts.err("AudioUnitBox does not hold an instrument")
+        }
+        const captureBox = audioUnitBox.capture.targetVertex.unwrap("AudioUnitBox does not hold a capture").box
+        if (!isInstanceOf(captureBox, CaptureMidiBox)) {
+            return Attempts.err("Cannot replace instrument without CaptureMidiBox")
+        }
+        if (fromFactory.trackType !== TrackType.Notes) {
+            return Attempts.err("Cannot replace instrument with track type " + TrackType[fromFactory.trackType] + "")
+        }
+        console.debug(`Replace instrument '${replacedInstrumentName}' with ${fromFactory.defaultName}`)
+
+        target.delete()
+
+        const {boxGraph} = this.#project
+        const {create, defaultIcon, defaultName}: InstrumentFactory = fromFactory
+        return Attempts.ok(create(boxGraph, audioUnitBox.input, defaultName, defaultIcon, attachment))
+    }
+
     insertEffect(field: Field<EffectPointerType>, factory: EffectFactory, insertIndex: int = Number.MAX_SAFE_INTEGER): EffectBox {
         return factory.create(this.#project, field, IndexedBox.insertOrder(field, insertIndex))
     }
@@ -123,44 +173,73 @@ export class ProjectApi {
         return this.#createTrack({field: audioUnitBox.tracks, target, trackType: TrackType.Value, insertIndex})
     }
 
-    createClip(trackBox: TrackBox, clipIndex: int, {name, hue}: ClipRegionOptions = {}): Option<AnyClipBox> {
+    async createAudioClipFromFile(trackBox: TrackBox,
+                                  clipIndex: int,
+                                  {name, hue}: ClipRegionOptions = {}): Promise<AudioClipBox> {
+        // TODO What do we get here?
+        //  We need 'duration in ppqn' or 'bpm and duration in seconds'.
+        //  We also need the audio-data to create the transients.
+        //  Then create AudioWarpingBox with markers.
+        return Promise.reject("Not implemented yet")
+    }
+
+    createAudioClip(trackBox: TrackBox,
+                    clipIndex: int,
+                    {name, hue, file, warping, playback, timeBase}: AudioRegionOptions): AudioClipBox {
         const {boxGraph} = this.#project
         const type = trackBox.type.getValue()
-        switch (type) {
-            case TrackType.Notes: {
-                const events = NoteEventCollectionBox.create(boxGraph, UUID.generate())
-                return Option.wrap(NoteClipBox.create(boxGraph, UUID.generate(), box => {
-                    box.index.setValue(clipIndex)
-                    box.label.setValue(name ?? "Notes")
-                    box.hue.setValue(hue ?? ColorCodes.forTrackType(type))
-                    box.mute.setValue(false)
-                    box.duration.setValue(PPQN.Bar)
-                    box.clips.refer(trackBox.clips)
-                    box.events.refer(events.owners)
-                }))
-            }
-            case TrackType.Value: {
-                const events = ValueEventCollectionBox.create(boxGraph, UUID.generate())
-                return Option.wrap(ValueClipBox.create(boxGraph, UUID.generate(), box => {
-                    box.index.setValue(clipIndex)
-                    box.label.setValue(name ?? "Automation")
-                    box.hue.setValue(hue ?? ColorCodes.forTrackType(type))
-                    box.mute.setValue(false)
-                    box.duration.setValue(PPQN.Bar)
-                    box.events.refer(events.owners)
-                    box.clips.refer(trackBox.clips)
-                }))
-            }
-        }
-        return Option.None
+        if (type !== TrackType.Audio) {return panic("Incompatible track type for audio-clip creation: " + type.toString())}
+        const events = ValueEventCollectionBox.create(boxGraph, UUID.generate())
+        return AudioClipBox.create(boxGraph, UUID.generate(), box => {
+            box.index.setValue(clipIndex)
+            box.label.setValue(name ?? "Audio")
+            box.hue.setValue(hue ?? ColorCodes.forTrackType(type))
+            box.mute.setValue(false)
+            box.duration.setValue(PPQN.Bar)
+            box.clips.refer(trackBox.clips)
+            box.events.refer(events.owners)
+            box.playback.setValue(playback)
+            box.timeBase.setValue(timeBase)
+            box.file.refer(file)
+            warping.ifSome(warping => box.warping.refer(warping))
+        })
+    }
+
+    createNoteClip(trackBox: TrackBox, clipIndex: int, {name, hue}: ClipRegionOptions = {}): NoteClipBox {
+        const {boxGraph} = this.#project
+        const type = trackBox.type.getValue()
+        if (type !== TrackType.Notes) {return panic("Incompatible track type for note-clip creation: " + type.toString())}
+        const events = NoteEventCollectionBox.create(boxGraph, UUID.generate())
+        return NoteClipBox.create(boxGraph, UUID.generate(), box => {
+            box.index.setValue(clipIndex)
+            box.label.setValue(name ?? "Notes")
+            box.hue.setValue(hue ?? ColorCodes.forTrackType(type))
+            box.mute.setValue(false)
+            box.duration.setValue(PPQN.Bar)
+            box.clips.refer(trackBox.clips)
+            box.events.refer(events.owners)
+        })
+    }
+
+    createValueClip(trackBox: TrackBox, clipIndex: int, {name, hue}: ClipRegionOptions = {}): ValueClipBox {
+        const {boxGraph} = this.#project
+        const type = trackBox.type.getValue()
+        if (type !== TrackType.Value) {return panic("Incompatible track type for value-clip creation: " + type.toString())}
+        const events = ValueEventCollectionBox.create(boxGraph, UUID.generate())
+        return ValueClipBox.create(boxGraph, UUID.generate(), box => {
+            box.index.setValue(clipIndex)
+            box.label.setValue(name ?? "Automation")
+            box.hue.setValue(hue ?? ColorCodes.forTrackType(type))
+            box.mute.setValue(false)
+            box.duration.setValue(PPQN.Bar)
+            box.events.refer(events.owners)
+            box.clips.refer(trackBox.clips)
+        })
     }
 
     createNoteRegion({
-                         trackBox,
-                         position, duration,
-                         loopOffset, loopDuration,
-                         eventOffset, eventCollection,
-                         mute, name, hue
+                         trackBox, position, duration, loopOffset, loopDuration,
+                         eventOffset, eventCollection, mute, name, hue
                      }: NoteRegionParams): NoteRegionBox {
         if (trackBox.type.getValue() !== TrackType.Notes) {
             console.warn("You should not create a note-region in mismatched track")

@@ -2,7 +2,7 @@ import css from "./ClipsArea.sass?inline"
 import {clamp, int, Lifecycle, Option, Selection, ValueAxis} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {TracksManager} from "@/ui/timeline/tracks/audio-unit/TracksManager.ts"
-import {AnyClipBoxAdapter, ClipAdapters, isVertexOfBox, UnionBoxTypes} from "@opendaw/studio-adapters"
+import {AnyClipBoxAdapter, ClipAdapters, isVertexOfBox, TrackType, UnionBoxTypes} from "@opendaw/studio-adapters"
 import {StudioService} from "@/service/StudioService.ts"
 import {ElementCapturing} from "@/ui/canvas/capturing.ts"
 import {ClipCaptureTarget, ClipCapturing} from "@/ui/timeline/tracks/audio-unit/clips/ClipCapturing.ts"
@@ -92,7 +92,18 @@ export const ClipsArea = ({lifecycle, service, manager, scrollModel, scrollConta
                 service.panelLayout.showIfAvailable(PanelType.ContentEditor)
             } else if (target.type === "track") {
                 const name = target.track.audioUnitBoxAdapter.input.label.unwrapOrElse("")
-                editing.modify(() => project.api.createClip(target.track.trackBoxAdapter.box, target.clipIndex, {name}))
+                editing.modify(() => {
+                    const trackBoxAdapter = target.track.trackBoxAdapter
+                    const clipIndex = target.clipIndex
+                    switch (trackBoxAdapter.type) {
+                        case TrackType.Notes:
+                            return project.api.createNoteClip(trackBoxAdapter.box, clipIndex, {name})
+                        case TrackType.Value:
+                            return project.api.createValueClip(trackBoxAdapter.box, clipIndex, {name})
+                        default:
+                            return
+                    }
+                })
             }
         }),
         Events.subscribe(element, "keydown", (event: KeyboardEvent) => {
