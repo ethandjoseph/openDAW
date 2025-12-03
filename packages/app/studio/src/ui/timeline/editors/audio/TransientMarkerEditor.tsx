@@ -1,6 +1,6 @@
 import css from "./TransientMarkerEditor.sass?inline"
 import {Html} from "@opendaw/lib-dom"
-import {Lifecycle, Nullable, ObservableValue, Terminator} from "@opendaw/lib-std"
+import {BinarySearch, Lifecycle, Nullable, NumberComparator, ObservableValue, Terminator} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {AudioEventOwnerReader} from "@/ui/timeline/editors/EventOwnerReader"
 import {Project, TimelineRange} from "@opendaw/studio-core"
@@ -46,17 +46,30 @@ export const TransientMarkerEditor = ({lifecycle, range, reader, hoverTransient}
                             if (seconds > last.seconds) {
                                 return last.position + (seconds - last.seconds) * lastRate
                             }
-                            for (let i = 0; i < markers.length - 1; i++) {
-                                const left = markers[i]
-                                const right = markers[i + 1]
-                                if (seconds >= left.seconds && seconds <= right.seconds) {
-                                    const t = (seconds - left.seconds) / (right.seconds - left.seconds)
-                                    return left.position + t * (right.position - left.position)
-                                }
-                            }
-                            return last.position
+                            const index = Math.min(markers.length - 2, BinarySearch.rightMostMapped(markers, seconds, NumberComparator, ({seconds}) => seconds))
+                            const left = markers[index]
+                            const right = markers[index + 1]
+                            const t = (seconds - left.seconds) / (right.seconds - left.seconds)
+                            return left.position + t * (right.position - left.position)
                         }
-                        for (const transient of transientMarkers.asArray()) {
+                        const localUnitToSeconds = (localUnit: number): number => {
+                            if (localUnit < first.position) {
+                                return first.seconds + (localUnit - first.position) / firstRate
+                            }
+                            if (localUnit > last.position) {
+                                return last.seconds + (localUnit - last.position) / lastRate
+                            }
+                            const index = warpMarkers.floorLastIndex(localUnit)
+                            const left = markers[index]
+                            const right = markers[index + 1]
+                            const t = (localUnit - left.position) / (right.position - left.position)
+                            return left.seconds + t * (right.seconds - left.seconds)
+                        }
+                        const visibleStartSeconds = localUnitToSeconds(range.unitMin - range.unitPadding - reader.offset) + waveformOffset
+                        const transients = transientMarkers.asArray()
+                        const startIndex = Math.max(0, transientMarkers.floorLastIndex(visibleStartSeconds))
+                        for (let i = startIndex; i < transients.length; i++) {
+                            const transient = transients[i]
                             const adjustedSeconds = transient.position - waveformOffset
                             const localUnit = secondsToLocalUnit(adjustedSeconds)
                             const unit = reader.offset + localUnit
