@@ -1,0 +1,164 @@
+import {ppqn, PPQN, TimeBase} from "@opendaw/lib-dsp"
+import {ColorCodes, Sample, TrackType} from "@opendaw/studio-adapters"
+import {int, panic, UUID} from "@opendaw/lib-std"
+import {
+    AudioClipBox,
+    AudioFileBox,
+    AudioPitchBox,
+    AudioRegionBox,
+    AudioTimeStretchBox,
+    TrackBox,
+    ValueEventCollectionBox,
+    WarpMarkerBox
+} from "@opendaw/studio-boxes"
+import {TransientPlayMode} from "@opendaw/studio-enums"
+import {BoxGraph} from "@opendaw/lib-box"
+
+export namespace AudioContentFactory {
+    type Props = {
+        boxGraph: BoxGraph,
+        targetTrack: TrackBox,
+        audioFileBox: AudioFileBox,
+        sample: Sample
+        gainInDb?: number
+    }
+
+    type Position = { position: ppqn }
+    type Indexed = { index: int }
+
+    export type TimeStretchedProps = {
+        transientPlayMode?: TransientPlayMode
+        playbackRate?: number
+    } & Props
+
+    export type PitchStretchedProps = { /* Has no additional properties yet */ } & Props
+
+    export type NotStretchedProps = { /* Has no additional properties yet */ } & Props
+
+    // --- Region Creation --- //
+
+    export const createTimeStretchedRegion = (props: TimeStretchedProps & Position): AudioRegionBox => {
+        const {boxGraph, playbackRate, transientPlayMode} = props
+        return createRegionWithWarpMarkers(AudioTimeStretchBox.create(boxGraph, UUID.generate(), box => {
+            box.transientPlayMode.setValue(transientPlayMode ?? TransientPlayMode.Pingpong)
+            box.playbackRate.setValue(playbackRate ?? 1.0)
+        }), props)
+    }
+
+    export const createPitchStretchedRegion = (props: PitchStretchedProps & Position): AudioRegionBox => {
+        return createRegionWithWarpMarkers(AudioPitchBox.create(props.boxGraph, UUID.generate()), props)
+    }
+
+    export const createNotStretchedRegion = (props: NotStretchedProps & Position): AudioRegionBox => {
+        const {boxGraph, targetTrack, position, audioFileBox, sample: {name, duration: durationInSeconds}} = props
+        const collectionBox = ValueEventCollectionBox.create(boxGraph, UUID.generate())
+        return AudioRegionBox.create(boxGraph, UUID.generate(), box => {
+            box.position.setValue(position)
+            box.duration.setValue(durationInSeconds)
+            box.loopDuration.setValue(durationInSeconds)
+            box.regions.refer(targetTrack.regions)
+            box.hue.setValue(ColorCodes.forTrackType(targetTrack.type.getValue()))
+            box.label.setValue(name)
+            box.file.refer(audioFileBox)
+            box.events.refer(collectionBox.owners)
+            box.timeBase.setValue(TimeBase.Seconds)
+            box.gain.setValue(props.gainInDb ?? 0.0)
+        })
+    }
+
+    // --- Clip Creation --- //
+
+    export const createTimeStretchedClip = (props: TimeStretchedProps & Indexed): AudioClipBox => {
+        const {boxGraph, playbackRate, transientPlayMode} = props
+        return createClipWithWarpMarkers(AudioTimeStretchBox.create(boxGraph, UUID.generate(), box => {
+            box.transientPlayMode.setValue(transientPlayMode ?? TransientPlayMode.Pingpong)
+            box.playbackRate.setValue(playbackRate ?? 1.0)
+        }), props)
+    }
+
+    export const createPitchStretchedClip = (props: PitchStretchedProps & Indexed): AudioClipBox => {
+        const {boxGraph} = props
+        return createClipWithWarpMarkers(AudioTimeStretchBox.create(boxGraph, UUID.generate()), props)
+    }
+
+    export const createNotStretchedClip = (props: NotStretchedProps & Indexed): AudioClipBox => {
+        const {boxGraph, targetTrack, index, audioFileBox, sample: {name, duration: durationInSeconds}} = props
+        const collectionBox = ValueEventCollectionBox.create(boxGraph, UUID.generate())
+        return AudioClipBox.create(boxGraph, UUID.generate(), box => {
+            box.duration.setValue(durationInSeconds)
+            box.clips.refer(targetTrack.clips)
+            box.hue.setValue(ColorCodes.forTrackType(targetTrack.type.getValue()))
+            box.label.setValue(name)
+            box.file.refer(audioFileBox)
+            box.events.refer(collectionBox.owners)
+            box.timeBase.setValue(TimeBase.Seconds)
+            box.index.setValue(index)
+        })
+    }
+
+    // ---- HELPERS ---- //
+
+    const createRegionWithWarpMarkers = (playMode: AudioPitchBox | AudioTimeStretchBox,
+                                         props: (TimeStretchedProps | PitchStretchedProps) & Position): AudioRegionBox => {
+        const {boxGraph, targetTrack, position, audioFileBox, sample} = props
+        if (targetTrack.type.getValue() !== TrackType.Audio) {
+            return panic("Cannot create audio-region on non-audio track")
+        }
+        const {name, duration: durationInSeconds, bpm} = sample
+        const durationInPPQN = Math.round(PPQN.secondsToPulses(durationInSeconds, bpm))
+        addDefaultWarpMarkers(boxGraph, playMode, durationInPPQN, durationInSeconds)
+        const collectionBox = ValueEventCollectionBox.create(boxGraph, UUID.generate())
+        return AudioRegionBox.create(boxGraph, UUID.generate(), box => {
+            box.position.setValue(position)
+            box.duration.setValue(durationInPPQN)
+            box.loopDuration.setValue(durationInPPQN)
+            box.regions.refer(targetTrack.regions)
+            box.hue.setValue(ColorCodes.forTrackType(targetTrack.type.getValue()))
+            box.label.setValue(name)
+            box.file.refer(audioFileBox)
+            box.events.refer(collectionBox.owners)
+            box.timeBase.setValue(TimeBase.Musical)
+            box.playMode.refer(playMode)
+            box.gain.setValue(props.gainInDb ?? 0.0)
+        })
+    }
+
+    const createClipWithWarpMarkers = (playMode: AudioPitchBox | AudioTimeStretchBox,
+                                       props: (TimeStretchedProps | PitchStretchedProps) & Indexed): AudioClipBox => {
+        const {boxGraph, targetTrack, audioFileBox, sample} = props
+        if (targetTrack.type.getValue() !== TrackType.Audio) {
+            return panic("Cannot create audio-region on non-audio track")
+        }
+        const {name, duration: durationInSeconds, bpm} = sample
+        const durationInPPQN = Math.round(PPQN.secondsToPulses(durationInSeconds, bpm))
+        addDefaultWarpMarkers(boxGraph, playMode, durationInPPQN, durationInSeconds)
+        const collectionBox = ValueEventCollectionBox.create(boxGraph, UUID.generate())
+        return AudioClipBox.create(boxGraph, UUID.generate(), box => {
+            box.duration.setValue(durationInPPQN)
+            box.clips.refer(targetTrack.clips)
+            box.hue.setValue(ColorCodes.forTrackType(targetTrack.type.getValue()))
+            box.label.setValue(name)
+            box.file.refer(audioFileBox)
+            box.events.refer(collectionBox.owners)
+            box.timeBase.setValue(TimeBase.Musical)
+            box.playMode.refer(playMode)
+            box.index.setValue(props.index)
+        })
+    }
+
+    const addDefaultWarpMarkers = (boxGraph: BoxGraph,
+                                   playMode: AudioPitchBox | AudioTimeStretchBox,
+                                   durationInPPQN: ppqn,
+                                   durationInSeconds: number) => {
+        WarpMarkerBox.create(boxGraph, UUID.generate(), box => {
+            box.owner.refer(playMode.warpMarkers)
+            box.position.setValue(0)
+            box.seconds.setValue(0)
+        })
+        WarpMarkerBox.create(boxGraph, UUID.generate(), box => {
+            box.owner.refer(playMode.warpMarkers)
+            box.position.setValue(durationInPPQN)
+            box.seconds.setValue(durationInSeconds)
+        })
+    }
+}

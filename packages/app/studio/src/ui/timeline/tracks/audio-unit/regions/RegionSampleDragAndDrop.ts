@@ -1,7 +1,7 @@
 import {PPQN} from "@opendaw/lib-dsp"
 import {RegionCaptureTarget} from "@/ui/timeline/tracks/audio-unit/regions/RegionCapturing.ts"
 import {ElementCapturing} from "@/ui/canvas/capturing.ts"
-import {AudioRegionFactory, RegionClipResolver} from "@opendaw/studio-core"
+import {AudioContentFactory, RegionClipResolver} from "@opendaw/studio-core"
 import {CreateParameters, TimelineDragAndDrop} from "@/ui/timeline/tracks/audio-unit/TimelineDragAndDrop"
 import {Snapping} from "@/ui/timeline/Snapping"
 import {StudioService} from "@/service/StudioService"
@@ -23,7 +23,7 @@ export class RegionSampleDragAndDrop extends TimelineDragAndDrop<RegionCaptureTa
         const duration = Math.round(PPQN.secondsToPulses(durationInSeconds, bpm))
         const solver = RegionClipResolver.fromRange(trackBoxAdapter, pointerPulse, pointerPulse + duration)
         const boxGraph = this.project.boxGraph
-        AudioRegionFactory.createTimeStretchedRegion({
+        AudioContentFactory.createTimeStretchedRegion({
             boxGraph,
             targetTrack: trackBoxAdapter.box,
             audioFileBox,

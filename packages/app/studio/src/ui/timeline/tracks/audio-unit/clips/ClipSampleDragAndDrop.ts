@@ -1,33 +1,25 @@
-import {AudioClipBox, ValueEventCollectionBox} from "@opendaw/studio-boxes"
 import {ElementCapturing} from "@/ui/canvas/capturing.ts"
-import {PPQN} from "@opendaw/lib-dsp"
-import {UUID} from "@opendaw/lib-std"
 import {CreateParameters, TimelineDragAndDrop} from "@/ui/timeline/tracks/audio-unit/TimelineDragAndDrop"
 import {ClipCaptureTarget} from "./ClipCapturing"
 import {ClipWidth} from "@/ui/timeline/tracks/audio-unit/clips/constants"
 import {StudioService} from "@/service/StudioService"
-import {ColorCodes} from "@opendaw/studio-adapters"
+import {AudioContentFactory} from "@opendaw/studio-core"
 
 export class ClipSampleDragAndDrop extends TimelineDragAndDrop<ClipCaptureTarget> {
     constructor(service: StudioService, capturing: ElementCapturing<ClipCaptureTarget>) {
         super(service, capturing)
     }
 
-    handleSample({
-                     event, trackBoxAdapter, audioFileBox, sample: {name, duration: durationInSeconds, bpm}
-                 }: CreateParameters): void {
+    handleSample({event, trackBoxAdapter, audioFileBox, sample}: CreateParameters): void {
         const x = event.clientX - this.capturing.element.getBoundingClientRect().left
         const index = Math.floor(x / ClipWidth)
-        const duration = Math.round(PPQN.secondsToPulses(durationInSeconds, bpm))
-        const collectionBox = ValueEventCollectionBox.create(this.project.boxGraph, UUID.generate())
-        AudioClipBox.create(this.project.boxGraph, UUID.generate(), box => {
-            box.index.setValue(index)
-            box.duration.setValue(duration)
-            box.clips.refer(trackBoxAdapter.box.clips)
-            box.hue.setValue(ColorCodes.forTrackType(trackBoxAdapter.type))
-            box.label.setValue(name)
-            box.file.refer(audioFileBox)
-            box.events.refer(collectionBox.owners)
+        const {boxGraph} = this.project
+        AudioContentFactory.createTimeStretchedClip({
+            boxGraph,
+            targetTrack: trackBoxAdapter.box,
+            sample,
+            audioFileBox,
+            index
         })
     }
 }

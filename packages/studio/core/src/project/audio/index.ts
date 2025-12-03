@@ -1,2 +1,2 @@
 export * from "./AudioFileBoxFactory"
-export * from "./AudioRegionFactory"
+export * from "./AudioContentFactory"
