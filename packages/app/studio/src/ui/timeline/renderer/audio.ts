@@ -41,7 +41,7 @@ export const renderAudio = (context: CanvasRenderingContext2D,
         const last = markers[markers.length - 1]
         const firstRate = (second.seconds - first.seconds) / (second.position - first.position)
         const lastRate = (last.seconds - secondLast.seconds) / (last.position - secondLast.position)
-        const pushSegment = (posStart: number, posEnd: number, audioStart: number, audioEnd: number, outside: boolean) => {
+        const addSegment = (posStart: number, posEnd: number, audioStart: number, audioEnd: number, outside: boolean) => {
             if (posStart >= posEnd) {return}
             if (posStart > range.unitMax || posEnd < range.unitMin) {return}
             const clippedStart = Math.max(posStart, range.unitMin)
@@ -72,7 +72,7 @@ export const renderAudio = (context: CanvasRenderingContext2D,
                 outside
             })
         }
-        const addSegment = (segmentStart: number, segmentEnd: number, audioStartSeconds: number, audioEndSeconds: number) => {
+        const handleSegment = (segmentStart: number, segmentEnd: number, audioStartSeconds: number, audioEndSeconds: number) => {
             if (segmentStart >= segmentEnd) {return}
             if (clip) {
                 if (segmentEnd <= resultStart || segmentStart >= resultEnd) {return}
@@ -82,14 +82,14 @@ export const renderAudio = (context: CanvasRenderingContext2D,
                 const t1 = (clippedEnd - segmentStart) / (segmentEnd - segmentStart)
                 const aStart = audioStartSeconds + t0 * (audioEndSeconds - audioStartSeconds)
                 const aEnd = audioStartSeconds + t1 * (audioEndSeconds - audioStartSeconds)
-                pushSegment(clippedStart, clippedEnd, aStart, aEnd, false)
+                addSegment(clippedStart, clippedEnd, aStart, aEnd, false)
             } else {
                 const rate = (audioEndSeconds - audioStartSeconds) / (segmentEnd - segmentStart)
                 // Before audible
                 if (segmentStart < resultStart) {
                     const endPos = Math.min(segmentEnd, resultStart)
                     const aEnd = audioStartSeconds + (endPos - segmentStart) * rate
-                    pushSegment(segmentStart, endPos, audioStartSeconds, aEnd, true)
+                    addSegment(segmentStart, endPos, audioStartSeconds, aEnd, true)
                 }
                 // Audible
                 if (segmentEnd > resultStart && segmentStart < resultEnd) {
@@ -97,13 +97,13 @@ export const renderAudio = (context: CanvasRenderingContext2D,
                     const endPos = Math.min(segmentEnd, resultEnd)
                     const aStart = audioStartSeconds + (startPos - segmentStart) * rate
                     const aEnd = audioStartSeconds + (endPos - segmentStart) * rate
-                    pushSegment(startPos, endPos, aStart, aEnd, false)
+                    addSegment(startPos, endPos, aStart, aEnd, false)
                 }
                 // After audible
                 if (segmentEnd > resultEnd) {
                     const startPos = Math.max(segmentStart, resultEnd)
                     const aStart = audioStartSeconds + (startPos - segmentStart) * rate
-                    pushSegment(startPos, segmentEnd, aStart, audioEndSeconds, true)
+                    addSegment(startPos, segmentEnd, aStart, audioEndSeconds, true)
                 }
             }
         }
@@ -118,7 +118,7 @@ export const renderAudio = (context: CanvasRenderingContext2D,
         // Extrapolate before the first warp marker
         if (extrapolateStartLocal < first.position) {
             const audioStart = first.seconds + (extrapolateStartLocal - first.position) * firstRate
-            addSegment(rawStart + extrapolateStartLocal, rawStart + first.position, audioStart, first.seconds)
+            handleSegment(rawStart + extrapolateStartLocal, rawStart + first.position, audioStart, first.seconds)
         }
         // Interior warp segments - only iterate visible range
         const startIndex = Math.max(0, warpMarkers.floorLastIndex(visibleLocalStart))
@@ -126,12 +126,12 @@ export const renderAudio = (context: CanvasRenderingContext2D,
             const w0 = markers[i]
             if (w0.position > visibleLocalEnd) {break}
             const w1 = markers[i + 1]
-            addSegment(rawStart + w0.position, rawStart + w1.position, w0.seconds, w1.seconds)
+            handleSegment(rawStart + w0.position, rawStart + w1.position, w0.seconds, w1.seconds)
         }
         // Extrapolate after the last warp marker
         if (extrapolateEndLocal > last.position) {
             const audioEnd = last.seconds + (extrapolateEndLocal - last.position) * lastRate
-            addSegment(rawStart + last.position, rawStart + extrapolateEndLocal, last.seconds, audioEnd)
+            handleSegment(rawStart + last.position, rawStart + extrapolateEndLocal, last.seconds, audioEnd)
         }
     } else {
         if (clip) {
