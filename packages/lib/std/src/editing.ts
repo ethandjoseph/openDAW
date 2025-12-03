@@ -1,14 +1,21 @@
-import {Maybe, Provider} from "./lang"
+import {Maybe} from "./lang"
 import {Option} from "./option"
 
+/**
+ * A function type that rejects async providers.
+ * The inner conditional distributes to detect Promise in unions (e.g., Promise<X> | undefined).
+ * The outer conditional preserves T as-is in the return type without distribution.
+ */
+export type SyncProvider<T> = true extends (T extends Promise<unknown> ? true : false) ? never : () => T
+
 export interface Editing {
-    modify<R>(modifier: Provider<Maybe<R>>, mark?: boolean): Option<R>
+    modify<R>(modifier: SyncProvider<Maybe<R>>, mark?: boolean): Option<R>
     mark(): void
 }
 
 export namespace Editing {
     export const Transient: Editing = Object.freeze({
-        modify: <R>(modifier: Provider<Maybe<R>>, _mark?: boolean): Option<R> => Option.wrap(modifier()),
+        modify: <R>(modifier: SyncProvider<Maybe<R>>, _mark?: boolean): Option<R> => Option.wrap(modifier()),
         mark: () => {}
     })
 }

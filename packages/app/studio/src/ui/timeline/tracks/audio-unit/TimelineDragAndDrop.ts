@@ -1,8 +1,8 @@
 import {isDefined, Nullable, Option, panic, UUID} from "@opendaw/lib-std"
 import {Promises} from "@opendaw/lib-runtime"
-import {AudioFileBox, TransientMarkerBox} from "@opendaw/studio-boxes"
+import {AudioFileBox} from "@opendaw/studio-boxes"
 import {InstrumentFactories, Sample, TrackBoxAdapter, TrackType} from "@opendaw/studio-adapters"
-import {Project, Workers} from "@opendaw/studio-core"
+import {AudioFileBoxFactory, Project, Workers} from "@opendaw/studio-core"
 import {ClipCaptureTarget} from "@/ui/timeline/tracks/audio-unit/clips/ClipCapturing.ts"
 import {AnyDragData} from "@/ui/AnyDragData.ts"
 import {ElementCapturing} from "@/ui/canvas/capturing.ts"
@@ -69,10 +69,11 @@ export abstract class TimelineDragAndDrop<T extends (ClipCaptureTarget | RegionC
         } else {
             return
         }
-        const {uuid: uuidAsString, name, duration: durationInSeconds} = sample
+        const {uuid: uuidAsString, name} = sample
         const uuid = UUID.parse(uuidAsString)
         const audioData = await this.#service.sampleManager.getAudioData(uuid)
-        const transients = await Workers.Transients.detect(audioData)
+        const audioFileBoxFactory = await AudioFileBoxFactory
+            .createModifier(Workers.Transients, boxGraph, audioData, uuid, name)
         editing.modify(() => {
             let trackBoxAdapter: TrackBoxAdapter
             if (drop === false) {
@@ -87,16 +88,7 @@ export abstract class TimelineDragAndDrop<T extends (ClipCaptureTarget | RegionC
             } else {
                 return panic("Illegal State")
             }
-            const audioFileBox: AudioFileBox = boxGraph.findBox<AudioFileBox>(uuid)
-                .unwrapOrElse(() => AudioFileBox.create(boxGraph, uuid, box => {
-                    box.fileName.setValue(name)
-                    box.startInSeconds.setValue(0)
-                    box.endInSeconds.setValue(durationInSeconds)
-                }))
-            transients.forEach(position => TransientMarkerBox.create(boxGraph, UUID.generate(), box => {
-                box.owner.refer(audioFileBox.transientMarkers)
-                box.position.setValue(position)
-            }))
+            const audioFileBox: AudioFileBox = audioFileBoxFactory()
             this.handleSample({event, trackBoxAdapter, audioFileBox, sample})
         })
     }

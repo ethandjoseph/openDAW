@@ -1,3 +1,4 @@
+export * from "./audio"
 export * from "./Project"
 export * from "./ProjectApi"
 export * from "./ProjectBundle"
