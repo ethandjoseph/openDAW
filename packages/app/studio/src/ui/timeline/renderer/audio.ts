@@ -73,8 +73,8 @@ export const renderAudio = (context: CanvasRenderingContext2D,
                 outside: segmentStart < rawStart || segmentEnd > rawEnd
             })
         }
-        const visibleLocalStart = (clip ? Math.max(range.unitMin, resultStart) : range.unitMin) - rawStart
-        const visibleLocalEnd = (clip ? Math.min(range.unitMax, resultEnd) : range.unitMax) - rawStart
+        const visibleLocalStart = (clip ? resultStart : range.unitMin) - rawStart
+        const visibleLocalEnd = (clip ? resultEnd : range.unitMax) - rawStart
         // With positive offset, audio from file start appears BEFORE first.position
         // With negative offset, audio from file end appears AFTER last.position
         const extraNeededBefore = waveformOffset > 0 ? waveformOffset / firstRate : 0
