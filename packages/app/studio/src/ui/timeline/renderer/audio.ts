@@ -86,9 +86,11 @@ export const renderAudio = (context: CanvasRenderingContext2D,
             const audioStart = first.seconds + (extrapolateStartLocal - first.position) * firstRate
             addSegment(rawStart + extrapolateStartLocal, rawStart + first.position, audioStart, first.seconds)
         }
-        // Interior warp segments
-        for (let i = 0; i < markers.length - 1; i++) {
+        // Interior warp segments - only iterate visible range
+        const startIndex = Math.max(0, warpMarkers.floorLastIndex(visibleLocalStart))
+        for (let i = startIndex; i < markers.length - 1; i++) {
             const w0 = markers[i]
+            if (w0.position > visibleLocalEnd) {break}
             const w1 = markers[i + 1]
             addSegment(rawStart + w0.position, rawStart + w1.position, w0.seconds, w1.seconds)
         }
@@ -157,6 +159,7 @@ export const renderAudio = (context: CanvasRenderingContext2D,
 
     context.fillStyle = contentColor
     for (const {x0, x1, u0, u1, outside} of segments) {
+        console.debug(x0, x1)
         context.globalAlpha = outside && !clip ? 0.25 : 1.00
         for (let channel = 0; channel < numberOfChannels; channel++) {
             PeaksPainter.renderBlocks(context, peaks, channel, {
