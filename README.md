@@ -148,7 +148,7 @@ evolves.
 
 - [X] Preset API
 - [X] Full implementation of connecting several cloud services to store samples, projects, and presets
-- [ ] Implement audio playback algorithms (pitch, stretch, absolute) including interpolation
+- [X] Implement audio playback algorithms (pitch, stretch, absolute) including interpolation
 - [ ] ~~Sample editor~~
 - [ ] ~~Pushing event flow and painting routines into SDK~~
 
@@ -174,8 +174,8 @@ evolves.
 #### Future
 
 - [ ] Start Modular System
-- [ ] Add more synthesizer
-- [ ] Add several effect devices
+- [ ] Add more synthesizers
+- [ ] Add more effect devices
 
 ### Prepare, Clone, Installation, and Run
 
