@@ -1,4 +1,4 @@
-import {BoxSchema} from "@opendaw/lib-box-forge"
+import {BoxSchema, deprecated} from "@opendaw/lib-box-forge"
 import {AudioPlayback, Pointers} from "@opendaw/studio-enums"
 import {TimeBase} from "@opendaw/lib-dsp"
 import {HueConstraints, PPQNPositionConstraints} from "../Defaults"
@@ -10,11 +10,12 @@ export const AudioRegionBox: BoxSchema<Pointers> = {
         fields: {
             1: {type: "pointer", name: "regions", pointerType: Pointers.RegionCollection, mandatory: true},
             2: {type: "pointer", name: "file", pointerType: Pointers.AudioFile, mandatory: true},
-            3: {type: "string", name: "playback", value: AudioPlayback.Pitch},
+            3: {type: "string", name: "playback", value: AudioPlayback.Pitch, deprecated},
             4: {type: "string", name: "time-base", value: TimeBase.Musical},
             5: {type: "pointer", name: "events", pointerType: Pointers.ValueEventCollection, mandatory: true},
-            6: {type: "pointer", name: "warping", pointerType: Pointers.AudioWarping, mandatory: false},
+            6: {type: "pointer", name: "warping", pointerType: Pointers.Deprecated, mandatory: false, deprecated},
             7: {type: "float32", name: "waveform-offset", constraints: "any", unit: "seconds"},
+            8: {type: "pointer", name: "play-mode", pointerType: Pointers.AudioPlayMode, mandatory: false},
             10: {type: "int32", name: "position", ...PPQNPositionConstraints},
             11: {type: "float32", name: "duration", constraints: "any", unit: "mixed"},
             12: {type: "float32", name: "loop-offset", constraints: "any", unit: "mixed"},

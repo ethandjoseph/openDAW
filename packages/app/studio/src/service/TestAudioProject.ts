@@ -1,10 +1,10 @@
 import {StudioService} from "@/service/StudioService"
 import {AudioUnitFactory, InstrumentFactories, ProjectSkeleton, TrackType} from "@opendaw/studio-adapters"
-import {AudioPlayback, AudioUnitType, IconSymbol, TransientPlayMode} from "@opendaw/studio-enums"
+import {AudioPlayback, AudioUnitType, IconSymbol} from "@opendaw/studio-enums"
 import {
     AudioFileBox,
     AudioRegionBox,
-    AudioWarpingBox,
+    AudioTimeStretchBox,
     CaptureAudioBox,
     TrackBox,
     TransientMarkerBox,
@@ -25,7 +25,6 @@ export const testAudioProject = async (service: StudioService) => {
         AudioUnitType.Instrument, Option.wrap(CaptureAudioBox.create(boxGraph, UUID.generate())))
     const tapeBox = InstrumentFactories.Tape
         .create(boxGraph, audioUnitBox.input, "Tape", IconSymbol.Play)
-    tapeBox.transientPlayMode.setValue(TransientPlayMode.Pingpong)
     const trackBox = TrackBox.create(boxGraph, UUID.generate(), box => {
         box.target.refer(tapeBox)
         box.type.setValue(TrackType.Audio)
@@ -34,31 +33,33 @@ export const testAudioProject = async (service: StudioService) => {
     const arrayBuffer = await fetch("test/Drum.02.wav").then(response => response.arrayBuffer())
     const sample = await service.sampleService.importFile({name: "Test", arrayBuffer, progressHandler: Progress.Empty})
     const uuid = UUID.parse(sample.uuid)
-    const audioFileBox = AudioFileBox.create(boxGraph, uuid,
-        box => box.endInSeconds.setValue(sample.duration))
-
     const [audioData] = await SampleStorage.get().load(uuid)
     const transients = await Workers.Transients.detect(audioData)
+    const audioFileBox = AudioFileBox.create(boxGraph, uuid, box => {
+        box.endInSeconds.setValue(sample.duration)
+    })
+
+    transients.forEach(position => TransientMarkerBox.create(boxGraph, UUID.generate(), box => {
+        box.owner.refer(audioFileBox.transientMarkers)
+        box.position.setValue(position)
+    }))
+
     const durationInSeconds = audioData.numberOfFrames / audioData.sampleRate
     const valueEventCollectionBox = ValueEventCollectionBox.create(boxGraph, UUID.generate())
-    const audioWarpingBox = AudioWarpingBox.create(boxGraph, UUID.generate())
-    transients.forEach(position => TransientMarkerBox.create(boxGraph, UUID.generate(), box => {
-        box.owner.refer(audioWarpingBox.transientMarkers)
-        box.position.setValue(position)
-        box.energy.setValue(0.0)
-    }))
+    const timeStretchBox = AudioTimeStretchBox.create(boxGraph, UUID.generate())
+
     WarpMarkerBox.create(boxGraph, UUID.generate(), box => {
-        box.owner.refer(audioWarpingBox.warpMarkers)
+        box.owner.refer(timeStretchBox.warpMarkers)
         box.position.setValue(0)
         box.seconds.setValue(0)
     })
     WarpMarkerBox.create(boxGraph, UUID.generate(), box => {
-        box.owner.refer(audioWarpingBox.warpMarkers)
+        box.owner.refer(timeStretchBox.warpMarkers)
         box.position.setValue(PPQN.Bar * 2)
         box.seconds.setValue(durationInSeconds * 0.5)
     })
     WarpMarkerBox.create(boxGraph, UUID.generate(), box => {
-        box.owner.refer(audioWarpingBox.warpMarkers)
+        box.owner.refer(timeStretchBox.warpMarkers)
         box.position.setValue(PPQN.Bar * 4)
         box.seconds.setValue(durationInSeconds)
     })
@@ -72,7 +73,7 @@ export const testAudioProject = async (service: StudioService) => {
         box.regions.refer(trackBox.regions)
         box.label.setValue("Test Audio Region")
         box.hue.setValue(180)
-        box.warping.refer(audioWarpingBox)
+        box.playMode.refer(timeStretchBox)
     })
 
     userInterfaceBoxes[0].editingTimelineRegion.refer(audioRegionBox)

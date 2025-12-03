@@ -1,4 +1,5 @@
 export enum Pointers {
+    Deprecated,
     Timeline,
     Selection,
     PianoMode,
@@ -12,7 +13,7 @@ export enum Pointers {
     AudioUnits,
     MidiEffectHost,
     AudioEffectHost,
-    AudioWarping,
+    AudioPlayMode,
     AudioBusses,
     AuxSend,
     FileUploadState,

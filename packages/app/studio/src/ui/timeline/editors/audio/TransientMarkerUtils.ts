@@ -14,7 +14,7 @@ export namespace TransientMarkerUtils {
                                     warpMarkers: EventCollection<WarpMarkerBoxAdapter>,
                                     transientMarkers: EventCollection<TransientMarkerBoxAdapter>) => new ElementCapturing<TransientMarkerBoxAdapter>(element, {
         capture: (x: number, _y: number): Nullable<TransientMarkerBoxAdapter> => {
-            const waveformOffset = reader.waveformOffset.getValue()
+            const waveformOffset = reader.audioContent.waveformOffset.getValue()
             const markers = warpMarkers.asArray()
             if (markers.length < 2) {return null}
             const first = markers[0]
@@ -30,7 +30,8 @@ export namespace TransientMarkerUtils {
                 if (seconds > last.seconds) {
                     return last.position + (seconds - last.seconds) * lastRate
                 }
-                const index = Math.min(markers.length - 2, BinarySearch.rightMostMapped(markers, seconds, NumberComparator, ({seconds}) => seconds))
+                const index = Math.min(markers.length - 2,
+                    BinarySearch.rightMostMapped(markers, seconds, NumberComparator, ({seconds}) => seconds))
                 const left = markers[index]
                 const right = markers[index + 1]
                 const t = (seconds - left.seconds) / (right.seconds - left.seconds)

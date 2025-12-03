@@ -1,7 +1,6 @@
 import {
     AudioClipBoxAdapter,
-    AudioFileBoxAdapter,
-    AudioWarpingBoxAdapter,
+    AudioContentBoxAdapter,
     ClipBoxAdapter,
     NoteClipBoxAdapter,
     NoteEventCollectionBoxAdapter,
@@ -10,15 +9,7 @@ import {
     ValueEventCollectionBoxAdapter
 } from "@opendaw/studio-adapters"
 import {ppqn} from "@opendaw/lib-dsp"
-import {
-    mod,
-    MutableObservableValue,
-    ObservableOption,
-    ObservableValue,
-    Observer,
-    Option,
-    Subscription
-} from "@opendaw/lib-std"
+import {mod, Observer, Option, Subscription} from "@opendaw/lib-std"
 import {TimelineRange} from "@opendaw/studio-core"
 import {Propagation} from "@opendaw/lib-box"
 import {
@@ -27,17 +18,12 @@ import {
     NoteEventOwnerReader,
     ValueEventOwnerReader
 } from "@/ui/timeline/editors/EventOwnerReader.ts"
-import {AudioPlayback} from "@opendaw/studio-enums"
 
 export class ClipReader<CONTENT> implements EventOwnerReader<CONTENT> {
     static forAudioClipBoxAdapter(clip: AudioClipBoxAdapter): AudioEventOwnerReader {
         return new class extends ClipReader<never> implements AudioEventOwnerReader {
             constructor(clip: AudioClipBoxAdapter) {super(clip)}
-            get file(): AudioFileBoxAdapter {return clip.file}
-            get waveformOffset(): MutableObservableValue<number> {return clip.waveformOffset}
-            get playback(): ObservableValue<AudioPlayback> {return clip.playback}
-            get warping(): ObservableOption<AudioWarpingBoxAdapter> {return clip.warping}
-            get gain(): number {return clip.gain}
+            get audioContent(): AudioContentBoxAdapter {return clip}
         }(clip)
     }
 

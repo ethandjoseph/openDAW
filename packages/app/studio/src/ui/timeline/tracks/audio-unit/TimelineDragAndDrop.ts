@@ -1,8 +1,8 @@
 import {isDefined, Nullable, Option, panic, UUID} from "@opendaw/lib-std"
 import {Promises} from "@opendaw/lib-runtime"
-import {AudioFileBox} from "@opendaw/studio-boxes"
+import {AudioFileBox, TransientMarkerBox} from "@opendaw/studio-boxes"
 import {InstrumentFactories, Sample, TrackBoxAdapter, TrackType} from "@opendaw/studio-adapters"
-import {Project} from "@opendaw/studio-core"
+import {Project, Workers} from "@opendaw/studio-core"
 import {ClipCaptureTarget} from "@/ui/timeline/tracks/audio-unit/clips/ClipCapturing.ts"
 import {AnyDragData} from "@/ui/AnyDragData.ts"
 import {ElementCapturing} from "@/ui/canvas/capturing.ts"
@@ -69,6 +69,10 @@ export abstract class TimelineDragAndDrop<T extends (ClipCaptureTarget | RegionC
         } else {
             return
         }
+        const {uuid: uuidAsString, name, duration: durationInSeconds} = sample
+        const uuid = UUID.parse(uuidAsString)
+        const audioData = await this.#service.sampleManager.getAudioData(uuid)
+        const transients = await Workers.Transients.detect(audioData)
         editing.modify(() => {
             let trackBoxAdapter: TrackBoxAdapter
             if (drop === false) {
@@ -83,14 +87,16 @@ export abstract class TimelineDragAndDrop<T extends (ClipCaptureTarget | RegionC
             } else {
                 return panic("Illegal State")
             }
-            const {uuid: uuidAsString, name, duration: durationInSeconds} = sample
-            const uuid = UUID.parse(uuidAsString)
             const audioFileBox: AudioFileBox = boxGraph.findBox<AudioFileBox>(uuid)
                 .unwrapOrElse(() => AudioFileBox.create(boxGraph, uuid, box => {
                     box.fileName.setValue(name)
                     box.startInSeconds.setValue(0)
                     box.endInSeconds.setValue(durationInSeconds)
                 }))
+            transients.forEach(position => TransientMarkerBox.create(boxGraph, UUID.generate(), box => {
+                box.owner.refer(audioFileBox.transientMarkers)
+                box.position.setValue(position)
+            }))
             this.handleSample({event, trackBoxAdapter, audioFileBox, sample})
         })
     }

@@ -10,7 +10,6 @@ import {renderTimeGrid} from "@/ui/timeline/editors/TimeGridRenderer.ts"
 import {AudioEventOwnerReader} from "@/ui/timeline/editors/EventOwnerReader.ts"
 import {installEditorMainBody} from "../EditorBody"
 import {Dragging, Html} from "@opendaw/lib-dom"
-import {AudioPlayback} from "@opendaw/studio-enums"
 import {WarpMarkerBoxAdapter} from "@opendaw/studio-adapters"
 
 const className = Html.adoptStyleSheet(css, "AudioEditorCanvas")
@@ -24,6 +23,7 @@ type Construct = {
 }
 
 export const AudioEditorCanvas = ({lifecycle, project: {editing}, range, snapping, reader}: Construct) => {
+    const {audioContent: {file, observableOptPlayMode, waveformOffset, gain}} = reader
     return (
         <div className={className}>
             <canvas tabIndex={-1} onInit={canvas => {
@@ -33,6 +33,7 @@ export const AudioEditorCanvas = ({lifecycle, project: {editing}, range, snappin
                     renderTimeGrid(context, range, snapping, 0, actualHeight)
 
                     // LOOP DURATION
+                    // TODO Make adjustable
                     const x0 = Math.floor(range.unitToX(reader.offset) * devicePixelRatio)
                     const x1 = Math.floor(range.unitToX(reader.offset + reader.loopDuration) * devicePixelRatio)
                     if (x0 > 0) {
@@ -48,12 +49,11 @@ export const AudioEditorCanvas = ({lifecycle, project: {editing}, range, snappin
 
                     const pass = LoopableRegion.locateLoop(reader, range.unitMin - range.unitPadding, range.unitMax)
                     if (pass.isEmpty()) {return}
-                    renderAudio(context, range, reader.file,
-                        reader.playback.getValue() === AudioPlayback.NoSync ? Option.None : reader.warping,
-                        reader.waveformOffset.getValue(), reader.gain, {top: 0, bottom: actualHeight},
+                    renderAudio(context, range, file, observableOptPlayMode, waveformOffset.getValue(),
+                        gain.getValue(), {top: 0, bottom: actualHeight},
                         `hsl(${reader.hue}, ${60}%, 45%)`, pass.unwrap(), false)
                 }))
-                const warpingTerminator = lifecycle.own(new Terminator())
+                const playModeTerminator = lifecycle.own(new Terminator())
                 const unitToSeconds = (ppqn: number, warpMarkers: EventCollection<WarpMarkerBoxAdapter>): number => {
                     const first = warpMarkers.first()
                     const last = warpMarkers.last()
@@ -83,29 +83,28 @@ export const AudioEditorCanvas = ({lifecycle, project: {editing}, range, snappin
                 lifecycle.ownAll(
                     installEditorMainBody({element: canvas, range, reader}),
                     reader.subscribeChange(painter.requestUpdate),
-                    reader.warping.catchupAndSubscribe((optWarping) => {
-                        warpingTerminator.terminate()
-                        optWarping.ifSome(warping => warpingTerminator.own(warping.subscribe(painter.requestUpdate)))
+                    observableOptPlayMode.catchupAndSubscribe((optPlayMode) => {
+                        playModeTerminator.terminate()
+                        optPlayMode.ifSome(playMode => playModeTerminator.own(playMode.subscribe(painter.requestUpdate)))
                     }),
                     range.subscribe(painter.requestUpdate),
                     Html.watchResize(canvas, painter.requestUpdate),
                     Dragging.attach(canvas, startEvent => {
                         const rect = canvas.getBoundingClientRect()
                         const startX = startEvent.clientX - rect.left
-                        const startOffset = reader.waveformOffset.getValue()
+                        const startOffset = waveformOffset.getValue()
                         const startPPQN = range.xToUnit(startX) - reader.offset  // clip-relative PPQN
-                        const optWarping = reader.playback.getValue() === AudioPlayback.NoSync
-                            ? Option.None
-                            : reader.warping
+
+                        const optWarping = observableOptPlayMode.map(optPlayMode => optPlayMode.warpMarkers)
                         // Compute the audio-seconds position under the cursor at drag start
                         const startAudioSeconds = optWarping.match({
                             none: () => {
                                 // NoSync: linear mapping based on loop duration ratio
-                                const audioDuration = reader.file.endInSeconds - reader.file.startInSeconds
+                                const audioDuration = file.endInSeconds - file.startInSeconds
                                 const ratio = audioDuration / reader.loopDuration
                                 return startPPQN * ratio + startOffset
                             },
-                            some: ({warpMarkers}) => unitToSeconds(startPPQN, warpMarkers) + startOffset
+                            some: (warpMarkers) => unitToSeconds(startPPQN, warpMarkers) + startOffset
                         })
                         return Option.wrap({
                             update: (event: Dragging.Event) => {
@@ -113,14 +112,14 @@ export const AudioEditorCanvas = ({lifecycle, project: {editing}, range, snappin
                                 const currentPPQN = range.xToUnit(currentX) - reader.offset
                                 const currentAudioSecondsWithoutOffset = optWarping.match({
                                     none: () => {
-                                        const audioDuration = reader.file.endInSeconds - reader.file.startInSeconds
+                                        const audioDuration = file.endInSeconds - file.startInSeconds
                                         const ratio = audioDuration / reader.loopDuration
                                         return currentPPQN * ratio
                                     },
-                                    some: ({warpMarkers}) => unitToSeconds(currentPPQN, warpMarkers)
+                                    some: (warpMarkers) => unitToSeconds(currentPPQN, warpMarkers)
                                 })
                                 const newOffset = startAudioSeconds - currentAudioSecondsWithoutOffset
-                                editing.modify(() => reader.waveformOffset.setValue(newOffset), false)
+                                editing.modify(() => waveformOffset.setValue(newOffset), false)
                             },
                             approve: () => editing.mark()
                         })

@@ -63,34 +63,31 @@ export const installClipContextMenu = ({element, project, selection, capturing}:
                 }).setRuntimeChildrenProcedure(parent => parent.addMenuItem(
                     MenuItem.default({
                         label: "Pitch",
-                        checked: clip.type === "audio-clip"
-                            && clip.playback.getValue() === AudioPlayback.Pitch
+                        checked: clip.type === "audio-clip" && clip.asPlayModePitch.nonEmpty()
                     }).setTriggerProcedure(() => {
                         const adapters = selection.selected()
-                            .filter((clip): clip is AudioClipBoxAdapter =>
-                                clip.type === "audio-clip" && clip.playback.getValue() !== AudioPlayback.Pitch)
+                            .filter((clip): clip is AudioClipBoxAdapter => clip.type === "audio-clip"
+                                && clip.asPlayModePitch.isEmpty())
                         if (adapters.length === 0) {return}
                         editing.modify(() => adapters.forEach(clip => clip.setPlayback(AudioPlayback.Pitch)))
                     }),
                     MenuItem.default({
                         label: "Timestretch",
-                        checked: clip.type === "audio-clip"
-                            && clip.playback.getValue() === AudioPlayback.Timestretch
+                        checked: clip.type === "audio-clip" && clip.asPlayModeTimeStretch.nonEmpty()
                     }).setTriggerProcedure(() => {
                         const adapters = selection.selected()
-                            .filter((clip): clip is AudioClipBoxAdapter =>
-                                clip.type === "audio-clip" && clip.playback.getValue() !== AudioPlayback.Timestretch)
+                            .filter((clip): clip is AudioClipBoxAdapter => clip.type === "audio-clip"
+                                && clip.asPlayModeTimeStretch.isEmpty())
                         if (adapters.length === 0) {return}
                         editing.modify(() => adapters.forEach(clip => clip.setPlayback(AudioPlayback.Timestretch)))
                     }),
                     MenuItem.default({
                         label: "No Warp",
-                        checked: clip.type === "audio-clip"
-                            && clip.playback.getValue() === AudioPlayback.NoSync
+                        checked: clip.type === "audio-clip" && clip.isPlayModeNoWarp
                     }).setTriggerProcedure(() => {
                         const adapters = selection.selected()
                             .filter((clip): clip is AudioClipBoxAdapter =>
-                                clip.type === "audio-clip" && clip.playback.getValue() !== AudioPlayback.NoSync)
+                                clip.type === "audio-clip" && !clip.isPlayModeNoWarp)
                         if (adapters.length === 0) {return}
                         editing.modify(() => adapters.forEach(clip => clip.setPlayback(AudioPlayback.NoSync)))
                     })

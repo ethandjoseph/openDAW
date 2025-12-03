@@ -22,7 +22,6 @@ import {
     AudioClipBox,
     AudioFileBox,
     AudioUnitBox,
-    AudioWarpingBox,
     CaptureAudioBox,
     CaptureMidiBox,
     NoteClipBox,
@@ -30,11 +29,9 @@ import {
     NoteEventCollectionBox,
     NoteRegionBox,
     TrackBox,
-    TransientMarkerBox,
     ValueClipBox,
     ValueEventCollectionBox,
-    ValueRegionBox,
-    WarpMarkerBox
+    ValueRegionBox
 } from "@opendaw/studio-boxes"
 import {
     AudioUnitBoxAdapter,
@@ -53,7 +50,6 @@ import {
 import {Project} from "./Project"
 import {EffectFactory} from "../EffectFactory"
 import {EffectBox} from "../EffectBox"
-import {Workers} from "../Workers"
 
 export type ClipRegionOptions = {
     name?: string
@@ -63,7 +59,7 @@ export type ClipRegionOptions = {
 export type AudioRegionOptions = {
     file: AudioFileBox
     duration: ppqn
-    optWarping: Option<AudioWarpingBox>
+    // optWarping: Option<AudioWarpingBox>
     playback: AudioPlayback
     timeBase: TimeBase
 } & ClipRegionOptions
@@ -191,7 +187,7 @@ export class ProjectApi {
                 box.endInSeconds.setValue(fileDurationInSeconds)
             }))
 
-        let optWarping: Option<AudioWarpingBox> = Option.None
+        /*let optWarping: Option<AudioWarpingBox> = Option.None
         let timeBase: TimeBase
         let duration: number
         if (playback === AudioPlayback.NoSync) {
@@ -224,12 +220,13 @@ export class ProjectApi {
 
         return () => this.createAudioClip(
             trackBox, clipIndex,
-            {name, hue, duration, optWarping, playback, timeBase, file: audioFileBox})
+            {name, hue, duration, optWarping, playback, timeBase, file: audioFileBox})*/
+        return panic("Not implemented")
     }
 
     createAudioClip(trackBox: TrackBox,
                     clipIndex: int,
-                    {name, hue, file, optWarping, playback, timeBase}: AudioRegionOptions): AudioClipBox {
+                    {name, hue, file, playback, timeBase}: AudioRegionOptions): AudioClipBox {
         const {boxGraph} = this.#project
         const type = trackBox.type.getValue()
         if (type !== TrackType.Audio) {return panic("Incompatible track type for audio-clip creation: " + type.toString())}
@@ -245,7 +242,7 @@ export class ProjectApi {
             box.playback.setValue(playback)
             box.timeBase.setValue(timeBase)
             box.file.refer(file)
-            optWarping.ifSome(warping => box.warping.refer(warping))
+            // optWarping.ifSome(warping => box.warping.refer(warping))
         })
     }
 

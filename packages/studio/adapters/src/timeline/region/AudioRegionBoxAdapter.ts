@@ -1,11 +1,12 @@
 import {
     asEnumValue,
     int,
+    isInstanceOf,
     Maybe,
-    MutableObservableOption, MutableObservableValue,
+    MutableObservableOption,
+    MutableObservableValue,
     Notifier,
     ObservableOption,
-    ObservableValue,
     Observer,
     Option,
     safeExecute,
@@ -14,7 +15,7 @@ import {
     Terminator,
     UUID
 } from "@opendaw/lib-std"
-import {ppqn, TimeBase, TimeBaseConverter} from "@opendaw/lib-dsp"
+import {EventCollection, ppqn, TimeBase, TimeBaseConverter} from "@opendaw/lib-dsp"
 import {Address, Field, PointerField, Propagation, Update} from "@opendaw/lib-box"
 import {AudioPlayback, Pointers} from "@opendaw/studio-enums"
 import {AudioRegionBox} from "@opendaw/studio-boxes"
@@ -24,8 +25,11 @@ import {BoxAdaptersContext} from "../../BoxAdaptersContext"
 import {AudioFileBoxAdapter} from "../../audio/AudioFileBoxAdapter"
 import {MutableRegion} from "./MutableRegion"
 import {ValueEventCollectionBoxAdapter} from "../collection/ValueEventCollectionBoxAdapter"
-import {AudioWarpingBoxAdapter} from "../../audio/AudioWarpingBoxAdapter"
 import {AudioContentBoxAdapter} from "../AudioContentBoxAdapter"
+import {AudioPlayMode} from "../../audio/AudioPlayMode"
+import {AudioPitchBoxAdapter} from "../../audio/AudioPitchBoxAdapter"
+import {AudioTimeStretchBoxAdapter} from "../../audio/AudioTimeStretchBoxAdapter"
+import {WarpMarkerBoxAdapter} from "../../audio/WarpMarkerBoxAdapter"
 
 type CopyToParams = {
     track?: Field<Pointers.RegionCollection>
@@ -47,13 +51,13 @@ export class AudioRegionBoxAdapter implements AudioContentBoxAdapter, LoopableRe
     readonly #durationConverter: TimeBaseConverter
     readonly #loopOffsetConverter: TimeBaseConverter
     readonly #loopDurationConverter: TimeBaseConverter
-    readonly #wraping: MutableObservableOption<AudioWarpingBoxAdapter>
+    readonly #playMode: MutableObservableOption<AudioPlayMode>
     readonly #changeNotifier: Notifier<void>
     readonly #constructing: boolean
 
     #fileAdapter: Option<AudioFileBoxAdapter> = Option.None
     #fileSubscription: Terminable = Terminable.Empty
-    #warpSubscription: Terminable = Terminable.Empty
+    #playModeSubscription: Terminable = Terminable.Empty
     #tempoSubscription: Terminable = Terminable.Empty
     #eventCollectionSubscription: Subscription = Terminable.Empty
 
@@ -68,7 +72,7 @@ export class AudioRegionBoxAdapter implements AudioContentBoxAdapter, LoopableRe
         this.#durationConverter = TimeBaseConverter.aware(context.tempoMap, timeBase, position, duration)
         this.#loopOffsetConverter = TimeBaseConverter.aware(context.tempoMap, timeBase, position, loopOffset)
         this.#loopDurationConverter = TimeBaseConverter.aware(context.tempoMap, timeBase, position, loopDuration)
-        this.#wraping = new MutableObservableOption()
+        this.#playMode = new MutableObservableOption()
         this.#changeNotifier = new Notifier<void>()
 
         this.#isSelected = false
@@ -86,13 +90,16 @@ export class AudioRegionBoxAdapter implements AudioContentBoxAdapter, LoopableRe
                 this.#fileSubscription = this.#fileAdapter.mapOr(adapter =>
                     adapter.getOrCreateLoader().subscribe(() => this.#dispatchChange()), Terminable.Empty)
             }),
-            this.#box.warping.catchupAndSubscribe(({targetVertex}) => {
-                const warpingBoxAdapter = targetVertex.map(({box}) =>
-                    this.#context.boxAdapters.adapterFor(box, AudioWarpingBoxAdapter))
-                this.#warpSubscription.terminate()
-                this.#warpSubscription = warpingBoxAdapter
-                    .mapOr(adapter => adapter.subscribe(() => this.#dispatchChange()), Terminable.Empty)
-                this.#wraping.wrapOption(warpingBoxAdapter)
+            this.#box.playMode.catchupAndSubscribe(({targetVertex}) => {
+                this.#playModeSubscription.terminate()
+                targetVertex.match({
+                    none: () => this.#playMode.clear(),
+                    some: ({box}) => {
+                        const playMode: AudioPlayMode = this.#context.boxAdapters.adapterFor(box, AudioPlayMode.isAudioPlayMode)
+                        this.#playModeSubscription = playMode.subscribe(() => this.#dispatchChange())
+                        this.#playMode.wrap(playMode)
+                    }
+                })
             }),
             this.#box.timeBase.catchupAndSubscribe(owner => {
                 this.#tempoSubscription.terminate()
@@ -155,11 +162,21 @@ export class AudioRegionBoxAdapter implements AudioContentBoxAdapter, LoopableRe
     get offset(): ppqn {return this.position - this.loopOffset}
     get mute(): boolean {return this.#box.mute.getValue()}
     get hue(): int {return this.#box.hue.getValue()}
-    get gain(): number {return this.#box.gain.getValue()}
+    get gain(): MutableObservableValue<number> {return this.#box.gain}
     get file(): AudioFileBoxAdapter {return this.#fileAdapter.unwrap("Cannot access file.")}
-    get warping(): ObservableOption<AudioWarpingBoxAdapter> {return this.#wraping}
+    get observableOptPlayMode(): ObservableOption<AudioPlayMode> {return this.#playMode}
     get timeBase(): TimeBase {return asEnumValue(this.#box.timeBase.getValue(), TimeBase)}
     get waveformOffset(): MutableObservableValue<number> {return this.#box.waveformOffset}
+    get isPlayModeNoWarp(): boolean {return this.#box.playMode.isEmpty()}
+    get asPlayModePitch(): Option<AudioPitchBoxAdapter> {
+        return this.observableOptPlayMode.map(mode => isInstanceOf(mode, AudioPitchBoxAdapter) ? mode : null)
+    }
+    get asPlayModeTimeStretch(): Option<AudioTimeStretchBoxAdapter> {
+        return this.observableOptPlayMode.map(mode => isInstanceOf(mode, AudioTimeStretchBoxAdapter) ? mode : null)
+    }
+    get optWarpMarkers(): Option<EventCollection<WarpMarkerBoxAdapter>> {
+        return this.observableOptPlayMode.map(mode => AudioPlayMode.isAudioPlayMode(mode) ? mode.warpMarkers : null)
+    }
     get label(): string {
         if (this.#fileAdapter.isEmpty()) {return "No Audio File"}
         const state = this.#fileAdapter.unwrap().getOrCreateLoader().state
@@ -182,7 +199,6 @@ export class AudioRegionBoxAdapter implements AudioContentBoxAdapter, LoopableRe
     set duration(value: ppqn) {this.#durationConverter.fromPPQN(value)}
     set loopOffset(value: ppqn) {this.#loopOffsetConverter.fromPPQN(value)}
     set loopDuration(value: ppqn) {this.#loopDurationConverter.fromPPQN(value)}
-    get playback(): ObservableValue<AudioPlayback> {return this.#box.playback as ObservableValue<AudioPlayback>}
 
     setPlayback(value: AudioPlayback, keepCurrentStretch: boolean = false) {
         const wasMusical = this.timeBase === TimeBase.Musical
@@ -241,7 +257,7 @@ export class AudioRegionBoxAdapter implements AudioContentBoxAdapter, LoopableRe
                 box.mute.setValue(this.mute)
                 box.hue.setValue(this.hue)
                 box.label.setValue(this.label)
-                box.gain.setValue(this.gain)
+                box.gain.setValue(this.gain.getValue())
             }), AudioRegionBoxAdapter)
         adapter.duration = params?.duration ?? this.duration
         adapter.loopOffset = params?.loopOffset ?? this.loopOffset
@@ -263,8 +279,8 @@ export class AudioRegionBoxAdapter implements AudioContentBoxAdapter, LoopableRe
         this.#fileSubscription = Terminable.Empty
         this.#tempoSubscription.terminate()
         this.#tempoSubscription = Terminable.Empty
-        this.#warpSubscription.terminate()
-        this.#warpSubscription = Terminable.Empty
+        this.#playModeSubscription.terminate()
+        this.#playModeSubscription = Terminable.Empty
         this.#eventCollectionSubscription.terminate()
         this.#eventCollectionSubscription = Terminable.Empty
         this.#terminator.terminate()

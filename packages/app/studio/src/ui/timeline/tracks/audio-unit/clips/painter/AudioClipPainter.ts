@@ -3,18 +3,18 @@ import {int, Iterables, Nullable, Procedure, TAU} from "@opendaw/lib-std"
 import {AudioClipBoxAdapter} from "@opendaw/studio-adapters"
 import {Peaks} from "@opendaw/lib-fusion"
 import {dbToGain} from "@opendaw/lib-dsp"
-import {AudioPlayback} from "@opendaw/studio-enums"
 
 export const createAudioClipPainter = (adapter: AudioClipBoxAdapter): Procedure<CanvasPainter> => painter => {
     const {context, actualHeight: size} = painter
     const radius = size >> 1
-    const {file, gain, warping, duration, playback} = adapter
+    const {file, gain, duration, optWarpMarkers, isPlayModeNoWarp} = adapter
     if (file.peaks.isEmpty()) {return}
+    // TODO waveform-offset
     const numRays = 256
     const peaks = file.peaks.unwrap()
     const numFrames = peaks.numFrames
     const durationInSeconds = file.endInSeconds
-    const scale = dbToGain(gain)
+    const scale = dbToGain(gain.getValue())
     const minRadius = 4 * devicePixelRatio
     const maxRadius = radius - 4 * devicePixelRatio
     const centerRadius = (minRadius + maxRadius) * 0.5
@@ -31,8 +31,8 @@ export const createAudioClipPainter = (adapter: AudioClipBoxAdapter): Procedure<
         context.moveTo(sin * minR, cos * minR)
         context.lineTo(sin * maxR, cos * maxR)
     }
-    if (warping.nonEmpty() && playback.getValue() !== AudioPlayback.NoSync) {
-        const {warpMarkers} = warping.unwrap()
+    if (optWarpMarkers.nonEmpty() && !isPlayModeNoWarp) {
+        const warpMarkers = optWarpMarkers.unwrap()
         const data: Int32Array = peaks.data[0]
         for (const [w0, w1] of Iterables.pairWise(warpMarkers.iterateFrom(0))) {
             if (w1 === null) {break}

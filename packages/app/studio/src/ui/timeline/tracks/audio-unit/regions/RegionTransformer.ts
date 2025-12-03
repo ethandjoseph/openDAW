@@ -36,7 +36,7 @@ export namespace RegionTransformer {
                     box.label.setValue(source.label)
                     box.hue.setValue(source.hue)
                     box.mute.setValue(source.mute)
-                    box.gain.setValue(source.gain)
+                    box.gain.setValue(source.gain.getValue())
                     box.duration.setValue(source.loopDuration)
                     box.file.refer(source.box.file.targetVertex.unwrap())
                     source.box.warping.ifVertex(vertex => box.warping.refer(vertex))

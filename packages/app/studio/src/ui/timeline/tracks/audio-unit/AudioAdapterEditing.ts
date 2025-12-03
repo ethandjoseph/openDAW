@@ -1,40 +1,32 @@
 import {AudioClipBoxAdapter, AudioRegionBoxAdapter} from "@opendaw/studio-adapters"
-import {EmptyExec, Exec, isDefined, panic, RuntimeNotifier, UUID} from "@opendaw/lib-std"
+import {EmptyExec, Exec, isDefined, panic} from "@opendaw/lib-std"
 import {Promises} from "@opendaw/lib-runtime"
 import {DefaultSampleLoaderManager, Workers} from "@opendaw/studio-core"
-import {AudioWarpingBox, TransientMarkerBox, WarpMarkerBox} from "@opendaw/studio-boxes"
 import {AudioPlayback} from "@opendaw/studio-enums"
 import {BoxGraph} from "@opendaw/lib-box"
 
 export namespace AudioAdapterEditing {
     export const toNoWarp = async (adapters: ReadonlyArray<AudioRegionBoxAdapter | AudioClipBoxAdapter>): Promise<Exec> => {
-        const audioAdapters = adapters.filter(adapter => adapter.playback.getValue() !== AudioPlayback.NoSync)
+        const audioAdapters = adapters.filter(adapter => !adapter.isPlayModeNoWarp)
         if (audioAdapters.length === 0) {return EmptyExec}
-        let deleteWarpMarkers = false
-        if (audioAdapters.filter(adapter => adapter.warping.nonEmpty()).length > 0) {
-            deleteWarpMarkers = await RuntimeNotifier
-                .approve({headline: "Delete Warp Markers", message: "Do you want to delete the warp markers?"})
-        }
         return () => audioAdapters.forEach(adapter => {
-            if (deleteWarpMarkers) {
-                const warpingPointer = adapter.box.warping
-                const warping = warpingPointer.targetVertex.unwrapOrNull()
-                warpingPointer.defer()
-                if (isDefined(warping)) {
-                    warping.box.delete()
-                }
+            const playModePointer = adapter.box.playMode
+            const playMode = playModePointer.targetVertex.unwrapOrNull()
+            playModePointer.defer()
+            if (isDefined(playMode)) {
+                playMode.box.delete()
             }
             adapter.setPlayback(AudioPlayback.NoSync)
         })
     }
 
     export const toTimestretch = async (sampleManager: DefaultSampleLoaderManager,
-                                        boxGraph: BoxGraph,
+                                        _boxGraph: BoxGraph,
                                         adapters: ReadonlyArray<AudioRegionBoxAdapter | AudioClipBoxAdapter>): Promise<Exec> => {
-        const audioAdapters = adapters.filter(adapter => adapter.playback.getValue() !== AudioPlayback.Timestretch)
+        const audioAdapters = adapters.filter(adapter => adapter.asPlayModeTimeStretch.isEmpty())
         if (audioAdapters.length === 0) {return EmptyExec}
-        const {status, value: warpings, error} = await Promises.tryCatch(Promise.all(audioAdapters
-            .filter(adapter => adapter.warping.isEmpty())
+        const {status, error} = await Promises.tryCatch(Promise.all(audioAdapters
+            .filter(adapter => adapter.optWarpMarkers.isEmpty())
             .map(async adapter => {
                 const audioData = await sampleManager.getAudioData(adapter.file.uuid)
                 const transients = await Workers.Transients.detect(audioData)
@@ -42,7 +34,8 @@ export namespace AudioAdapterEditing {
             })))
         if (status === "rejected") {return panic(error)}
         return () => {
-            warpings.forEach(({audioData, transients, adapter}) => {
+            // TODO
+            /*warpings.forEach(({audioData, transients, adapter}) => {
                 const audioWarpingBox = AudioWarpingBox.create(boxGraph, UUID.generate())
                 transients.forEach(position => TransientMarkerBox.create(boxGraph, UUID.generate(), box => {
                     box.owner.refer(audioWarpingBox.transientMarkers)
@@ -62,7 +55,7 @@ export namespace AudioAdapterEditing {
                 })
                 adapter.box.warping.refer(audioWarpingBox)
             })
-            audioAdapters.forEach(region => region.setPlayback(AudioPlayback.Timestretch))
+            audioAdapters.forEach(region => region.setPlayback(AudioPlayback.Timestretch))*/
         }
     }
 }

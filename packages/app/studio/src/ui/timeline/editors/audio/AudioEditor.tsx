@@ -11,7 +11,6 @@ import {Html} from "@opendaw/lib-dom"
 import {TransientMarkerEditor} from "@/ui/timeline/editors/audio/TransientMarkerEditor"
 import {WarpMarkerEditor} from "@/ui/timeline/editors/audio/WarpMarkerEditor"
 import {TransientMarkerBoxAdapter} from "@opendaw/studio-adapters"
-import {AudioPlayback} from "@opendaw/studio-enums"
 
 const className = Html.adoptStyleSheet(css, "AudioEditor")
 
@@ -28,8 +27,8 @@ export const AudioEditor = ({lifecycle, service, range, snapping, reader}: Const
     const hoverTransient = new DefaultObservableValue<Nullable<TransientMarkerBoxAdapter>>(null)
     return (
         <div className={className} onInit={element =>
-            lifecycle.own(reader.playback.catchupAndSubscribe(owner =>
-                element.classList.toggle("warping-enabled", owner.getValue() !== AudioPlayback.NoSync)))}>
+            lifecycle.own(reader.audioContent.observableOptPlayMode.catchupAndSubscribe(owner =>
+                element.classList.toggle("warping-enabled", owner.nonEmpty())))}>
             <Frag>
                 <div className="label warping-aware"><h5>Transients</h5></div>
                 <div className="label warping-aware"><h5>Warp Markers</h5></div>

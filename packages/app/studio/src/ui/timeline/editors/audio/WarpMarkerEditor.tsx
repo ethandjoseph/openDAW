@@ -6,7 +6,7 @@ import {AudioEventOwnerReader} from "@/ui/timeline/editors/EventOwnerReader"
 import {Project, TimelineRange} from "@opendaw/studio-core"
 import {Snapping} from "@/ui/timeline/Snapping"
 import {CanvasPainter} from "@/ui/canvas/painter"
-import {AudioWarpingBoxAdapter, TransientMarkerBoxAdapter} from "@opendaw/studio-adapters"
+import {AudioPlayMode, TransientMarkerBoxAdapter} from "@opendaw/studio-adapters"
 import {WheelScaling} from "@/ui/timeline/WheelScaling"
 import {WarpMarkerEditing} from "@/ui/timeline/editors/audio/WarpMarkerEditing"
 import {TransientMarkerUtils} from "@/ui/timeline/editors/audio/TransientMarkerUtils"
@@ -23,7 +23,7 @@ type Construct = {
 }
 
 export const WarpMarkerEditor = ({lifecycle, project, range, snapping, reader, hoverTransient}: Construct) => {
-    const optWarping = reader.warping
+    const {audioContent: {optWarpMarkers, file, observableOptPlayMode}} = reader
     const markerRadius = 7
     return (
         <div className={Html.buildClassList(className, "warping-aware")}>
@@ -31,34 +31,36 @@ export const WarpMarkerEditor = ({lifecycle, project, range, snapping, reader, h
                     onInit={canvas => {
                         const {requestUpdate} = lifecycle.own(new CanvasPainter(canvas, painter => {
                             const {context, actualHeight, devicePixelRatio} = painter
-                            optWarping.ifSome(({warpMarkers}) => {
-                                for (const marker of warpMarkers.iterateFrom(range.unitMin - reader.offset)) {
-                                    const unit = reader.offset + marker.position
-                                    if (unit > range.unitMax) {break}
-                                    const x = range.unitToX(unit) * devicePixelRatio
-                                    context.beginPath()
-                                    context.arc(x, actualHeight * 0.5, markerRadius, 0.0, TAU)
-                                    context.fillStyle = marker.isSelected
-                                        ? `hsl(${reader.hue}, 60%, 80%)`
-                                        : `hsl(${reader.hue}, 60%, 50%)`
-                                    context.fill()
-                                }
-                            })
+                            if (optWarpMarkers.isEmpty()) {return}
+                            const transientsCollection = file.transients
+                            if (transientsCollection.length() < 2) {return}
+                            const warpMarkers = optWarpMarkers.unwrap()
+                            for (const marker of warpMarkers.iterateFrom(range.unitMin - reader.offset)) {
+                                const unit = reader.offset + marker.position
+                                if (unit > range.unitMax) {break}
+                                const x = range.unitToX(unit) * devicePixelRatio
+                                context.beginPath()
+                                context.arc(x, actualHeight * 0.5, markerRadius, 0.0, TAU)
+                                context.fillStyle = marker.isSelected
+                                    ? `hsl(${reader.hue}, 60%, 80%)`
+                                    : `hsl(${reader.hue}, 60%, 50%)`
+                                context.fill()
+                            }
                         }))
-                        const warpingLifeCycle = lifecycle.own(new Terminator())
+                        const audioPlayModeLifeCycle = lifecycle.own(new Terminator())
                         lifecycle.ownAll(
                             WheelScaling.install(canvas, range),
                             range.subscribe(requestUpdate),
                             reader.subscribeChange(requestUpdate),
-                            optWarping.catchupAndSubscribe((optWarping) => {
-                                warpingLifeCycle.terminate()
-                                optWarping.ifSome((warping: AudioWarpingBoxAdapter) => {
+                            observableOptPlayMode.catchupAndSubscribe((optPlayMode) => {
+                                audioPlayModeLifeCycle.terminate()
+                                optPlayMode.ifSome((audioPlayMode: AudioPlayMode) => {
                                     const capturing = TransientMarkerUtils.createCapturing(
-                                        canvas, range, reader, warping.warpMarkers, warping.transientMarkers)
-                                    warpingLifeCycle.ownAll(
-                                        warping.subscribe(requestUpdate),
+                                        canvas, range, reader, audioPlayMode.warpMarkers, file.transients)
+                                    audioPlayModeLifeCycle.ownAll(
+                                        audioPlayMode.subscribe(requestUpdate),
                                         WarpMarkerEditing.install(
-                                            warping, project, canvas, range, snapping, reader, hoverTransient),
+                                            project, canvas, range, snapping, reader, audioPlayMode, hoverTransient),
                                         Events.subscribe(canvas, "pointermove",
                                             event => {
                                                 if (event.buttons !== 0) {return}

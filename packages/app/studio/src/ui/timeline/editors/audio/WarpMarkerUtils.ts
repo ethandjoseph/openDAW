@@ -18,13 +18,14 @@ export namespace WarpMarkerUtils {
     export const createCapturing = (element: Element,
                                     range: TimelineRange,
                                     reader: AudioEventOwnerReader,
-                                    warpMarkers: EventCollection<WarpMarkerBoxAdapter>,
                                     markerRadius: number) => new ElementCapturing<WarpMarkerBoxAdapter>(element, {
         capture: (x: number, _y: number): Nullable<WarpMarkerBoxAdapter> => {
+            const optWarpMarkers = reader.audioContent.optWarpMarkers
+            if (optWarpMarkers.isEmpty()) {return null}
             const u0 = range.xToUnit(x - markerRadius) - reader.offset
             const u1 = range.xToUnit(x + markerRadius) - reader.offset
             let closest: Nullable<{ marker: WarpMarkerBoxAdapter, distance: number }> = null
-            for (const marker of warpMarkers.iterateRange(u0, u1)) {
+            for (const marker of optWarpMarkers.unwrap().iterateRange(u0, u1)) {
                 const dx = x - range.unitToX(marker.position + reader.offset)
                 const distance = Math.abs(dx)
                 if (distance <= markerRadius) {

@@ -1,6 +1,6 @@
 import {Peaks, PeaksPainter} from "@opendaw/lib-fusion"
 import {TimelineRange} from "@opendaw/studio-core"
-import {AudioFileBoxAdapter, AudioWarpingBoxAdapter} from "@opendaw/studio-adapters"
+import {AudioFileBoxAdapter, AudioPlayMode} from "@opendaw/studio-adapters"
 import {Option} from "@opendaw/lib-std"
 import {RegionBound} from "@/ui/timeline/renderer/env"
 import {dbToGain, LoopableRegion} from "@opendaw/lib-dsp"
@@ -9,7 +9,7 @@ type Segment = { x0: number, x1: number, u0: number, u1: number, outside: boolea
 export const renderAudio = (context: CanvasRenderingContext2D,
                             range: TimelineRange,
                             file: AudioFileBoxAdapter,
-                            warping: Option<AudioWarpingBoxAdapter>,
+                            playMode: Option<AudioPlayMode>,
                             waveformOffset: number,
                             gain: number,
                             {top, bottom}: RegionBound,
@@ -31,8 +31,8 @@ export const renderAudio = (context: CanvasRenderingContext2D,
     const peaksHeight = Math.floor((ht - 4) / numberOfChannels)
     const scale = dbToGain(-gain)
     const segments: Array<Segment> = []
-    if (warping.nonEmpty()) {
-        const {warpMarkers} = warping.unwrap()
+    if (playMode.nonEmpty()) {
+        const {warpMarkers} = playMode.unwrap()
         const markers = warpMarkers.asArray()
         if (markers.length < 2) {return}
         const first = markers[0]

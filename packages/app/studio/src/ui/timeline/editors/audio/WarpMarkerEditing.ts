@@ -1,5 +1,5 @@
 import {
-    AudioWarpingBoxAdapter,
+    AudioPlayMode,
     FilteredSelection,
     TransientMarkerBoxAdapter,
     WarpMarkerBoxAdapter
@@ -31,23 +31,23 @@ export namespace WarpMarkerEditing {
     const MIN_DISTANCE = PPQN.SemiQuaver
     const MARKER_RADIUS = 4
 
-    export const install = (warping: AudioWarpingBoxAdapter,
-                            project: Project,
+    export const install = (project: Project,
                             canvas: HTMLCanvasElement,
                             range: TimelineRange,
                             snapping: Snapping,
                             reader: AudioEventOwnerReader,
+                            audioPlayMode: AudioPlayMode,
                             hoverTransient: ObservableValue<Nullable<TransientMarkerBoxAdapter>>): Terminable => {
         const terminator = new Terminator()
-        const {warpMarkers} = warping
-        const capturing = WarpMarkerUtils.createCapturing(
-            canvas, range, reader, warpMarkers, MARKER_RADIUS)
+        const capturing = WarpMarkerUtils.createCapturing(canvas, range, reader, MARKER_RADIUS)
         const selection: FilteredSelection<WarpMarkerBoxAdapter> = terminator.own(
             project.selection
                 .createFilteredSelection(box => box instanceof WarpMarkerBox, {
                     fx: adapter => adapter.box,
                     fy: vertex => project.boxAdapters.adapterFor(vertex.box, WarpMarkerBoxAdapter)
                 }))
+        const {warpMarkers, box: audioPlayModeBox} = audioPlayMode
+        const {audioContent: {waveformOffset}} = reader
         terminator.ownAll(
             selection.catchupAndSubscribe({
                 onSelected: (adapter: WarpMarkerBoxAdapter) => adapter.onSelected(),
@@ -92,13 +92,12 @@ export namespace WarpMarkerEditing {
                         const alpha = (clamped - left.position) / (right.position - left.position)
                         const seconds = left.seconds + alpha * (right.seconds - left.seconds)
                         project.editing.modify(() => WarpMarkerBox.create(project.boxGraph, UUID.generate(), box => {
-                            box.owner.refer(warping.box.warpMarkers)
+                            box.owner.refer(audioPlayMode.box.warpMarkers)
                             box.position.setValue(unit)
                             box.seconds.setValue(seconds)
                         }))
                     } else {
-                        const waveformOffset = reader.waveformOffset.getValue()
-                        const adjustedSeconds = transient.position - waveformOffset
+                        const adjustedSeconds = transient.position - waveformOffset.getValue()
                         const markers = warpMarkers.asArray()
                         if (markers.length < 2) {return}
                         const first = markers[0]
@@ -126,7 +125,7 @@ export namespace WarpMarkerEditing {
                             if (!found) {return}
                         }
                         project.editing.modify(() => WarpMarkerBox.create(project.boxGraph, UUID.generate(), box => {
-                            box.owner.refer(warping.box.warpMarkers)
+                            box.owner.refer(audioPlayModeBox.warpMarkers)
                             box.position.setValue(position)
                             box.seconds.setValue(adjustedSeconds)
                         }))

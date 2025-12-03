@@ -21,7 +21,6 @@ export class TransientMarkerBoxAdapter implements BoxAdapter, Event {
     get uuid(): UUID.Bytes {return this.#box.address.uuid}
     get address(): Address {return this.#box.address}
     get position(): number {return this.#box.position.getValue()}
-    get energy(): number {return this.#box.energy.getValue()}
 
     subscribe(observer: Observer<void>): Subscription {return this.#notifer.subscribe(observer)}
 

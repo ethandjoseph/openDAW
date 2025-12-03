@@ -2,15 +2,16 @@ import {asDefined, assert, Bits, int, isInstanceOf, isNull, Nullable, Option, So
 import {AudioBuffer, AudioData, EventCollection, LoopableRegion, RenderQuantum} from "@opendaw/lib-dsp"
 import {
     AudioClipBoxAdapter,
+    AudioContentBoxAdapter,
     AudioRegionBoxAdapter,
-    AudioWarpingBoxAdapter,
+    AudioTimeStretchBoxAdapter,
     TapeDeviceBoxAdapter,
     TrackBoxAdapter,
     TrackType,
     TransientMarkerBoxAdapter,
     WarpMarkerBoxAdapter
 } from "@opendaw/studio-adapters"
-import {AudioPlayback, TransientPlayMode} from "@opendaw/studio-enums"
+import {TransientPlayMode} from "@opendaw/studio-enums"
 import {EngineContext} from "../../EngineContext"
 import {AudioGenerator, Block, BlockFlag, ProcessInfo, Processor} from "../../processing"
 import {AbstractProcessor} from "../../AbstractProcessor"
@@ -61,6 +62,8 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
         )
     }
 
+    // false negative Webstorm
+    // noinspection JSUnusedGlobalSymbols
     get noteEventTarget(): Option<NoteEventTarget & DeviceProcessor> {return Option.None}
     get uuid(): UUID.Bytes {return this.#adapter.uuid}
     get incoming(): Processor {return this}
@@ -101,41 +104,45 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                 none: () => {
                     for (const region of adapter.regions.collection.iterateRange(p0, p1)) {
                         if (region.mute || !isInstanceOf(region, AudioRegionBoxAdapter)) {continue}
-                        const optData = region.file.getOrCreateLoader().data
+                        const file = region.file
+                        const optData = file.getOrCreateLoader().data
                         if (optData.isEmpty()) {return}
-                        const playback = region.playback.getValue()
                         const waveformOffset = region.waveformOffset.getValue()
-                        if (playback === AudioPlayback.Timestretch) {
-                            const optWarping = region.warping
-                            if (optWarping.isEmpty()) {return}
+                        const timeStretch = region.asPlayModeTimeStretch
+                        if (timeStretch.nonEmpty()) {
+                            const transients: EventCollection<TransientMarkerBoxAdapter> = file.transients
+                            if (transients.length() < 2) {return}
                             for (const cycle of LoopableRegion.locateLoops(region, p0, p1)) {
+                                const timeStretchBoxAdapter = timeStretch.unwrap()
                                 this.#processPassTimestretch(lane, block, cycle,
-                                    optData.unwrap(), optWarping.unwrap(), waveformOffset)
+                                    optData.unwrap(), timeStretchBoxAdapter, transients, waveformOffset)
                             }
                         } else {
                             for (const cycle of LoopableRegion.locateLoops(region, p0, p1)) {
-                                this.#processPassPitch(lane, block, cycle,
-                                    optData.unwrap(), region.warping, waveformOffset, playback)
+                                this.#processPassPitch(
+                                    lane, block, cycle, region, optData.unwrap())
                             }
                         }
                     }
                 },
                 some: clip => {
                     if (!isInstanceOf(clip, AudioClipBoxAdapter)) {return}
-                    const optData = clip.file.getOrCreateLoader().data
+                    const file = clip.file
+                    const optData = file.getOrCreateLoader().data
                     if (optData.isEmpty()) {return}
-                    const playback = clip.playback.getValue()
-                    if (playback === AudioPlayback.Timestretch) {
-                        const optWarping = clip.warping
-                        if (optWarping.isEmpty()) {return}
+                    const asPlayModeTimeStretch = clip.asPlayModeTimeStretch
+                    if (asPlayModeTimeStretch.nonEmpty()) {
+                        const timeStretch = asPlayModeTimeStretch.unwrap()
+                        const transients: EventCollection<TransientMarkerBoxAdapter> = file.transients
+                        if (transients.length() < 2) {return}
                         for (const cycle of LoopableRegion.locateLoops({
                             position: 0.0,
                             loopDuration: clip.duration,
                             loopOffset: 0.0,
                             complete: Number.POSITIVE_INFINITY
                         }, sectionFrom, sectionTo)) {
-                            this.#processPassTimestretch(lane, block, cycle, optData.unwrap(), optWarping.unwrap(),
-                                clip.waveformOffset.getValue())
+                            this.#processPassTimestretch(lane, block, cycle, optData.unwrap(),
+                                timeStretch, transients, clip.waveformOffset.getValue())
                         }
                     } else {
                         for (const cycle of LoopableRegion.locateLoops({
@@ -144,8 +151,7 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                             loopOffset: 0.0,
                             complete: Number.POSITIVE_INFINITY
                         }, sectionFrom, sectionTo)) {
-                            this.#processPassPitch(lane, block, cycle, optData.unwrap(), clip.warping,
-                                clip.waveformOffset.getValue(), playback)
+                            this.#processPassPitch(lane, block, cycle, clip, optData.unwrap())
                         }
                     }
                 }
@@ -156,10 +162,8 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
     #processPassPitch(lane: Lane,
                       block: Block,
                       cycle: LoopableRegion.LoopCycle,
-                      data: AudioData,
-                      optWarping: Option<AudioWarpingBoxAdapter>,
-                      waveformOffset: number,
-                      playback: AudioPlayback): void {
+                      adapter: AudioContentBoxAdapter,
+                      data: AudioData): void {
         const {p0, p1, s0, s1, flags} = block
         const sn = s1 - s0
         const pn = p1 - p0
@@ -168,11 +172,13 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
         const bp0 = s0 + sn * r0
         const bp1 = s0 + sn * r1
         const bpn = (bp1 - bp0) | 0
+        const waveformOffset: number = adapter.waveformOffset.getValue()
         assert(s0 <= bp0 && bp1 <= s1, () => `Out of bounds ${bp0}, ${bp1}`)
         if (Bits.some(flags, BlockFlag.discontinuous)) {
             lane.voices.forEach(voice => voice.startFadeOut())
         }
-        if (optWarping.isEmpty() || playback === AudioPlayback.NoSync) {
+        const asPlayModePitch = adapter.asPlayModePitch
+        if (asPlayModePitch.isEmpty() || adapter.observableOptPlayMode.isEmpty()) {
             const audioDurationSamples = data.numberOfFrames
             const audioDurationNormalized = cycle.resultEndValue - cycle.resultStartValue
             const audioSamplesInCycle = audioDurationNormalized * audioDurationSamples
@@ -181,8 +187,8 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
             const offset = cycle.resultStartValue * data.numberOfFrames + waveformOffset * data.sampleRate
             this.#updateOrCreatePitchVoice(lane, data, playbackRate, offset)
         } else {
-            const warping = optWarping.unwrap()
-            const {warpMarkers} = warping
+            const pitchBoxAdapter = asPlayModePitch.unwrap()
+            const warpMarkers = pitchBoxAdapter.warpMarkers
             const firstWarp = warpMarkers.first()
             const lastWarp = warpMarkers.last()
             if (firstWarp === null || lastWarp === null) {
@@ -234,7 +240,8 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                             block: Block,
                             cycle: LoopableRegion.LoopCycle,
                             data: AudioData,
-                            warping: AudioWarpingBoxAdapter,
+                            timeStretch: AudioTimeStretchBoxAdapter,
+                            transients: EventCollection<TransientMarkerBoxAdapter>,
                             waveformOffset: number): void {
         const {p0, p1, s0, s1, flags} = block
         if (Bits.some(flags, BlockFlag.discontinuous)) {
@@ -248,8 +255,9 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
         const bp0 = s0 + sn * r0
         const bp1 = s0 + sn * r1
         const bpn = (bp1 - bp0) | 0
+        const warpMarkers = timeStretch.warpMarkers
+        const transientPlayMode = timeStretch.transientPlayMode
         assert(s0 <= bp0 && bp1 <= s1, () => `Out of bounds ${bp0}, ${bp1}`)
-        const {warpMarkers, transientMarkers} = warping
         const firstWarp = asDefined(warpMarkers.first(), "missing first warp marker")
         const lastWarp = asDefined(warpMarkers.last(), "missing last warp marker")
         const contentPpqn = cycle.resultStart - cycle.rawStart
@@ -258,9 +266,9 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
         const fileSeconds = warpSeconds + waveformOffset
         // Clamp to valid file range
         if (fileSeconds < 0.0 || fileSeconds >= data.numberOfFrames / data.sampleRate) {return}
-        const transientIndex = transientMarkers.floorLastIndex(fileSeconds)
+        const transientIndex = transients.floorLastIndex(fileSeconds)
         if (transientIndex !== lane.lastTransientIndex) {
-            const segmentInfo = this.#getSegmentInfo(transientIndex, transientMarkers, data)
+            const segmentInfo = this.#getSegmentInfo(transientIndex, transients, data)
             if (isNull(segmentInfo)) {return}
             const {segment, hasNext, nextTransientSeconds} = segmentInfo
             const segmentLength = segment.end - segment.start
@@ -269,9 +277,8 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                 const offsetInSegment = fileSeconds * data.sampleRate - segment.start
                 const startAtBeginning = lane.lastTransientIndex === -1 || transientIndex !== lane.lastTransientIndex + 1
                 const offset = startAtBeginning ? 0.0 : Math.max(0.0, offsetInSegment)
-                const playMode = this.#adapter.box.transientPlayMode.getValue() as TransientPlayMode
                 let canLoop = false
-                if (hasNext && playMode !== TransientPlayMode.Once) {
+                if (hasNext && transientPlayMode !== TransientPlayMode.Once) {
                     // Convert file position back to warp space before converting to PPQN
                     const nextWarpSeconds = nextTransientSeconds - waveformOffset
                     const nextPpqn = this.#secondsToPpqn(nextWarpSeconds, warpMarkers)
@@ -282,9 +289,9 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                     const loopLength = samplesAvailable - (LOOP_START_MARGIN + LOOP_END_MARGIN)
                     canLoop = samplesNeeded > samplesAvailable * 1.01 && loopLength >= LOOP_MIN_LENGTH_SAMPLES
                 }
-                if (playMode === TransientPlayMode.Once || !canLoop) {
+                if (transientPlayMode === TransientPlayMode.Once || !canLoop) {
                     lane.voices.push(new OnceVoice(this.#audioOutput, data, segment, FADE_LENGTH, offset))
-                } else if (playMode === TransientPlayMode.Repeat) {
+                } else if (transientPlayMode === TransientPlayMode.Repeat) {
                     lane.voices.push(new RepeatVoice(this.#audioOutput, data, segment, FADE_LENGTH, offset))
                 } else {
                     lane.voices.push(new PingpongVoice(this.#audioOutput, data, segment, FADE_LENGTH, offset))

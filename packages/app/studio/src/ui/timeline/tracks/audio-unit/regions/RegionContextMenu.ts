@@ -107,19 +107,17 @@ export const installRegionContextMenu =
                 }).setRuntimeChildrenProcedure(parent => parent.addMenuItem(
                     MenuItem.default({
                         label: "Pitch",
-                        checked: region.type === "audio-region"
-                            && region.playback.getValue() === AudioPlayback.Pitch
+                        checked: region.type === "audio-region" && region.asPlayModePitch.nonEmpty()
                     }).setTriggerProcedure(() => {
                         const adapters = selection.selected()
-                            .filter((region): region is AudioRegionBoxAdapter =>
-                                region.type === "audio-region" && region.playback.getValue() !== AudioPlayback.Pitch)
+                            .filter((region): region is AudioRegionBoxAdapter => region.type === "audio-region"
+                                && region.asPlayModePitch.isEmpty())
                         if (adapters.length === 0) {return}
                         editing.modify(() => adapters.forEach(region => region.setPlayback(AudioPlayback.Pitch)))
                     }),
                     MenuItem.default({
                         label: "Timestretch",
-                        checked: region.type === "audio-region"
-                            && region.playback.getValue() === AudioPlayback.Timestretch
+                        checked: region.type === "audio-region" && region.asPlayModeTimeStretch.nonEmpty()
                     }).setTriggerProcedure(async () => {
                         const adapters = selection.selected()
                             .filter((region): region is AudioRegionBoxAdapter => region.type === "audio-region")
@@ -136,7 +134,7 @@ export const installRegionContextMenu =
                     }),
                     MenuItem.default({
                         label: "No Warp",
-                        checked: region.type === "audio-region" && region.playback.getValue() === AudioPlayback.NoSync
+                        checked: region.type === "audio-region" && region.isPlayModeNoWarp
                     }).setTriggerProcedure(async () => {
                             const {status, value: editExec, error} =
                                 await Promises.tryCatch(AudioAdapterEditing.toNoWarp(selection.selected()
