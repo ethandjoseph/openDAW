@@ -17,5 +17,5 @@ export const ValueRegionBox: BoxSchema<Pointers> = {
             15: {type: "string", name: "label"},
             16: {type: "int32", name: "hue", ...HueConstraints}
         }
-    }, pointerRules: {accepts: [Pointers.Selection, Pointers.Editing], mandatory: false}
+    }, pointerRules: {accepts: [Pointers.Selection, Pointers.Editing, Pointers.MetaData], mandatory: false}
 }

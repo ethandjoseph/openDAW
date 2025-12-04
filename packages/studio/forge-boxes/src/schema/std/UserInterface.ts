@@ -35,5 +35,5 @@ export const UserInterfaceBox: BoxSchema<Pointers> = {
             }
         },
         name: "UserInterfaceBox"
-    }
+    }, pointerRules: {accepts: [Pointers.MetaData], mandatory: false}
 }

@@ -13,5 +13,5 @@ export const MarkerBox: BoxSchema<Pointers> = {
             4: {type: "string", name: "label"},
             5: {type: "int32", name: "hue", ...HueConstraints}
         }
-    }, pointerRules: {accepts: [Pointers.Selection], mandatory: false}
+    }, pointerRules: {accepts: [Pointers.Selection, Pointers.MetaData], mandatory: false}
 }

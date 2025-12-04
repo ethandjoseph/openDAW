@@ -25,5 +25,5 @@ export const AudioClipBox: BoxSchema<Pointers> = {
             20: {type: "string", name: "playback", deprecated},
             21: {type: "string", name: "time-base", value: TimeBase.Musical}
         }
-    }, pointerRules: {accepts: [Pointers.Selection, Pointers.Editing], mandatory: false}
+    }, pointerRules: {accepts: [Pointers.Selection, Pointers.Editing, Pointers.MetaData], mandatory: false}
 }

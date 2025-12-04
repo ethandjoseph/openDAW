@@ -25,5 +25,5 @@ export const AudioRegionBox: BoxSchema<Pointers> = {
             16: {type: "int32", name: "hue", ...HueConstraints},
             17: {type: "float32", name: "gain", constraints: "decibel", unit: "db"}
         }
-    }, pointerRules: {accepts: [Pointers.Selection, Pointers.Editing], mandatory: false}
+    }, pointerRules: {accepts: [Pointers.Selection, Pointers.Editing, Pointers.MetaData], mandatory: false}
 }

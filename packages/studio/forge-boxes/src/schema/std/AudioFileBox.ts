@@ -14,5 +14,5 @@ export const AudioFileBox: BoxSchema<Pointers> = {
                 pointerRules: {accepts: [Pointers.TransientMarkers], mandatory: false}
             }
         }
-    }, pointerRules: {accepts: [Pointers.AudioFile, Pointers.FileUploadState], mandatory: true}
+    }, pointerRules: {accepts: [Pointers.AudioFile, Pointers.FileUploadState, Pointers.MetaData], mandatory: true}
 }

@@ -2,7 +2,7 @@ import {BoxSchema, FieldRecord, mergeFields, reserveMany} from "@opendaw/lib-box
 import {Pointers} from "@opendaw/studio-enums"
 import {Objects} from "@opendaw/lib-std"
 
-const DefaultPointers = [Pointers.Device, Pointers.Selection]
+const DefaultPointers = [Pointers.Device, Pointers.Selection, Pointers.MetaData]
 
 const MidiEffectDeviceAttributes = {
     1: {type: "pointer", name: "host", pointerType: Pointers.MidiEffectHost, mandatory: true},

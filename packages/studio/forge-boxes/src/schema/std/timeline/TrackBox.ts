@@ -20,5 +20,5 @@ export const TrackBox: BoxSchema<Pointers> = {
             20: {type: "boolean", name: "enabled", value: true},
             30: {type: "boolean", name: "exclude-piano-mode", value: false}
         }
-    }, pointerRules: {accepts: [Pointers.Selection, Pointers.PianoMode], mandatory: false}
+    }, pointerRules: {accepts: [Pointers.Selection, Pointers.PianoMode, Pointers.MetaData], mandatory: false}
 }

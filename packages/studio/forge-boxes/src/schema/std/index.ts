@@ -27,8 +27,10 @@ import {TransientMarkerBox} from "./TransientMarkerBox"
 import {WarpMarkerBox} from "./WarpMarkerBox"
 import {AudioPitchBox} from "./timeline/AudioPitchBox"
 import {AudioTimeStretchBox} from "./timeline/AudioTimeStretchBox"
+import {MetaDataBox} from "./MetaDataBox"
 
 export const Definitions = [
+    MetaDataBox,
     RootBox, SelectionBox, UserInterfaceBox, UploadFileBox, ShadertoyBox,
     TimelineBox, TrackBox,
     NoteEventBox, NoteEventRepeatBox, NoteEventCollectionBox, NoteRegionBox, NoteClipBox,
