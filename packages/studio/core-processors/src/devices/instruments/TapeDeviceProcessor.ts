@@ -313,7 +313,9 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                     if (hasNext && transientPlayMode !== TransientPlayMode.Once) {
                         const nextNextWarpSeconds = nextTransientSeconds - waveformOffset
                         const nextNextPpqn = this.#secondsToPpqn(nextNextWarpSeconds, warpMarkers)
-                        const ppqnUntilNext = nextNextPpqn - transientPpqn
+                        // If nextNextPpqn is 0, the next transient is beyond warp markers - use lastWarp as endpoint
+                        const endPpqn = nextNextPpqn > transientPpqn ? nextNextPpqn : lastWarp.position
+                        const ppqnUntilNext = endPpqn - transientPpqn
                         const samplesPerPpqn = bpn / pn
                         const samplesNeeded = ppqnUntilNext * samplesPerPpqn
                         const samplesAvailable = segmentLength
