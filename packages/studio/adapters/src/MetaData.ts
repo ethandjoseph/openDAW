@@ -1,6 +1,6 @@
 import {Box} from "@opendaw/lib-box"
 import {Pointers} from "@opendaw/studio-enums"
-import {Attempt, Attempts, isNotUndefined, JSONValue, panic, tryCatch, UUID} from "@opendaw/lib-std"
+import {isNotUndefined, JSONValue, Nullable, panic, tryCatch, UUID} from "@opendaw/lib-std"
 import {MetaDataBox} from "@opendaw/studio-boxes"
 
 export namespace MetaData {
@@ -35,7 +35,7 @@ export namespace MetaData {
      * @param target The box to read the meta-data from.
      * @param origin The origin of the meta-data. Must be unique to the app.
      */
-    export const read = (target: Box<Pointers.MetaData>, origin: string): Attempt<JSONValue> => {
+    export const read = (target: Box<Pointers.MetaData>, origin: string): Nullable<JSONValue> => {
         if (origin === "") {return panic("MetaData.read: origin must be unique to your app.")}
         const existingBox = target.pointerHub
             .filter(Pointers.MetaData)
@@ -43,10 +43,10 @@ export namespace MetaData {
             .find((box: Box): box is MetaDataBox => box instanceof MetaDataBox && box.origin.getValue() === origin)
         if (isNotUndefined(existingBox)) {
             const {status, value, error} = tryCatch(() => JSON.parse(existingBox.value.getValue()))
-            if (status === "success") {return Attempts.ok(value)} else {return Attempts.err(error)}
-        } else {
-            return Attempts.err("No meta-data found")
+            if (status === "success") {return value}
+            console.warn(error)
         }
+        return null
     }
 
     /**

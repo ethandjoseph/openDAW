@@ -1,4 +1,4 @@
-import {Func, panic, Provider} from "./lang"
+import {Func, getOrProvide, panic, Provider, ValueOrProvider} from "./lang"
 import {Option} from "./option"
 
 export interface Attempt<RESULT, FAILURE = unknown> {
@@ -8,6 +8,8 @@ export interface Attempt<RESULT, FAILURE = unknown> {
     failureReason(): FAILURE
     asOption(): Option<RESULT>
     map<U>(map: Func<RESULT, U>): Attempt<U, FAILURE>
+    mapOr<U>(func: Func<RESULT, U>, or: ValueOrProvider<U>): U
+    unwrapOrElse(or: ValueOrProvider<RESULT>): RESULT
     flatMap<U, R>(map: Func<RESULT, Attempt<U, R>>): Attempt<U, FAILURE | R>
     match<RETURN>(matchable: Attempts.Matchable<RESULT, FAILURE, RETURN>): RETURN
     toVoid(): Attempt<void, FAILURE>
@@ -38,6 +40,8 @@ export namespace Attempts {
         readonly map = <U, R>(map: Func<RESULT, U>): Attempt<U, R> => {
             try {return ok(map(this.value))} catch (reason) {return err(reason as R)}
         }
+        readonly mapOr = <U>(func: Func<RESULT, U>, _or: U | Provider<U>): U => func(this.value)
+        readonly unwrapOrElse = <U>(_: ValueOrProvider<U>): RESULT => this.value
         readonly flatMap = <U, R>(map: Func<RESULT, Attempt<U, R>>): Attempt<U, R> => map(this.value)
         readonly match = <RETURN>(matchable: Matchable<RESULT, never, RETURN>): RETURN => matchable.ok(this.value)
         readonly toVoid = (): Attempt<void, never> => Attempts.ok(undefined)
@@ -54,6 +58,8 @@ export namespace Attempts {
         readonly isSuccess = (): boolean => true
         readonly result = (): void => undefined
         readonly map = <U>(map: Func<void, U>): Attempt<U, never> => ok(map())
+        readonly mapOr = <U>(func: Func<void, U>, _or: U | Provider<U>): U => func()
+        readonly unwrapOrElse = (_or: ValueOrProvider<void>): void => undefined
         readonly flatMap = <U, R>(map: Func<void, Attempt<U, R>>): Attempt<U, R> => map()
         readonly match = <RETURN>(matchable: Matchable<void, never, RETURN>): RETURN => matchable.ok()
         readonly toVoid = (): Attempt<void, never> => Attempts.ok(undefined)
@@ -71,6 +77,8 @@ export namespace Attempts {
             readonly isSuccess = (): boolean => false
             readonly result = (): never => panic(`'${this.reason}'`)
             readonly map = (): Attempt<never, FAILURE> => this
+            readonly mapOr = <U>(_func: Func<never, U>, or: U | Provider<U>): U => getOrProvide(or)
+            readonly unwrapOrElse = <U>(or: ValueOrProvider<U>): U => getOrProvide(or)
             readonly flatMap = <_, R>(): Attempt<never, FAILURE | R> => this
             readonly match = <RETURN>(matchable: Matchable<never, FAILURE, RETURN>): RETURN => matchable.err(this.reason)
             readonly toVoid = (): Attempt<void, FAILURE> => Attempts.err(this.reason)
