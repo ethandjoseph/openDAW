@@ -123,8 +123,7 @@ export class ProjectMigration {
                     const file = asInstanceOf(box.file.targetVertex.unwrap(), AudioFileBox)
                     const fileDuration = file.endInSeconds.getValue() - file.startInSeconds.getValue()
                     const pitchBox = AudioPitchBox.create(boxGraph, UUID.generate())
-                    AudioContentHelpers.addDefaultWarpMarkers(boxGraph,
-                        pitchBox, box.duration.getValue(), fileDuration)
+                    AudioContentHelpers.addDefaultWarpMarkers(boxGraph, pitchBox, box.duration.getValue(), fileDuration)
                     box.timeBase.setValue(TimeBase.Musical)
                     box.playMode.refer(pitchBox)
                     box.playback.setValue("")

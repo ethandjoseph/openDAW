@@ -1,5 +1,5 @@
 import {BoxSchema, deprecated} from "@opendaw/lib-box-forge"
-import {AudioPlayback, Pointers} from "@opendaw/studio-enums"
+import {Pointers} from "@opendaw/studio-enums"
 import {ClipTriggerFields} from "./ClipTriggerFields"
 import {HueConstraints} from "../Defaults"
 import {TimeBase} from "@opendaw/lib-dsp"
@@ -22,7 +22,7 @@ export const AudioClipBox: BoxSchema<Pointers> = {
             12: {type: "string", name: "label"},
             13: {type: "int32", name: "hue", ...HueConstraints},
             14: {type: "float32", name: "gain", constraints: "decibel", unit: "db"},
-            20: {type: "string", name: "playback", value: AudioPlayback.Pitch, deprecated},
+            20: {type: "string", name: "playback", deprecated},
             21: {type: "string", name: "time-base", value: TimeBase.Musical}
         }
     }, pointerRules: {accepts: [Pointers.Selection, Pointers.Editing], mandatory: false}

@@ -1,5 +1,5 @@
 import {BoxSchema, deprecated} from "@opendaw/lib-box-forge"
-import {AudioPlayback, Pointers} from "@opendaw/studio-enums"
+import {Pointers} from "@opendaw/studio-enums"
 import {TimeBase} from "@opendaw/lib-dsp"
 import {HueConstraints, PPQNPositionConstraints} from "../Defaults"
 
@@ -10,7 +10,7 @@ export const AudioRegionBox: BoxSchema<Pointers> = {
         fields: {
             1: {type: "pointer", name: "regions", pointerType: Pointers.RegionCollection, mandatory: true},
             2: {type: "pointer", name: "file", pointerType: Pointers.AudioFile, mandatory: true},
-            3: {type: "string", name: "playback", value: AudioPlayback.Pitch, deprecated},
+            3: {type: "string", name: "playback", deprecated},
             4: {type: "string", name: "time-base", value: TimeBase.Musical},
             5: {type: "pointer", name: "events", pointerType: Pointers.ValueEventCollection, mandatory: true},
             6: {type: "pointer", name: "warping", pointerType: Pointers.Deprecated, mandatory: false, deprecated},
