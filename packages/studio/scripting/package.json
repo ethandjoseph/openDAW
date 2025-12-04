@@ -1,6 +1,6 @@
 {
     "name": "@opendaw/studio-scripting",
-    "version": "0.0.5",
+    "version": "0.0.6",
     "license": "LGPL-3.0-or-later",
     "type": "module",
     "publishConfig": {
@@ -30,13 +30,13 @@
         "test": "echo \"No tests to run\""
     },
     "dependencies": {
-        "@opendaw/lib-box": "^0.0.51",
-        "@opendaw/lib-dsp": "^0.0.51",
-        "@opendaw/lib-runtime": "^0.0.51",
-        "@opendaw/lib-std": "^0.0.51",
-        "@opendaw/studio-adapters": "^0.0.52",
-        "@opendaw/studio-boxes": "^0.0.51",
-        "@opendaw/studio-enums": "^0.0.42"
+        "@opendaw/lib-box": "^0.0.52",
+        "@opendaw/lib-dsp": "^0.0.52",
+        "@opendaw/lib-runtime": "^0.0.52",
+        "@opendaw/lib-std": "^0.0.52",
+        "@opendaw/studio-adapters": "^0.0.53",
+        "@opendaw/studio-boxes": "^0.0.52",
+        "@opendaw/studio-enums": "^0.0.43"
     },
     "devDependencies": {
         "@opendaw/eslint-config": "^0.0.20",
