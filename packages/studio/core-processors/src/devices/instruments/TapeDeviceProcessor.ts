@@ -277,52 +277,64 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
         const fileSeconds = warpSeconds + waveformOffset
         // Clamp to valid file range
         if (fileSeconds < 0.0 || fileSeconds >= data.numberOfFrames / data.sampleRate) {return}
-        const transientIndex = transients.floorLastIndex(fileSeconds)
-        if (transientIndex !== lane.lastTransientIndex) {
-            const segmentInfo = this.#getSegmentInfo(transientIndex, transients, data)
-            if (isNull(segmentInfo)) {return}
-            const {segment, hasNext, nextTransientSeconds} = segmentInfo
-            const segmentLength = segment.end - segment.start
-            if (segmentLength >= FADE_LENGTH * 2) {
-                // Calculate block offset: where in this block does the transient boundary occur?
-                const currentTransient = transients.optAt(transientIndex)
-                let blockOffset = 0
-                if (currentTransient !== null && lane.lastTransientIndex !== -1) {
-                    // Convert transient position (file seconds) to warp seconds, then to PPQN
-                    const transientWarpSeconds = currentTransient.position - waveformOffset
+        // Check for transient boundaries within this block by looking at file position at block END
+        const contentPpqnEnd = contentPpqn + pn
+        const warpSecondsEnd = this.#ppqnToSeconds(contentPpqnEnd, cycle.resultEndValue, warpMarkers)
+        const fileSecondsEnd = warpSecondsEnd + waveformOffset
+        const transientIndexAtEnd = transients.floorLastIndex(fileSecondsEnd)
+
+        // Detect loop restart: if we're now at a lower transient index than before, reset
+        if (transientIndexAtEnd < lane.lastTransientIndex) {
+            lane.lastTransientIndex = -1
+            lane.voices.forEach(voice => voice.startFadeOut(0))
+        }
+
+        // Process if we'll cross into a new transient during this block
+        if (transientIndexAtEnd !== lane.lastTransientIndex) {
+            // Find the next transient boundary we'll cross
+            const nextTransientIndex = lane.lastTransientIndex === -1 ? transientIndexAtEnd : lane.lastTransientIndex + 1
+            const nextTransient = transients.optAt(nextTransientIndex)
+
+            if (nextTransient !== null) {
+                const segmentInfo = this.#getSegmentInfo(nextTransientIndex, transients, data)
+                if (isNull(segmentInfo)) {return}
+                const {segment, hasNext, nextTransientSeconds} = segmentInfo
+                const segmentLength = segment.end - segment.start
+
+                if (segmentLength >= FADE_LENGTH * 2) {
+                    // Calculate blockOffset: where in the output buffer does this transient start?
+                    const transientWarpSeconds = nextTransient.position - waveformOffset
                     const transientPpqn = this.#secondsToPpqn(transientWarpSeconds, warpMarkers)
-                    // Calculate how far into the block (in PPQN) the transient occurs
                     const ppqnIntoBlock = transientPpqn - contentPpqn
-                    if (ppqnIntoBlock > 0 && ppqnIntoBlock < pn) {
-                        // Convert PPQN offset to sample offset within block
-                        blockOffset = ((ppqnIntoBlock / pn) * bpn) | 0
+                    // Calculate block offset - transient should fall within [0, pn] range now
+                    const blockOffset = Math.max(0, Math.min(bpn - 1, ((ppqnIntoBlock / pn) * bpn) | 0))
+                    lane.voices.forEach(voice => voice.startFadeOut(blockOffset))
+                    const offset = 0.0
+                    let canLoop = false
+                    if (hasNext && transientPlayMode !== TransientPlayMode.Once) {
+                        const nextNextWarpSeconds = nextTransientSeconds - waveformOffset
+                        const nextNextPpqn = this.#secondsToPpqn(nextNextWarpSeconds, warpMarkers)
+                        const ppqnUntilNext = nextNextPpqn - transientPpqn
+                        const samplesPerPpqn = bpn / pn
+                        const samplesNeeded = ppqnUntilNext * samplesPerPpqn
+                        const samplesAvailable = segmentLength
+                        const loopLength = samplesAvailable - (LOOP_START_MARGIN + LOOP_END_MARGIN)
+                        canLoop = samplesNeeded > samplesAvailable * 1.01 && loopLength >= LOOP_MIN_LENGTH_SAMPLES
+                    }
+
+                    if (transientPlayMode === TransientPlayMode.Once || !canLoop) {
+                        console.debug("Once blockOffset", blockOffset)
+                        lane.voices.push(new OnceVoice(this.#audioOutput, data, segment, FADE_LENGTH, offset, blockOffset))
+                    } else if (transientPlayMode === TransientPlayMode.Repeat) {
+                        console.debug("Repeat blockOffset", blockOffset)
+                        lane.voices.push(new RepeatVoice(this.#audioOutput, data, segment, FADE_LENGTH, offset, blockOffset))
+                    } else {
+                        console.debug("Pingpong blockOffset", blockOffset)
+                        lane.voices.push(new PingpongVoice(this.#audioOutput, data, segment, FADE_LENGTH, offset, blockOffset))
                     }
                 }
-                lane.voices.forEach(voice => voice.startFadeOut(blockOffset))
-                const offsetInSegment = fileSeconds * data.sampleRate - segment.start
-                const startAtBeginning = lane.lastTransientIndex === -1 || transientIndex !== lane.lastTransientIndex + 1
-                const offset = startAtBeginning ? 0.0 : Math.max(0.0, offsetInSegment)
-                let canLoop = false
-                if (hasNext && transientPlayMode !== TransientPlayMode.Once) {
-                    // Convert file position back to warp space before converting to PPQN
-                    const nextWarpSeconds = nextTransientSeconds - waveformOffset
-                    const nextPpqn = this.#secondsToPpqn(nextWarpSeconds, warpMarkers)
-                    const ppqnUntilNext = nextPpqn - contentPpqn
-                    const samplesPerPpqn = bpn / pn
-                    const samplesNeeded = ppqnUntilNext * samplesPerPpqn
-                    const samplesAvailable = segmentLength
-                    const loopLength = samplesAvailable - (LOOP_START_MARGIN + LOOP_END_MARGIN)
-                    canLoop = samplesNeeded > samplesAvailable * 1.01 && loopLength >= LOOP_MIN_LENGTH_SAMPLES
-                }
-                if (transientPlayMode === TransientPlayMode.Once || !canLoop) {
-                    lane.voices.push(new OnceVoice(this.#audioOutput, data, segment, FADE_LENGTH, offset, blockOffset))
-                } else if (transientPlayMode === TransientPlayMode.Repeat) {
-                    lane.voices.push(new RepeatVoice(this.#audioOutput, data, segment, FADE_LENGTH, offset, blockOffset))
-                } else {
-                    lane.voices.push(new PingpongVoice(this.#audioOutput, data, segment, FADE_LENGTH, offset, blockOffset))
-                }
+                lane.lastTransientIndex = nextTransientIndex
             }
-            lane.lastTransientIndex = transientIndex
         }
         for (const voice of lane.voices) {
             voice.process(bp0 | 0, bpn)
