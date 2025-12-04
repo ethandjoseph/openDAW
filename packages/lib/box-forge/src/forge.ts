@@ -182,6 +182,7 @@ type FieldPrinter = Readonly<{
     className: string
     new: string
     type: string
+    deprecated: boolean
     ctorParams: ReadonlyArray<unknown>
 }>
 
@@ -255,10 +256,12 @@ class ClassWriter<E extends PointerTypes> {
         this.#file.addTypeAlias({
             isExported: true,
             name: this.#fieldsTypeName(),
-            type: `{${this.#fieldPrinter.map(print =>
-                isDefined(print.fieldValue)
-                    ? `${print.fieldKey}: /* ${print.fieldName}: ${print.fieldValue} */ ${print.type}`
-                    : `${print.fieldKey}: /* ${print.fieldName} */ ${print.type}`).join("\n")}
+            type: `{${this.#fieldPrinter.map(print => {
+                const postfix = print.deprecated ? "// deprecated" : ""
+                return isDefined(print.fieldValue)
+                    ? `${print.fieldKey}: /* ${print.fieldName}: ${print.fieldValue} */ ${print.type} ${postfix}`
+                    : `${print.fieldKey}: /* ${print.fieldName} */ ${print.type} ${postfix}`
+            }).join("\n")}
 				}`
         })
     }
@@ -339,7 +342,8 @@ class ClassWriter<E extends PointerTypes> {
         declaration.addGetAccessors(this.#fieldPrinter.map(printer => ({
             name: asDefined(printer.fieldName, "accessible fields must have a name"),
             returnType: printer.type,
-            statements: `return this.getField(${printer.fieldKey})`
+            statements: `return this.getField(${printer.fieldKey})`,
+            docs: printer.deprecated ? ["@deprecated"] : undefined
         })))
         declaration.addMethod({
             name: "initializeFields",
@@ -369,6 +373,7 @@ class ClassWriter<E extends PointerTypes> {
                 return {
                     fieldKey,
                     fieldName,
+                    deprecated,
                     importPath: BOX_LIBRARY,
                     className: "Field",
                     ctorParams: [this.#writeFieldConstruct(fieldKey, fieldName, pointerRules, deprecated)],
@@ -379,6 +384,7 @@ class ClassWriter<E extends PointerTypes> {
                 return {
                     fieldKey,
                     fieldName,
+                    deprecated,
                     fieldValue: field.value,
                     importPath: BOX_LIBRARY,
                     className: "Int32Field",
@@ -391,6 +397,7 @@ class ClassWriter<E extends PointerTypes> {
                 return {
                     fieldKey,
                     fieldName,
+                    deprecated,
                     fieldValue: field.value,
                     importPath: BOX_LIBRARY,
                     className: "Float32Field",
@@ -403,6 +410,7 @@ class ClassWriter<E extends PointerTypes> {
                 return {
                     fieldKey,
                     fieldName,
+                    deprecated,
                     fieldValue: field.value,
                     importPath: BOX_LIBRARY,
                     className: "ByteArrayField",
@@ -419,6 +427,7 @@ class ClassWriter<E extends PointerTypes> {
                 return {
                     fieldKey,
                     fieldName,
+                    deprecated,
                     fieldValue: field.value,
                     importPath: BOX_LIBRARY,
                     className,
@@ -432,6 +441,7 @@ class ClassWriter<E extends PointerTypes> {
                 return {
                     fieldKey,
                     fieldName,
+                    deprecated,
                     importPath: BOX_LIBRARY,
                     className: "PointerField",
                     new: "PointerField.create",
@@ -450,6 +460,7 @@ class ClassWriter<E extends PointerTypes> {
                 return {
                     fieldKey,
                     fieldName,
+                    deprecated,
                     importPath: BOX_LIBRARY,
                     className: "ArrayField",
                     new: "ArrayField.create",
@@ -472,6 +483,7 @@ class ClassWriter<E extends PointerTypes> {
                 return {
                     fieldKey,
                     fieldName,
+                    deprecated,
                     importPath: `./${className}`,
                     className,
                     new: `${className}.create`,
