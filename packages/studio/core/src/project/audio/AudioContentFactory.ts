@@ -8,15 +8,14 @@ import {
     AudioRegionBox,
     AudioTimeStretchBox,
     TrackBox,
-    ValueEventCollectionBox,
-    WarpMarkerBox
+    ValueEventCollectionBox
 } from "@opendaw/studio-boxes"
 import {TransientPlayMode} from "@opendaw/studio-enums"
 import {BoxGraph} from "@opendaw/lib-box"
 import {AudioContentHelpers} from "./AudioContentHelpers"
 
 export namespace AudioContentFactory {
-    type Props = {
+    export type Props = {
         boxGraph: BoxGraph,
         targetTrack: TrackBox,
         audioFileBox: AudioFileBox,
@@ -24,8 +23,8 @@ export namespace AudioContentFactory {
         gainInDb?: number
     }
 
-    type Clip = { index: int }
-    type Region = { position: ppqn }
+    export type Clip = Props & { index: int }
+    export type Region = Props & { position: ppqn }
 
     export type TimeStretchedProps = {
         transientPlayMode?: TransientPlayMode
@@ -146,6 +145,4 @@ export namespace AudioContentFactory {
             box.index.setValue(props.index)
         })
     }
-
-
 }

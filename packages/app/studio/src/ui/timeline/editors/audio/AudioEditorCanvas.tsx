@@ -94,7 +94,6 @@ export const AudioEditorCanvas = ({lifecycle, project: {editing}, range, snappin
                         const startX = startEvent.clientX - rect.left
                         const startOffset = waveformOffset.getValue()
                         const startPPQN = range.xToUnit(startX) - reader.offset  // clip-relative PPQN
-
                         const optWarping = observableOptPlayMode.map(optPlayMode => optPlayMode.warpMarkers)
                         // Compute the audio-seconds position under the cursor at drag start
                         const startAudioSeconds = optWarping.match({

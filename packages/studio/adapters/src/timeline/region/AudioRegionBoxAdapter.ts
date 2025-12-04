@@ -17,7 +17,7 @@ import {
 } from "@opendaw/lib-std"
 import {EventCollection, ppqn, TimeBase, TimeBaseConverter} from "@opendaw/lib-dsp"
 import {Address, Field, PointerField, Propagation, Update} from "@opendaw/lib-box"
-import {AudioPlayback, Pointers} from "@opendaw/studio-enums"
+import {Pointers} from "@opendaw/studio-enums"
 import {AudioRegionBox} from "@opendaw/studio-boxes"
 import {LoopableRegionBoxAdapter, RegionBoxAdapter, RegionBoxAdapterVisitor} from "../RegionBoxAdapter"
 import {TrackBoxAdapter} from "../TrackBoxAdapter"
@@ -200,46 +200,6 @@ export class AudioRegionBoxAdapter implements AudioContentBoxAdapter, LoopableRe
     set loopOffset(value: ppqn) {this.#loopOffsetConverter.fromPPQN(value)}
     set loopDuration(value: ppqn) {this.#loopDurationConverter.fromPPQN(value)}
 
-    setPlayback(value: AudioPlayback, keepCurrentStretch: boolean = false) {
-        const wasMusical = this.timeBase === TimeBase.Musical
-        this.#box.playback.setValue(value)
-        if (value === AudioPlayback.NoSync) {
-            if (wasMusical) {
-                if (keepCurrentStretch) {
-                    const duration = this.#durationConverter.toSeconds()
-                    const loopDuration = this.#loopDurationConverter.toSeconds()
-                    const loopOffset = this.#loopOffsetConverter.toSeconds()
-                    this.#box.timeBase.setValue(TimeBase.Seconds)
-                    this.#box.duration.setValue(duration)
-                    this.#box.loopDuration.setValue(loopDuration)
-                    this.#box.loopOffset.setValue(loopOffset)
-                } else {
-                    // Reset to 100% playback speed (original file speed)
-                    const fileDuration = this.file.endInSeconds - this.file.startInSeconds
-                    const currentLoopDurationSeconds = this.#loopDurationConverter.toSeconds()
-                    const scale = fileDuration / currentLoopDurationSeconds
-                    const currentDurationSeconds = this.#durationConverter.toSeconds()
-                    const currentLoopOffsetSeconds = this.#loopOffsetConverter.toSeconds()
-                    this.#box.timeBase.setValue(TimeBase.Seconds)
-                    this.#box.duration.setValue(currentDurationSeconds * scale)
-                    this.#box.loopDuration.setValue(fileDuration)
-                    this.#box.loopOffset.setValue(currentLoopOffsetSeconds * scale)
-                }
-            }
-        } else {
-            // Switching TO musical (Pitch/Timestretch/AudioFit)
-            if (!wasMusical) {
-                const duration = this.#durationConverter.toPPQN()
-                const loopDuration = this.#loopDurationConverter.toPPQN()
-                const loopOffset = this.#loopOffsetConverter.toPPQN()
-                this.#box.timeBase.setValue(TimeBase.Musical)
-                this.#box.duration.setValue(duration)
-                this.#box.loopOffset.setValue(loopOffset)
-                this.#box.loopDuration.setValue(loopDuration)
-            }
-        }
-    }
-
     copyTo(params?: CopyToParams): AudioRegionBoxAdapter {
         const eventCollection = this.optCollection.unwrap("Cannot make copy without event-collection")
         const eventTarget = params?.consolidate === true
@@ -248,16 +208,15 @@ export class AudioRegionBoxAdapter implements AudioContentBoxAdapter, LoopableRe
         const adapter = this.#context.boxAdapters.adapterFor(
             AudioRegionBox.create(this.#context.boxGraph, UUID.generate(), box => {
                 box.timeBase.setValue(this.#box.timeBase.getValue())
-                box.playback.setValue(this.#box.playback.getValue())
                 box.position.setValue(params?.position ?? this.#box.position.getValue())
                 box.regions.refer(params?.track ?? this.#box.regions.targetVertex.unwrap())
                 box.file.refer(this.#box.file.targetVertex.unwrap())
-                this.#box.warping.ifVertex(vertex => box.warping.refer(vertex.box))
                 box.events.refer(eventTarget)
                 box.mute.setValue(this.mute)
                 box.hue.setValue(this.hue)
                 box.label.setValue(this.label)
                 box.gain.setValue(this.gain.getValue())
+                this.#box.playMode.ifVertex(vertex => box.playMode.refer(vertex.box))
             }), AudioRegionBoxAdapter)
         adapter.duration = params?.duration ?? this.duration
         adapter.loopOffset = params?.loopOffset ?? this.loopOffset

@@ -10,17 +10,16 @@ import {
     Observer,
     Option,
     panic,
-    Provider,
     Strings,
     Subscription,
     UUID
 } from "@opendaw/lib-std"
-import {AudioData, bpmToBars, ppqn, PPQN, TimeBase} from "@opendaw/lib-dsp"
+import {ppqn, PPQN} from "@opendaw/lib-dsp"
 import {BoxGraph, Field, IndexedBox, PointerField} from "@opendaw/lib-box"
-import {AudioPlayback, AudioUnitType, Pointers} from "@opendaw/studio-enums"
+import {AudioUnitType, Pointers} from "@opendaw/studio-enums"
 import {
     AudioClipBox,
-    AudioFileBox,
+    AudioRegionBox,
     AudioUnitBox,
     CaptureAudioBox,
     CaptureMidiBox,
@@ -50,19 +49,12 @@ import {
 import {Project} from "./Project"
 import {EffectFactory} from "../EffectFactory"
 import {EffectBox} from "../EffectBox"
+import {AudioContentFactory} from "./audio"
 
 export type ClipRegionOptions = {
     name?: string
     hue?: number
 }
-
-export type AudioRegionOptions = {
-    file: AudioFileBox
-    duration: ppqn
-    // optWarping: Option<AudioWarpingBox>
-    playback: AudioPlayback
-    timeBase: TimeBase
-} & ClipRegionOptions
 
 export type NoteEventParams = {
     owner: { events: PointerField<Pointers.NoteEventCollection> }
@@ -171,79 +163,28 @@ export class ProjectApi {
         return this.#createTrack({field: audioUnitBox.tracks, target, trackType: TrackType.Value, insertIndex})
     }
 
-    async createAudioClipFromAudioData(trackBox: TrackBox,
-                                       clipIndex: int,
-                                       bpm: number,
-                                       playback: AudioPlayback,
-                                       uuid: UUID.Bytes,
-                                       audioData: AudioData,
-                                       {name, hue}: ClipRegionOptions = {}): Promise<Provider<AudioClipBox>> {
-        const fileDurationInSeconds = audioData.numberOfFrames / audioData.sampleRate
-        const durationInPPQN = bpmToBars(bpm, fileDurationInSeconds)
-        const {boxGraph} = this.#project
-        const audioFileBox: AudioFileBox = boxGraph.findBox<AudioFileBox>(uuid)
-            .unwrapOrElse(() => AudioFileBox.create(boxGraph, uuid, box => {
-                box.fileName.setValue(name ?? "")
-                box.endInSeconds.setValue(fileDurationInSeconds)
-            }))
-
-        /*let optWarping: Option<AudioWarpingBox> = Option.None
-        let timeBase: TimeBase
-        let duration: number
-        if (playback === AudioPlayback.NoSync) {
-            timeBase = TimeBase.Seconds
-            duration = fileDurationInSeconds
-        } else {
-            timeBase = TimeBase.Musical
-            duration = durationInPPQN
-            const warping = AudioWarpingBox.create(boxGraph, UUID.generate())
-            WarpMarkerBox.create(boxGraph, UUID.generate(), box => {
-                box.owner.refer(warping.warpMarkers)
-                box.position.setValue(0)
-                box.seconds.setValue(0)
-            })
-            WarpMarkerBox.create(boxGraph, UUID.generate(), box => {
-                box.owner.refer(warping.warpMarkers)
-                box.position.setValue(durationInPPQN)
-                box.seconds.setValue(fileDurationInSeconds)
-            })
-            if (playback === AudioPlayback.Timestretch) {
-                const transients = await Workers.Transients.detect(audioData)
-                transients.forEach(position => TransientMarkerBox.create(boxGraph, UUID.generate(), box => {
-                    box.owner.refer(warping.transientMarkers)
-                    box.position.setValue(position)
-                    box.energy.setValue(0.0)
-                }))
-            }
-            optWarping = Option.wrap(warping)
-        }
-
-        return () => this.createAudioClip(
-            trackBox, clipIndex,
-            {name, hue, duration, optWarping, playback, timeBase, file: audioFileBox})*/
-        return panic("Not implemented")
+    createTimeStretchedClip(props: AudioContentFactory.TimeStretchedProps & AudioContentFactory.Clip): AudioClipBox {
+        return AudioContentFactory.createTimeStretchedClip(props)
     }
 
-    createAudioClip(trackBox: TrackBox,
-                    clipIndex: int,
-                    {name, hue, file, playback, timeBase}: AudioRegionOptions): AudioClipBox {
-        const {boxGraph} = this.#project
-        const type = trackBox.type.getValue()
-        if (type !== TrackType.Audio) {return panic("Incompatible track type for audio-clip creation: " + type.toString())}
-        const events = ValueEventCollectionBox.create(boxGraph, UUID.generate())
-        return AudioClipBox.create(boxGraph, UUID.generate(), box => {
-            box.index.setValue(clipIndex)
-            box.label.setValue(name ?? "Audio")
-            box.hue.setValue(hue ?? ColorCodes.forTrackType(type))
-            box.mute.setValue(false)
-            box.duration.setValue(PPQN.Bar)
-            box.clips.refer(trackBox.clips)
-            box.events.refer(events.owners)
-            box.playback.setValue(playback)
-            box.timeBase.setValue(timeBase)
-            box.file.refer(file)
-            // optWarping.ifSome(warping => box.warping.refer(warping))
-        })
+    createTimeStretchedRegion(props: AudioContentFactory.TimeStretchedProps & AudioContentFactory.Region): AudioRegionBox {
+        return AudioContentFactory.createTimeStretchedRegion(props)
+    }
+
+    createPitchStretchedClip(props: AudioContentFactory.PitchStretchedProps & AudioContentFactory.Clip): AudioClipBox {
+        return AudioContentFactory.createPitchStretchedClip(props)
+    }
+
+    createPitchStretchedRegion(props: AudioContentFactory.PitchStretchedProps & AudioContentFactory.Region): AudioRegionBox {
+        return AudioContentFactory.createPitchStretchedRegion(props)
+    }
+
+    createNotStretchedClip(props: AudioContentFactory.NotStretchedProps & AudioContentFactory.Clip): AudioClipBox {
+        return AudioContentFactory.createNotStretchedClip(props)
+    }
+
+    createNotStretchedRegion(props: AudioContentFactory.NotStretchedProps & AudioContentFactory.Region): AudioRegionBox {
+        return AudioContentFactory.createNotStretchedRegion(props)
     }
 
     createNoteClip(trackBox: TrackBox, clipIndex: int, {name, hue}: ClipRegionOptions = {}): NoteClipBox {

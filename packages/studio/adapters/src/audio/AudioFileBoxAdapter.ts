@@ -1,5 +1,5 @@
 import {AudioFileBox} from "@opendaw/studio-boxes"
-import {int, Option, panic, SortedSet, Terminator, UUID} from "@opendaw/lib-std"
+import {int, Option, panic, Provider, SortedSet, Terminator, UUID} from "@opendaw/lib-std"
 import {Peaks} from "@opendaw/lib-fusion"
 import {Address, PointerField} from "@opendaw/lib-box"
 import {SampleLoader} from "../sample/SampleLoader"
@@ -7,6 +7,7 @@ import {BoxAdaptersContext} from "../BoxAdaptersContext"
 import {BoxAdapter} from "../BoxAdapter"
 import {AudioData, EventCollection} from "@opendaw/lib-dsp"
 import {TransientMarkerBoxAdapter} from "./TransientMarkerBoxAdapter"
+import {Promises} from "@opendaw/lib-runtime"
 
 export class AudioFileBoxAdapter implements BoxAdapter {
     static Comparator = (a: TransientMarkerBoxAdapter, b: TransientMarkerBoxAdapter): int => {
@@ -25,6 +26,7 @@ export class AudioFileBoxAdapter implements BoxAdapter {
 
     readonly #transientMarkerAdapters: SortedSet<UUID.Bytes, TransientMarkerBoxAdapter>
     readonly #transients: EventCollection<TransientMarkerBoxAdapter>
+    readonly #audioDataPromise: Provider<Promise<AudioData>>
 
     constructor(context: BoxAdaptersContext, box: AudioFileBox) {
         this.#context = context
@@ -32,6 +34,21 @@ export class AudioFileBoxAdapter implements BoxAdapter {
 
         this.#transientMarkerAdapters = UUID.newSet(({uuid}) => uuid)
         this.#transients = EventCollection.create(AudioFileBoxAdapter.Comparator)
+        this.#audioDataPromise = Promises.memoizeAsync(async () => {
+            if (this.data.nonEmpty()) {return this.data.unwrap()}
+            const {promise, resolve, reject} = Promise.withResolvers<AudioData>()
+            const loader = this.getOrCreateLoader()
+            const subscription = loader.subscribe(state => {
+                if (state.type === "loaded") {
+                    subscription.terminate()
+                    resolve(loader.data.unwrap("State mismatch"))
+                } else if (state.type === "error") {
+                    subscription.terminate()
+                    reject(state.reason)
+                }
+            })
+            return promise
+        })
 
         this.#terminator.own(
             box.transientMarkers.pointerHub.catchupAndSubscribe({
@@ -57,6 +74,7 @@ export class AudioFileBoxAdapter implements BoxAdapter {
     get fileName(): string {return this.#box.fileName.getValue()}
     get data(): Option<AudioData> {return this.getOrCreateLoader().data}
     get peaks(): Option<Peaks> {return this.getOrCreateLoader().peaks}
+    get audioData(): Promise<AudioData> {return this.#audioDataPromise()}
 
     getOrCreateLoader(): SampleLoader {return this.#context.sampleManager.getOrCreate(this.#box.address.uuid)}
 

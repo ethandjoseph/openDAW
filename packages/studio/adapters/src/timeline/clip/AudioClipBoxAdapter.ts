@@ -22,7 +22,7 @@ import {
 import {AudioClipBox} from "@opendaw/studio-boxes"
 import {Address, Int32Field, PointerField, Propagation, Update} from "@opendaw/lib-box"
 import {ClipBoxAdapter, ClipBoxAdapterVisitor} from "../ClipBoxAdapter"
-import {AudioPlayback, Pointers} from "@opendaw/studio-enums"
+import {Pointers} from "@opendaw/studio-enums"
 import {TrackBoxAdapter} from "../TrackBoxAdapter"
 import {BoxAdaptersContext} from "../../BoxAdaptersContext"
 import {AudioFileBoxAdapter} from "../../audio/AudioFileBoxAdapter"
@@ -103,6 +103,7 @@ export class AudioClipBoxAdapter implements AudioContentBoxAdapter, ClipBoxAdapt
         AudioClipBox.create(this.#context.boxGraph, UUID.generate(), box => {
             box.index.setValue(this.indexField.getValue())
             box.gain.setValue(this.gain.getValue())
+            box.timeBase.setValue(this.timeBase)
             box.label.setValue(this.label)
             box.hue.setValue(this.hue)
             box.duration.setValue(this.duration)
@@ -110,6 +111,7 @@ export class AudioClipBoxAdapter implements AudioContentBoxAdapter, ClipBoxAdapt
             box.clips.refer(this.#box.clips.targetVertex.unwrap())
             box.file.refer(this.#box.file.targetVertex.unwrap())
             box.events.refer(this.#box.events.targetVertex.unwrap())
+            this.#box.playMode.ifVertex(vertex => box.playMode.refer(vertex.box))
         })
     }
 
@@ -157,32 +159,6 @@ export class AudioClipBoxAdapter implements AudioContentBoxAdapter, ClipBoxAdapt
     }
     get isMirrowed(): boolean {return false}
     get canMirror(): boolean {return false}
-
-    setPlayback(value: AudioPlayback, keepCurrentStretch: boolean = false) {
-        console.debug("setPlayback", value, keepCurrentStretch)
-        const wasMusical = this.timeBase === TimeBase.Musical
-        this.#box.playback.setValue(value)
-        if (value === AudioPlayback.NoSync) {
-            if (wasMusical) {
-                if (keepCurrentStretch) {
-                    const duration = this.#durationConverter.toSeconds()
-                    this.#box.timeBase.setValue(TimeBase.Seconds)
-                    this.#box.duration.setValue(duration)
-                } else {
-                    // Reset to 100% playback speed (original file speed)
-                    this.#box.timeBase.setValue(TimeBase.Seconds)
-                    this.#box.duration.setValue(this.file.endInSeconds)
-                }
-            }
-        } else {
-            // Switching TO musical (Pitch/Timestretch/AudioFit)
-            if (!wasMusical) {
-                const duration = this.#durationConverter.toPPQN()
-                this.#box.timeBase.setValue(TimeBase.Musical)
-                this.#box.duration.setValue(duration)
-            }
-        }
-    }
 
     terminate(): void {
         this.#fileSubscription.ifSome(subscription => subscription.terminate())

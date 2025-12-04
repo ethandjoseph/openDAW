@@ -1,8 +1,15 @@
 import {AudioClipBoxAdapter, AudioRegionBoxAdapter} from "@opendaw/studio-adapters"
-import {EmptyExec, Exec, isInstanceOf, panic, UUID} from "@opendaw/lib-std"
+import {EmptyExec, Exec, isDefined, isInstanceOf, UUID} from "@opendaw/lib-std"
 import {TimeBase} from "@opendaw/lib-dsp"
-import {AudioPitchBox, AudioRegionBox, AudioTimeStretchBox, WarpMarkerBox} from "@opendaw/studio-boxes"
+import {
+    AudioPitchBox,
+    AudioRegionBox,
+    AudioTimeStretchBox,
+    TransientMarkerBox,
+    WarpMarkerBox
+} from "@opendaw/studio-boxes"
 import {AudioContentHelpers} from "./AudioContentHelpers"
+import {Workers} from "../../Workers"
 
 export namespace AudioContentModifier {
     type AudioContentOwner = AudioRegionBoxAdapter | AudioClipBoxAdapter
@@ -48,10 +55,16 @@ export namespace AudioContentModifier {
     export const toTimeStretch = async (adapters: ReadonlyArray<AudioContentOwner>): Promise<Exec> => {
         const audioAdapters = adapters.filter(adapter => adapter.asPlayModeTimeStretch.isEmpty())
         if (audioAdapters.length === 0) {return EmptyExec}
-        return () => audioAdapters.forEach(adapter => {
-            if (adapter.file.transients.length() < 2) {
-                return panic("Does not have transients")
+        const tasks = await Promise.all(audioAdapters.map(async adapter => {
+            if (adapter.file.transients.length() === 0) {
+                return {
+                    adapter,
+                    transients: await Workers.Transients.detect(await adapter.file.audioData)
+                }
             }
+            return {adapter}
+        }))
+        return () => tasks.forEach(({adapter, transients}) => {
             const optPitchStretch = adapter.asPlayModePitch
             const boxGraph = adapter.box.graph
             const timeStretch = AudioTimeStretchBox.create(boxGraph, UUID.generate())
@@ -72,6 +85,13 @@ export namespace AudioContentModifier {
                 }
             } else {
                 AudioContentHelpers.addDefaultWarpMarkers(boxGraph, timeStretch, adapter.duration, adapter.file.endInSeconds)
+            }
+            if (isDefined(transients)) {
+                const markersField = adapter.file.box.transientMarkers
+                transients.forEach(position => TransientMarkerBox.create(boxGraph, UUID.generate(), box => {
+                    box.owner.refer(markersField)
+                    box.position.setValue(position)
+                }))
             }
             switchTimeBaseToMusical(adapter)
         })
