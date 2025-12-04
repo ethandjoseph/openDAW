@@ -7,8 +7,6 @@ if ((globalThis as any)[key]) {
     console.debug(`%c${key.description}%c is now available in ${globalThis.constructor.name}.`, "color: hsl(200, 83%, 60%)", "color: inherit")
 }
 
-import "./types"
-
 export * from "./live-stream/LiveStreamReceiver"
 export * from "./live-stream/LiveStreamBroadcaster"
 export * from "./peaks/Peaks"

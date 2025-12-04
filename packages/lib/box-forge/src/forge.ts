@@ -546,10 +546,13 @@ class ClassWriter<E extends PointerTypes> {
             const pointers = this.#generator.pointers()
             this.#imports.add(pointers.from, pointers.enum)
         }
-        this.#imports.forEach((moduleSpecifier, namedImports) =>
-            this.#file.addImportDeclaration({
-                moduleSpecifier, namedImports: Array.from(namedImports)
-            }))
+        this.#imports.forEach((moduleSpecifier, namedImports) => {
+            if (namedImports.size > 0) {
+                this.#file.addImportDeclaration({
+                    moduleSpecifier, namedImports: Array.from(namedImports)
+                })
+            }
+        })
     }
 
     #serializeConstraint(constraint: Constraints.Float32 | Constraints.Int32): string {

@@ -1,7 +1,6 @@
 import {Arrays, asDefined, isNotUndefined, panic} from "@opendaw/lib-std"
 import {Communicator, Messenger, Promises} from "@opendaw/lib-runtime"
 import {OpfsProtocol} from "./OpfsProtocol"
-import "../types"
 
 export namespace OpfsWorker {
     const DEBUG = false
