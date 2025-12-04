@@ -5,7 +5,7 @@ import {MetaDataBox} from "@opendaw/studio-boxes"
 
 export namespace MetaData {
     /**
-     * Stores the given value in the target box under the given origin.
+     * Stores the given JSONValue in the target box under the given origin.
      * Needs to be called within a transaction.
      * @param target The box to store the meta-data in.
      * @param value The value to store. Must be JSON-serializable.
