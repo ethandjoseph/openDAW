@@ -31,7 +31,9 @@ export const AudioEditor = ({lifecycle, service, range, snapping, reader}: Const
             <Frag>
                 <div className="label"><h5>Transients</h5></div>
                 <div className="label"><h5>Warp Markers</h5></div>
-                <AudioEditorHeader lifecycle={lifecycle} service={service}/>
+                <AudioEditorHeader lifecycle={lifecycle}
+                                   project={service.project}
+                                   reader={reader}/>
             </Frag>
             <Frag>
                 <TransientMarkerEditor lifecycle={lifecycle}

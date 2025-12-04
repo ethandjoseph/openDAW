@@ -1,6 +1,6 @@
 import {StudioService} from "@/service/StudioService"
 import {AudioUnitFactory, InstrumentFactories, ProjectSkeleton, TrackType} from "@opendaw/studio-adapters"
-import {AudioPlayback, AudioUnitType, IconSymbol} from "@opendaw/studio-enums"
+import {AudioUnitType, IconSymbol} from "@opendaw/studio-enums"
 import {
     AudioFileBox,
     AudioRegionBox,
@@ -65,7 +65,6 @@ export const testAudioProject = async (service: StudioService) => {
     })
     const audioRegionBox = AudioRegionBox.create(boxGraph, UUID.generate(), box => {
         box.timeBase.setValue(TimeBase.Musical)
-        box.playback.setValue(AudioPlayback.Pitch)
         box.duration.setValue(PPQN.Bar * 4)
         box.loopDuration.setValue(PPQN.Bar * 4)
         box.file.refer(audioFileBox)
