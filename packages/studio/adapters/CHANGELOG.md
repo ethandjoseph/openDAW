@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+## [0.0.52](https://github.com/andremichelle/openDAW/compare/@opendaw/studio-adapters@0.0.51...@opendaw/studio-adapters@0.0.52) (2025-12-04)
+
+**Note:** Version bump only for package @opendaw/studio-adapters
+
 ## [0.0.51](https://github.com/andremichelle/openDAW/compare/@opendaw/studio-adapters@0.0.50...@opendaw/studio-adapters@0.0.51) (2025-11-17)
 
 **Note:** Version bump only for package @opendaw/studio-adapters

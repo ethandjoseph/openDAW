@@ -1,6 +1,6 @@
 {
     "name": "@opendaw/studio-adapters",
-    "version": "0.0.51",
+    "version": "0.0.52",
     "license": "LGPL-3.0-or-later",
     "publishConfig": {
         "access": "public"
@@ -23,12 +23,12 @@
         "test": "echo \"No tests to run\""
     },
     "dependencies": {
-        "@opendaw/lib-box": "^0.0.50",
-        "@opendaw/lib-dsp": "^0.0.50",
-        "@opendaw/lib-runtime": "^0.0.50",
-        "@opendaw/lib-std": "^0.0.50",
-        "@opendaw/studio-boxes": "^0.0.50",
-        "@opendaw/studio-enums": "^0.0.41",
+        "@opendaw/lib-box": "^0.0.51",
+        "@opendaw/lib-dsp": "^0.0.51",
+        "@opendaw/lib-runtime": "^0.0.51",
+        "@opendaw/lib-std": "^0.0.51",
+        "@opendaw/studio-boxes": "^0.0.51",
+        "@opendaw/studio-enums": "^0.0.42",
         "soundfont2": "^0.5.0"
     },
     "devDependencies": {

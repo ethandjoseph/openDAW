@@ -1,6 +1,6 @@
 {
     "name": "@opendaw/studio-sdk",
-    "version": "0.0.59",
+    "version": "0.0.60",
     "license": "LGPL-3.0-or-later",
     "publishConfig": {
         "access": "public"
@@ -24,20 +24,20 @@
         "README.md"
     ],
     "dependencies": {
-        "@opendaw/lib-box": "^0.0.50",
-        "@opendaw/lib-dawproject": "^0.0.36",
-        "@opendaw/lib-dom": "^0.0.50",
-        "@opendaw/lib-dsp": "^0.0.50",
-        "@opendaw/lib-fusion": "^0.0.50",
-        "@opendaw/lib-jsx": "^0.0.50",
-        "@opendaw/lib-midi": "^0.0.32",
-        "@opendaw/lib-runtime": "^0.0.50",
-        "@opendaw/lib-std": "^0.0.50",
-        "@opendaw/lib-xml": "^0.0.36",
-        "@opendaw/studio-adapters": "^0.0.51",
-        "@opendaw/studio-boxes": "^0.0.50",
-        "@opendaw/studio-core": "^0.0.59",
-        "@opendaw/studio-enums": "^0.0.41"
+        "@opendaw/lib-box": "^0.0.51",
+        "@opendaw/lib-dawproject": "^0.0.37",
+        "@opendaw/lib-dom": "^0.0.51",
+        "@opendaw/lib-dsp": "^0.0.51",
+        "@opendaw/lib-fusion": "^0.0.51",
+        "@opendaw/lib-jsx": "^0.0.51",
+        "@opendaw/lib-midi": "^0.0.33",
+        "@opendaw/lib-runtime": "^0.0.51",
+        "@opendaw/lib-std": "^0.0.51",
+        "@opendaw/lib-xml": "^0.0.37",
+        "@opendaw/studio-adapters": "^0.0.52",
+        "@opendaw/studio-boxes": "^0.0.51",
+        "@opendaw/studio-core": "^0.0.60",
+        "@opendaw/studio-enums": "^0.0.42"
     },
     "gitHead": "b000505c56dbc68bce90bac93f722198deab0ecf"
 }
