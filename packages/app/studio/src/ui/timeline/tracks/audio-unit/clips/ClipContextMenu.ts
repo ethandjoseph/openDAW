@@ -10,8 +10,8 @@ import {DebugMenus} from "@/ui/menu/debug"
 import {exportNotesToMidiFile} from "@/ui/timeline/editors/notes/NoteUtils"
 import {AudioRegionBox, NoteRegionBox, ValueRegionBox} from "@opendaw/studio-boxes"
 import {ColorMenu} from "@/ui/timeline/ColorMenu"
-import {Project} from "@opendaw/studio-core"
-import {AudioPlayback} from "@opendaw/studio-enums"
+import {AudioContentModifier, Project} from "@opendaw/studio-core"
+import {Promises} from "@opendaw/lib-runtime"
 
 type Creation = {
     element: HTMLElement
@@ -64,33 +64,43 @@ export const installClipContextMenu = ({element, project, selection, capturing}:
                     MenuItem.default({
                         label: "Pitch",
                         checked: clip.type === "audio-clip" && clip.asPlayModePitch.nonEmpty()
-                    }).setTriggerProcedure(() => {
-                        const adapters = selection.selected()
-                            .filter((clip): clip is AudioClipBoxAdapter => clip.type === "audio-clip"
-                                && clip.asPlayModePitch.isEmpty())
-                        if (adapters.length === 0) {return}
-                        editing.modify(() => adapters.forEach(clip => clip.setPlayback(AudioPlayback.Pitch)))
+                    }).setTriggerProcedure(async () => {
+                        const {status, value: modifier, error} =
+                            await Promises.tryCatch(AudioContentModifier.toPitchStretch(selection.selected()
+                                .filter((clip): clip is AudioClipBoxAdapter => clip.type === "audio-clip")))
+                        if (status === "resolved") {
+                            editing.modify(modifier)
+                        } else {
+                            console.warn(error)
+                        }
                     }),
                     MenuItem.default({
                         label: "Timestretch",
                         checked: clip.type === "audio-clip" && clip.asPlayModeTimeStretch.nonEmpty()
-                    }).setTriggerProcedure(() => {
-                        const adapters = selection.selected()
-                            .filter((clip): clip is AudioClipBoxAdapter => clip.type === "audio-clip"
-                                && clip.asPlayModeTimeStretch.isEmpty())
-                        if (adapters.length === 0) {return}
-                        editing.modify(() => adapters.forEach(clip => clip.setPlayback(AudioPlayback.Timestretch)))
+                    }).setTriggerProcedure(async () => {
+                        const {status, value: modifier, error} =
+                            await Promises.tryCatch(AudioContentModifier.toTimeStretch(selection.selected()
+                                .filter((clip): clip is AudioClipBoxAdapter => clip.type === "audio-clip")))
+                        if (status === "resolved") {
+                            editing.modify(modifier)
+                        } else {
+                            console.warn(error)
+                        }
                     }),
                     MenuItem.default({
                         label: "No Warp",
                         checked: clip.type === "audio-clip" && clip.isPlayModeNoWarp
-                    }).setTriggerProcedure(() => {
-                        const adapters = selection.selected()
-                            .filter((clip): clip is AudioClipBoxAdapter =>
-                                clip.type === "audio-clip" && !clip.isPlayModeNoWarp)
-                        if (adapters.length === 0) {return}
-                        editing.modify(() => adapters.forEach(clip => clip.setPlayback(AudioPlayback.NoSync)))
-                    })
+                    }).setTriggerProcedure(async () => {
+                            const {status, value: modifier, error} =
+                                await Promises.tryCatch(AudioContentModifier.toNotStretched(selection.selected()
+                                    .filter((clip): clip is AudioClipBoxAdapter => clip.type === "audio-clip")))
+                            if (status === "resolved") {
+                                editing.modify(modifier)
+                            } else {
+                                console.warn(error)
+                            }
+                        }
+                    )
                 )),
                 MenuItem.default({label: "Trigger"})
                     .setRuntimeChildrenProcedure(parent => parent.addMenuItem(
@@ -129,9 +139,11 @@ export const installClipContextMenu = ({element, project, selection, capturing}:
                                 box.hue.setValue(clip.hue)
                                 box.label.setValue(clip.label)
                                 box.mute.setValue(clip.mute)
+                                box.timeBase.setValue(clip.timeBase)
                                 box.file.refer(clip.box.file.targetVertex.unwrap())
                                 box.events.refer(clip.box.events.targetVertex.unwrap())
                                 box.regions.refer(trackBoxAdapter.box.regions)
+                                clip.box.playMode.ifVertex(vertex => box.playMode.refer(vertex))
                             })
                         } else if (clip.type === "value-clip") {
                             ValueRegionBox.create(clip.box.graph, UUID.generate(), box => {

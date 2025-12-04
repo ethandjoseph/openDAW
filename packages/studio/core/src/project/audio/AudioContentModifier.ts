@@ -1,7 +1,7 @@
 import {AudioClipBoxAdapter, AudioRegionBoxAdapter} from "@opendaw/studio-adapters"
-import {EmptyExec, Exec, isInstanceOf, UUID} from "@opendaw/lib-std"
+import {EmptyExec, Exec, isInstanceOf, panic, UUID} from "@opendaw/lib-std"
 import {TimeBase} from "@opendaw/lib-dsp"
-import {AudioPitchBox, AudioRegionBox, AudioTimeStretchBox} from "@opendaw/studio-boxes"
+import {AudioPitchBox, AudioRegionBox, AudioTimeStretchBox, WarpMarkerBox} from "@opendaw/studio-boxes"
 import {AudioContentHelpers} from "./AudioContentHelpers"
 
 export namespace AudioContentModifier {
@@ -26,9 +26,17 @@ export namespace AudioContentModifier {
             adapter.box.playMode.refer(pitchStretch)
             if (optTimeStretch.nonEmpty()) {
                 const timeStretch = optTimeStretch.unwrap()
-                timeStretch.warpMarkers.asArray().forEach(marker => marker.box.owner.refer(pitchStretch.warpMarkers))
                 if (timeStretch.box.pointerHub.isEmpty()) {
+                    timeStretch.warpMarkers.asArray()
+                        .forEach(({box: {owner}}) => owner.refer(pitchStretch.warpMarkers))
                     timeStretch.box.delete()
+                } else {
+                    timeStretch.warpMarkers.asArray()
+                        .forEach(({box: source}) => WarpMarkerBox.create(boxGraph, UUID.generate(), box => {
+                            box.position.setValue(source.position.getValue())
+                            box.seconds.setValue(source.seconds.getValue())
+                            box.owner.refer(pitchStretch.warpMarkers)
+                        }))
                 }
             } else {
                 AudioContentHelpers.addDefaultWarpMarkers(boxGraph, pitchStretch, adapter.duration, adapter.file.endInSeconds)
@@ -41,15 +49,26 @@ export namespace AudioContentModifier {
         const audioAdapters = adapters.filter(adapter => adapter.asPlayModeTimeStretch.isEmpty())
         if (audioAdapters.length === 0) {return EmptyExec}
         return () => audioAdapters.forEach(adapter => {
+            if (adapter.file.transients.length() < 2) {
+                return panic("Does not have transients")
+            }
             const optPitchStretch = adapter.asPlayModePitch
             const boxGraph = adapter.box.graph
             const timeStretch = AudioTimeStretchBox.create(boxGraph, UUID.generate())
             adapter.box.playMode.refer(timeStretch)
             if (optPitchStretch.nonEmpty()) {
                 const pitchStretch = optPitchStretch.unwrap()
-                pitchStretch.warpMarkers.asArray().forEach(marker => marker.box.owner.refer(timeStretch.warpMarkers))
                 if (pitchStretch.box.pointerHub.isEmpty()) {
+                    pitchStretch.warpMarkers.asArray()
+                        .forEach(({box: {owner}}) => owner.refer(timeStretch.warpMarkers))
                     pitchStretch.box.delete()
+                } else {
+                    pitchStretch.warpMarkers.asArray()
+                        .forEach(({box: source}) => WarpMarkerBox.create(boxGraph, UUID.generate(), box => {
+                            box.position.setValue(source.position.getValue())
+                            box.seconds.setValue(source.seconds.getValue())
+                            box.owner.refer(timeStretch.warpMarkers)
+                        }))
                 }
             } else {
                 AudioContentHelpers.addDefaultWarpMarkers(boxGraph, timeStretch, adapter.duration, adapter.file.endInSeconds)
