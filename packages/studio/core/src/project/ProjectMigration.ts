@@ -1,6 +1,7 @@
 import {
     AudioClipBox,
     AudioFileBox,
+    AudioPitchBox,
     AudioRegionBox,
     AudioUnitBox,
     BoxVisitor,
@@ -21,6 +22,7 @@ import {AudioPlayback, AudioUnitType} from "@opendaw/studio-enums"
 import {ProjectSkeleton} from "@opendaw/studio-adapters"
 import {Field} from "@opendaw/lib-box"
 import {PPQN, ppqn, seconds, TimeBase} from "@opendaw/lib-dsp"
+import {AudioContentHelpers} from "./audio/AudioContentHelpers"
 
 const isIntEncodedAsFloat = (v: number) =>
     v > 0 && v < 1e-6 && Number.isFinite(v) && (v / 1.401298464324817e-45) % 1 === 0
@@ -82,11 +84,23 @@ export class ProjectMigration {
                     const scale = fileDuration / currentLoopDurationSeconds
                     const currentDurationSeconds = toSeconds(box.duration, bpm.getValue())
                     const currentLoopOffsetSeconds = toSeconds(box.loopOffset, bpm.getValue())
-                    box.playback.setValue(AudioPlayback.NoSync)
                     box.timeBase.setValue(TimeBase.Seconds)
                     box.duration.setValue(currentDurationSeconds * scale)
                     box.loopDuration.setValue(fileDuration)
                     box.loopOffset.setValue(currentLoopOffsetSeconds * scale)
+                    box.playback.setValue("")
+                    boxGraph.endTransaction()
+                } else if (playback.getValue() === AudioPlayback.Pitch) {
+                    console.debug("Migrate 'AudioRegionBox' to new PitchStretchBox")
+                    boxGraph.beginTransaction()
+                    const file = asInstanceOf(box.file.targetVertex.unwrap(), AudioFileBox)
+                    const fileDuration = file.endInSeconds.getValue() - file.startInSeconds.getValue()
+                    const pitchBox = AudioPitchBox.create(boxGraph, UUID.generate())
+                    AudioContentHelpers.addDefaultWarpMarkers(boxGraph,
+                        pitchBox, box.duration.getValue(), fileDuration)
+                    box.timeBase.setValue(TimeBase.Musical)
+                    box.playMode.refer(pitchBox)
+                    box.playback.setValue("")
                     boxGraph.endTransaction()
                 }
                 if (box.events.isEmpty()) {
@@ -101,6 +115,19 @@ export class ProjectMigration {
                     console.debug("Migrate 'AudioClipBox' to have a ValueEventCollectionBox")
                     boxGraph.beginTransaction()
                     box.events.refer(ValueEventCollectionBox.create(boxGraph, UUID.generate()).owners)
+                    boxGraph.endTransaction()
+                }
+                if (box.playback.getValue() === AudioPlayback.Pitch) {
+                    console.debug("Migrate 'AudioClipBox' to new PitchStretchBox")
+                    boxGraph.beginTransaction()
+                    const file = asInstanceOf(box.file.targetVertex.unwrap(), AudioFileBox)
+                    const fileDuration = file.endInSeconds.getValue() - file.startInSeconds.getValue()
+                    const pitchBox = AudioPitchBox.create(boxGraph, UUID.generate())
+                    AudioContentHelpers.addDefaultWarpMarkers(boxGraph,
+                        pitchBox, box.duration.getValue(), fileDuration)
+                    box.timeBase.setValue(TimeBase.Musical)
+                    box.playMode.refer(pitchBox)
+                    box.playback.setValue("")
                     boxGraph.endTransaction()
                 }
             },

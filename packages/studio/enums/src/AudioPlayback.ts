@@ -1,3 +1,4 @@
+// @deprecated
 export enum AudioPlayback {
     NoSync = "nosync",
     Pitch = "pitch",
