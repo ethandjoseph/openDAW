@@ -48,6 +48,7 @@ export const ShadertoyPreview = ({lifecycle, service}: Construct) => {
                                 some: (box) => {
                                     const {shaderCode, highres} = asInstanceOf(box, ShadertoyBox)
                                     return shaderCode.catchupAndSubscribe(code => {
+                                        shaderLifecycle.terminate()
                                         const {status, error} = tryCatch(() => runner.compile(code.getValue()))
                                         if (status === "failure") {
                                             output.textContent = String(error)
