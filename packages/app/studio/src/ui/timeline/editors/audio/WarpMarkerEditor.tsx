@@ -23,18 +23,20 @@ type Construct = {
 }
 
 export const WarpMarkerEditor = ({lifecycle, project, range, snapping, reader, hoverTransient}: Construct) => {
-    const {audioContent: {optWarpMarkers, file, observableOptPlayMode}} = reader
+    const {audioContent} = reader
+    const {file, observableOptPlayMode} = audioContent
     const markerRadius = 7
     return (
-        <div className={Html.buildClassList(className, "warping-aware")}>
+        <div className={className} onInit={element =>
+            lifecycle.own(observableOptPlayMode.catchupAndSubscribe(() =>
+                element.classList.toggle("no-content", audioContent.isPlayModeNoWarp)))}>
             <canvas tabIndex={-1}
                     onInit={canvas => {
                         const {requestUpdate} = lifecycle.own(new CanvasPainter(canvas, painter => {
                             const {context, actualHeight, devicePixelRatio} = painter
-                            if (optWarpMarkers.isEmpty()) {return}
-                            const transientsCollection = file.transients
-                            if (transientsCollection.length() < 2) {return}
-                            const warpMarkers = optWarpMarkers.unwrap()
+                            if (observableOptPlayMode.isEmpty()) {return}
+                            if (audioContent.isPlayModeNoWarp) {return}
+                            const warpMarkers = observableOptPlayMode.unwrap().warpMarkers
                             for (const marker of warpMarkers.iterateFrom(range.unitMin - reader.offset)) {
                                 const unit = reader.offset + marker.position
                                 if (unit > range.unitMax) {break}

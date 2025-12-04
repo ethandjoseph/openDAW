@@ -1,8 +1,7 @@
 import {asDefined, RuntimeNotifier, UUID} from "@opendaw/lib-std"
-import {PPQN} from "@opendaw/lib-dsp"
-import {AudioFileBox, AudioRegionBox, ValueEventCollectionBox} from "@opendaw/studio-boxes"
-import {ColorCodes, InstrumentFactories, Sample} from "@opendaw/studio-adapters"
-import {OpenSampleAPI, ProjectStorage, SampleStorage} from "@opendaw/studio-core"
+import {AudioFileBox} from "@opendaw/studio-boxes"
+import {InstrumentFactories, Sample} from "@opendaw/studio-adapters"
+import {AudioContentFactory, OpenSampleAPI, ProjectStorage, SampleStorage} from "@opendaw/studio-core"
 import {HTMLSelection} from "@/ui/HTMLSelection"
 import {StudioService} from "@/service/StudioService"
 import {Dialogs} from "../components/dialogs"
@@ -20,9 +19,11 @@ export class SampleSelection {
         if (!this.#service.hasProfile) {return}
         const project = this.#service.project
         const {editing, boxGraph} = project
+
         editing.modify(() => {
             const samples = this.#selected()
-            samples.forEach(({uuid: uuidAsString, name, bpm, duration: durationInSeconds}) => {
+            samples.forEach(sample => {
+                const {uuid: uuidAsString, name, duration: durationInSeconds} = sample
                 const uuid = UUID.parse(uuidAsString)
                 const {trackBox} = project.api.createInstrument(InstrumentFactories.Tape)
                 const audioFileBox = boxGraph.findBox<AudioFileBox>(uuid)
@@ -31,17 +32,12 @@ export class SampleSelection {
                         box.startInSeconds.setValue(0)
                         box.endInSeconds.setValue(durationInSeconds)
                     }))
-                const duration = Math.round(PPQN.secondsToPulses(durationInSeconds, bpm))
-                const collectionBox = ValueEventCollectionBox.create(boxGraph, UUID.generate())
-                AudioRegionBox.create(boxGraph, UUID.generate(), box => {
-                    box.position.setValue(0)
-                    box.duration.setValue(duration)
-                    box.loopDuration.setValue(duration)
-                    box.regions.refer(trackBox.regions)
-                    box.hue.setValue(ColorCodes.forTrackType(trackBox.type.getValue()))
-                    box.label.setValue(name)
-                    box.file.refer(audioFileBox)
-                    box.events.refer(collectionBox.owners)
+                AudioContentFactory.createPitchStretchedRegion({
+                    boxGraph,
+                    sample,
+                    audioFileBox,
+                    position: 0,
+                    targetTrack: trackBox
                 })
             })
         })

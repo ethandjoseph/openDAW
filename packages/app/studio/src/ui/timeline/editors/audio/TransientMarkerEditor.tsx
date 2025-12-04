@@ -24,12 +24,14 @@ type Construct = {
 export const TransientMarkerEditor = ({lifecycle, range, reader, hoverTransient}: Construct) => {
     const {audioContent} = reader
     return (
-        <div className={Html.buildClassList(className, "warping-aware")}>
+        <div className={className} onInit={element =>
+            lifecycle.own(audioContent.observableOptPlayMode.catchupAndSubscribe(() =>
+                element.classList.toggle("no-content", audioContent.asPlayModeTimeStretch.isEmpty())))}>
             <canvas onInit={canvas => {
                 const {requestUpdate} = lifecycle.own(new CanvasPainter(canvas, painter => {
                     const {context, actualHeight, devicePixelRatio} = painter
                     const optWarpMarkers = audioContent.optWarpMarkers
-                    if (optWarpMarkers.isEmpty()) {return}
+                    if (optWarpMarkers.isEmpty() || audioContent.asPlayModeTimeStretch.isEmpty()) {return}
                     const transientsCollection = audioContent.file.transients
                     if (transientsCollection.length() < 2) {return}
                     const warpMarkers = optWarpMarkers.unwrap()

@@ -88,7 +88,6 @@ export const AudioEditorCanvas = ({lifecycle, project: {editing}, range, snappin
                         optPlayMode.ifSome(playMode => playModeTerminator.own(playMode.subscribe(painter.requestUpdate)))
                     }),
                     range.subscribe(painter.requestUpdate),
-                    Html.watchResize(canvas, painter.requestUpdate),
                     Dragging.attach(canvas, startEvent => {
                         const rect = canvas.getBoundingClientRect()
                         const startX = startEvent.clientX - rect.left

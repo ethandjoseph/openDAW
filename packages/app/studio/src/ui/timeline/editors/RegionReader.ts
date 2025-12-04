@@ -18,6 +18,7 @@ import {ppqn} from "@opendaw/lib-dsp"
 import {mod, Observer, Option, Subscription} from "@opendaw/lib-std"
 import {Propagation} from "@opendaw/lib-box"
 import {TimelineRange} from "@opendaw/studio-core"
+import {deferNextFrame} from "@opendaw/lib-dom"
 
 export class RegionReader<REGION extends LoopableRegionBoxAdapter<CONTENT>, CONTENT> implements EventOwnerReader<CONTENT> {
     static forAudioRegionBoxAdapter(region: AudioRegionBoxAdapter): AudioEventOwnerReader {
@@ -54,8 +55,19 @@ export class RegionReader<REGION extends LoopableRegionBoxAdapter<CONTENT>, CONT
     get trackBoxAdapter(): Option<TrackBoxAdapter> {return this.region.trackBoxAdapter}
 
     subscribeChange(observer: Observer<void>): Subscription {return this.region.subscribeChange(observer)}
-    watchOverlap(range: TimelineRange): Subscription {
+    keeoOverlapping(range: TimelineRange): Subscription {
         const region = this.region
+        const run = deferNextFrame(() => {
+            let unit = range.unitMin
+            if (region.offset + region.loopDuration > range.unitMax) {
+                const paddingRight = range.unitPadding * 2
+                unit = (region.offset + region.loopDuration + paddingRight) - range.unitRange
+            }
+            if (region.offset < range.unitMin) {
+                unit = region.offset
+            }
+            range.moveToUnit(unit)
+        })
         return region.box.subscribe(Propagation.Children, update => {
             if (update.type === "primitive") {
                 switch (true) {
@@ -63,15 +75,7 @@ export class RegionReader<REGION extends LoopableRegionBoxAdapter<CONTENT>, CONT
                     case update.matches(region.box.duration):
                     case update.matches(region.box.loopOffset):
                     case update.matches(region.box.loopDuration): {
-                        let unit = range.unitMin
-                        if (region.offset + region.loopDuration > range.unitMax) {
-                            const paddingRight = range.unitPadding * 2
-                            unit = (region.offset + region.loopDuration + paddingRight) - range.unitRange
-                        }
-                        if (region.offset < range.unitMin) {
-                            unit = region.offset
-                        }
-                        range.moveToUnit(unit)
+                        run.request()
                         return
                     }
                 }

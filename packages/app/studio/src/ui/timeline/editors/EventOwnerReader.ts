@@ -34,5 +34,5 @@ export interface EventOwnerReader<CONTENT> extends TimeAxisCursorMapper {
     get trackBoxAdapter(): Option<TrackBoxAdapter>
 
     subscribeChange(observer: Observer<void>): Subscription
-    watchOverlap(range: TimelineRange): Subscription
+    keeoOverlapping(range: TimelineRange): Subscription
 }

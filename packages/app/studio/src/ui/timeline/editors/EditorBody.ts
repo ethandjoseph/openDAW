@@ -24,11 +24,11 @@ export const installEditorMainBody = ({element, range, reader}: Construct): Term
             }
         }),
         installEditorAuxBody(element, range),
-        reader.watchOverlap(range)
+        reader.keeoOverlapping(range)
     )
 }
 
-// This is for extra editor that also need wheel and auto-scroll support
+// This is for the extra editor that also needs swheel and auto-scroll support
 // Currently: PropertyEditor within NoteEditor
 export const installEditorAuxBody = (element: Element, range: TimelineRange): Terminable => {
     return Terminable.many(

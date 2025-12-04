@@ -45,7 +45,7 @@ import {
 import {RegionReader} from "@/ui/timeline/editors/RegionReader.ts"
 import {Colors, Pointers} from "@opendaw/studio-enums"
 import {ValueEditingContext} from "@/ui/timeline/editors/value/ValueEditingContext.ts"
-import {AnimationFrame, Events, Html, Keyboard} from "@opendaw/lib-dom"
+import {AnimationFrame, deferNextFrame, Events, Html, Keyboard} from "@opendaw/lib-dom"
 
 const className = Html.adoptStyleSheet(css, "ContentEditor")
 
@@ -158,69 +158,71 @@ export const ContentEditor = ({lifecycle, service}: Construct) => {
         )
     }
 
+    const updateEditor = deferNextFrame(() => editingSubject.get().match({
+        some: (vertex: Vertex) => {
+            replaceChildren(contentEditor, vertex.box.accept<BoxVisitor<Element>>({
+                visitNoteClipBox: (box: NoteClipBox): Element => {
+                    const reader = ClipReader
+                        .forNoteClipBoxAdapter(service.project.boxAdapters.adapterFor(box, NoteClipBoxAdapter))
+                    owner = Option.wrap(reader)
+                    return createNoteEditor(reader)
+                },
+                visitNoteRegionBox: (box: NoteRegionBox): Element => {
+                    const reader = RegionReader.forNoteRegionBoxAdapter(service.project.boxAdapters.adapterFor(box, NoteRegionBoxAdapter))
+                    owner = Option.wrap(reader)
+                    return createNoteEditor(RegionReader.forNoteRegionBoxAdapter(service.project.boxAdapters.adapterFor(box, NoteRegionBoxAdapter)))
+                },
+                visitValueClipBox: (box: ValueClipBox): Element => {
+                    const reader = ClipReader.forValueClipBoxAdapter(service.project.boxAdapters.adapterFor(box, ValueClipBoxAdapter))
+                    owner = Option.wrap(reader)
+                    return createValueEditor(reader, box.clips)
+                },
+                visitValueRegionBox: (box: ValueRegionBox): Element => {
+                    const reader = RegionReader.forValueRegionBoxAdapter(service.project.boxAdapters.adapterFor(box, ValueRegionBoxAdapter))
+                    owner = Option.wrap(reader)
+                    return createValueEditor(reader, box.regions)
+                },
+                visitAudioClipBox: (box: AudioClipBox): Element => {
+                    const reader = ClipReader
+                        .forAudioClipBoxAdapter(service.project.boxAdapters.adapterFor(box, AudioClipBoxAdapter))
+                    owner = Option.wrap(reader)
+                    return createAudioEditor(reader)
+                },
+                visitAudioRegionBox: (box: AudioRegionBox): Element => {
+                    const reader = RegionReader
+                        .forAudioRegionBoxAdapter(service.project.boxAdapters.adapterFor(box, AudioRegionBoxAdapter))
+                    owner = Option.wrap(reader)
+                    return createAudioEditor(reader)
+                }
+            }) ?? (() => {
+                return fallback(vertex.box)
+            })()
+            )
+            AnimationFrame.once(() => element.focus())
+        },
+        none: () => {
+            owner = Option.None
+            element.classList.add("disabled")
+            replaceChildren(contentEditor, (
+                <Frag>
+                    <div className="empty-header"/>
+                    <div className="label">
+                        <p className="help-section">Double-click a region or clip to edit</p>
+                    </div>
+                </Frag>
+            ))
+        }
+    }))
+
     lifecycle.ownAll(
-        editingSubject.catchupAndSubscribe(subject => {
+        updateEditor,
+        editingSubject.catchupAndSubscribe(() => {
             element.classList.remove("disabled")
             runtime.terminate()
-            subject.match({
-                some: (vertex: Vertex) => {
-                    replaceChildren(contentEditor, vertex.box.accept<BoxVisitor<Element>>({
-                        visitNoteClipBox: (box: NoteClipBox): Element => {
-                            const reader = ClipReader
-                                .forNoteClipBoxAdapter(service.project.boxAdapters.adapterFor(box, NoteClipBoxAdapter))
-                            owner = Option.wrap(reader)
-                            return createNoteEditor(reader)
-                        },
-                        visitNoteRegionBox: (box: NoteRegionBox): Element => {
-                            const reader = RegionReader.forNoteRegionBoxAdapter(service.project.boxAdapters.adapterFor(box, NoteRegionBoxAdapter))
-                            owner = Option.wrap(reader)
-                            return createNoteEditor(RegionReader.forNoteRegionBoxAdapter(service.project.boxAdapters.adapterFor(box, NoteRegionBoxAdapter)))
-                        },
-                        visitValueClipBox: (box: ValueClipBox): Element => {
-                            const reader = ClipReader.forValueClipBoxAdapter(service.project.boxAdapters.adapterFor(box, ValueClipBoxAdapter))
-                            owner = Option.wrap(reader)
-                            return createValueEditor(reader, box.clips)
-                        },
-                        visitValueRegionBox: (box: ValueRegionBox): Element => {
-                            const reader = RegionReader.forValueRegionBoxAdapter(service.project.boxAdapters.adapterFor(box, ValueRegionBoxAdapter))
-                            owner = Option.wrap(reader)
-                            return createValueEditor(reader, box.regions)
-                        },
-                        visitAudioClipBox: (box: AudioClipBox): Element => {
-                            const reader = ClipReader
-                                .forAudioClipBoxAdapter(service.project.boxAdapters.adapterFor(box, AudioClipBoxAdapter))
-                            owner = Option.wrap(reader)
-                            return createAudioEditor(reader)
-                        },
-                        visitAudioRegionBox: (box: AudioRegionBox): Element => {
-                            const reader = RegionReader
-                                .forAudioRegionBoxAdapter(service.project.boxAdapters.adapterFor(box, AudioRegionBoxAdapter))
-                            owner = Option.wrap(reader)
-                            return createAudioEditor(reader)
-                        }
-                    }) ?? (() => {
-                        return fallback(vertex.box)
-                    })()
-                    )
-                    AnimationFrame.once(() => element.focus())
-                },
-                none: () => {
-                    owner = Option.None
-                    element.classList.add("disabled")
-                    replaceChildren(contentEditor, (
-                        <Frag>
-                            <div className="empty-header"/>
-                            <div className="label">
-                                <p className="help-section">Double-click a region or clip to edit</p>
-                            </div>
-                        </Frag>
-                    ))
-                }
-            })
+            updateEditor.request()
         }),
-        Html.watchResize(element, () => {
-            element.style.setProperty("--cursor-height", `${(contentEditor.clientHeight + 1)}px`)
-        }),
+        Html.watchResize(element, () =>
+            element.style.setProperty("--cursor-height", `${(contentEditor.clientHeight + 1)}px`)),
         range.subscribe((() => {
             // FIXME Tried it with a timeout, but it did not behave correctly
             const mainTimelineRange = service.timeline.range
