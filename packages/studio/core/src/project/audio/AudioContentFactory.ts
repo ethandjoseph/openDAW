@@ -1,6 +1,6 @@
 import {ppqn, PPQN, TimeBase} from "@opendaw/lib-dsp"
 import {ColorCodes, Sample, TrackType} from "@opendaw/studio-adapters"
-import {int, panic, UUID} from "@opendaw/lib-std"
+import {int, panic, quantizeRound, UUID} from "@opendaw/lib-std"
 import {
     AudioClipBox,
     AudioFileBox,
@@ -105,7 +105,7 @@ export namespace AudioContentFactory {
             return panic("Cannot create audio-region on non-audio track")
         }
         const {name, duration: durationInSeconds, bpm} = sample
-        const durationInPPQN = Math.round(PPQN.secondsToPulses(durationInSeconds, bpm))
+        const durationInPPQN = quantizeRound(PPQN.secondsToPulses(durationInSeconds, bpm), PPQN.SemiQuaver)
         AudioContentHelpers.addDefaultWarpMarkers(boxGraph, playMode, durationInPPQN, durationInSeconds)
         const collectionBox = ValueEventCollectionBox.create(boxGraph, UUID.generate())
         return AudioRegionBox.create(boxGraph, UUID.generate(), box => {
@@ -130,7 +130,7 @@ export namespace AudioContentFactory {
             return panic("Cannot create audio-region on non-audio track")
         }
         const {name, duration: durationInSeconds, bpm} = sample
-        const durationInPPQN = Math.round(PPQN.secondsToPulses(durationInSeconds, bpm))
+        const durationInPPQN = quantizeRound(PPQN.secondsToPulses(durationInSeconds, bpm), PPQN.SemiQuaver)
         AudioContentHelpers.addDefaultWarpMarkers(boxGraph, playMode, durationInPPQN, durationInSeconds)
         const collectionBox = ValueEventCollectionBox.create(boxGraph, UUID.generate())
         return AudioClipBox.create(boxGraph, UUID.generate(), box => {
