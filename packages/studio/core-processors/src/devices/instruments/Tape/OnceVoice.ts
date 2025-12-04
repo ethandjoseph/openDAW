@@ -16,13 +16,12 @@ export class OnceVoice implements Voice {
     #blockOffset: int
     #fadeOutBlockOffset: int = 0
 
-    constructor(output: AudioBuffer, data: AudioData, segment: Segment, fadeLength: number,
-                offset: number = 0.0, blockOffset: int = 0) {
+    constructor(output: AudioBuffer, data: AudioData, segment: Segment, fadeLength: number, blockOffset: int = 0) {
         this.#output = output
         this.#data = data
         this.#segment = segment
         this.#fadeLength = fadeLength
-        this.#readPosition = segment.start + offset
+        this.#readPosition = segment.start
         this.#blockOffset = blockOffset
         if (this.#readPosition >= segment.end) {
             this.#state = VoiceState.Done
@@ -52,15 +51,13 @@ export class OnceVoice implements Voice {
         const fadeLength = this.#fadeLength
         const segmentEnd = this.#segment.end
         const fadeOutThreshold = segmentEnd - fadeLength
-        const blockOffset = this.#blockOffset
         const fadeOutBlockOffset = this.#fadeOutBlockOffset
         let state: VoiceState = this.#state
         let readPosition = this.#readPosition
         let fadeProgress = this.#fadeProgress
-        for (let i = 0; i < bufferCount; i++) {
+        for (let i = this.#blockOffset; i < bufferCount; i++) {
             if (state === VoiceState.Done) {break}
             // Skip samples until we reach the block offset where this voice should start
-            if (i < blockOffset) {continue}
             const j = bufferStart + i
             let amplitude: number
             if (state === VoiceState.FadingIn) {

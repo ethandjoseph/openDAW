@@ -309,7 +309,6 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                     // Calculate block offset - transient should fall within [0, pn] range now
                     const blockOffset = Math.max(0, Math.min(bpn - 1, ((ppqnIntoBlock / pn) * bpn) | 0))
                     lane.voices.forEach(voice => voice.startFadeOut(blockOffset))
-                    const offset = 0.0
                     let canLoop = false
                     if (hasNext && transientPlayMode !== TransientPlayMode.Once) {
                         const nextNextWarpSeconds = nextTransientSeconds - waveformOffset
@@ -321,16 +320,12 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                         const loopLength = samplesAvailable - (LOOP_START_MARGIN + LOOP_END_MARGIN)
                         canLoop = samplesNeeded > samplesAvailable * 1.01 && loopLength >= LOOP_MIN_LENGTH_SAMPLES
                     }
-
                     if (transientPlayMode === TransientPlayMode.Once || !canLoop) {
-                        console.debug("Once blockOffset", blockOffset)
-                        lane.voices.push(new OnceVoice(this.#audioOutput, data, segment, FADE_LENGTH, offset, blockOffset))
+                        lane.voices.push(new OnceVoice(this.#audioOutput, data, segment, FADE_LENGTH, blockOffset))
                     } else if (transientPlayMode === TransientPlayMode.Repeat) {
-                        console.debug("Repeat blockOffset", blockOffset)
-                        lane.voices.push(new RepeatVoice(this.#audioOutput, data, segment, FADE_LENGTH, offset, blockOffset))
+                        lane.voices.push(new RepeatVoice(this.#audioOutput, data, segment, FADE_LENGTH, blockOffset))
                     } else {
-                        console.debug("Pingpong blockOffset", blockOffset)
-                        lane.voices.push(new PingpongVoice(this.#audioOutput, data, segment, FADE_LENGTH, offset, blockOffset))
+                        lane.voices.push(new PingpongVoice(this.#audioOutput, data, segment, FADE_LENGTH, blockOffset))
                     }
                 }
                 lane.lastTransientIndex = nextTransientIndex

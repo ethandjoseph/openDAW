@@ -24,14 +24,13 @@ export class PingpongVoice implements Voice {
     #blockOffset: int
     #fadeOutBlockOffset: int = 0
 
-    constructor(output: AudioBuffer, data: AudioData, segment: Segment, fadeLength: number,
-                offset: number = 0.0, blockOffset: int = 0) {
+    constructor(output: AudioBuffer, data: AudioData, segment: Segment, fadeLength: number, blockOffset: int = 0) {
         this.#output = output
         this.#data = data
         this.#fadeLength = fadeLength
         this.#loopStart = segment.start + LOOP_START_MARGIN
         this.#loopEnd = segment.end - LOOP_END_MARGIN
-        this.#readPosition = segment.start + offset
+        this.#readPosition = segment.start
         this.#blockOffset = blockOffset
         if (this.#readPosition >= segment.end) {
             this.#state = VoiceState.Done
@@ -61,7 +60,6 @@ export class PingpongVoice implements Voice {
         const loopEnd = this.#loopEnd
         const bounceStart = loopEnd - BOUNCE_FADE_LENGTH
         const bounceEnd = loopStart + BOUNCE_FADE_LENGTH
-        const blockOffset = this.#blockOffset
         const fadeOutBlockOffset = this.#fadeOutBlockOffset
         let state = this.#state
         let readPosition = this.#readPosition
@@ -70,10 +68,9 @@ export class PingpongVoice implements Voice {
         let direction = this.#direction
         let bounceProgress = this.#bounceProgress
         let bouncePosition = this.#bouncePosition
-        for (let i = 0; i < bufferCount; i++) {
+        for (let i = this.#blockOffset; i < bufferCount; i++) {
             if (state === VoiceState.Done) {break}
             // Skip samples until we reach the block offset where this voice should start
-            if (i < blockOffset) {continue}
             const j = bufferStart + i
             let amplitude: number
             if (state === VoiceState.Fading) {
