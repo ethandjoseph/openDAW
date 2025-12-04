@@ -1,5 +1,5 @@
 import {ElementCapturing} from "@/ui/canvas/capturing.ts"
-import {EmptyExec, panic, RuntimeNotifier, Selection, Terminable} from "@opendaw/lib-std"
+import {EmptyExec, Selection, Terminable} from "@opendaw/lib-std"
 import {ContextMenu} from "@/ui/ContextMenu.ts"
 import {MenuItem} from "@/ui/model/menu-item.ts"
 import {AnyRegionBoxAdapter, AudioRegionBoxAdapter} from "@opendaw/studio-adapters"
@@ -15,9 +15,7 @@ import {BPMTools} from "@opendaw/lib-dsp"
 import {Browser} from "@opendaw/lib-dom"
 import {Dialogs} from "@/ui/components/dialogs.tsx"
 import {StudioService} from "@/service/StudioService"
-import {TimelineRange} from "@opendaw/studio-core"
-import {AudioPlayback} from "@opendaw/studio-enums"
-import {AudioAdapterEditing} from "@/ui/timeline/tracks/audio-unit/AudioAdapterEditing"
+import {AudioContentModifier, TimelineRange} from "@opendaw/studio-core"
 import {Promises} from "@opendaw/lib-runtime"
 
 type Construct = {
@@ -32,7 +30,7 @@ type Construct = {
 export const installRegionContextMenu =
     ({element, service, capturing, selection, timelineBox, range}: Construct): Terminable => {
         const {project} = service
-        const {boxGraph, editing, selection: vertexSelection} = project
+        const {editing, selection: vertexSelection} = project
         const computeSelectionRange = () => selection.selected().reduce((range, region) => {
             range[0] = Math.min(region.position, range[0])
             range[1] = Math.max(region.complete, range[1])
@@ -88,7 +86,6 @@ export const installRegionContextMenu =
                         region.flatten(selection.selected()).ifSome(box => project.selection.select(box)))),
                 MenuItem.default({label: "Convert to Clip"})
                     .setTriggerProcedure(() => editing.modify(() => {
-                        // TODO deselect all clips
                         service.timeline.clips.visible.setValue(true)
                         vertexSelection.select(RegionTransformer.toClip(region))
                     })),
@@ -98,55 +95,52 @@ export const installRegionContextMenu =
                 }).setTriggerProcedure(() => {
                     if (region.type === "note-region") {
                         const label = region.label
-                        exportNotesToMidiFile(region.optCollection.unwrap(), `${label.length === 0 ? "region" : label}.mid`).then()
+                        exportNotesToMidiFile(region.optCollection.unwrap(),
+                            `${label.length === 0 ? "region" : label}.mid`).then(EmptyExec, EmptyExec)
                     }
                 }),
                 MenuItem.default({
-                    label: "Playback",
+                    label: "Play Mode",
                     hidden: region.type !== "audio-region"
                 }).setRuntimeChildrenProcedure(parent => parent.addMenuItem(
                     MenuItem.default({
                         label: "Pitch",
                         checked: region.type === "audio-region" && region.asPlayModePitch.nonEmpty()
-                    }).setTriggerProcedure(() => {
-                        const adapters = selection.selected()
-                            .filter((region): region is AudioRegionBoxAdapter => region.type === "audio-region"
-                                && region.asPlayModePitch.isEmpty())
-                        if (adapters.length === 0) {return}
-                        editing.modify(() => adapters.forEach(region => region.setPlayback(AudioPlayback.Pitch)))
+                    }).setTriggerProcedure(async () => {
+                        const {status, value: modifier, error} =
+                            await Promises.tryCatch(AudioContentModifier.toPitchStretch(selection.selected()
+                                .filter((region): region is AudioRegionBoxAdapter => region.type === "audio-region")))
+                        if (status === "resolved") {
+                            editing.modify(modifier)
+                        } else {
+                            console.warn(error)
+                        }
                     }),
                     MenuItem.default({
                         label: "Timestretch",
                         checked: region.type === "audio-region" && region.asPlayModeTimeStretch.nonEmpty()
                     }).setTriggerProcedure(async () => {
-                        const adapters = selection.selected()
-                            .filter((region): region is AudioRegionBoxAdapter => region.type === "audio-region")
-                        const {status, value: editExec, error} = await Promises.tryCatch(
-                            AudioAdapterEditing.toTimestretch(service.sampleManager, boxGraph, adapters))
-                        if (status === "rejected") {
-                            await RuntimeNotifier.info({
-                                headline: "Error",
-                                message: `Could not detect transients (${error})`
-                            })
-                            return panic(error)
+                        const {status, value: modifier, error} =
+                            await Promises.tryCatch(AudioContentModifier.toTimeStretch(selection.selected()
+                                .filter((region): region is AudioRegionBoxAdapter => region.type === "audio-region")))
+                        if (status === "resolved") {
+                            editing.modify(modifier)
+                        } else {
+                            console.warn(error)
                         }
-                        editing.modify(editExec)
                     }),
                     MenuItem.default({
                         label: "No Warp",
                         checked: region.type === "audio-region" && region.isPlayModeNoWarp
                     }).setTriggerProcedure(async () => {
-                            const {status, value: editExec, error} =
-                                await Promises.tryCatch(AudioAdapterEditing.toNoWarp(selection.selected()
+                            const {status, value: modifier, error} =
+                                await Promises.tryCatch(AudioContentModifier.toNotStretched(selection.selected()
                                     .filter((region): region is AudioRegionBoxAdapter => region.type === "audio-region")))
-                            if (status === "rejected") {
-                                await RuntimeNotifier.info({
-                                    headline: "Error",
-                                    message: `Could not detect transients (${error})`
-                                })
-                                return panic(error)
+                            if (status === "resolved") {
+                                editing.modify(modifier)
+                            } else {
+                                console.warn(error)
                             }
-                            editing.modify(editExec)
                         }
                     )
                 )),

@@ -13,6 +13,7 @@ import {
 } from "@opendaw/studio-boxes"
 import {TransientPlayMode} from "@opendaw/studio-enums"
 import {BoxGraph} from "@opendaw/lib-box"
+import {AudioContentHelpers} from "./AudioContentHelpers"
 
 export namespace AudioContentFactory {
     type Props = {
@@ -23,8 +24,8 @@ export namespace AudioContentFactory {
         gainInDb?: number
     }
 
-    type Position = { position: ppqn }
-    type Indexed = { index: int }
+    type Clip = { index: int }
+    type Region = { position: ppqn }
 
     export type TimeStretchedProps = {
         transientPlayMode?: TransientPlayMode
@@ -37,7 +38,7 @@ export namespace AudioContentFactory {
 
     // --- Region Creation --- //
 
-    export const createTimeStretchedRegion = (props: TimeStretchedProps & Position): AudioRegionBox => {
+    export const createTimeStretchedRegion = (props: TimeStretchedProps & Region): AudioRegionBox => {
         const {boxGraph, playbackRate, transientPlayMode} = props
         return createRegionWithWarpMarkers(AudioTimeStretchBox.create(boxGraph, UUID.generate(), box => {
             box.transientPlayMode.setValue(transientPlayMode ?? TransientPlayMode.Pingpong)
@@ -45,11 +46,11 @@ export namespace AudioContentFactory {
         }), props)
     }
 
-    export const createPitchStretchedRegion = (props: PitchStretchedProps & Position): AudioRegionBox => {
+    export const createPitchStretchedRegion = (props: PitchStretchedProps & Region): AudioRegionBox => {
         return createRegionWithWarpMarkers(AudioPitchBox.create(props.boxGraph, UUID.generate()), props)
     }
 
-    export const createNotStretchedRegion = (props: NotStretchedProps & Position): AudioRegionBox => {
+    export const createNotStretchedRegion = (props: NotStretchedProps & Region): AudioRegionBox => {
         const {boxGraph, targetTrack, position, audioFileBox, sample: {name, duration: durationInSeconds}} = props
         const collectionBox = ValueEventCollectionBox.create(boxGraph, UUID.generate())
         return AudioRegionBox.create(boxGraph, UUID.generate(), box => {
@@ -68,7 +69,7 @@ export namespace AudioContentFactory {
 
     // --- Clip Creation --- //
 
-    export const createTimeStretchedClip = (props: TimeStretchedProps & Indexed): AudioClipBox => {
+    export const createTimeStretchedClip = (props: TimeStretchedProps & Clip): AudioClipBox => {
         const {boxGraph, playbackRate, transientPlayMode} = props
         return createClipWithWarpMarkers(AudioTimeStretchBox.create(boxGraph, UUID.generate(), box => {
             box.transientPlayMode.setValue(transientPlayMode ?? TransientPlayMode.Pingpong)
@@ -76,12 +77,12 @@ export namespace AudioContentFactory {
         }), props)
     }
 
-    export const createPitchStretchedClip = (props: PitchStretchedProps & Indexed): AudioClipBox => {
+    export const createPitchStretchedClip = (props: PitchStretchedProps & Clip): AudioClipBox => {
         const {boxGraph} = props
         return createClipWithWarpMarkers(AudioTimeStretchBox.create(boxGraph, UUID.generate()), props)
     }
 
-    export const createNotStretchedClip = (props: NotStretchedProps & Indexed): AudioClipBox => {
+    export const createNotStretchedClip = (props: NotStretchedProps & Clip): AudioClipBox => {
         const {boxGraph, targetTrack, index, audioFileBox, sample: {name, duration: durationInSeconds}} = props
         const collectionBox = ValueEventCollectionBox.create(boxGraph, UUID.generate())
         return AudioClipBox.create(boxGraph, UUID.generate(), box => {
@@ -99,14 +100,14 @@ export namespace AudioContentFactory {
     // ---- HELPERS ---- //
 
     const createRegionWithWarpMarkers = (playMode: AudioPitchBox | AudioTimeStretchBox,
-                                         props: (TimeStretchedProps | PitchStretchedProps) & Position): AudioRegionBox => {
+                                         props: (TimeStretchedProps | PitchStretchedProps) & Region): AudioRegionBox => {
         const {boxGraph, targetTrack, position, audioFileBox, sample} = props
         if (targetTrack.type.getValue() !== TrackType.Audio) {
             return panic("Cannot create audio-region on non-audio track")
         }
         const {name, duration: durationInSeconds, bpm} = sample
         const durationInPPQN = Math.round(PPQN.secondsToPulses(durationInSeconds, bpm))
-        addDefaultWarpMarkers(boxGraph, playMode, durationInPPQN, durationInSeconds)
+        AudioContentHelpers.addDefaultWarpMarkers(boxGraph, playMode, durationInPPQN, durationInSeconds)
         const collectionBox = ValueEventCollectionBox.create(boxGraph, UUID.generate())
         return AudioRegionBox.create(boxGraph, UUID.generate(), box => {
             box.position.setValue(position)
@@ -124,14 +125,14 @@ export namespace AudioContentFactory {
     }
 
     const createClipWithWarpMarkers = (playMode: AudioPitchBox | AudioTimeStretchBox,
-                                       props: (TimeStretchedProps | PitchStretchedProps) & Indexed): AudioClipBox => {
+                                       props: (TimeStretchedProps | PitchStretchedProps) & Clip): AudioClipBox => {
         const {boxGraph, targetTrack, audioFileBox, sample} = props
         if (targetTrack.type.getValue() !== TrackType.Audio) {
             return panic("Cannot create audio-region on non-audio track")
         }
         const {name, duration: durationInSeconds, bpm} = sample
         const durationInPPQN = Math.round(PPQN.secondsToPulses(durationInSeconds, bpm))
-        addDefaultWarpMarkers(boxGraph, playMode, durationInPPQN, durationInSeconds)
+        AudioContentHelpers.addDefaultWarpMarkers(boxGraph, playMode, durationInPPQN, durationInSeconds)
         const collectionBox = ValueEventCollectionBox.create(boxGraph, UUID.generate())
         return AudioClipBox.create(boxGraph, UUID.generate(), box => {
             box.duration.setValue(durationInPPQN)
@@ -146,19 +147,5 @@ export namespace AudioContentFactory {
         })
     }
 
-    const addDefaultWarpMarkers = (boxGraph: BoxGraph,
-                                   playMode: AudioPitchBox | AudioTimeStretchBox,
-                                   durationInPPQN: ppqn,
-                                   durationInSeconds: number) => {
-        WarpMarkerBox.create(boxGraph, UUID.generate(), box => {
-            box.owner.refer(playMode.warpMarkers)
-            box.position.setValue(0)
-            box.seconds.setValue(0)
-        })
-        WarpMarkerBox.create(boxGraph, UUID.generate(), box => {
-            box.owner.refer(playMode.warpMarkers)
-            box.position.setValue(durationInPPQN)
-            box.seconds.setValue(durationInSeconds)
-        })
-    }
+
 }

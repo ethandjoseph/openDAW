@@ -94,6 +94,7 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
         const {adapter} = lane
         if (adapter.type !== TrackType.Audio || !adapter.enabled.getValue()) {
             lane.voices.forEach(voice => voice.startFadeOut())
+            lane.lastTransientIndex = -1
             return
         }
         const {p0, p1, flags} = block
@@ -176,6 +177,7 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
         assert(s0 <= bp0 && bp1 <= s1, () => `Out of bounds ${bp0}, ${bp1}`)
         if (Bits.some(flags, BlockFlag.discontinuous)) {
             lane.voices.forEach(voice => voice.startFadeOut())
+            lane.lastTransientIndex = -1
         }
         const asPlayModePitch = adapter.asPlayModePitch
         if (asPlayModePitch.isEmpty() || adapter.observableOptPlayMode.isEmpty()) {
@@ -228,6 +230,9 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                         voice.setPlaybackRate(playbackRate)
                         hasActiveVoice = true
                     }
+                } else {
+                    // Fade out non-PitchVoice voices (OnceVoice, RepeatVoice, PingpongVoice)
+                    voice.startFadeOut()
                 }
             }
             if (!hasActiveVoice) {
@@ -247,6 +252,12 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
         if (Bits.some(flags, BlockFlag.discontinuous)) {
             lane.lastTransientIndex = -1
             lane.voices.forEach(voice => voice.startFadeOut())
+        }
+        // Fade out any PitchVoice when in timestretch mode
+        for (const voice of lane.voices) {
+            if (voice instanceof PitchVoice) {
+                voice.startFadeOut()
+            }
         }
         const sn = s1 - s0
         const pn = p1 - p0
