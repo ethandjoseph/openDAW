@@ -21,14 +21,18 @@ export class PingpongVoice implements Voice {
     #direction: number = 1.0
     #bounceProgress: number = 0.0
     #bouncePosition: number = 0.0
+    #blockOffset: int
+    #fadeOutBlockOffset: int = 0
 
-    constructor(output: AudioBuffer, data: AudioData, segment: Segment, fadeLength: number, offset: number = 0.0) {
+    constructor(output: AudioBuffer, data: AudioData, segment: Segment, fadeLength: number,
+                offset: number = 0.0, blockOffset: int = 0) {
         this.#output = output
         this.#data = data
         this.#fadeLength = fadeLength
         this.#loopStart = segment.start + LOOP_START_MARGIN
         this.#loopEnd = segment.end - LOOP_END_MARGIN
         this.#readPosition = segment.start + offset
+        this.#blockOffset = blockOffset
         if (this.#readPosition >= segment.end) {
             this.#state = VoiceState.Done
         }
@@ -36,13 +40,15 @@ export class PingpongVoice implements Voice {
 
     done(): boolean {return this.#state === VoiceState.Done}
 
-    startFadeOut(): void {
+    startFadeOut(blockOffset: int): void {
         if (this.#state === VoiceState.Done) {return}
+        if (this.#fadeDirection < 0.0) {return} // Already fading out
         if (this.#state === VoiceState.Active) {
             this.#state = VoiceState.Fading
             this.#fadeProgress = this.#fadeLength
         }
         this.#fadeDirection = -1.0
+        this.#fadeOutBlockOffset = blockOffset
     }
 
     process(bufferStart: int, bufferCount: int): void {
@@ -55,6 +61,8 @@ export class PingpongVoice implements Voice {
         const loopEnd = this.#loopEnd
         const bounceStart = loopEnd - BOUNCE_FADE_LENGTH
         const bounceEnd = loopStart + BOUNCE_FADE_LENGTH
+        const blockOffset = this.#blockOffset
+        const fadeOutBlockOffset = this.#fadeOutBlockOffset
         let state = this.#state
         let readPosition = this.#readPosition
         let fadeProgress = this.#fadeProgress
@@ -64,16 +72,23 @@ export class PingpongVoice implements Voice {
         let bouncePosition = this.#bouncePosition
         for (let i = 0; i < bufferCount; i++) {
             if (state === VoiceState.Done) {break}
+            // Skip samples until we reach the block offset where this voice should start
+            if (i < blockOffset) {continue}
             const j = bufferStart + i
             let amplitude: number
             if (state === VoiceState.Fading) {
-                amplitude = fadeProgress / fadeLength
-                fadeProgress += fadeDirection
-                if (fadeProgress >= fadeLength) {
-                    state = VoiceState.Active
-                } else if (fadeProgress <= 0.0) {
-                    state = VoiceState.Done
-                    break
+                // Don't start fading out until we reach the fadeout block offset
+                if (fadeDirection < 0.0 && i < fadeOutBlockOffset) {
+                    amplitude = 1.0
+                } else {
+                    amplitude = fadeProgress / fadeLength
+                    fadeProgress += fadeDirection
+                    if (fadeProgress >= fadeLength) {
+                        state = VoiceState.Active
+                    } else if (fadeProgress <= 0.0) {
+                        state = VoiceState.Done
+                        break
+                    }
                 }
             } else {
                 amplitude = 1.0
@@ -132,5 +147,7 @@ export class PingpongVoice implements Voice {
         this.#direction = direction
         this.#bounceProgress = bounceProgress
         this.#bouncePosition = bouncePosition
+        this.#blockOffset = 0
+        this.#fadeOutBlockOffset = 0
     }
 }

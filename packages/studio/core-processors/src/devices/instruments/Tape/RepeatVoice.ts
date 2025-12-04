@@ -18,8 +18,11 @@ export class RepeatVoice implements Voice {
     #fadeProgress: number = 0.0
     #loopFadeProgress: number = 0.0
     #loopFadePosition: number = 0.0
+    #blockOffset: int
+    #fadeOutBlockOffset: int = 0
 
-    constructor(output: AudioBuffer, data: AudioData, segment: Segment, fadeLength: number, offset: number = 0.0) {
+    constructor(output: AudioBuffer, data: AudioData, segment: Segment, fadeLength: number,
+                offset: number = 0.0, blockOffset: int = 0) {
         this.#output = output
         this.#data = data
         this.#segment = segment
@@ -27,6 +30,7 @@ export class RepeatVoice implements Voice {
         this.#loopStart = segment.start + LOOP_START_MARGIN
         this.#loopEnd = segment.end - LOOP_END_MARGIN
         this.#readPosition = segment.start + offset
+        this.#blockOffset = blockOffset
         if (this.#readPosition >= segment.end) {
             this.#state = VoiceState.Done
         }
@@ -34,7 +38,7 @@ export class RepeatVoice implements Voice {
 
     done(): boolean {return this.#state === VoiceState.Done}
 
-    startFadeOut(): void {
+    startFadeOut(blockOffset: int): void {
         if (this.#state === VoiceState.Done || this.#state === VoiceState.FadingOut) {return}
         if (this.#state === VoiceState.FadingIn) {
             // Continue fade out from current amplitude level
@@ -44,6 +48,7 @@ export class RepeatVoice implements Voice {
             this.#fadeProgress = 0.0
         }
         this.#state = VoiceState.FadingOut
+        this.#fadeOutBlockOffset = blockOffset
     }
 
     process(bufferStart: int, bufferCount: int): void {
@@ -55,6 +60,8 @@ export class RepeatVoice implements Voice {
         const loopStart = this.#loopStart
         const loopEnd = this.#loopEnd
         const loopCrossfadeStart = loopEnd - fadeLength
+        const blockOffset = this.#blockOffset
+        const fadeOutBlockOffset = this.#fadeOutBlockOffset
         let state = this.#state
         let readPosition = this.#readPosition
         let fadeProgress = this.#fadeProgress
@@ -62,6 +69,8 @@ export class RepeatVoice implements Voice {
         let loopFadePosition = this.#loopFadePosition
         for (let i = 0; i < bufferCount; i++) {
             if (state === VoiceState.Done) {break}
+            // Skip samples until we reach the block offset where this voice should start
+            if (i < blockOffset) {continue}
             const j = bufferStart + i
             let amplitude: number
             if (state === VoiceState.FadingIn) {
@@ -71,10 +80,15 @@ export class RepeatVoice implements Voice {
                     fadeProgress = 0.0
                 }
             } else if (state === VoiceState.FadingOut) {
-                amplitude = 1.0 - fadeProgress / fadeLength
-                if (++fadeProgress >= fadeLength) {
-                    state = VoiceState.Done
-                    break
+                // Don't start fading until we reach the fadeout block offset
+                if (i < fadeOutBlockOffset) {
+                    amplitude = 1.0
+                } else {
+                    amplitude = 1.0 - fadeProgress / fadeLength
+                    if (++fadeProgress >= fadeLength) {
+                        state = VoiceState.Done
+                        break
+                    }
                 }
             } else {
                 amplitude = 1.0
@@ -120,5 +134,7 @@ export class RepeatVoice implements Voice {
         this.#fadeProgress = fadeProgress
         this.#loopFadeProgress = loopFadeProgress
         this.#loopFadePosition = loopFadePosition
+        this.#blockOffset = 0
+        this.#fadeOutBlockOffset = 0
     }
 }

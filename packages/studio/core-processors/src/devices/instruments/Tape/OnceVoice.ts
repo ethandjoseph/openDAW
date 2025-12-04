@@ -13,13 +13,17 @@ export class OnceVoice implements Voice {
     #state: VoiceState = VoiceState.FadingIn
     #readPosition: number
     #fadeProgress: number = 0.0
+    #blockOffset: int
+    #fadeOutBlockOffset: int = 0
 
-    constructor(output: AudioBuffer, data: AudioData, segment: Segment, fadeLength: number, offset: number = 0.0) {
+    constructor(output: AudioBuffer, data: AudioData, segment: Segment, fadeLength: number,
+                offset: number = 0.0, blockOffset: int = 0) {
         this.#output = output
         this.#data = data
         this.#segment = segment
         this.#fadeLength = fadeLength
         this.#readPosition = segment.start + offset
+        this.#blockOffset = blockOffset
         if (this.#readPosition >= segment.end) {
             this.#state = VoiceState.Done
         }
@@ -27,7 +31,7 @@ export class OnceVoice implements Voice {
 
     done(): boolean {return this.#state === VoiceState.Done}
 
-    startFadeOut(): void {
+    startFadeOut(blockOffset: int): void {
         if (this.#state === VoiceState.Done || this.#state === VoiceState.FadingOut) {return}
         if (this.#state === VoiceState.FadingIn) {
             // Continue fade out from current amplitude level
@@ -37,6 +41,7 @@ export class OnceVoice implements Voice {
             this.#fadeProgress = 0.0
         }
         this.#state = VoiceState.FadingOut
+        this.#fadeOutBlockOffset = blockOffset
     }
 
     process(bufferStart: int, bufferCount: int): void {
@@ -47,11 +52,15 @@ export class OnceVoice implements Voice {
         const fadeLength = this.#fadeLength
         const segmentEnd = this.#segment.end
         const fadeOutThreshold = segmentEnd - fadeLength
+        const blockOffset = this.#blockOffset
+        const fadeOutBlockOffset = this.#fadeOutBlockOffset
         let state: VoiceState = this.#state
         let readPosition = this.#readPosition
         let fadeProgress = this.#fadeProgress
         for (let i = 0; i < bufferCount; i++) {
             if (state === VoiceState.Done) {break}
+            // Skip samples until we reach the block offset where this voice should start
+            if (i < blockOffset) {continue}
             const j = bufferStart + i
             let amplitude: number
             if (state === VoiceState.FadingIn) {
@@ -61,10 +70,15 @@ export class OnceVoice implements Voice {
                     fadeProgress = 0.0
                 }
             } else if (state === VoiceState.FadingOut) {
-                amplitude = 1.0 - fadeProgress / fadeLength
-                if (++fadeProgress >= fadeLength) {
-                    state = VoiceState.Done
-                    break
+                // Don't start fading until we reach the fadeout block offset
+                if (i < fadeOutBlockOffset) {
+                    amplitude = 1.0
+                } else {
+                    amplitude = 1.0 - fadeProgress / fadeLength
+                    if (++fadeProgress >= fadeLength) {
+                        state = VoiceState.Done
+                        break
+                    }
                 }
             } else {
                 amplitude = 1.0
@@ -86,5 +100,7 @@ export class OnceVoice implements Voice {
         this.#state = state
         this.#readPosition = readPosition
         this.#fadeProgress = fadeProgress
+        this.#blockOffset = 0
+        this.#fadeOutBlockOffset = 0
     }
 }

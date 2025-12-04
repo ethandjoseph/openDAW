@@ -74,15 +74,15 @@ export namespace AudioContentModifier {
     const switchTimeBaseToMusical = (adapter: AudioContentOwner): void => {
         const {timeBase} = adapter
         if (timeBase === TimeBase.Musical) {return}
-        const box = adapter.box
+        const {box} = adapter
         box.timeBase.setValue(TimeBase.Musical)
         box.duration.setValue(adapter.duration)
         if (isInstanceOf(adapter, AudioRegionBoxAdapter)) {
-            const box = adapter.box
-            box.timeBase.setValue(TimeBase.Musical)
-            box.duration.setValue(adapter.duration)
-            box.loopOffset.setValue(adapter.loopOffset)
-            box.loopDuration.setValue(adapter.loopDuration)
+            const {box: {duration, loopDuration, loopOffset, timeBase}} = adapter
+            timeBase.setValue(TimeBase.Musical)
+            duration.setValue(adapter.duration)
+            loopOffset.setValue(adapter.loopOffset)
+            loopDuration.setValue(adapter.loopDuration)
         }
     }
 }
