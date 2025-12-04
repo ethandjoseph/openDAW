@@ -6,6 +6,7 @@ import {CreateParameters, TimelineDragAndDrop} from "@/ui/timeline/tracks/audio-
 import {Snapping} from "@/ui/timeline/Snapping"
 import {StudioService} from "@/service/StudioService"
 import {TransientPlayMode} from "@opendaw/studio-enums"
+import {quantizeRound} from "@opendaw/lib-std"
 
 export class RegionSampleDragAndDrop extends TimelineDragAndDrop<RegionCaptureTarget> {
     readonly #snapping: Snapping
@@ -20,7 +21,7 @@ export class RegionSampleDragAndDrop extends TimelineDragAndDrop<RegionCaptureTa
         const pointerX = event.clientX - this.capturing.element.getBoundingClientRect().left
         const pointerPulse = Math.max(this.#snapping.xToUnitFloor(pointerX), 0)
         const {duration: durationInSeconds, bpm} = sample
-        const duration = Math.round(PPQN.secondsToPulses(durationInSeconds, bpm))
+        const duration = quantizeRound(PPQN.secondsToPulses(durationInSeconds, bpm), PPQN.SemiQuaver)
         const solver = RegionClipResolver.fromRange(trackBoxAdapter, pointerPulse, pointerPulse + duration)
         const boxGraph = this.project.boxGraph
         AudioContentFactory.createTimeStretchedRegion({
