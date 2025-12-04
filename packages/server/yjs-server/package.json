@@ -2,6 +2,7 @@
     "type": "module",
     "name": "yjs-server",
     "version": "1.0.24",
+    "private": true,
     "main": "index.js",
     "scripts": {
         "test": "echo \"No tests to run\"",
@@ -18,5 +19,5 @@
         "y-websocket": "^1.5.0",
         "yjs": "^13.6.27"
     },
-    "gitHead": "1b6de986a1edbf3e26b8044f9c9e6a887f4b3b87"
+    "gitHead": "bd520f2c650ed3cf9088201d7623438555ab4dd2"
 }
