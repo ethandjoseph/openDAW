@@ -146,30 +146,36 @@ evolves.
 
 #### 2025/Q4
 
-- [ ] Fine-tune recording including loops (takes)
-- [ ] Implement audio playback algorithms (pitch, stretch, absolute) including interpolation
-- [ ] Sample editor
-- [ ] Pushing event flow and painting routines into SDK
+- [X] Preset API
+- [X] Full implementation of connecting several cloud services to store samples, projects, and presets
+- [X] Implement audio playback algorithms (pitch, stretch, absolute) including interpolation
+- [ ] ~~Sample editor~~
+- [ ] ~~Pushing event flow and painting routines into SDK~~
 
 #### 2026/Q1
 
-- [X] Preset API
-- [X] Full implementation of connecting several cloud services to store samples, projects, and presets
-- [ ] Fine-tune timeline clips (recording, switch times)
-- [ ] Fine-tune MIDI effects
-- [ ] Implement missing region actions like flatten
+- [ ] Fade-in and out on audio-regions
+- [ ] Signature automation track
+- [ ] Tempo automation track
+- [ ] Fine-tune recording including loops (takes)
 
 #### 2026/Q2
 
-- [ ] Add at least one more synthesizer
-- [ ] Add several effect devices
-- [ ] Start Modular System
+- [ ] Fine-tune timeline clips (recording, switch times)
+- [ ] Fine-tune MIDI effects
+- [ ] Implement missing region actions like flatten
 - [ ] Polish UI
 
 #### 2026/Q3
 
 - [ ] Testing & QA
 - [ ] Launch 1.0
+
+#### Future
+
+- [ ] Start Modular System
+- [ ] Add more synthesizers
+- [ ] Add more effect devices
 
 ### Prepare, Clone, Installation, and Run
 
