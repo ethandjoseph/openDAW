@@ -14,10 +14,10 @@ export const Colors = {
     dark: new Color(197, 15, 62),
     shadow: new Color(197, 10, 42),
     black: new Color(197, 10, 14),
-    background: new Color(197, 6, 3),
+    background: new Color(197, 6, 5),
     panelBackground: new Color(197, 14, 7),
     panelBackgroundBright: new Color(197, 14, 10),
-    panelBackgroundDark: new Color(197, 14, 4)
+    panelBackgroundDark: new Color(197, 14, 6)
 }
 
 export const initializeColors = (root: { style: { setProperty: (name: string, value: string) => void } }) => {
