@@ -98,6 +98,7 @@ Huge thanks to our [ambassadors](https://opendaw.org/ambassadors), whose dedicat
 - JHINZ
 - Mark Dammer
 - fork-kun
+- Martin Eigel
 
 ### openDAW Custom Pledge
 
