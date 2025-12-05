@@ -1,7 +1,6 @@
 import {InaccessibleProperty} from "@opendaw/lib-std"
-import {Api} from "@opendaw/studio-scripting"
+import {Api, AudioPlayback} from "@opendaw/studio-scripting"
 import {dbToGain} from "@opendaw/lib-dsp"
-import {AudioPlayback} from "@opendaw/studio-enums"
 
 const openDAW: Api = InaccessibleProperty("Not to be executed.")
 
@@ -32,5 +31,5 @@ const sample = await openDAW.addSample({
 const project = openDAW.newProject("Test Audio")
 const tapeUnit = project.addInstrumentUnit("Tape")
 const audioTrack = tapeUnit.addAudioTrack()
-audioTrack.addRegion(sample, {playback: AudioPlayback.NoSync, duration: numberOfFrames / sampleRate})
+audioTrack.addRegion(sample, {playback: AudioPlayback.NoWarp, duration: numberOfFrames / sampleRate})
 project.openInStudio()

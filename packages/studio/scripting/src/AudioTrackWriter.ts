@@ -1,11 +1,18 @@
 import {UUID} from "@opendaw/lib-std"
-import {AudioRegionBox, AudioUnitBox, TrackBox, ValueEventCollectionBox} from "@opendaw/studio-boxes"
+import {
+    AudioPitchBox,
+    AudioRegionBox,
+    AudioUnitBox,
+    TrackBox,
+    ValueEventCollectionBox,
+    WarpMarkerBox
+} from "@opendaw/studio-boxes"
 import {TrackType} from "@opendaw/studio-adapters"
 import {BoxGraph} from "@opendaw/lib-box"
 import {IndexRef} from "./IndexRef"
+import {AudioPlayback} from "./Api"
 import {AudioTrackImpl} from "./impl/AudioTrackImpl"
 import {AudioRegionImpl} from "./impl/AudioRegionImpl"
-import {AudioPlayback} from "@opendaw/studio-enums"
 import {TimeBase} from "@opendaw/lib-dsp"
 import {AudioFileBoxfactory} from "./AudioFileBoxfactory"
 
@@ -28,7 +35,7 @@ export namespace AudioTrackWriter {
                 } = region
                 const fileBox = AudioFileBoxfactory.create(boxGraph, sample)
                 const collectionBox = ValueEventCollectionBox.create(boxGraph, UUID.generate())
-                AudioRegionBox.create(boxGraph, UUID.generate(), box => {
+                const regionBox = AudioRegionBox.create(boxGraph, UUID.generate(), box => {
                     box.position.setValue(position)
                     box.duration.setValue(duration)
                     box.loopDuration.setValue(loopDuration)
@@ -39,11 +46,23 @@ export namespace AudioTrackWriter {
                     box.regions.refer(trackBox.regions)
                     box.file.refer(fileBox)
                     box.events.refer(collectionBox.owners)
-                    box.playback.setValue(region.playback)
-                    box.timeBase.setValue(region.playback === AudioPlayback.NoSync
-                        ? TimeBase.Seconds
-                        : TimeBase.Musical)
+                    box.timeBase.setValue(region.playback === AudioPlayback.NoWarp ? TimeBase.Seconds : TimeBase.Musical)
                 })
+                // TODO TimeStretch and cleanup
+                if (region.playback === AudioPlayback.PitchStretch) {
+                    const pitchBox = AudioPitchBox.create(boxGraph, UUID.generate())
+                    WarpMarkerBox.create(boxGraph, UUID.generate(), box => {
+                        box.owner.refer(pitchBox.warpMarkers)
+                        box.position.setValue(0)
+                        box.seconds.setValue(0)
+                    })
+                    WarpMarkerBox.create(boxGraph, UUID.generate(), box => {
+                        box.owner.refer(pitchBox.warpMarkers)
+                        box.position.setValue(duration)
+                        box.seconds.setValue(fileBox.endInSeconds.getValue())
+                    })
+                    regionBox.playMode.refer(pitchBox)
+                }
             })
         })
     }

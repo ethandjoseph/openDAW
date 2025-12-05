@@ -1,8 +1,7 @@
 import {Chord, dbToGain, FFT, gainToDb, Interpolation, midiToHz, PPQN} from "@opendaw/lib-dsp"
-import {AudioPlayback} from "@opendaw/studio-enums"
 import {ScriptHostProtocol} from "./ScriptHostProtocol"
 import {ScriptExecutionContext} from "./ScriptExecutionProtocol"
-import {Api} from "./Api"
+import {Api, AudioPlayback} from "./Api"
 import {ApiImpl} from "./impl"
 
 export class ScriptRunner {

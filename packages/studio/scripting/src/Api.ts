@@ -1,9 +1,10 @@
 import {AudioData, Chord, dbToGain, FFT, gainToDb, Interpolation, midiToHz, PPQN, ppqn} from "@opendaw/lib-dsp"
 import {bipolar, float, int, Nullable, unitValue} from "@opendaw/lib-std"
 import {Sample} from "@opendaw/studio-adapters"
-import {AudioPlayback} from "@opendaw/studio-enums"
 
-export {AudioPlayback, PPQN, FFT, Chord, Sample, dbToGain, gainToDb, midiToHz}
+export {PPQN, FFT, Chord, Sample, dbToGain, gainToDb, midiToHz}
+
+export enum AudioPlayback {NoWarp = 0, PitchStretch = 1, /* TODO TimeStretch*/}
 
 export type Send = {
     /** Send amount in decibels */
@@ -192,7 +193,7 @@ export interface AudioRegion extends LoopableRegion {
     readonly track: AudioTrack
 
     /** NoSync is not dependent on the tempo. Pass seconds for duration, loopOffset and loopDuration! **/
-    playback: AudioPlayback.NoSync | AudioPlayback.Pitch
+    playback: AudioPlayback
 }
 
 export interface AudioTrack extends Track {
