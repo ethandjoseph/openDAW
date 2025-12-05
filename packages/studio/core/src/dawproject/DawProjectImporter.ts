@@ -419,16 +419,17 @@ export namespace DawProjectImport {
                 const duration = asDefined(clip.duration, "Duration not defined")
                 const loopDuration = clip.loopEnd ?? warpDistance
                 const durationInPulses = duration * PPQN.Quarter
+                const loopDurationInPulses = loopDuration * PPQN.Quarter
                 const collectionBox = ValueEventCollectionBox.create(boxGraph, UUID.generate())
                 const pitchStretch = AudioPitchBox.create(boxGraph, UUID.generate())
                 AudioContentHelpers.addDefaultWarpMarkers(
-                    boxGraph, pitchStretch, durationInPulses, audioFileBox.endInSeconds.getValue())
+                    boxGraph, pitchStretch, loopDurationInPulses, audioFileBox.endInSeconds.getValue())
                 AudioRegionBox.create(boxGraph, UUID.generate(), box => {
                     box.position.setValue(position * PPQN.Quarter)
                     box.duration.setValue(durationInPulses)
                     box.label.setValue(clip.name ?? "")
                     box.loopOffset.setValue(0.0)
-                    box.loopDuration.setValue(loopDuration * PPQN.Quarter)
+                    box.loopDuration.setValue(loopDurationInPulses)
                     box.mute.setValue(clip.enable === false)
                     box.regions.refer(trackBox.regions)
                     box.file.refer(audioFileBox)
