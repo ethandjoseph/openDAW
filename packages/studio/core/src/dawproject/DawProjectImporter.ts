@@ -46,6 +46,7 @@ import {AudioSendRouting, AudioUnitType, IconSymbol, Pointers} from "@opendaw/st
 import {
     AudioBusBox,
     AudioFileBox,
+    AudioPitchBox,
     AudioRegionBox,
     AudioUnitBox,
     AuxSendBox,
@@ -78,6 +79,7 @@ import {
 import {DawProject} from "./DawProject"
 import {DeviceIO} from "./DeviceIO"
 import {BuiltinDevices} from "./BuiltinDevices"
+import {AudioContentHelpers} from "../project/audio/AudioContentHelpers"
 
 export namespace DawProjectImport {
     type AudioBusUnit = { audioBusBox: AudioBusBox, audioUnitBox: AudioUnitBox }
@@ -405,19 +407,25 @@ export namespace DawProjectImport {
                 const {path, external} = audio.file
                 assert(external !== true, "File cannot be external")
                 const {uuid, name} = resources.fromPath(path)
+
                 const audioFileBox: AudioFileBox = boxGraph.findBox<AudioFileBox>(uuid)
                     .unwrapOrElse(() => AudioFileBox.create(boxGraph, uuid, box => {
                         box.fileName.setValue(name)
                         box.endInSeconds.setValue(asDefined(audio.duration, "Duration not defined"))
                     }))
                 audioIdSet.add(uuid, true)
+
+                const position = asDefined(clip.time, "Time not defined")
+                const duration = asDefined(clip.duration, "Duration not defined")
+                const loopDuration = clip.loopEnd ?? warpDistance
+                const durationInPulses = duration * PPQN.Quarter
                 const collectionBox = ValueEventCollectionBox.create(boxGraph, UUID.generate())
+                const pitchStretch = AudioPitchBox.create(boxGraph, UUID.generate())
+                AudioContentHelpers.addDefaultWarpMarkers(
+                    boxGraph, pitchStretch, durationInPulses, audioFileBox.endInSeconds.getValue())
                 AudioRegionBox.create(boxGraph, UUID.generate(), box => {
-                    const position = asDefined(clip.time, "Time not defined")
-                    const duration = asDefined(clip.duration, "Duration not defined")
-                    const loopDuration = clip.loopEnd ?? warpDistance
                     box.position.setValue(position * PPQN.Quarter)
-                    box.duration.setValue(duration * PPQN.Quarter)
+                    box.duration.setValue(durationInPulses)
                     box.label.setValue(clip.name ?? "")
                     box.loopOffset.setValue(0.0)
                     box.loopDuration.setValue(loopDuration * PPQN.Quarter)
@@ -425,6 +433,7 @@ export namespace DawProjectImport {
                     box.regions.refer(trackBox.regions)
                     box.file.refer(audioFileBox)
                     box.events.refer(collectionBox.owners)
+                    box.playMode.refer(pitchStretch)
                 })
             }
             return Promise.all(arrangement?.lanes?.lanes?.filter(timeline => isInstanceOf(timeline, LanesSchema))

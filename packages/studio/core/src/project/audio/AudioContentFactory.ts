@@ -24,7 +24,7 @@ export namespace AudioContentFactory {
     }
 
     export type Clip = Props & { index: int }
-    export type Region = Props & { position: ppqn }
+    export type Region = Props & { position: ppqn, duration?: ppqn, name?: string }
 
     export type TimeStretchedProps = {
         transientPlayMode?: TransientPlayMode
@@ -58,7 +58,7 @@ export namespace AudioContentFactory {
             box.loopDuration.setValue(durationInSeconds)
             box.regions.refer(targetTrack.regions)
             box.hue.setValue(ColorCodes.forTrackType(targetTrack.type.getValue()))
-            box.label.setValue(name)
+            box.label.setValue(props.name ?? name)
             box.file.refer(audioFileBox)
             box.events.refer(collectionBox.owners)
             box.timeBase.setValue(TimeBase.Seconds)
@@ -110,7 +110,7 @@ export namespace AudioContentFactory {
         const collectionBox = ValueEventCollectionBox.create(boxGraph, UUID.generate())
         return AudioRegionBox.create(boxGraph, UUID.generate(), box => {
             box.position.setValue(position)
-            box.duration.setValue(durationInPPQN)
+            box.duration.setValue(props.duration ?? durationInPPQN)
             box.loopDuration.setValue(durationInPPQN)
             box.regions.refer(targetTrack.regions)
             box.hue.setValue(ColorCodes.forTrackType(targetTrack.type.getValue()))
