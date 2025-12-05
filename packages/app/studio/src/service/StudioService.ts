@@ -234,7 +234,7 @@ export class StudioService implements ProjectEnv {
     async importDawproject() {
         (await this.#dawProjectService.importDawproject())
             .ifSome(skeleton => this.#projectProfileService
-                .setProject(Project.skeleton(this, skeleton), "Dawproject"))
+                .setProject(Project.fromSkeleton(this, skeleton), "Dawproject"))
     }
 
     async exportDawproject() {

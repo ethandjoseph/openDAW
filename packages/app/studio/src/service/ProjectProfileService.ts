@@ -78,7 +78,7 @@ export class ProjectProfileService implements MutableObservableValue<Option<Proj
     }
 
     async load(uuid: UUID.Bytes, meta: ProjectMeta) {
-        const project: Project = await ProjectStorage.loadProject(uuid).then(buffer => Project.load(this.#env, buffer))
+        const project: Project = await ProjectStorage.loadProject(uuid).then(buffer => Project.loadAnyVersion(this.#env, buffer))
         await this.#sampleService.replaceMissingFiles(project.boxGraph, this.#sampleManager)
         await this.#soundfontService.replaceMissingFiles(project.boxGraph, this.#soundfontManager)
         const cover = await ProjectStorage.loadCover(uuid)
@@ -90,9 +90,9 @@ export class ProjectProfileService implements MutableObservableValue<Option<Proj
         const handler = Dialogs.processMonolog("Loading Template...")
         return fetch(`templates/${name}.od`)
             .then(res => res.arrayBuffer())
-            .then(arrayBuffer => {
+            .then(async arrayBuffer => {
                 const uuid = UUID.generate()
-                const project = Project.load(this.#env, arrayBuffer)
+                const project = await Project.loadAnyVersion(this.#env, arrayBuffer)
                 const meta = ProjectMeta.init(name)
                 this.#setProfile(uuid, project, meta, Option.None)
             })

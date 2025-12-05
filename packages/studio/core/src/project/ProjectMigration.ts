@@ -21,8 +21,9 @@ import {asDefined, asInstanceOf, clamp, Float, UUID, ValueOwner} from "@opendaw/
 import {AudioPlayback, AudioUnitType} from "@opendaw/studio-enums"
 import {ProjectSkeleton} from "@opendaw/studio-adapters"
 import {Field} from "@opendaw/lib-box"
-import {PPQN, ppqn, seconds, TimeBase} from "@opendaw/lib-dsp"
+import {AudioData, PPQN, ppqn, seconds, TimeBase} from "@opendaw/lib-dsp"
 import {AudioContentHelpers} from "./audio/AudioContentHelpers"
+import {ProjectEnv} from "./ProjectEnv"
 
 const isIntEncodedAsFloat = (v: number) =>
     v > 0 && v < 1e-6 && Number.isFinite(v) && (v / 1.401298464324817e-45) % 1 === 0
@@ -32,8 +33,9 @@ const toSeconds = (property: ValueOwner<ppqn>, bpm: number): seconds => {
 }
 
 export class ProjectMigration {
-    static migrate({boxGraph, mandatoryBoxes}: ProjectSkeleton): void {
+    static async migrate(env: ProjectEnv, {boxGraph, mandatoryBoxes}: ProjectSkeleton) {
         const {rootBox, timelineBox: {bpm}} = mandatoryBoxes
+        console.debug("migrate project from", rootBox.created.getValue())
         if (rootBox.groove.targetAddress.isEmpty()) {
             console.debug("Migrate to global GrooveShuffleBox")
             boxGraph.beginTransaction()
@@ -47,19 +49,38 @@ export class ProjectMigration {
             boxGraph.endTransaction()
         }
 
-        // 1st pass (2nd pass might rely on those changes)
-        boxGraph.boxes().forEach(box => box.accept<BoxVisitor>({
-            visitAudioFileBox: (box: AudioFileBox): void => {
-                const {startInSeconds, endInSeconds} = box
-                if (isIntEncodedAsFloat(startInSeconds.getValue()) || isIntEncodedAsFloat(endInSeconds.getValue())) {
-                    console.debug("Migrate 'AudioFileBox' to float")
-                    boxGraph.beginTransaction()
-                    startInSeconds.setValue(Float.floatToIntBits(startInSeconds.getValue()))
-                    endInSeconds.setValue(Float.floatToIntBits(endInSeconds.getValue()))
-                    boxGraph.endTransaction()
+        const loadAudioData = (uuid: UUID.Bytes): Promise<AudioData> => {
+            const {promise, resolve, reject} = Promise.withResolvers<AudioData>()
+            const loader = env.sampleManager.getOrCreate(uuid)
+            const subscription = loader.subscribe(state => {
+                if (state.type === "loaded") {
+                    subscription.terminate()
+                    resolve(loader.data.unwrap("State mismatch"))
+                } else if (state.type === "error") {
+                    subscription.terminate()
+                    reject(state.reason)
                 }
-            }
-        }))
+            })
+            return promise
+        }
+
+        // 1st pass (2nd pass might rely on those changes)
+        for (const box of boxGraph.boxes()) {
+            await box.accept<BoxVisitor<Promise<unknown>>>({
+                visitAudioFileBox: async (box: AudioFileBox) => {
+                    const {startInSeconds, endInSeconds} = box
+                    if (isIntEncodedAsFloat(startInSeconds.getValue()) || isIntEncodedAsFloat(endInSeconds.getValue())) {
+                        const audioData = await loadAudioData(box.address.uuid)
+                        const seconds = audioData.numberOfFrames / audioData.sampleRate
+                        console.debug("Migrate 'AudioFileBox' to float sec", seconds.toFixed(3))
+                        boxGraph.beginTransaction()
+                        startInSeconds.setValue(0)
+                        endInSeconds.setValue(seconds)
+                        boxGraph.endTransaction()
+                    }
+                }
+            })
+        }
 
         // 2nd pass. We need to run on a copy, because we might add more boxes during the migration
         boxGraph.boxes().slice().forEach(box => box.accept<BoxVisitor>({
@@ -97,7 +118,7 @@ export class ProjectMigration {
                     const fileDuration = file.endInSeconds.getValue() - file.startInSeconds.getValue()
                     const pitchBox = AudioPitchBox.create(boxGraph, UUID.generate())
                     AudioContentHelpers.addDefaultWarpMarkers(boxGraph,
-                        pitchBox, box.duration.getValue(), fileDuration)
+                        pitchBox, box.loopDuration.getValue(), fileDuration)
                     box.timeBase.setValue(TimeBase.Musical)
                     box.playMode.refer(pitchBox)
                     box.playback.setValue("")

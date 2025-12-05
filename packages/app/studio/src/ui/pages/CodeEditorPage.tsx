@@ -40,7 +40,7 @@ export const CodeEditorPage: PageFactory<StudioService> = ({lifecycle, service}:
             const boxGraph = new BoxGraph<BoxIO.TypeMap>(Option.wrap(BoxIO.create))
             boxGraph.fromArrayBuffer(buffer)
             const mandatoryBoxes = ProjectSkeleton.findMandatoryBoxes(boxGraph)
-            const project = Project.skeleton(service, {boxGraph, mandatoryBoxes})
+            const project = Project.fromSkeleton(service, {boxGraph, mandatoryBoxes})
             service.projectProfileService.setProject(project, name ?? "Scripted Project")
             service.switchScreen("default")
         },

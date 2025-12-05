@@ -7,6 +7,7 @@ import {YSync} from "./YSync"
 import * as Y from "yjs"
 import {WebsocketProvider} from "y-websocket"
 import {Project, ProjectEnv} from "../project"
+import {ProjectMigration} from "../project/ProjectMigration"
 
 // https://inspector.yjs.dev/
 
@@ -65,10 +66,9 @@ export namespace YService {
             const boxGraph = new BoxGraph<BoxIO.TypeMap>(Option.wrap(BoxIO.create))
             const sync = await YSync.joinRoom({boxGraph, boxes, conflict: () => project.invalid()})
             const mandatoryBoxes = ProjectSkeleton.findMandatoryBoxes(boxGraph)
-            const project = Project.skeleton(env, {
-                boxGraph,
-                mandatoryBoxes
-            }, false)
+            const skeleton: ProjectSkeleton = {boxGraph, mandatoryBoxes}
+            await ProjectMigration.migrate(env, skeleton)
+            const project = Project.fromSkeleton(env, skeleton, false)
             boxGraph.beginTransaction()
             // TODO How takes care to remove the user interface boxes?
             const userInterfaceBox = UserInterfaceBox.create(boxGraph, UUID.generate(),

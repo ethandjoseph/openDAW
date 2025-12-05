@@ -79,5 +79,5 @@ export const testAudioProject = async (service: StudioService) => {
     userInterfaceBoxes[0].editingDeviceChain.refer(audioUnitBox.editing)
 
     boxGraph.endTransaction()
-    service.projectProfileService.setProject(Project.skeleton(service, skeleton), "Test Project")
+    service.projectProfileService.setProject(Project.fromSkeleton(service, skeleton), "Test Project")
 }

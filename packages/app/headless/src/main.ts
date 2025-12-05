@@ -55,7 +55,7 @@ import WorkletsUrl from "@opendaw/studio-core/processors.js?url"
             audioContext: context,
             soundfontManager: InaccessibleProperty("No SoundFontManager available")
         }
-        const project = loadProject
+        const project = await loadProject
             ? Project.load(env, await fetch("subset.od").then(x => x.arrayBuffer()))
             : createExampleProject(env)
         const worklet = AudioWorklets.get(context).createEngine({project: project})

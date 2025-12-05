@@ -73,11 +73,17 @@ export class Project implements BoxAdaptersContext, Terminable, TerminableOwner 
     }
 
     static load(env: ProjectEnv, arrayBuffer: ArrayBuffer): Project {
-        return this.skeleton(env, ProjectSkeleton.decode(arrayBuffer))
+        return this.fromSkeleton(env, ProjectSkeleton.decode(arrayBuffer))
     }
 
-    static skeleton(env: ProjectEnv, skeleton: ProjectSkeleton, followFirstUser: boolean = true): Project {
-        ProjectMigration.migrate(skeleton)
+    static async loadAnyVersion(env: ProjectEnv, arrayBuffer: ArrayBuffer): Promise<Project> {
+        console.debug("loadAnyVersion")
+        const skeleton = ProjectSkeleton.decode(arrayBuffer)
+        await ProjectMigration.migrate(env, skeleton)
+        return this.fromSkeleton(env, skeleton)
+    }
+
+    static fromSkeleton(env: ProjectEnv, skeleton: ProjectSkeleton, followFirstUser: boolean = true): Project {
         ProjectValidation.validate(skeleton)
         const project = new Project(env, skeleton.boxGraph, skeleton.mandatoryBoxes)
         if (followFirstUser) {project.follow(project.userInterfaceBoxes[0])}
