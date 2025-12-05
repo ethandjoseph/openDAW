@@ -3,13 +3,12 @@ import {AudioBuffer, AudioData} from "@opendaw/lib-dsp"
 import {Segment} from "./Segment"
 import {VoiceState} from "./VoiceState"
 import {Voice} from "./Voice"
-import {LOOP_END_MARGIN, LOOP_START_MARGIN} from "./constants"
+import {FADE_LENGTH, FADE_LENGTH_INVERSE, LOOP_END_MARGIN, LOOP_START_MARGIN} from "./constants"
 
 export class RepeatVoice implements Voice {
     readonly #output: AudioBuffer
     readonly #data: AudioData
-    readonly #segment: Segment
-    readonly #fadeLength: number
+    readonly #playbackRate: number
     readonly #loopStart: number
     readonly #loopEnd: number
 
@@ -21,11 +20,10 @@ export class RepeatVoice implements Voice {
     #blockOffset: int
     #fadeOutBlockOffset: int = 0
 
-    constructor(output: AudioBuffer, data: AudioData, segment: Segment, fadeLength: number, blockOffset: int = 0) {
+    constructor(output: AudioBuffer, data: AudioData, segment: Segment, playbackRate: number, blockOffset: int = 0) {
         this.#output = output
         this.#data = data
-        this.#segment = segment
-        this.#fadeLength = fadeLength
+        this.#playbackRate = playbackRate
         this.#loopStart = segment.start + LOOP_START_MARGIN
         this.#loopEnd = segment.end - LOOP_END_MARGIN
         this.#readPosition = segment.start
@@ -41,8 +39,8 @@ export class RepeatVoice implements Voice {
         if (this.#state === VoiceState.Done || this.#state === VoiceState.FadingOut) {return}
         if (this.#state === VoiceState.FadingIn) {
             // Continue fade out from current amplitude level
-            const currentAmplitude = this.#fadeProgress / this.#fadeLength
-            this.#fadeProgress = this.#fadeLength * (1.0 - currentAmplitude)
+            const currentAmplitude = this.#fadeProgress * FADE_LENGTH_INVERSE
+            this.#fadeProgress = FADE_LENGTH * (1.0 - currentAmplitude)
         } else {
             this.#fadeProgress = 0.0
         }
@@ -55,10 +53,9 @@ export class RepeatVoice implements Voice {
         const {frames, numberOfFrames} = this.#data
         const framesL = frames[0]
         const framesR = frames.length === 1 ? frames[0] : frames[1]
-        const fadeLength = this.#fadeLength
         const loopStart = this.#loopStart
         const loopEnd = this.#loopEnd
-        const loopCrossfadeStart = loopEnd - fadeLength
+        const loopCrossfadeStart = loopEnd - FADE_LENGTH
         const fadeOutBlockOffset = this.#fadeOutBlockOffset
         let state = this.#state
         let readPosition = this.#readPosition
@@ -71,8 +68,8 @@ export class RepeatVoice implements Voice {
             const j = bufferStart + i
             let amplitude: number
             if (state === VoiceState.FadingIn) {
-                amplitude = fadeProgress / fadeLength
-                if (++fadeProgress >= fadeLength) {
+                amplitude = fadeProgress * FADE_LENGTH_INVERSE
+                if (++fadeProgress >= FADE_LENGTH) {
                     state = VoiceState.Active
                     fadeProgress = 0.0
                 }
@@ -81,8 +78,8 @@ export class RepeatVoice implements Voice {
                 if (i < fadeOutBlockOffset) {
                     amplitude = 1.0
                 } else {
-                    amplitude = 1.0 - fadeProgress / fadeLength
-                    if (++fadeProgress >= fadeLength) {
+                    amplitude = 1.0 - fadeProgress * FADE_LENGTH_INVERSE
+                    if (++fadeProgress >= FADE_LENGTH) {
                         state = VoiceState.Done
                         break
                     }
@@ -111,20 +108,20 @@ export class RepeatVoice implements Voice {
                     const sR = framesR[loopReadInt]
                     const loopSampleL = sL + alpha * (framesL[loopReadInt + 1] - sL)
                     const loopSampleR = sR + alpha * (framesR[loopReadInt + 1] - sR)
-                    const crossfade = loopFadeProgress / fadeLength
+                    const crossfade = loopFadeProgress * FADE_LENGTH_INVERSE
                     sampleL = sampleL * (1.0 - crossfade) + loopSampleL * crossfade
                     sampleR = sampleR * (1.0 - crossfade) + loopSampleR * crossfade
                 }
                 loopFadeProgress += 1.0
                 loopFadePosition += 1.0
-                if (loopFadeProgress >= fadeLength) {
+                if (loopFadeProgress >= FADE_LENGTH) {
                     readPosition = loopFadePosition
                     loopFadeProgress = 0.0
                 }
             }
             outL[j] += sampleL * amplitude
             outR[j] += sampleR * amplitude
-            readPosition += 1.0
+            readPosition += this.#playbackRate
         }
         this.#state = state
         this.#readPosition = readPosition

@@ -1,4 +1,4 @@
-import {asEnumValue, Notifier, Observer, SortedSet, Subscription, Terminator, UUID} from "@opendaw/lib-std"
+import {asEnumValue, clamp, Notifier, Observer, SortedSet, Subscription, Terminator, UUID} from "@opendaw/lib-std"
 import {Address, PointerField} from "@opendaw/lib-box"
 import {BoxAdaptersContext} from "../BoxAdaptersContext"
 import {BoxAdapter} from "../BoxAdapter"
@@ -48,7 +48,7 @@ export class AudioTimeStretchBoxAdapter implements BoxAdapter {
     get warpMarkers(): EventCollection<WarpMarkerBoxAdapter> {return this.#warpMarkers}
     get playbackRate(): number {return this.#box.playbackRate.getValue()}
     get cents(): number {return Math.log2(this.#box.playbackRate.getValue()) * 1200.0}
-    set cents(value: number) {this.#box.playbackRate.setValue(2.0 ** (value / 1200.0))}
+    set cents(value: number) {this.#box.playbackRate.setValue(clamp(2.0 ** (value / 1200.0), 0.5, 2.0))}
     get transientPlayMode(): TransientPlayMode {
         return asEnumValue(this.#box.transientPlayMode.getValue(), TransientPlayMode)
     }

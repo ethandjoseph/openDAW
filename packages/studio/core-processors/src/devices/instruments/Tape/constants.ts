@@ -1,4 +1,5 @@
 export const FADE_LENGTH = 256
+export const FADE_LENGTH_INVERSE = 1.0 / FADE_LENGTH
 export const LOOP_START_MARGIN = 256
 export const LOOP_END_MARGIN = 256
 export const LOOP_MIN_LENGTH_SAMPLES = 2048

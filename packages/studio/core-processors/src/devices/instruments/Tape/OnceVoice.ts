@@ -3,12 +3,13 @@ import {Segment} from "./Segment"
 import {VoiceState} from "./VoiceState"
 import {int} from "@opendaw/lib-std"
 import {Voice} from "./Voice"
+import {FADE_LENGTH, FADE_LENGTH_INVERSE} from "./constants"
 
 export class OnceVoice implements Voice {
     readonly #output: AudioBuffer
     readonly #data: AudioData
+    readonly #playbackRate: number
     readonly #segment: Segment
-    readonly #fadeLength: number
 
     #state: VoiceState = VoiceState.FadingIn
     #readPosition: number
@@ -16,11 +17,11 @@ export class OnceVoice implements Voice {
     #blockOffset: int
     #fadeOutBlockOffset: int = 0
 
-    constructor(output: AudioBuffer, data: AudioData, segment: Segment, fadeLength: number, blockOffset: int = 0) {
+    constructor(output: AudioBuffer, data: AudioData, segment: Segment, playbackRate: number, blockOffset: int = 0) {
         this.#output = output
         this.#data = data
+        this.#playbackRate = playbackRate
         this.#segment = segment
-        this.#fadeLength = fadeLength
         this.#readPosition = segment.start
         this.#blockOffset = blockOffset
         if (this.#readPosition >= segment.end) {
@@ -33,9 +34,8 @@ export class OnceVoice implements Voice {
     startFadeOut(blockOffset: int): void {
         if (this.#state === VoiceState.Done || this.#state === VoiceState.FadingOut) {return}
         if (this.#state === VoiceState.FadingIn) {
-            // Continue fade out from current amplitude level
-            const currentAmplitude = this.#fadeProgress / this.#fadeLength
-            this.#fadeProgress = this.#fadeLength * (1.0 - currentAmplitude)
+            const currentAmplitude = this.#fadeProgress * FADE_LENGTH_INVERSE
+            this.#fadeProgress = FADE_LENGTH * (1.0 - currentAmplitude)
         } else {
             this.#fadeProgress = 0.0
         }
@@ -48,9 +48,8 @@ export class OnceVoice implements Voice {
         const {frames, numberOfFrames} = this.#data
         const framesL = frames[0]
         const framesR = frames.length === 1 ? frames[0] : frames[1]
-        const fadeLength = this.#fadeLength
         const segmentEnd = this.#segment.end
-        const fadeOutThreshold = segmentEnd - fadeLength
+        const fadeOutThreshold = segmentEnd - FADE_LENGTH
         const fadeOutBlockOffset = this.#fadeOutBlockOffset
         let state: VoiceState = this.#state
         let readPosition = this.#readPosition
@@ -61,8 +60,8 @@ export class OnceVoice implements Voice {
             const j = bufferStart + i
             let amplitude: number
             if (state === VoiceState.FadingIn) {
-                amplitude = fadeProgress / fadeLength
-                if (++fadeProgress >= fadeLength) {
+                amplitude = fadeProgress * FADE_LENGTH_INVERSE
+                if (++fadeProgress >= FADE_LENGTH) {
                     state = VoiceState.Active
                     fadeProgress = 0.0
                 }
@@ -71,8 +70,8 @@ export class OnceVoice implements Voice {
                 if (i < fadeOutBlockOffset) {
                     amplitude = 1.0
                 } else {
-                    amplitude = 1.0 - fadeProgress / fadeLength
-                    if (++fadeProgress >= fadeLength) {
+                    amplitude = 1.0 - fadeProgress * FADE_LENGTH_INVERSE
+                    if (++fadeProgress >= FADE_LENGTH) {
                         state = VoiceState.Done
                         break
                     }
@@ -88,7 +87,7 @@ export class OnceVoice implements Voice {
                 outL[j] += (sL + alpha * (framesL[readInt + 1] - sL)) * amplitude
                 outR[j] += (sR + alpha * (framesR[readInt + 1] - sR)) * amplitude
             }
-            readPosition += 1.0
+            readPosition += this.#playbackRate
             if (state === VoiceState.Active && readPosition >= fadeOutThreshold) {
                 state = VoiceState.FadingOut
                 fadeProgress = 0.0

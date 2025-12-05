@@ -266,8 +266,7 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
         const bp0 = s0 + sn * r0
         const bp1 = s0 + sn * r1
         const bpn = (bp1 - bp0) | 0
-        const warpMarkers = timeStretch.warpMarkers
-        const transientPlayMode = timeStretch.transientPlayMode
+        const {warpMarkers, transientPlayMode, playbackRate} = timeStretch
         assert(s0 <= bp0 && bp1 <= s1, () => `Out of bounds ${bp0}, ${bp1}`)
         const firstWarp = asDefined(warpMarkers.first(), "missing first warp marker")
         const lastWarp = asDefined(warpMarkers.last(), "missing last warp marker")
@@ -323,11 +322,11 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
                         canLoop = samplesNeeded > samplesAvailable * 1.01 && loopLength >= LOOP_MIN_LENGTH_SAMPLES
                     }
                     if (transientPlayMode === TransientPlayMode.Once || !canLoop) {
-                        lane.voices.push(new OnceVoice(this.#audioOutput, data, segment, FADE_LENGTH, blockOffset))
+                        lane.voices.push(new OnceVoice(this.#audioOutput, data, segment, playbackRate, blockOffset))
                     } else if (transientPlayMode === TransientPlayMode.Repeat) {
-                        lane.voices.push(new RepeatVoice(this.#audioOutput, data, segment, FADE_LENGTH, blockOffset))
+                        lane.voices.push(new RepeatVoice(this.#audioOutput, data, segment, playbackRate, blockOffset))
                     } else {
-                        lane.voices.push(new PingpongVoice(this.#audioOutput, data, segment, FADE_LENGTH, blockOffset))
+                        lane.voices.push(new PingpongVoice(this.#audioOutput, data, segment, playbackRate, blockOffset))
                     }
                 }
                 lane.lastTransientIndex = nextTransientIndex

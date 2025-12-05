@@ -3,14 +3,14 @@ import {AudioBuffer, AudioData} from "@opendaw/lib-dsp"
 import {Segment} from "./Segment"
 import {VoiceState} from "./VoiceState"
 import {Voice} from "./Voice"
-import {LOOP_END_MARGIN, LOOP_START_MARGIN} from "./constants"
+import {FADE_LENGTH, FADE_LENGTH_INVERSE, LOOP_END_MARGIN, LOOP_START_MARGIN} from "./constants"
 
 const BOUNCE_FADE_LENGTH = 256
 
 export class PingpongVoice implements Voice {
     readonly #output: AudioBuffer
     readonly #data: AudioData
-    readonly #fadeLength: number
+    readonly #playbackRate: number
     readonly #loopStart: number
     readonly #loopEnd: number
 
@@ -24,10 +24,10 @@ export class PingpongVoice implements Voice {
     #blockOffset: int
     #fadeOutBlockOffset: int = 0
 
-    constructor(output: AudioBuffer, data: AudioData, segment: Segment, fadeLength: number, blockOffset: int = 0) {
+    constructor(output: AudioBuffer, data: AudioData, segment: Segment, playbackRate: number, blockOffset: int = 0) {
         this.#output = output
         this.#data = data
-        this.#fadeLength = fadeLength
+        this.#playbackRate = playbackRate
         this.#loopStart = segment.start + LOOP_START_MARGIN
         this.#loopEnd = segment.end - LOOP_END_MARGIN
         this.#readPosition = segment.start
@@ -44,7 +44,7 @@ export class PingpongVoice implements Voice {
         if (this.#fadeDirection < 0.0) {return} // Already fading out
         if (this.#state === VoiceState.Active) {
             this.#state = VoiceState.Fading
-            this.#fadeProgress = this.#fadeLength
+            this.#fadeProgress = FADE_LENGTH
         }
         this.#fadeDirection = -1.0
         this.#fadeOutBlockOffset = blockOffset
@@ -55,7 +55,6 @@ export class PingpongVoice implements Voice {
         const {frames, numberOfFrames} = this.#data
         const framesL = frames[0]
         const framesR = frames.length === 1 ? frames[0] : frames[1]
-        const fadeLength = this.#fadeLength
         const loopStart = this.#loopStart
         const loopEnd = this.#loopEnd
         const bounceStart = loopEnd - BOUNCE_FADE_LENGTH
@@ -78,9 +77,9 @@ export class PingpongVoice implements Voice {
                 if (fadeDirection < 0.0 && i < fadeOutBlockOffset) {
                     amplitude = 1.0
                 } else {
-                    amplitude = fadeProgress / fadeLength
+                    amplitude = fadeProgress * FADE_LENGTH_INVERSE
                     fadeProgress += fadeDirection
-                    if (fadeProgress >= fadeLength) {
+                    if (fadeProgress >= FADE_LENGTH) {
                         state = VoiceState.Active
                     } else if (fadeProgress <= 0.0) {
                         state = VoiceState.Done
@@ -135,7 +134,7 @@ export class PingpongVoice implements Voice {
             }
             outL[j] += sampleL * amplitude
             outR[j] += sampleR * amplitude
-            readPosition += direction
+            readPosition += direction * this.#playbackRate
         }
         this.#state = state
         this.#readPosition = readPosition
