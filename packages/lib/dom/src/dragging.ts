@@ -47,7 +47,7 @@ export namespace Dragging {
             target.setPointerCapture(pointerId)
 
             // Pointer lock configuration
-            const usePointerLock = options?.pointerLock !== false && Dragging.usePointerLock
+            const usePointerLock = options?.pointerLock === true && Dragging.usePointerLock
             const threshold = options?.pointerLockThreshold ?? 16
             const targetElement = target instanceof Element ? target : null
             let pointerLockActive = false

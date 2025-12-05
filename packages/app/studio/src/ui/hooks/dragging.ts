@@ -39,5 +39,5 @@ export namespace ValueDragging {
                 cancel: () => process.cancel(startValue),
                 finally: () => safeExecute(process.finally)
             })
-        })
+        }, {pointerLock: true})
 }

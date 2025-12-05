@@ -132,6 +132,7 @@ export const DefaultWorkspace = Object.freeze({
     "modular": {
         name: "Modular",
         icon: IconSymbol.Box,
+        hidden: true,
         content: {
             type: "layout",
             orientation: "horizontal",
