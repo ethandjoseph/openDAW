@@ -200,7 +200,8 @@ export const DefaultWorkspace = Object.freeze({
                     name: "Editor",
                     icon: IconSymbol.Generator,
                     panelType: PanelType.ShadertoyEditor,
-                    constrains: {type: "flex", minSize: 0, flex: 1}
+                    constrains: {type: "flex", minSize: 0, flex: 1},
+                    notPopoutable: true
                 })
             ],
             constrains: {type: "flex", minSize: 0, flex: 1}
