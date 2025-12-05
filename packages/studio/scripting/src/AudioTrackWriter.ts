@@ -1,6 +1,6 @@
 import {UUID} from "@opendaw/lib-std"
 import {
-    AudioPitchBox,
+    AudioPitchStretchBox,
     AudioRegionBox,
     AudioUnitBox,
     TrackBox,
@@ -50,7 +50,7 @@ export namespace AudioTrackWriter {
                 })
                 // TODO TimeStretch and cleanup
                 if (region.playback === AudioPlayback.PitchStretch) {
-                    const pitchBox = AudioPitchBox.create(boxGraph, UUID.generate())
+                    const pitchBox = AudioPitchStretchBox.create(boxGraph, UUID.generate())
                     WarpMarkerBox.create(boxGraph, UUID.generate(), box => {
                         box.owner.refer(pitchBox.warpMarkers)
                         box.position.setValue(0)

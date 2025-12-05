@@ -1,7 +1,7 @@
 import {
     AudioClipBox,
     AudioFileBox,
-    AudioPitchBox,
+    AudioPitchStretchBox,
     AudioRegionBox,
     AudioUnitBox,
     BoxVisitor,
@@ -116,7 +116,7 @@ export class ProjectMigration {
                     boxGraph.beginTransaction()
                     const file = asInstanceOf(box.file.targetVertex.unwrap(), AudioFileBox)
                     const fileDuration = file.endInSeconds.getValue() - file.startInSeconds.getValue()
-                    const pitchBox = AudioPitchBox.create(boxGraph, UUID.generate())
+                    const pitchBox = AudioPitchStretchBox.create(boxGraph, UUID.generate())
                     AudioContentHelpers.addDefaultWarpMarkers(boxGraph,
                         pitchBox, box.loopDuration.getValue(), fileDuration)
                     box.timeBase.setValue(TimeBase.Musical)
@@ -143,7 +143,7 @@ export class ProjectMigration {
                     boxGraph.beginTransaction()
                     const file = asInstanceOf(box.file.targetVertex.unwrap(), AudioFileBox)
                     const fileDuration = file.endInSeconds.getValue() - file.startInSeconds.getValue()
-                    const pitchBox = AudioPitchBox.create(boxGraph, UUID.generate())
+                    const pitchBox = AudioPitchStretchBox.create(boxGraph, UUID.generate())
                     AudioContentHelpers.addDefaultWarpMarkers(boxGraph, pitchBox, box.duration.getValue(), fileDuration)
                     box.timeBase.setValue(TimeBase.Musical)
                     box.playMode.refer(pitchBox)

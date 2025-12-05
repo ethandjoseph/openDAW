@@ -47,6 +47,8 @@ export class AudioTimeStretchBoxAdapter implements BoxAdapter {
     get address(): Address {return this.#box.address}
     get warpMarkers(): EventCollection<WarpMarkerBoxAdapter> {return this.#warpMarkers}
     get playbackRate(): number {return this.#box.playbackRate.getValue()}
+    get cents(): number {return Math.log2(this.#box.playbackRate.getValue()) * 1200.0}
+    set cents(value: number) {this.#box.playbackRate.setValue(2.0 ** (value / 1200.0))}
     get transientPlayMode(): TransientPlayMode {
         return asEnumValue(this.#box.transientPlayMode.getValue(), TransientPlayMode)
     }

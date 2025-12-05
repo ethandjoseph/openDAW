@@ -25,7 +25,7 @@ import {ValueRegionBox} from "./timeline/ValueRegionBox"
 import {ShadertoyBox} from "./ShadertoyBox"
 import {TransientMarkerBox} from "./TransientMarkerBox"
 import {WarpMarkerBox} from "./WarpMarkerBox"
-import {AudioPitchBox} from "./timeline/AudioPitchBox"
+import {AudioPitchStretchBox} from "./timeline/AudioPitchStretchBox"
 import {AudioTimeStretchBox} from "./timeline/AudioTimeStretchBox"
 import {MetaDataBox} from "./MetaDataBox"
 
@@ -35,7 +35,7 @@ export const Definitions = [
     TimelineBox, TrackBox,
     NoteEventBox, NoteEventRepeatBox, NoteEventCollectionBox, NoteRegionBox, NoteClipBox,
     ValueEventBox, ValueEventCollectionBox, ValueEventCurveBox, ValueRegionBox, ValueClipBox,
-    AudioRegionBox, AudioClipBox, AudioPitchBox, AudioTimeStretchBox, TransientMarkerBox, WarpMarkerBox,
+    AudioRegionBox, AudioClipBox, AudioPitchStretchBox, AudioTimeStretchBox, TransientMarkerBox, WarpMarkerBox,
     MarkerBox,
     AudioFileBox, SoundfontFileBox,
     AudioUnitBox, CaptureAudioBox, CaptureMidiBox,

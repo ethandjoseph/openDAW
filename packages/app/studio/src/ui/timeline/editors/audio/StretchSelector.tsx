@@ -23,8 +23,8 @@ export const StretchSelector = ({lifecycle, project, reader}: Construct) => {
     const {editing} = project
     const {audioContent} = reader
     const toPlayModeEnum = (): PlayModeEnum => {
-        if (audioContent.isPlayModeNoWarp) {return PlayModeEnum.NoWarp}
-        if (audioContent.asPlayModePitch.nonEmpty()) {return PlayModeEnum.Pitch}
+        if (audioContent.isPlayModeNoStretch) {return PlayModeEnum.NoWarp}
+        if (audioContent.asPlayModePitchStretch.nonEmpty()) {return PlayModeEnum.Pitch}
         if (audioContent.asPlayModeTimeStretch.nonEmpty()) {return PlayModeEnum.TimeStretch}
         return panic("Unknown PlayMode")
     }

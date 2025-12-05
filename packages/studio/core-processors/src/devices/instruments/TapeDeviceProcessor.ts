@@ -179,7 +179,7 @@ export class TapeDeviceProcessor extends AbstractProcessor implements DeviceProc
             lane.voices.forEach(voice => voice.startFadeOut(0))
             lane.lastTransientIndex = -1
         }
-        const asPlayModePitch = adapter.asPlayModePitch
+        const asPlayModePitch = adapter.asPlayModePitchStretch
         if (asPlayModePitch.isEmpty() || adapter.observableOptPlayMode.isEmpty()) {
             const audioDurationSamples = data.numberOfFrames
             const audioDurationNormalized = cycle.resultEndValue - cycle.resultStartValue

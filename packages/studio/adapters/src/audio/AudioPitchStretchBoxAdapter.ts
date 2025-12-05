@@ -4,20 +4,20 @@ import {BoxAdaptersContext} from "../BoxAdaptersContext"
 import {BoxAdapter} from "../BoxAdapter"
 import {EventCollection} from "@opendaw/lib-dsp"
 import {WarpMarkerBoxAdapter} from "./WarpMarkerBoxAdapter"
-import {AudioPitchBox} from "@opendaw/studio-boxes"
+import {AudioPitchStretchBox} from "@opendaw/studio-boxes"
 import {MarkerComparator} from "./MarkerComparator"
 
-export class AudioPitchBoxAdapter implements BoxAdapter {
+export class AudioPitchStretchBoxAdapter implements BoxAdapter {
     readonly #terminator = new Terminator()
 
     readonly #context: BoxAdaptersContext
-    readonly #box: AudioPitchBox
+    readonly #box: AudioPitchStretchBox
     readonly #notifer: Notifier<void>
 
     readonly #warpMarkerAdapters: SortedSet<UUID.Bytes, WarpMarkerBoxAdapter>
     readonly #warpMarkers: EventCollection<WarpMarkerBoxAdapter>
 
-    constructor(context: BoxAdaptersContext, box: AudioPitchBox) {
+    constructor(context: BoxAdaptersContext, box: AudioPitchStretchBox) {
         this.#context = context
         this.#box = box
 
@@ -41,7 +41,7 @@ export class AudioPitchBoxAdapter implements BoxAdapter {
         )
     }
 
-    get box(): AudioPitchBox {return this.#box}
+    get box(): AudioPitchStretchBox {return this.#box}
     get uuid(): UUID.Bytes {return this.#box.address.uuid}
     get address(): Address {return this.#box.address}
     get warpMarkers(): EventCollection<WarpMarkerBoxAdapter> {return this.#warpMarkers}

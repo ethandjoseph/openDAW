@@ -29,13 +29,13 @@ export const WarpMarkerEditor = ({lifecycle, project, range, snapping, reader, h
     return (
         <div className={className} onInit={element =>
             lifecycle.own(observableOptPlayMode.catchupAndSubscribe(() =>
-                element.classList.toggle("no-content", audioContent.isPlayModeNoWarp)))}>
+                element.classList.toggle("no-content", audioContent.isPlayModeNoStretch)))}>
             <canvas tabIndex={-1}
                     onInit={canvas => {
                         const {requestUpdate} = lifecycle.own(new CanvasPainter(canvas, painter => {
                             const {context, actualHeight, devicePixelRatio} = painter
                             if (observableOptPlayMode.isEmpty()) {return}
-                            if (audioContent.isPlayModeNoWarp) {return}
+                            if (audioContent.isPlayModeNoStretch) {return}
                             const warpMarkers = observableOptPlayMode.unwrap().warpMarkers
                             for (const marker of warpMarkers.iterateFrom(range.unitMin - reader.offset)) {
                                 const unit = reader.offset + marker.position

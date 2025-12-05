@@ -63,7 +63,7 @@ export const installClipContextMenu = ({element, project, selection, capturing}:
                 }).setRuntimeChildrenProcedure(parent => parent.addMenuItem(
                     MenuItem.default({
                         label: "Pitch",
-                        checked: clip.type === "audio-clip" && clip.asPlayModePitch.nonEmpty()
+                        checked: clip.type === "audio-clip" && clip.asPlayModePitchStretch.nonEmpty()
                     }).setTriggerProcedure(async () => {
                         const {status, value: modifier, error} =
                             await Promises.tryCatch(AudioContentModifier.toPitchStretch(selection.selected()
@@ -89,7 +89,7 @@ export const installClipContextMenu = ({element, project, selection, capturing}:
                     }),
                     MenuItem.default({
                         label: "No Warp",
-                        checked: clip.type === "audio-clip" && clip.isPlayModeNoWarp
+                        checked: clip.type === "audio-clip" && clip.isPlayModeNoStretch
                     }).setTriggerProcedure(async () => {
                             const {status, value: modifier, error} =
                                 await Promises.tryCatch(AudioContentModifier.toNotStretched(selection.selected()

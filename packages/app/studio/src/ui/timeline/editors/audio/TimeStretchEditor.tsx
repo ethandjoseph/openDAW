@@ -22,6 +22,7 @@ export const TimeStretchEditor = ({lifecycle, project, reader}: Construct) => {
     const {audioContent} = reader
     const transientPlayModeEnumValue = new DefaultObservableValue<Nullable<TransientPlayMode>>(null)
     const activeLifecycle = lifecycle.own(new Terminator())
+    const observableCents = new DefaultObservableValue(0.0)
     return (
         <div className={className} onInit={element => {
             lifecycle.ownAll(
@@ -30,8 +31,14 @@ export const TimeStretchEditor = ({lifecycle, project, reader}: Construct) => {
                     audioContent.asPlayModeTimeStretch.match({
                         none: () => transientPlayModeEnumValue.setValue(null),
                         some: adapter => {
-                            activeLifecycle.own(adapter.box.transientPlayMode.catchupAndSubscribe(transientPlayMode =>
-                                transientPlayModeEnumValue.setValue(transientPlayMode.getValue())))
+                            activeLifecycle.ownAll(
+                                adapter.box.transientPlayMode.catchupAndSubscribe(transientPlayMode =>
+                                    transientPlayModeEnumValue.setValue(transientPlayMode.getValue())),
+                                adapter.box.playbackRate
+                                    .catchupAndSubscribe(() => observableCents.setValue(adapter.cents)),
+                                observableCents.catchupAndSubscribe(owner =>
+                                    editing.modify(() => adapter.cents = owner.getValue()))
+                            )
                         }
                     })
                     element.classList.toggle("disabled", transientPlayModeEnumValue.getValue() === null)
@@ -65,7 +72,7 @@ export const TimeStretchEditor = ({lifecycle, project, reader}: Construct) => {
                          className="input"
                          maxChars={4}
                          step={1}
-                         model={new DefaultObservableValue(0.0)}/>
+                         model={observableCents}/>
             <span>cents</span>
         </div>
     )

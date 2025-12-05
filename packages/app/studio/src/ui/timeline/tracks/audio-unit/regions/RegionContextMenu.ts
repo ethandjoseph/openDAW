@@ -105,7 +105,7 @@ export const installRegionContextMenu =
                 }).setRuntimeChildrenProcedure(parent => parent.addMenuItem(
                     MenuItem.default({
                         label: "Pitch",
-                        checked: region.type === "audio-region" && region.asPlayModePitch.nonEmpty()
+                        checked: region.type === "audio-region" && region.asPlayModePitchStretch.nonEmpty()
                     }).setTriggerProcedure(async () => {
                         const {status, value: modifier, error} =
                             await Promises.tryCatch(AudioContentModifier.toPitchStretch(selection.selected()
@@ -131,7 +131,7 @@ export const installRegionContextMenu =
                     }),
                     MenuItem.default({
                         label: "No Warp",
-                        checked: region.type === "audio-region" && region.isPlayModeNoWarp
+                        checked: region.type === "audio-region" && region.isPlayModeNoStretch
                     }).setTriggerProcedure(async () => {
                             const {status, value: modifier, error} =
                                 await Promises.tryCatch(AudioContentModifier.toNotStretched(selection.selected()

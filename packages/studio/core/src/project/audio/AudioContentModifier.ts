@@ -1,7 +1,7 @@
 import {EmptyExec, Exec, isDefined, isInstanceOf, UUID} from "@opendaw/lib-std"
 import {TimeBase} from "@opendaw/lib-dsp"
 import {
-    AudioPitchBox,
+    AudioPitchStretchBox,
     AudioRegionBox,
     AudioTimeStretchBox,
     TransientMarkerBox,
@@ -13,7 +13,7 @@ import {Workers} from "../../Workers"
 
 export namespace AudioContentModifier {
     export const toNotStretched = async (adapters: ReadonlyArray<AudioContentBoxAdapter>): Promise<Exec> => {
-        const audioAdapters = adapters.filter(adapter => !adapter.isPlayModeNoWarp)
+        const audioAdapters = adapters.filter(adapter => !adapter.isPlayModeNoStretch)
         if (audioAdapters.length === 0) {return EmptyExec}
         return () => audioAdapters.forEach((adapter) => {
             adapter.box.playMode.defer()
@@ -22,12 +22,12 @@ export namespace AudioContentModifier {
     }
 
     export const toPitchStretch = async (adapters: ReadonlyArray<AudioContentBoxAdapter>): Promise<Exec> => {
-        const audioAdapters = adapters.filter(adapter => adapter.asPlayModePitch.isEmpty())
+        const audioAdapters = adapters.filter(adapter => adapter.asPlayModePitchStretch.isEmpty())
         if (audioAdapters.length === 0) {return EmptyExec}
         return () => audioAdapters.forEach((adapter) => {
             const optTimeStretch = adapter.asPlayModeTimeStretch
             const boxGraph = adapter.box.graph
-            const pitchStretch = AudioPitchBox.create(boxGraph, UUID.generate())
+            const pitchStretch = AudioPitchStretchBox.create(boxGraph, UUID.generate())
             adapter.box.playMode.refer(pitchStretch)
             if (optTimeStretch.nonEmpty()) {
                 const timeStretch = optTimeStretch.unwrap()
@@ -63,7 +63,7 @@ export namespace AudioContentModifier {
             return {adapter}
         }))
         return () => tasks.forEach(({adapter, transients}) => {
-            const optPitchStretch = adapter.asPlayModePitch
+            const optPitchStretch = adapter.asPlayModePitchStretch
             const boxGraph = adapter.box.graph
             const timeStretch = AudioTimeStretchBox.create(boxGraph, UUID.generate())
             adapter.box.playMode.refer(timeStretch)

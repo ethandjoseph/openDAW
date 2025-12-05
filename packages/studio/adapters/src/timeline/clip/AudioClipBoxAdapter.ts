@@ -28,7 +28,7 @@ import {BoxAdaptersContext} from "../../BoxAdaptersContext"
 import {AudioFileBoxAdapter} from "../../audio/AudioFileBoxAdapter"
 import {AudioContentBoxAdapter} from "../AudioContentBoxAdapter"
 import {AudioPlayMode} from "../../audio/AudioPlayMode"
-import {AudioPitchBoxAdapter} from "../../audio/AudioPitchBoxAdapter"
+import {AudioPitchStretchBoxAdapter} from "../../audio/AudioPitchStretchBoxAdapter"
 import {AudioTimeStretchBoxAdapter} from "../../audio/AudioTimeStretchBoxAdapter"
 import {WarpMarkerBoxAdapter} from "../../audio/WarpMarkerBoxAdapter"
 
@@ -135,9 +135,9 @@ export class AudioClipBoxAdapter implements AudioContentBoxAdapter, ClipBoxAdapt
     get optCollection(): Option<never> {return Option.None}
     get timeBase(): TimeBase {return asEnumValue(this.#box.timeBase.getValue(), TimeBase)}
     get waveformOffset(): MutableObservableValue<number> {return this.#box.waveformOffset}
-    get isPlayModeNoWarp(): boolean {return this.#box.playMode.isEmpty()}
-    get asPlayModePitch(): Option<AudioPitchBoxAdapter> {
-        return this.observableOptPlayMode.map(mode => isInstanceOf(mode, AudioPitchBoxAdapter) ? mode : null)
+    get isPlayModeNoStretch(): boolean {return this.#box.playMode.isEmpty()}
+    get asPlayModePitchStretch(): Option<AudioPitchStretchBoxAdapter> {
+        return this.observableOptPlayMode.map(mode => isInstanceOf(mode, AudioPitchStretchBoxAdapter) ? mode : null)
     }
     get asPlayModeTimeStretch(): Option<AudioTimeStretchBoxAdapter> {
         return this.observableOptPlayMode.map(mode => isInstanceOf(mode, AudioTimeStretchBoxAdapter) ? mode : null)

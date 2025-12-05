@@ -7,7 +7,7 @@ import {dbToGain} from "@opendaw/lib-dsp"
 export const createAudioClipPainter = (adapter: AudioClipBoxAdapter): Procedure<CanvasPainter> => painter => {
     const {context, actualHeight: size} = painter
     const radius = size >> 1
-    const {file, gain, duration, optWarpMarkers, isPlayModeNoWarp} = adapter
+    const {file, gain, duration, optWarpMarkers, isPlayModeNoStretch} = adapter
     if (file.peaks.isEmpty()) {return}
     // TODO waveform-offset
     const numRays = 256
@@ -31,7 +31,7 @@ export const createAudioClipPainter = (adapter: AudioClipBoxAdapter): Procedure<
         context.moveTo(sin * minR, cos * minR)
         context.lineTo(sin * maxR, cos * maxR)
     }
-    if (optWarpMarkers.nonEmpty() && !isPlayModeNoWarp) {
+    if (optWarpMarkers.nonEmpty() && !isPlayModeNoStretch) {
         const warpMarkers = optWarpMarkers.unwrap()
         const data: Int32Array = peaks.data[0]
         for (const [w0, w1] of Iterables.pairWise(warpMarkers.iterateFrom(0))) {

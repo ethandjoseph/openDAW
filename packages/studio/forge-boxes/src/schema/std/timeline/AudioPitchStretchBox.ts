@@ -1,10 +1,10 @@
 import {BoxSchema} from "@opendaw/lib-box-forge"
 import {Pointers} from "@opendaw/studio-enums"
 
-export const AudioPitchBox: BoxSchema<Pointers> = {
+export const AudioPitchStretchBox: BoxSchema<Pointers> = {
     type: "box",
     class: {
-        name: "AudioPitchBox",
+        name: "AudioPitchStretchBox",
         fields: {
             1: {
                 type: "field", name: "warp-markers", pointerRules: {accepts: [Pointers.WarpMarkers], mandatory: true}

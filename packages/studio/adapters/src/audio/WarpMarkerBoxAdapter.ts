@@ -3,7 +3,7 @@ import {Address, Propagation} from "@opendaw/lib-box"
 import {Event} from "@opendaw/lib-dsp"
 import {WarpMarkerBox} from "@opendaw/studio-boxes"
 import {BoxAdapter} from "../BoxAdapter"
-import {AudioPitchBoxAdapter} from "./AudioPitchBoxAdapter"
+import {AudioPitchStretchBoxAdapter} from "./AudioPitchStretchBoxAdapter"
 import {BoxAdaptersContext} from "../BoxAdaptersContext"
 import {AudioTimeStretchBoxAdapter} from "./AudioTimeStretchBoxAdapter"
 import {AudioPlayMode} from "./AudioPlayMode"
@@ -44,7 +44,7 @@ export class WarpMarkerBoxAdapter implements BoxAdapter, Event, Selectable {
     get position(): number {return this.#box.position.getValue()}
     get seconds(): number {return this.#box.seconds.getValue()}
     get isSelected(): boolean {return this.#isSelected}
-    get optWarping(): Option<AudioPitchBoxAdapter | AudioTimeStretchBoxAdapter> {
+    get optWarping(): Option<AudioPitchStretchBoxAdapter | AudioTimeStretchBoxAdapter> {
         return this.#box.owner.targetVertex
             .map(vertex => this.#context.boxAdapters.adapterFor(vertex.box, AudioPlayMode.isAudioPlayMode))
     }

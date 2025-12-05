@@ -46,7 +46,7 @@ import {AudioSendRouting, AudioUnitType, IconSymbol, Pointers} from "@opendaw/st
 import {
     AudioBusBox,
     AudioFileBox,
-    AudioPitchBox,
+    AudioPitchStretchBox,
     AudioRegionBox,
     AudioUnitBox,
     AuxSendBox,
@@ -421,7 +421,7 @@ export namespace DawProjectImport {
                 const durationInPulses = duration * PPQN.Quarter
                 const loopDurationInPulses = loopDuration * PPQN.Quarter
                 const collectionBox = ValueEventCollectionBox.create(boxGraph, UUID.generate())
-                const pitchStretch = AudioPitchBox.create(boxGraph, UUID.generate())
+                const pitchStretch = AudioPitchStretchBox.create(boxGraph, UUID.generate())
                 AudioContentHelpers.addDefaultWarpMarkers(
                     boxGraph, pitchStretch, loopDurationInPulses, audioFileBox.endInSeconds.getValue())
                 AudioRegionBox.create(boxGraph, UUID.generate(), box => {

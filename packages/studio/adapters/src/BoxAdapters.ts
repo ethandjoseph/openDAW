@@ -16,7 +16,7 @@ import {
     AudioBusBox,
     AudioClipBox,
     AudioFileBox,
-    AudioPitchBox,
+    AudioPitchStretchBox,
     AudioRegionBox,
     AudioTimeStretchBox,
     AudioUnitBox,
@@ -122,7 +122,7 @@ import {MIDIOutputDeviceBoxAdapter} from "./devices/instruments/MIDIOutputDevice
 import {VelocityDeviceBoxAdapter} from "./devices/midi-effects/VelocityDeviceBoxAdapter"
 import {TidalDeviceBoxAdapter} from "./devices/audio-effects/TidalDeviceBoxAdapter"
 import {DattorroReverbDeviceBoxAdapter} from "./devices/audio-effects/DattorroReverbDeviceBoxAdapter"
-import {AudioPitchBoxAdapter} from "./audio/AudioPitchBoxAdapter"
+import {AudioPitchStretchBoxAdapter} from "./audio/AudioPitchStretchBoxAdapter"
 import {TransientMarkerBoxAdapter} from "./audio/TransientMarkerBoxAdapter"
 import {WarpMarkerBoxAdapter} from "./audio/WarpMarkerBoxAdapter"
 import {AudioTimeStretchBoxAdapter} from "./audio/AudioTimeStretchBoxAdapter"
@@ -182,8 +182,8 @@ export class BoxAdapters implements Terminable {
             visitAudioBusBox: (box: AudioBusBox): BoxAdapter => new AudioBusBoxAdapter(this.#context, box),
             visitAudioClipBox: (box: AudioClipBox) => new AudioClipBoxAdapter(this.#context, box),
             visitAudioFileBox: (box: AudioFileBox) => new AudioFileBoxAdapter(this.#context, box),
-            visitAudioPitchBox: (box: AudioPitchBox) => new AudioPitchBoxAdapter(this.#context, box),
             visitAudioTimeStretchBox: (box: AudioTimeStretchBox) => new AudioTimeStretchBoxAdapter(this.#context, box),
+            visitAudioPitchStretchBox: (box: AudioPitchStretchBox) => new AudioPitchStretchBoxAdapter(this.#context, box),
             visitTransientMarkerBox: (box: TransientMarkerBox) => new TransientMarkerBoxAdapter(box),
             visitWarpMarkerBox: (box: WarpMarkerBox) => new WarpMarkerBoxAdapter(this.#context, box),
             visitAudioRegionBox: (box: AudioRegionBox) => new AudioRegionBoxAdapter(this.#context, box),

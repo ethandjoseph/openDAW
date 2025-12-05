@@ -4,7 +4,7 @@ import {int, panic, quantizeRound, UUID} from "@opendaw/lib-std"
 import {
     AudioClipBox,
     AudioFileBox,
-    AudioPitchBox,
+    AudioPitchStretchBox,
     AudioRegionBox,
     AudioTimeStretchBox,
     TrackBox,
@@ -46,7 +46,7 @@ export namespace AudioContentFactory {
     }
 
     export const createPitchStretchedRegion = (props: PitchStretchedProps & Region): AudioRegionBox => {
-        return createRegionWithWarpMarkers(AudioPitchBox.create(props.boxGraph, UUID.generate()), props)
+        return createRegionWithWarpMarkers(AudioPitchStretchBox.create(props.boxGraph, UUID.generate()), props)
     }
 
     export const createNotStretchedRegion = (props: NotStretchedProps & Region): AudioRegionBox => {
@@ -98,7 +98,7 @@ export namespace AudioContentFactory {
 
     // ---- HELPERS ---- //
 
-    const createRegionWithWarpMarkers = (playMode: AudioPitchBox | AudioTimeStretchBox,
+    const createRegionWithWarpMarkers = (playMode: AudioPitchStretchBox | AudioTimeStretchBox,
                                          props: (TimeStretchedProps | PitchStretchedProps) & Region): AudioRegionBox => {
         const {boxGraph, targetTrack, position, audioFileBox, sample} = props
         if (targetTrack.type.getValue() !== TrackType.Audio) {
@@ -123,7 +123,7 @@ export namespace AudioContentFactory {
         })
     }
 
-    const createClipWithWarpMarkers = (playMode: AudioPitchBox | AudioTimeStretchBox,
+    const createClipWithWarpMarkers = (playMode: AudioPitchStretchBox | AudioTimeStretchBox,
                                        props: (TimeStretchedProps | PitchStretchedProps) & Clip): AudioClipBox => {
         const {boxGraph, targetTrack, audioFileBox, sample} = props
         if (targetTrack.type.getValue() !== TrackType.Audio) {
