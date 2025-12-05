@@ -1,22 +1,50 @@
 import css from "./StretchSelector.sass?inline"
 import {Html} from "@opendaw/lib-dom"
-import {DefaultObservableValue, Lifecycle, Nullable} from "@opendaw/lib-std"
+import {DefaultObservableValue, Lifecycle, panic} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
-import {IconSymbol, TransientPlayMode} from "@opendaw/studio-enums"
+import {IconSymbol} from "@opendaw/studio-enums"
 import {RadioGroup} from "@/ui/components/RadioGroup"
 import {Icon} from "@/ui/components/Icon"
+import {AudioContentModifier, Project} from "@opendaw/studio-core"
+import {AudioEventOwnerReader} from "@/ui/timeline/editors/EventOwnerReader"
+import {TimeStretchEditor} from "@/ui/timeline/editors/audio/TimeStretchEditor"
 
 const className = Html.adoptStyleSheet(css, "StretchSelector")
 
 type Construct = {
     lifecycle: Lifecycle
+    project: Project
+    reader: AudioEventOwnerReader
 }
 
-export const StretchSelector = ({lifecycle}: Construct) => {
-    enum PlayModeEnum {NoWarp, Pitch, TimeStretch}
+export const StretchSelector = ({lifecycle, project, reader}: Construct) => {
+    const enum PlayModeEnum {NoWarp, Pitch, TimeStretch}
 
-    const playModeEnumValue = new DefaultObservableValue(PlayModeEnum.TimeStretch)
-    const transientPlayModeEnumValue = new DefaultObservableValue<Nullable<TransientPlayMode>>(TransientPlayMode.Pingpong)
+    const {editing} = project
+    const {audioContent} = reader
+    const toPlayModeEnum = (): PlayModeEnum => {
+        if (audioContent.isPlayModeNoWarp) {return PlayModeEnum.NoWarp}
+        if (audioContent.asPlayModePitch.nonEmpty()) {return PlayModeEnum.Pitch}
+        if (audioContent.asPlayModeTimeStretch.nonEmpty()) {return PlayModeEnum.TimeStretch}
+        return panic("Unknown PlayMode")
+    }
+    const playModeEnumValue = new DefaultObservableValue(toPlayModeEnum())
+    lifecycle.ownAll(
+        playModeEnumValue.subscribe(async owner => {
+            const playModeEnum = owner.getValue()
+            if (playModeEnum === PlayModeEnum.NoWarp) {
+                const exec = await AudioContentModifier.toNotStretched([audioContent])
+                editing.modify(exec)
+            } else if (playModeEnum === PlayModeEnum.Pitch) {
+                const exec = await AudioContentModifier.toPitchStretch([audioContent])
+                editing.modify(exec)
+            } else if (playModeEnum === PlayModeEnum.TimeStretch) {
+                const exec = await AudioContentModifier.toTimeStretch([audioContent])
+                editing.modify(exec)
+            }
+        }),
+        audioContent.box.playMode.subscribe(() => playModeEnumValue.setValue(toPlayModeEnum()))
+    )
     return (
         <div className={className}>
             <RadioGroup lifecycle={lifecycle}
@@ -29,7 +57,7 @@ export const StretchSelector = ({lifecycle}: Construct) => {
                             },
                             {
                                 value: PlayModeEnum.Pitch,
-                                element: (<Icon symbol={IconSymbol.Note}/>),
+                                element: (<Icon symbol={IconSymbol.TapeReel}/>),
                                 tooltip: "Pitch Stretch"
                             },
                             {
@@ -39,25 +67,9 @@ export const StretchSelector = ({lifecycle}: Construct) => {
                             }
                         ]}/>
             <hr/>
-            <RadioGroup lifecycle={lifecycle}
-                        model={transientPlayModeEnumValue}
-                        elements={[
-                            {
-                                value: TransientPlayMode.Once,
-                                element: (<Icon symbol={IconSymbol.PlayOnce}/>),
-                                tooltip: "Play transient once"
-                            },
-                            {
-                                value: TransientPlayMode.Repeat,
-                                element: (<Icon symbol={IconSymbol.PlayRepeat}/>),
-                                tooltip: "Repeat transient"
-                            },
-                            {
-                                value: TransientPlayMode.Pingpong,
-                                element: (<Icon symbol={IconSymbol.PlayAlternate}/>),
-                                tooltip: "Alternate playback"
-                            }
-                        ]}/>
+            <TimeStretchEditor lifecycle={lifecycle}
+                               project={project}
+                               reader={reader}/>
         </div>
     )
 }

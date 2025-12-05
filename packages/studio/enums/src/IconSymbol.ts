@@ -118,6 +118,7 @@ export enum IconSymbol {
     System,
     Table,
     Tape,
+    TapeReel,
     Time,
     Timeline,
     Tool,

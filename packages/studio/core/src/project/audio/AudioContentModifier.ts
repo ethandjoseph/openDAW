@@ -1,4 +1,3 @@
-import {AudioClipBoxAdapter, AudioRegionBoxAdapter} from "@opendaw/studio-adapters"
 import {EmptyExec, Exec, isDefined, isInstanceOf, UUID} from "@opendaw/lib-std"
 import {TimeBase} from "@opendaw/lib-dsp"
 import {
@@ -8,13 +7,12 @@ import {
     TransientMarkerBox,
     WarpMarkerBox
 } from "@opendaw/studio-boxes"
+import {AudioContentBoxAdapter, AudioRegionBoxAdapter} from "@opendaw/studio-adapters"
 import {AudioContentHelpers} from "./AudioContentHelpers"
 import {Workers} from "../../Workers"
 
 export namespace AudioContentModifier {
-    type AudioContentOwner = AudioRegionBoxAdapter | AudioClipBoxAdapter
-
-    export const toNotStretched = async (adapters: ReadonlyArray<AudioContentOwner>): Promise<Exec> => {
+    export const toNotStretched = async (adapters: ReadonlyArray<AudioContentBoxAdapter>): Promise<Exec> => {
         const audioAdapters = adapters.filter(adapter => !adapter.isPlayModeNoWarp)
         if (audioAdapters.length === 0) {return EmptyExec}
         return () => audioAdapters.forEach((adapter) => {
@@ -23,7 +21,7 @@ export namespace AudioContentModifier {
         })
     }
 
-    export const toPitchStretch = async (adapters: ReadonlyArray<AudioContentOwner>): Promise<Exec> => {
+    export const toPitchStretch = async (adapters: ReadonlyArray<AudioContentBoxAdapter>): Promise<Exec> => {
         const audioAdapters = adapters.filter(adapter => adapter.asPlayModePitch.isEmpty())
         if (audioAdapters.length === 0) {return EmptyExec}
         return () => audioAdapters.forEach((adapter) => {
@@ -52,7 +50,7 @@ export namespace AudioContentModifier {
         })
     }
 
-    export const toTimeStretch = async (adapters: ReadonlyArray<AudioContentOwner>): Promise<Exec> => {
+    export const toTimeStretch = async (adapters: ReadonlyArray<AudioContentBoxAdapter>): Promise<Exec> => {
         const audioAdapters = adapters.filter(adapter => adapter.asPlayModeTimeStretch.isEmpty())
         if (audioAdapters.length === 0) {return EmptyExec}
         const tasks = await Promise.all(audioAdapters.map(async adapter => {
@@ -97,7 +95,7 @@ export namespace AudioContentModifier {
         })
     }
 
-    const switchTimeBaseToSeconds = ({box, file, timeBase}: AudioContentOwner): void => {
+    const switchTimeBaseToSeconds = ({box, file, timeBase}: AudioContentBoxAdapter): void => {
         if (timeBase === TimeBase.Seconds) {return}
         // Reset to 100% playback speed (original file speed)
         box.timeBase.setValue(TimeBase.Seconds)
@@ -110,7 +108,7 @@ export namespace AudioContentModifier {
         })
     }
 
-    const switchTimeBaseToMusical = (adapter: AudioContentOwner): void => {
+    const switchTimeBaseToMusical = (adapter: AudioContentBoxAdapter): void => {
         const {timeBase} = adapter
         if (timeBase === TimeBase.Musical) {return}
         const {box} = adapter

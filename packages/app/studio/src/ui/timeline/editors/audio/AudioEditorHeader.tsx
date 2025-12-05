@@ -21,7 +21,9 @@ export const AudioEditorHeader = ({lifecycle, project, reader}: Construct) => {
     return (
         <div className={className}>
             <span className="label">Stretch Mode:</span>
-            <StretchSelector lifecycle={lifecycle}/>
+            <StretchSelector lifecycle={lifecycle}
+                             project={project}
+                             reader={reader}/>
             <span className="label">Waveform Offset:</span>
             <div className="waveform-offset">
                 <NumberInput lifecycle={lifecycle}
