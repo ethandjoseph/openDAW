@@ -1,6 +1,6 @@
 import css from "./TimeStretchEditor.sass?inline"
 import {Html} from "@opendaw/lib-dom"
-import {DefaultObservableValue, Lifecycle, Nullable, StringMapping} from "@opendaw/lib-std"
+import {DefaultObservableValue, Lifecycle, Nullable, StringMapping, Terminator} from "@opendaw/lib-std"
 import {createElement} from "@opendaw/lib-jsx"
 import {IconSymbol, TransientPlayMode} from "@opendaw/studio-enums"
 import {Project} from "@opendaw/studio-core"
@@ -18,16 +18,29 @@ type Construct = {
 }
 
 export const TimeStretchEditor = ({lifecycle, project, reader}: Construct) => {
-    const {} = project
+    const {editing} = project
     const {audioContent} = reader
-    const toTransientPlayMode = (): Nullable<TransientPlayMode> => audioContent.asPlayModeTimeStretch
-        .mapOr(adapter => adapter.transientPlayMode, null)
-    const transientPlayModeEnumValue = new DefaultObservableValue<Nullable<TransientPlayMode>>(toTransientPlayMode())
-    lifecycle.ownAll(
-        audioContent.box.playMode.catchupAndSubscribe(() => transientPlayModeEnumValue.setValue(toTransientPlayMode()))
-    )
+    const transientPlayModeEnumValue = new DefaultObservableValue<Nullable<TransientPlayMode>>(null)
+    const activeLifecycle = lifecycle.own(new Terminator())
     return (
-        <div className={className}>
+        <div className={className} onInit={element => {
+            lifecycle.ownAll(
+                audioContent.box.playMode.catchupAndSubscribe(() => {
+                    activeLifecycle.terminate()
+                    audioContent.asPlayModeTimeStretch.match({
+                        none: () => transientPlayModeEnumValue.setValue(null),
+                        some: adapter => {
+                            activeLifecycle.own(adapter.box.transientPlayMode.catchupAndSubscribe(transientPlayMode =>
+                                transientPlayModeEnumValue.setValue(transientPlayMode.getValue())))
+                        }
+                    })
+                    element.classList.toggle("disabled", transientPlayModeEnumValue.getValue() === null)
+                }),
+                transientPlayModeEnumValue.subscribe(owner => audioContent.asPlayModeTimeStretch
+                    .ifSome(adapter => editing.modify(() =>
+                        adapter.box.transientPlayMode.setValue(owner.getValue() ?? TransientPlayMode.Once))))
+            )
+        }}>
             <RadioGroup lifecycle={lifecycle}
                         model={transientPlayModeEnumValue}
                         elements={[
